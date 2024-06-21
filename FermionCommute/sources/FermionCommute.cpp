@@ -4,7 +4,7 @@
 #include "Definitions/Hubbard.hpp"
 #include "Definitions/HubbardDispersions.hpp"
 #include "Definitions/Continuum.hpp"
-#include "Wick.hpp"
+#include "SymbolicOperators/Wick.hpp"
 #include <memory>
 #include <filesystem>
 
@@ -28,6 +28,7 @@ std::unique_ptr<StandardOperators> get_model(std::string const& model_type) {
 }
 
 int main(int argc, char** argv) {
+	const std::string save_folder = "../commutators/";
 	//WickTerm parse_test("1 sum:momentum{p,q} c:V{p;q} o:n{k-p-3x;up} o:f{k+l;}");
 	//std::cout << parse_test << std::endl;
 
@@ -59,7 +60,7 @@ int main(int argc, char** argv) {
 	const std::unique_ptr<StandardOperators> model = get_model(MODEL_TYPE);
 	const std::string sub_folder = model->get_subfolder();
 	if (!debug)
-		std::filesystem::create_directories("../commutators/" + sub_folder);
+		std::filesystem::create_directories(save_folder + sub_folder);
 
 	const term_vec H = model->hamiltonian();
 	const std::vector<WickOperatorTemplate> templates = model->templates();
@@ -135,7 +136,7 @@ int main(int argc, char** argv) {
 			// serialization
 			if (!debug) {
 				// create an output file stream and a text archive to serialize the vector
-				std::ofstream ofs("../commutators/" + sub_folder + name_prefix + "wick_M_" + std::to_string(j) + "_" + std::to_string(i) + ".txt");
+				std::ofstream ofs(save_folder + sub_folder + name_prefix + "wick_M_" + std::to_string(j) + "_" + std::to_string(i) + ".txt");
 				boost::archive::text_oarchive oa(ofs);
 				oa << wicks;
 				ofs.close();
@@ -155,7 +156,7 @@ int main(int argc, char** argv) {
 			// serialization
 			if (!debug) {
 				// create an output file stream and a text archive to serialize the vector
-				std::ofstream ofs("../commutators/" + sub_folder + name_prefix + "wick_N_" + std::to_string(j) + "_" + std::to_string(i) + ".txt");
+				std::ofstream ofs(save_folder + sub_folder + name_prefix + "wick_N_" + std::to_string(j) + "_" + std::to_string(i) + ".txt");
 				boost::archive::text_oarchive oa(ofs);
 				oa << wicks;
 				ofs.close();

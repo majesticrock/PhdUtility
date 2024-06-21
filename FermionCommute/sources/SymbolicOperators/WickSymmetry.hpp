@@ -7,6 +7,7 @@ namespace SymbolicOperators
 {
     struct WickSymmetry {
         virtual void apply_to(WickTerm& term) const = 0;
+        virtual ~WickSymmetry() = default;
     };
 
     // Expectation values for spin up and down are the same
