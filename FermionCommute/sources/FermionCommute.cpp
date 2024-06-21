@@ -4,7 +4,7 @@
 #include "Definitions/Hubbard.hpp"
 #include "Definitions/HubbardDispersions.hpp"
 #include "Definitions/Continuum.hpp"
-#include "SymbolicOperators/Wick.hpp"
+#include <SymbolicOperators/Wick.hpp>
 #include <memory>
 #include <filesystem>
 

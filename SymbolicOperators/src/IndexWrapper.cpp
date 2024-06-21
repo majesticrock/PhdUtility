@@ -1,4 +1,4 @@
-#include "IndexWrapper.hpp"
+#include <SymbolicOperators/IndexWrapper.hpp>
 
 namespace SymbolicOperators {
 	std::ostream& operator<<(std::ostream& os, const Index index)

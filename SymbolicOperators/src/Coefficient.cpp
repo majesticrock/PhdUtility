@@ -1,4 +1,4 @@
-#include "Coefficient.hpp"
+#include <SymbolicOperators/Coefficient.hpp>
 #include <Utility/StringUtility.hpp>
 
 namespace SymbolicOperators {

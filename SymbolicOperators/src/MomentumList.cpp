@@ -1,4 +1,4 @@
-#include "MomentumList.hpp"
+#include <SymbolicOperators/MomentumList.hpp>
 
 namespace SymbolicOperators {
 	void MomentumList::replaceOccurances(const char replaceWhat, const Momentum& replaceWith) {

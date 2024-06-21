@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../SymbolicOperators/Momentum.hpp"
-#include "../SymbolicOperators/Operator.hpp"
-#include "../SymbolicOperators/Term.hpp"
-#include "../SymbolicOperators/WickOperatorTemplate.hpp"
-#include "../SymbolicOperators/WickSymmetry.hpp"
+#include <SymbolicOperators/Momentum.hpp>
+#include <SymbolicOperators/Operator.hpp>
+#include <SymbolicOperators/Term.hpp>
+#include <SymbolicOperators/WickOperatorTemplate.hpp>
+#include <SymbolicOperators/WickSymmetry.hpp>
 
 namespace SymbolicOperators {
 	struct StandardOperators {

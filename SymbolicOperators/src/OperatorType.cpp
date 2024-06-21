@@ -1,4 +1,4 @@
-#include "OperatorType.hpp"
+#include <SymbolicOperators/OperatorType.hpp>
 
 namespace SymbolicOperators {
     std::ostream& operator<<(std::ostream& os, const OperatorType op)

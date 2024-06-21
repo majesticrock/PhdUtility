@@ -1,5 +1,5 @@
-#include "WickSymmetry.hpp"
-#include "WickTerm.hpp"
+#include <SymbolicOperators/WickSymmetry.hpp>
+#include <SymbolicOperators/WickTerm.hpp>
 
 namespace SymbolicOperators{
     void SpinSymmetry::apply_to(WickTerm& term) const

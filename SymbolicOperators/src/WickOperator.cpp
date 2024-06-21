@@ -1,4 +1,4 @@
-#include "WickOperator.hpp"
+#include <SymbolicOperators/WickOperator.hpp>
 #include <Utility/StringUtility.hpp>
 #include <cassert>
 

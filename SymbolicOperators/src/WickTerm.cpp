@@ -1,6 +1,6 @@
-#include "WickTerm.hpp"
+#include <SymbolicOperators/WickTerm.hpp>
+#include <SymbolicOperators/KroneckerDeltaUtility.hpp>
 #include <Utility/StringUtility.hpp>
-#include "KroneckerDeltaUtility.hpp"
 #include <cctype>
 #include <cassert>
 

@@ -1,5 +1,5 @@
-#include "Term.hpp"
-#include "KroneckerDeltaUtility.hpp"
+#include <SymbolicOperators/Term.hpp>
+#include <SymbolicOperators/KroneckerDeltaUtility.hpp>
 #include <Utility/RangeUtility.hpp>
 #include <sstream>
 

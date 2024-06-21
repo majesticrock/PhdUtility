@@ -2,7 +2,7 @@ all: build/FermionCommute ../commutators XP std
 
 build/FermionCommute: build
 	cmake -B build -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ .
-	cmake --build build -j16
+	cmake --build build
 
 XP: build/FermionCommute ../commutators
 	./build/FermionCommute XP hubbard

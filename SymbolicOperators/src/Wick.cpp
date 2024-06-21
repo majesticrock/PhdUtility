@@ -1,7 +1,7 @@
-#include "Wick.hpp"
-#include <Utility/RangeUtility.hpp>
-#include "KroneckerDeltaUtility.hpp"
+#include <SymbolicOperators/Wick.hpp>
+#include <SymbolicOperators/KroneckerDeltaUtility.hpp>
 #include <Utility/Numerics/MathFunctions.hpp>
+#include <Utility/RangeUtility.hpp>
 #include <variant>
 #include <numeric>
 

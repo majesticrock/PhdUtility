@@ -1,4 +1,4 @@
-#include "Momentum.hpp"
+#include <SymbolicOperators/Momentum.hpp>
 #include <cctype>
 
 namespace SymbolicOperators {

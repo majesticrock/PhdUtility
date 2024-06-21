@@ -8,36 +8,14 @@
 x64/
 Debug/
 Release/
-build/
+*/build/*
 *.csv
 stdout*
 stderr*
-python/__pycache__
-python/lib/__pycache__
-cpp/ModeFinder/sources/Utility
-cpp/HubbardMeanField/auto_generated
-cpp/HubbardMeanField/small_auto_generated
-cpp/HubbardMeanField/small_auto_generated2
-cpp/HubbardMeanField/cube_auto_generated
-cpp/HubbardMeanField/square_auto_generated
-cpp/HubbardMeanField/small_cube_auto_generated
-cpp/HubbardMeanField/small_square_auto_generated
-cpp/main
-cpp/HubbardMeanField/doxy
+*/__pycache__/*
 *.bin
-paper/plots
 
-cpp/ContinuumSystem/sources/SymbolicOperators
-cpp/ContinuumSystem/sources/Utility
-cpp/HubbardMeanField/sources/SymbolicOperators
-cpp/HubbardMeanField/sources/Utility
-
-#include literature
-!literature/*.pdf
-
-#ignore data that is subject to change
-data/**/test/
-data/**/test2/
+!CMakeLists.txt
 
 *.aux
 *.blg
@@ -81,4 +59,3 @@ data/**/test2/
 *.exe
 *.out
 *.app
-data/modes/square/mom_test

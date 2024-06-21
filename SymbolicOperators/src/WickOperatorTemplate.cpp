@@ -1,9 +1,9 @@
-#include "WickOperatorTemplate.hpp"
+#include <SymbolicOperators/WickOperatorTemplate.hpp>
+#include <SymbolicOperators/Momentum.hpp>
+#include <SymbolicOperators/KroneckerDelta.hpp>
+#include <SymbolicOperators/KroneckerDeltaUtility.hpp>
 #include <algorithm>
 #include <iterator>
-#include "Momentum.hpp"
-#include "KroneckerDelta.hpp"
-#include "KroneckerDeltaUtility.hpp"
 
 namespace SymbolicOperators {
 	TemplateResult::TemplateResult(size_t initial_size, OperatorType operator_type, const Momentum& base_momentum)
