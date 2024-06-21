@@ -67,4 +67,16 @@ namespace Utility::Selfconsistency {
 		BroydenSolver(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, size_t MaxPreBroydenIterations)
 			: _parent(model_ptr, attribute_ptr), _MaxPreBroydenIterations(MaxPreBroydenIterations) {};
 	};
+
+	template <const DebugPolicy& debugPolicy, class DataType, class Model, class SelfconsistencyAttributes>
+	auto make_broyden(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, size_t MaxPreBroydenIterations)
+	{
+		return BroydenSolver<DataType, Model, SelfconsistencyAttributes, debugPolicy>(model_ptr, attribute_ptr, MaxPreBroydenIterations);
+	}
+
+	template <class DataType, class Model, class SelfconsistencyAttributes>
+	auto make_broyden(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, size_t MaxPreBroydenIterations)
+	{
+		return BroydenSolver<DataType, Model, SelfconsistencyAttributes, WarnNoConvergence>(model_ptr, attribute_ptr, MaxPreBroydenIterations);
+	}
 }

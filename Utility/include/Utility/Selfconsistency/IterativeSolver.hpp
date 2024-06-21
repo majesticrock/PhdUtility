@@ -121,4 +121,16 @@ namespace Utility::Selfconsistency {
 		IterativeSolver(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr)
 			: _model(model_ptr), _attr(attribute_ptr), NUMBER_OF_PARAMETERS(_attr->size()) {};
 	};
+
+	template <const DebugPolicy& debugPolicy, class DataType, class Model, class SelfconsistencyAttributes>
+	auto make_iterative(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr)
+	{
+		return IterativeSolver<DataType, Model, SelfconsistencyAttributes, debugPolicy>(model_ptr, attribute_ptr);
+	}
+
+	template <class DataType, class Model, class SelfconsistencyAttributes>
+	auto make_iterative(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr)
+	{
+		return IterativeSolver<DataType, Model, SelfconsistencyAttributes, WarnNoConvergence>(model_ptr, attribute_ptr);
+	}
 }
