@@ -9,7 +9,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Include directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
-include_directories(${PROJECT_SOURCE_DIR}/../Utility/include)
 
 set(SYM_OP_SOURCES
     src/Coefficient.cpp
@@ -35,6 +34,13 @@ target_include_directories(SymbolicOperators PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
+
+find_package(Utility REQUIRED)
+if(NOT Utility_FOUND)
+    message(FATAL_ERROR "Utility library not found")
+endif()
+target_link_libraries(SymbolicOperators PRIVATE Utility::Utility)
+target_include_directories(SymbolicOperators PRIVATE ${Utility_INCLUDE_DIRS})
 
 # Installation settings
 install(TARGETS SymbolicOperators

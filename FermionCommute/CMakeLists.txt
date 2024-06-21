@@ -12,7 +12,6 @@ list(APPEND CMAKE_PREFIX_PATH "~/usr/local")
 
 add_subdirectory(sources/Definitions)
 include_directories(
-    ${CMAKE_HOME_DIRECTORY}/../Utility/include
     $ENV{HOME}/usr/local/include
 )
 
@@ -52,6 +51,11 @@ if(NOT SymbolicOperators_FOUND)
     message(FATAL_ERROR "SymbolicOperators library not found")
 endif()
 target_include_directories(FermionCommute PRIVATE ${SymbolicOperators_INCLUDE_DIRS})
-target_link_libraries(FermionCommute PRIVATE ${Boost_LIBRARIES} PRIVATE SymbolicOperators::SymbolicOperators Definitions)
 
-message(x=${SymbolicOperators_INCLUDE_DIRS})
+find_package(Utility REQUIRED)
+if(NOT Utility_FOUND)
+    message(FATAL_ERROR "Utility library not found")
+endif()
+target_include_directories(FermionCommute PRIVATE ${Utility_INCLUDE_DIRS})
+
+target_link_libraries(FermionCommute PRIVATE Definitions ${Boost_LIBRARIES} SymbolicOperators::SymbolicOperators Utility::Utility)
