@@ -27,7 +27,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     endif()
     # Use the appropriate flag for GCC
     target_compile_options(FermionCommute PRIVATE
-#        -g debug options
         -Wall
         -Wno-sign-compare
         -fopenmp
@@ -46,16 +45,4 @@ if(NOT Boost_FOUND)
 endif()
 target_include_directories(FermionCommute PRIVATE ${Boost_INCLUDE_DIRS})
 
-find_package(SymbolicOperators REQUIRED CONFIG)
-if(NOT SymbolicOperators_FOUND)
-    message(FATAL_ERROR "SymbolicOperators library not found")
-endif()
-target_include_directories(FermionCommute PRIVATE ${SymbolicOperators_INCLUDE_DIRS})
-
-find_package(Utility REQUIRED)
-if(NOT Utility_FOUND)
-    message(FATAL_ERROR "Utility library not found")
-endif()
-target_include_directories(FermionCommute PRIVATE ${Utility_INCLUDE_DIRS})
-
-target_link_libraries(FermionCommute PRIVATE Definitions ${Boost_LIBRARIES} SymbolicOperators::SymbolicOperators Utility::Utility)
+target_link_libraries(FermionCommute PRIVATE Definitions ${Boost_LIBRARIES})

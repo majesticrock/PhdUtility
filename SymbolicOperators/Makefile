@@ -17,4 +17,4 @@ clean:
 install: all
 	@$(MAKE) -C $(BUILD_DIR) install
 
-.PHONY: all clean test install
+.PHONY: all clean install
