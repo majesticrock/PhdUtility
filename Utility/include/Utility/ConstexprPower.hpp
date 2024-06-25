@@ -10,18 +10,18 @@ namespace Utility {
         }
         else if constexpr (exponent > 0)
         {
-            if constexpr (exponent % 2 == 0)
+            if constexpr (exponent & 1)
             {
-                return constexprPower<exponent - 1, NumberType, ResultType>(base * base);
+                return base * constexprPower<exponent - 1, NumberType, ResultType>(base);
             } 
             else 
             {
-                return base * constexprPower<exponent - 1, NumberType, ResultType>(base);
+                return constexprPower<exponent - 1, NumberType, ResultType>(base * base);
             }
         }
         else 
         {
-            return 1;
+            return ResultType{1};
         }
     }
 }

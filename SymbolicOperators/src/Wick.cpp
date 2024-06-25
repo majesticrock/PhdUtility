@@ -18,7 +18,7 @@ namespace SymbolicOperators {
 				WickTerm temp(std::get<Term>(buffer));
 				buffer = temp;
 			}
-			if ((i % 2) == 0) {
+			if (!(i & 1)) {
 				std::get<WickTerm>(buffer).multiplicity *= -1;
 			}
 			std::get<WickTerm>(buffer).temporary_operators.reserve(std::get<WickTerm>(buffer).temporary_operators.size() + 2);
@@ -33,7 +33,7 @@ namespace SymbolicOperators {
 			// delete last two elements, as they are to be updated in the next iteration
 			std::get<WickTerm>(buffer).temporary_operators.pop_back();
 			std::get<WickTerm>(buffer).temporary_operators.pop_back();
-			if ((i % 2) == 0) {
+			if (!(i & 1)) {
 				std::get<WickTerm>(buffer).multiplicity *= -1;
 			}
 		}

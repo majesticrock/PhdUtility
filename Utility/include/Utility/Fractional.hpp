@@ -127,11 +127,11 @@ namespace Utility {
         if(exponent == 0) return Fractional<_int>{_int(1), _int(1)};
         if(exponent < 0) return pow(Fractional<_int>{base.denominator, base.numerator}, exponent);
         if(exponent == 1) return base;
-        if(exponent % 2 == 0){
-            return pow(base) * pow(base);
+        if(exponent & 1){
+            return base * pow(base) * pow(base);
         } 
         else {
-            return base * pow(base) * pow(base);
+            return pow(base) * pow(base);
         }
     }
 

@@ -15,7 +15,7 @@ namespace Utility::Selfconsistency {
 		virtual const SelfconsistencyAttributes& compute(bool print_time=false, const size_t MAX_STEPS = 400)
 		{
             std::chrono::time_point begin = std::chrono::steady_clock::now();
-			this->_parent::procedureIterative(_MaxPreBroydenIterations, 1e-6);
+			this->_parent::procedureIterative(_MaxPreBroydenIterations);
 
 			std::function<void(const ParameterVector&, ParameterVector&)> func = [&](const ParameterVector& x, ParameterVector& F) {
                 this->_model->iterationStep(x, F);
@@ -65,18 +65,20 @@ namespace Utility::Selfconsistency {
 
 		BroydenSolver() = delete;
 		BroydenSolver(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, size_t MaxPreBroydenIterations)
-			: _parent(model_ptr, attribute_ptr), _MaxPreBroydenIterations(MaxPreBroydenIterations) {};
+			: _parent(model_ptr, attribute_ptr, 1e-6), _MaxPreBroydenIterations(MaxPreBroydenIterations) {};
+		BroydenSolver(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, size_t MaxPreBroydenIterations, const RealType& preBroydenPrecision)
+			: _parent(model_ptr, attribute_ptr, preBroydenPrecision), _MaxPreBroydenIterations(MaxPreBroydenIterations) {};
 	};
 
 	template <const DebugPolicy& debugPolicy, class DataType, class Model, class SelfconsistencyAttributes>
-	auto make_broyden(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, size_t MaxPreBroydenIterations)
+	auto make_broyden(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, size_t MaxPreBroydenIterations, const UnderlyingFloatingPoint_t<DataType>& preBroydenPrecision = 1e-6)
 	{
-		return BroydenSolver<DataType, Model, SelfconsistencyAttributes, debugPolicy>(model_ptr, attribute_ptr, MaxPreBroydenIterations);
+		return BroydenSolver<DataType, Model, SelfconsistencyAttributes, debugPolicy>(model_ptr, attribute_ptr, MaxPreBroydenIterations, preBroydenPrecision);
 	}
 
 	template <class DataType, class Model, class SelfconsistencyAttributes>
-	auto make_broyden(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, size_t MaxPreBroydenIterations)
+	auto make_broyden(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, size_t MaxPreBroydenIterations, const UnderlyingFloatingPoint_t<DataType>& preBroydenPrecision = 1e-6)
 	{
-		return BroydenSolver<DataType, Model, SelfconsistencyAttributes, WarnNoConvergence>(model_ptr, attribute_ptr, MaxPreBroydenIterations);
+		return BroydenSolver<DataType, Model, SelfconsistencyAttributes, WarnNoConvergence>(model_ptr, attribute_ptr, MaxPreBroydenIterations, preBroydenPrecision);
 	}
 }

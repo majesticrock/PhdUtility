@@ -21,8 +21,8 @@ namespace Utility::Selfconsistency {
 
 	template<class RealType>
 	struct ConvergenceInfo {
-		RealType error{};
-		bool converged{};
+		RealType error{ 100 };
+		bool converged{ false };
 		explicit operator bool() const {
 			return this->converged;
 		};
@@ -38,18 +38,19 @@ namespace Utility::Selfconsistency {
 	template <class DataType, class Model, class SelfconsistencyAttributes, const DebugPolicy& debugPolicy = WarnNoConvergence>
 	class IterativeSolver {
 	protected:
-		Model* _model{};
-		SelfconsistencyAttributes* _attr{};
-		const size_t NUMBER_OF_PARAMETERS;
-
 		using ParameterVector = Eigen::Vector<DataType, Eigen::Dynamic>;
 		using RealType = UnderlyingFloatingPoint_t<DataType>;
+
+		Model* _model{};
+		SelfconsistencyAttributes* _attr{};
+		const RealType _precision{ PRECISION<RealType> };
+		const size_t NUMBER_OF_PARAMETERS{};
 
 		inline bool hasSignFlippingBehaviour(const ParameterVector& x0) {
 			for (size_t j = 0U; j < this->NUMBER_OF_PARAMETERS; ++j)
 			{
-				if (abs(x0[j]) > 1e1 * PRECISION<RealType>) {
-					if (abs((x0[j] + (*this->_attr)[j]) / x0[j]) < PRECISION<RealType>) {
+				if (abs(x0[j]) > 1e1 * _precision) {
+					if (abs((x0[j] + (*this->_attr)[j]) / x0[j]) < _precision) {
 						return true;
 					}
 				}
@@ -57,9 +58,9 @@ namespace Utility::Selfconsistency {
 			return false;
 		};
 
-		ConvergenceInfo<RealType> procedureIterative(const size_t MAX_STEPS, RealType precision = PRECISION<RealType>)
+		ConvergenceInfo<RealType> procedureIterative(const size_t MAX_STEPS)
 		{
-			RealType error{ 100 };
+			ConvergenceInfo<RealType> convergence;
 
 			ParameterVector f0{ ParameterVector::Zero(this->NUMBER_OF_PARAMETERS) };
 			std::copy(this->_attr->begin(), this->_attr->end(), f0.begin());
@@ -70,7 +71,7 @@ namespace Utility::Selfconsistency {
 			}
 
 			size_t iterNum = 0U;
-			while (iterNum < MAX_STEPS && error > precision) {
+			while (iterNum < MAX_STEPS && convergence.error > _precision) {
 				this->_model->iterationStep(x0, f0);
 				if (hasSignFlippingBehaviour(x0)) {
 					if constexpr (debugPolicy.convergenceWarning) {
@@ -78,12 +79,12 @@ namespace Utility::Selfconsistency {
 					}
 					return { 2 * x0.norm(), false };
 				}
-				error = f0.norm();
+				convergence.error = f0.norm() / x0.norm();
 				std::copy(this->_attr->begin(), this->_attr->end(), x0.begin());
 
 				if constexpr (debugPolicy.printSteps) {
 					std::cout << iterNum << ":\t" << std::scientific << std::setprecision(4) << "\n" << x0.transpose() << std::endl;
-					std::cout << "Error:  " << error << "\n";
+					std::cout << "Error:  " << std::setprecision(12) << convergence.error << "\n";
 				}
 				++iterNum;
 			}
@@ -91,9 +92,10 @@ namespace Utility::Selfconsistency {
 				std::cout << "Finished iterative procedure!" << std::endl;
 			}
 			if (iterNum >= MAX_STEPS) {
-				return { error, false };
+				return convergence;
 			}
-			return { error, true };
+			convergence.converged = true;
+			return convergence;
 		};
 	public:
 		virtual const SelfconsistencyAttributes& compute(bool print_time = false, const size_t MAX_STEPS = 1500)
@@ -120,17 +122,19 @@ namespace Utility::Selfconsistency {
 		IterativeSolver() = delete;
 		IterativeSolver(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr)
 			: _model(model_ptr), _attr(attribute_ptr), NUMBER_OF_PARAMETERS(_attr->size()) {};
+		IterativeSolver(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, const RealType& precision)
+			: _model(model_ptr), _attr(attribute_ptr), _precision(precision), NUMBER_OF_PARAMETERS(_attr->size()) {};
 	};
 
 	template <const DebugPolicy& debugPolicy, class DataType, class Model, class SelfconsistencyAttributes>
-	auto make_iterative(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr)
+	auto make_iterative(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, const UnderlyingFloatingPoint_t<DataType>& precision = PRECISION<UnderlyingFloatingPoint_t<DataType>>)
 	{
-		return IterativeSolver<DataType, Model, SelfconsistencyAttributes, debugPolicy>(model_ptr, attribute_ptr);
+		return IterativeSolver<DataType, Model, SelfconsistencyAttributes, debugPolicy>(model_ptr, attribute_ptr, precision);
 	}
 
 	template <class DataType, class Model, class SelfconsistencyAttributes>
-	auto make_iterative(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr)
+	auto make_iterative(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, const UnderlyingFloatingPoint_t<DataType>& precision = PRECISION<UnderlyingFloatingPoint_t<DataType>>)
 	{
-		return IterativeSolver<DataType, Model, SelfconsistencyAttributes, WarnNoConvergence>(model_ptr, attribute_ptr);
+		return IterativeSolver<DataType, Model, SelfconsistencyAttributes, WarnNoConvergence>(model_ptr, attribute_ptr, precision);
 	}
 }

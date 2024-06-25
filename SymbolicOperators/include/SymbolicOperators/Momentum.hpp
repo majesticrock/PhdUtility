@@ -31,7 +31,7 @@ namespace SymbolicOperators {
 		Momentum& operator+=(const Momentum& rhs);
 		Momentum& operator-=(const Momentum& rhs);
 		inline Momentum& operator*=(const int rhs) {
-			if (rhs % 2 == 0) {
+			if (!(rhs & 1)) {
 				this->add_Q = false;
 			}
 			for (auto& m : momentum_list) {
