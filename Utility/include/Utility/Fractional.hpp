@@ -196,4 +196,37 @@ namespace Utility {
     inline Fractional<_int> operator/(_int lhs, Fractional<_int> rhs) {
         return rhs /= lhs;
     }
+
+    template<class _Number, class _int>
+    inline _Number operator+(const Fractional<_int>& lhs, const _Number& rhs) {
+        return rhs + static_cast<_Number>(lhs);
+    }
+    template<class _Number, class _int>
+    inline _Number operator-(const Fractional<_int>& lhs, const _Number& rhs) {
+        return rhs - static_cast<_Number>(lhs);
+    }
+    template<class _Number, class _int>
+    inline _Number operator*(const Fractional<_int>& lhs, const _Number& rhs) {
+        return rhs * static_cast<_Number>(lhs);
+    }
+    template<class _Number, class _int>
+    inline _Number operator/(const Fractional<_int>& lhs, const _Number& rhs) {
+        return rhs / static_cast<_Number>(lhs);
+    }
+    template<class _Number, class _int>
+    inline _Number operator+(const _Number& lhs, const Fractional<_int>& rhs) {
+        return lhs + static_cast<_Number>(rhs);
+    }
+    template<class _Number, class _int>
+    inline _Number operator-(const _Number& lhs, const Fractional<_int>& rhs) {
+        return lhs - static_cast<_Number>(rhs);
+    }
+    template<class _Number, class _int>
+    inline _Number operator*(const _Number& lhs, const Fractional<_int>& rhs) {
+        return lhs * static_cast<_Number>(rhs);
+    }
+    template<class _Number, class _int>
+    inline _Number operator/(const _Number& lhs, const Fractional<_int>& rhs) {
+        return lhs / static_cast<_Number>(rhs);
+    }
 }
