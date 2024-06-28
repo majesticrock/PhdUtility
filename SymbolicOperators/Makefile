@@ -1,5 +1,5 @@
 BUILD_DIR = build
-CASCADE_LAKE_BUILD_DIR = build_cascadelake
+CASCADE_LAKE_BUILD_DIR = build_cluster
 INSTALL_PREFIX = $(HOME)/usr/local
 
 all: $(BUILD_DIR)/Makefile
@@ -13,7 +13,7 @@ $(BUILD_DIR)/Makefile: CMakeLists.txt
 cluster: $(CASCADE_LAKE_BUILD_DIR)/Makefile
 	@$(MAKE) -C $(CASCADE_LAKE_BUILD_DIR)
 
-$(build_cascadelake)/Makefile: CMakeLists.txt
+$(build_cluster)/Makefile: CMakeLists.txt
 	@mkdir -p $(CASCADE_LAKE_BUILD_DIR)
 	@cd $(CASCADE_LAKE_BUILD_DIR) && cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCLUSTER_BUILD=ON ..
 
