@@ -1,4 +1,5 @@
 BUILD_DIR = build
+CLUSTER_BUILD_DIR = build_cluster
 INSTALL_PREFIX = $(HOME)/usr/local
 
 all: $(BUILD_DIR)/Makefile
@@ -16,9 +17,12 @@ $(CLUSTER_BUILD_DIR)/Makefile: CMakeLists.txt
 	@cd $(CLUSTER_BUILD_DIR) && cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCLUSTER_BUILD=ON ..
 
 clean:
-	@rm -rf $(BUILD_DIR)
+	@rm -rf $(BUILD_DIR) $(CLUSTER_BUILD_DIR)
 
 install: all
 	@$(MAKE) -C $(BUILD_DIR) install
+
+install_cluster: cluster
+	@$(MAKE) -C $(CLUSTER_BUILD_DIR) install
 
 .PHONY: all clean install
