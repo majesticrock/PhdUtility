@@ -29,12 +29,16 @@ set(SYM_OP_SOURCES
 # Add the library target
 add_library(SymbolicOperators STATIC ${SYM_OP_SOURCES})
 
+if(NOT WIN32)
+    set(BoldCyan "${Esc}[1;36m")
+    set(ColourReset "${Esc}[m")
+endif()
 if(CLUSTER_BUILD)
     include(${CMAKE_SOURCE_DIR}/cmake/ClusterCompilerFlags.cmake)
-    message(STATUS "Building for cascadelake!")
+    message("${BoldCyan}Building for cascadelake!${ColourReset}")
 else()
     include(${CMAKE_SOURCE_DIR}/cmake/DefaultCompilerFlags.cmake)
-    message(STATUS "Building for the local machine!")
+    message("${BoldCyan}Building for the local machine!${ColourReset}")
 endif()
 SET_COMPILER_FLAGS(SymbolicOperators)
 
