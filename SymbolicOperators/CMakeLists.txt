@@ -29,23 +29,14 @@ set(SYM_OP_SOURCES
 # Add the library target
 add_library(SymbolicOperators STATIC ${SYM_OP_SOURCES})
 
-# Check if using GCC and adjust C++ standard flag if necessary
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    # Check GCC version
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 12.1)
-        message(FATAL_ERROR "GCC version ${CMAKE_CXX_COMPILER_VERSION} is not supported. GCC 12.1 or newer is required for C++20 support.")
-    endif()
-    # Use the appropriate flag for GCC
-    target_compile_options(SymbolicOperators PRIVATE
-        -Wall
-        -Wno-sign-compare
-        -fopenmp
-        -march=native
-        -O3
-    )
+if(CLUSTER_BUILD)
+    include(${CMAKE_SOURCE_DIR}/cmake/ClusterCompilerFlags.cmake)
+    message(STATUS "Building for cascadelake!")
 else()
-    message(FATAL_ERROR "Unsupported compiler ${CMAKE_CXX_COMPILER_ID}. Only GCC is supported.")
+    include(${CMAKE_SOURCE_DIR}/cmake/DefaultCompilerFlags.cmake)
+    message(STATUS "Building for the local machine!")
 endif()
+SET_COMPILER_FLAGS(SymbolicOperators)
 
 # Specify include directories for the library
 target_include_directories(SymbolicOperators PUBLIC
