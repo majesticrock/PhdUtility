@@ -1,6 +1,6 @@
 #include <SymbolicOperators/TermLoader.hpp>
 #include <fstream>
-#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 #include <filesystem>
 
 namespace SymbolicOperators {
@@ -13,18 +13,23 @@ namespace SymbolicOperators {
 		{
 			for (int j = 0; j < n_terms; j++)
 			{
-				const std::string suffix = std::to_string(j + name_offset) + "_" + std::to_string(i + name_offset) + ".txt";
+				const std::string suffix = std::to_string(j + name_offset) + "_" + std::to_string(i + name_offset) + ".bin";
 				{
 					const auto filename = folder + (use_XP ? "XP_" : "") + "wick_M_" + suffix;
 					if (!std::filesystem::exists(filename)) {
 						throw std::runtime_error("Wick: FileNotFound: " + filename);
 					}
 					// create an input file stream and a text archive to deserialize the vector
-					std::ifstream ifs(filename);
-					boost::archive::text_iarchive ia(ifs);
-					this->M[j * n_terms + i].clear();
-					ia >> this->M[j * n_terms + i];
-					ifs.close();
+					std::ifstream ifs(filename, std::ios::binary);
+					if(ifs.good()) {
+						boost::archive::binary_iarchive ia(ifs);
+						this->M[j * n_terms + i].clear();
+						ia >> this->M[j * n_terms + i];
+						ifs.close();
+					}
+					else {
+						throw std::runtime_error("Inputstream for " + filename + " is bad!");
+					}
 				}
 				{
 					const auto filename = folder + (use_XP ? "XP_" : "") + "wick_N_" + suffix;
@@ -32,11 +37,16 @@ namespace SymbolicOperators {
 						throw std::runtime_error("Wick: FileNotFound: " + filename);
 					}
 					// create an input file stream and a text archive to deserialize the vector
-					std::ifstream ifs(filename);
-					boost::archive::text_iarchive ia(ifs);
-					this->N[j * n_terms + i].clear();
-					ia >> this->N[j * n_terms + i];
-					ifs.close();
+					std::ifstream ifs(filename, std::ios::binary);
+					if(ifs.good()) {
+						boost::archive::binary_iarchive ia(ifs);
+						this->N[j * n_terms + i].clear();
+						ia >> this->N[j * n_terms + i];
+						ifs.close();
+					}
+					else {
+						throw std::runtime_error("Inputstream for " + filename + " is bad!");
+					}
 				}
 			}
 		}
