@@ -7,7 +7,6 @@
 #include <type_traits>
 #include <Eigen/Dense>
 #include <cmath>
-#include <optional>
 
 namespace Utility::Numerics {
 	using std::abs;
@@ -22,7 +21,6 @@ namespace Utility::Numerics {
 	struct ResolventDataWrapper {
 		typedef ResolventData<RealType> resolvent_data;
 		std::vector<resolvent_data> data;
-		size_t noEigenvalueChangeAt{};
 
 		void push_back(resolvent_data&& data_point) {
 			data.push_back(std::move(data_point));
@@ -32,19 +30,14 @@ namespace Utility::Numerics {
 		};
 		// Prints the computed data to <filename>
 		// Asummes that the data has been computed before...
-		void writeDataToFile(const std::string& filename, const std::optional<std::vector<std::string>>& comments = std::nullopt) const
+		void writeDataToFile(const std::string& filename, const std::vector<std::string>& comments = {}) const
 		{
-			std::cout << "Total Lanczos iterations: " << data[0].a_i.size() << "   Point of no change at: " << noEigenvalueChangeAt << std::endl;
+			std::cout << "Total Lanczos iterations: " << data[0].a_i.size() << std::endl;
 			for (const auto& res_data : data) {
 				if (checkDataForNaN(res_data.a_i)) std::cerr << "Resolvent a_i" << std::endl;
 				if (checkDataForNaN(res_data.b_i)) std::cerr << "Resolvent b_i" << std::endl;
 			}
-			if (comments.has_value()) {
-				saveData(data, filename + ".dat.gz", comments.value());
-			}
-			else {
-				saveData(data, filename + ".dat.gz");
-			}
+			saveData(data, filename + ".dat.gz");
 		};
 	};
 
@@ -62,17 +55,6 @@ namespace Utility::Numerics {
 
 		return os;
 	}
-	template <typename RealType>
-	inline size_t findSmallestValue(const Eigen::Vector<RealType, -1>& diagonal) {
-		size_t position = 0;
-		for (size_t i = 1U; i < diagonal.size(); ++i)
-		{
-			if (diagonal(position) > diagonal(i)) {
-				position = i;
-			}
-		}
-		return position;
-	};
 
 	// choose the floating point precision, i.e. float, double or long double
 	template <class RealType, bool isComplex>
@@ -84,7 +66,6 @@ namespace Utility::Numerics {
 
 		typedef Eigen::Matrix<ComputationType, Eigen::Dynamic, Eigen::Dynamic> matrix_t;
 		typedef Eigen::Vector<ComputationType, Eigen::Dynamic> vector_t;
-		typedef Eigen::Vector<RealType, Eigen::Dynamic> RealVector;
 
 		typedef ResolventData<RealType> resolvent_data;
 
@@ -130,15 +111,6 @@ namespace Utility::Numerics {
 
 			std::vector<RealType> deltas, gammas;
 			gammas.push_back(1);
-
-			RealVector eigenDelta(1);
-			RealVector eigenGamma(1);
-
-			Eigen::SelfAdjointEigenSolver<matrix_t> diagonalize;
-			RealVector diagonal; //stores the diagonal elements in a vector
-			RealType oldEigenValue{};
-			RealType newEigenValue{};
-			size_t position{};
 			size_t iterNum{};
 			bool goOn = true;
 			vector_t buffer;
@@ -161,21 +133,7 @@ namespace Utility::Numerics {
 				}
 				gammas.push_back(abs(norm_buffer));
 				basisVectors.push_back(currentSolution / gammas.back());
-
 				++iterNum;
-
-				// construct tridiagonal matrix, diagonalize it and find the lowest eigenvalue
-				eigenDelta.conservativeResize(iterNum);
-				eigenGamma.conservativeResize(iterNum - 1);
-				eigenDelta(iterNum - 1) = deltas[iterNum - 1];
-				if (iterNum > 1) {
-					eigenGamma(iterNum - 2) = gammas[iterNum - 1];
-				}
-				diagonalize.computeFromTridiagonal(eigenDelta, eigenGamma, 0);
-				diagonal = diagonalize.eigenvalues();
-
-				position = findSmallestValue(diagonal);
-				newEigenValue = diagonal(position);
 
 				// breaking conditions
 				if (iterNum >= maxIter) {
@@ -184,16 +142,9 @@ namespace Utility::Numerics {
 				if (iterNum >= toSolve.rows()) {
 					goOn = false;
 				}
-				if (abs(gammas.back()) < 1e-8) {
+				if (abs(gammas.back()) < 1e-10) {
 					goOn = false;
 				}
-				if (oldEigenValue != 0.0) {
-					if (abs(newEigenValue - oldEigenValue) / abs(oldEigenValue) < errorMargin) {
-						//goOn = false;
-						if (!data.noEigenvalueChangeAt) data.noEigenvalueChangeAt = iterNum;
-					}
-				}
-				oldEigenValue = newEigenValue;
 			}
 			for (long i = 0; i < deltas.size(); i++)
 			{
@@ -227,15 +178,6 @@ namespace Utility::Numerics {
 
 			std::vector<RealType> deltas, gammas;
 			gammas.push_back(1);
-
-			RealVector eigenDelta(1);
-			RealVector eigenGamma(1);
-
-			Eigen::SelfAdjointEigenSolver<matrix_t> diagonalize;
-			RealVector diagonal; //stores the diagonal elements in a vector
-			RealType oldEigenValue{};
-			RealType newEigenValue{};
-			size_t position{};
 			size_t iterNum{};
 			bool goOn = true;
 			vector_t buffer;
@@ -255,19 +197,6 @@ namespace Utility::Numerics {
 				basisVectors.push_back(currentSolution / gammas.back());
 				++iterNum;
 
-				// construct the tridiagonal matrix, diagonalize it and find the lowest eigenvalue
-				eigenDelta.conservativeResize(iterNum);
-				eigenGamma.conservativeResize(iterNum - 1);
-				eigenDelta(iterNum - 1) = deltas[iterNum - 1];
-				if (iterNum > 1) {
-					eigenGamma(iterNum - 2) = gammas[iterNum - 1];
-				}
-				diagonalize.computeFromTridiagonal(eigenDelta, eigenGamma, 0);
-				diagonal = diagonalize.eigenvalues();
-
-				position = findSmallestValue(diagonal);
-				newEigenValue = diagonal(position);
-
 				// breaking conditions
 				if (iterNum >= maxIter) {
 					goOn = false;
@@ -275,16 +204,9 @@ namespace Utility::Numerics {
 				if (iterNum >= toSolve.rows()) {
 					goOn = false;
 				}
-				if (abs(gammas.back()) < 1e-7) {
+				if (abs(gammas.back()) < 1e-10) {
 					goOn = false;
 				}
-				if (oldEigenValue != 0.0) {
-					if (abs(newEigenValue - oldEigenValue) / abs(oldEigenValue) < errorMargin) {
-						//goOn = false;
-						if (!data.noEigenvalueChangeAt) data.noEigenvalueChangeAt = iterNum;
-					}
-				}
-				oldEigenValue = newEigenValue;
 			}
 			for (size_t i = 0U; i < deltas.size(); ++i)
 			{
@@ -324,15 +246,6 @@ namespace Utility::Numerics {
 
 			std::vector<RealType> deltas, gammas;
 			gammas.push_back(1);
-
-			RealVector eigenDelta(1);
-			RealVector eigenGamma(1);
-
-			Eigen::SelfAdjointEigenSolver<matrix_t> diagonalize;
-			RealVector diagonal; //stores the diagonal elements in a vector
-			RealType oldEigenValue{};
-			RealType newEigenValue{};
-			size_t position{};
 			size_t  iterNum{};
 			bool goOn = true;
 			vector_t buffer;
@@ -355,21 +268,7 @@ namespace Utility::Numerics {
 				}
 				gammas.push_back(abs(norm_buffer));
 				basisVectors.push_back(currentSolution / gammas.back());
-
 				++iterNum;
-
-				// construct tridiagonal matrix, diagonalize it and find the lowest eigenvalue
-				eigenDelta.conservativeResize(iterNum);
-				eigenGamma.conservativeResize(iterNum - 1);
-				eigenDelta(iterNum - 1) = deltas[iterNum - 1];
-				if (iterNum > 1) {
-					eigenGamma(iterNum - 2) = gammas[iterNum - 1];
-				}
-				diagonalize.computeFromTridiagonal(eigenDelta, eigenGamma, 0);
-				diagonal = diagonalize.eigenvalues();
-
-				position = findSmallestValue(diagonal);
-				newEigenValue = diagonal(position);
 
 				// breaking conditions
 				if (iterNum >= maxIter) {
@@ -378,16 +277,9 @@ namespace Utility::Numerics {
 				if (iterNum >= toSolve.rows()) {
 					goOn = false;
 				}
-				if (abs(gammas.back()) < 1e-8) {
+				if (abs(gammas.back()) < 1e-10) {
 					goOn = false;
 				}
-				if (oldEigenValue != 0.0) {
-					if (abs(newEigenValue - oldEigenValue) / abs(oldEigenValue) < errorMargin) {
-						//goOn = false;
-						if (!data.noEigenvalueChangeAt) data.noEigenvalueChangeAt = iterNum;
-					}
-				}
-				oldEigenValue = newEigenValue;
 			}
 			for (size_t i = 0U; i < deltas.size(); ++i)
 			{
@@ -420,19 +312,9 @@ namespace Utility::Numerics {
 
 			std::vector<RealType> deltas, gammas;
 			gammas.push_back(1);
-
-			RealVector eigenDelta(1);
-			RealVector eigenGamma(1);
-
-			Eigen::SelfAdjointEigenSolver<matrix_t> diagonalize;
-			RealVector diagonal; //stores the diagonal elements in a vector
-			RealType oldEigenValue{};
-			RealType newEigenValue{};
-			size_t position{};
 			size_t iterNum{};
 			bool goOn = true;
 			vector_t buffer;
-
 			while (goOn) {
 				// algorithm
 				buffer = toSolve * basisVectors.back();
@@ -454,19 +336,6 @@ namespace Utility::Numerics {
 				basisVectors.push_back(currentSolution / gammas.back());
 				++iterNum;
 
-				// construct the tridiagonal matrix, diagonalize it and find the lowest eigenvalue
-				eigenDelta.conservativeResize(iterNum);
-				eigenGamma.conservativeResize(iterNum - 1);
-				eigenDelta(iterNum - 1) = deltas[iterNum - 1];
-				if (iterNum > 1) {
-					eigenGamma(iterNum - 2) = gammas[iterNum - 1];
-				}
-				diagonalize.computeFromTridiagonal(eigenDelta, eigenGamma, 0);
-				diagonal = diagonalize.eigenvalues();
-
-				position = findSmallestValue(diagonal);
-				newEigenValue = diagonal(position);
-
 				// breaking conditions
 				if (iterNum >= maxIter) {
 					goOn = false;
@@ -474,16 +343,9 @@ namespace Utility::Numerics {
 				if (iterNum >= toSolve.rows()) {
 					goOn = false;
 				}
-				if (abs(gammas.back()) < 1e-7) {
+				if (abs(gammas.back()) < 1e-10) {
 					goOn = false;
 				}
-				if (oldEigenValue != 0.0) {
-					if (abs(newEigenValue - oldEigenValue) / abs(oldEigenValue) < errorMargin) {
-						//goOn = false;
-						if (!data.noEigenvalueChangeAt) data.noEigenvalueChangeAt = iterNum;
-					}
-				}
-				oldEigenValue = newEigenValue;
 			}
 			for (size_t i = 0U; i < deltas.size(); ++i)
 			{
