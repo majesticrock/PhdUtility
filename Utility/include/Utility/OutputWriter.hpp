@@ -55,21 +55,22 @@ namespace Utility {
 		return false;
 	};
 
+	// Writes the current time stamp and comments to the file
+	// If the latter is not provided only the time stamp is written
+	template <typename outstream_type>
+	void writeComments(outstream_type& out, const std::vector<std::string>& comments = std::vector<std::string>())
+	{
+		out << "# " << time_stamp() << "\n#\n";
+		for (const auto& comment : comments) {
+			out << "# " << comment << "\n";
+		}
+	};
+
 	// data_type is a type that overloads the << operator - e.g. float or double, but custom types are allowed too
 	// outstream_type is a type of output stream, e.g. std::ofstream or std::ostringstream
 	template <typename outstream_type, typename vector_type, typename data_type = typename vector_type::value_type>
 	class OutputWriter {
 	public:
-		// Writes the current time stamp and comments to the file
-		// If the latter is not provided only the time stamp is written
-		void writeComments(outstream_type& out, const std::vector<std::string>& comments = std::vector<std::string>()) const
-		{
-			out << "# " << time_stamp() << "\n#\n";
-			for (const auto& comment : comments) {
-				out << "# " << comment << "\n";
-			}
-		};
-
 		// Appends a line consisting of <data> to <out>
 		void appendLine(const vector_type& data, outstream_type& out) const
 		{

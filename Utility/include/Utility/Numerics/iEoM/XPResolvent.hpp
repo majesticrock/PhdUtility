@@ -1,22 +1,32 @@
 #pragma once
-#include <Eigen/Dense>
-#include <vector>
-#include <array>
-#include "../PivotToBlockStructure.hpp"
 #include "_internal_functions.hpp"
+#include "_xp_internal.hpp"
+#include "../PivotToBlockStructure.hpp"
 #include "../Resolvent.hpp"
+#include <Eigen/Dense>
 #include <chrono>
 
 namespace Utility::Numerics::iEoM {
-
 	template<class Derived, class RealType>
 	struct XPResolvent {
 	public:
 		using Matrix = Eigen::Matrix<RealType, Eigen::Dynamic, Eigen::Dynamic>;
 		using Vector = Eigen::Vector<RealType, Eigen::Dynamic>;
 
+		using phase_it = PhaseIterator<RealType>;
+		using amplitude_it = AmplitudeIterator<RealType>;
+
+		// Returns a starting state object with an empty phase part and a zero-initialized amplitude part of size /size/
+		static StartingState<RealType> OnlyAmplitude(Eigen::Index size, std::string const& name=""){
+            return StartingState<RealType>{ Vector{}, Vector::Zero(size), name };
+        }
+		// Returns a starting state object with an empty amplitude part and a zero-initialized phase part of size /size/
+        static StartingState<RealType> OnlyPhase(Eigen::Index size, std::string const& name=""){
+            return StartingState<RealType>{ Vector::Zero(size), Vector{}, name };
+        }
+
 		Matrix K_plus, K_minus, L;
-		std::vector<std::array<Vector, 2>> starting_states;
+		std::vector<StartingState<RealType>> starting_states;
 		std::vector<Resolvent<RealType, false>> resolvents;
 
 		// Matrix accessors. Boundary checking is handled by Eigen
@@ -39,10 +49,12 @@ namespace Utility::Numerics::iEoM {
 
 		XPResolvent(Derived* derived_ptr, RealType const& sqrt_precision, bool pivot = true, bool negative_matrix_is_error = true)
 			: _internal(sqrt_precision, negative_matrix_is_error), _derived(derived_ptr), _pivot(pivot) { };
+
 		XPResolvent(Derived* derived_ptr, RealType const& sqrt_precision, int hermitian_size, int antihermitian_size,
 			bool pivot = true, bool negative_matrix_is_error = true)
 			: _internal(sqrt_precision, negative_matrix_is_error), _derived(derived_ptr), 
 			_hermitian_size(hermitian_size), _antihermitian_size(antihermitian_size), _pivot(pivot) { };
+
 		virtual ~XPResolvent() = default;
 
 		bool dynamic_matrix_is_negative()
@@ -147,7 +159,7 @@ namespace Utility::Numerics::iEoM {
 				// I forego another matrix to save some memory
 				N_new = n_solution.eigenvectors * n_solution.eigenvalues.asDiagonal() * n_solution.eigenvectors.adjoint();
 				for (auto& starting_state : starting_states) {
-					starting_state[plus_index].applyOnTheLeft(N_new * L);
+					if(starting_state[plus_index].size() > 0) starting_state[plus_index].applyOnTheLeft(N_new * L);
 				}
 
 				end_in = std::chrono::steady_clock::now();
@@ -164,26 +176,28 @@ namespace Utility::Numerics::iEoM {
 
 			begin = std::chrono::steady_clock::now();
 
-			const int N_RESOLVENT_TYPES = starting_states.size();
-			resolvents.reserve(2 * N_RESOLVENT_TYPES);
+			const int N_RESOLVENT_TYPES = total_size(starting_states);
+			resolvents.resize(N_RESOLVENT_TYPES);
+			auto resolvent_it = resolvents.begin();
 
-			for (size_t i = 0U; i < 2U; ++i)
-			{
-				// It is going to compute the anti-Hermitian first
-				compute_solver_matrix(i, 1 - i);
-				if(resolvents.size() < 2 * N_RESOLVENT_TYPES){
-					for (const auto& starting_state : starting_states) {
-						resolvents.push_back(Resolvent<RealType, false>(starting_state[i]));
-					}
-				} else {
-					for(int j = 0; j < N_RESOLVENT_TYPES; ++j) {
-						resolvents[N_RESOLVENT_TYPES * i + j].setStartingState(starting_states[j][i]);
-					}
-				}
+			compute_solver_matrix(0, 1);
+			for(phase_it it = phase_it::begin(starting_states); it != phase_it::end(starting_states); ++resolvent_it, ++it) {
+				resolvent_it->setStartingState(it->phase_state);
+				if(resolvent_it->data.name.empty()) resolvent_it->data.name = "phase_" + it->name;
+			}
 #pragma omp parallel for
-				for (int j = 0; j < N_RESOLVENT_TYPES; ++j) {
-					resolvents[N_RESOLVENT_TYPES * i + j].compute(solver_matrix, LANCZOS_ITERATION_NUMBER);
-				}
+			for(int i = 0; i < phase_size(starting_states); ++i) {
+				resolvents[i].compute(solver_matrix, LANCZOS_ITERATION_NUMBER);
+			}
+
+			compute_solver_matrix(1, 0);
+			for(amplitude_it it = amplitude_it::begin(starting_states); it != amplitude_it::end(starting_states); ++resolvent_it, ++it) {
+				resolvent_it->setStartingState(it->amplitude_state);
+				if(resolvent_it->data.name.empty()) resolvent_it->data.name = "amplitude_" + it->name;
+			}
+#pragma omp parallel for
+			for(int i = phase_size(starting_states); i < phase_size(starting_states) + amplitude_size(starting_states); ++i) {
+				resolvents[i].compute(solver_matrix, LANCZOS_ITERATION_NUMBER);
 			}
 
 			end = std::chrono::steady_clock::now();

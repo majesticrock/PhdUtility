@@ -7,10 +7,10 @@
 */
 
 namespace Utility {
-	template<class T>
+	template<class T, class Allocator = std::allocator<T>>
 	class VectorWrapper {
 	protected:
-		std::vector<T> _vector;
+		std::vector<T, Allocator> _vector;
 
 	public:
 		using value_type = typename std::vector<T>::value_type;
@@ -28,11 +28,11 @@ namespace Utility {
 
 		virtual ~VectorWrapper() = default;
 		VectorWrapper() = default;
-		VectorWrapper(const std::vector<T>& vector) : _vector(vector) {};
-		VectorWrapper(std::vector<T>&& vector) : _vector(std::move(vector)) {};
+		VectorWrapper(const std::vector<T, Allocator>& vector) : _vector(vector) {};
+		VectorWrapper(std::vector<T, Allocator>&& vector) : _vector(std::move(vector)) {};
 		explicit VectorWrapper(size_t size) : _vector(size) {};
 		VectorWrapper(size_t size, const T& value) : _vector(size, value) {};
-		VectorWrapper(std::initializer_list<T> init) : _vector(init) {};
+		VectorWrapper(std::initializer_list<T> init, const Allocator& alloc = Allocator()) : _vector(init, alloc) {};
 
 		inline reference operator[](size_t i) {
 			return _vector[i];
@@ -122,11 +122,6 @@ namespace Utility {
 			return _vector.insert(pos, first, last);
 		}
 
-		inline bool operator==(const VectorWrapper<T>& rhs) const noexcept {
-			return this->_vector == rhs._vector;
-		};
-		inline bool operator!=(const VectorWrapper<T>& rhs) const noexcept {
-			return this->_vector != rhs._vector;
-		};
+		inline auto operator<=>(const VectorWrapper<T, Allocator>& rhs) const = default;
 	};
 }

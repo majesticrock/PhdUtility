@@ -95,7 +95,7 @@ namespace Utility {
 			// The extra stringstream is a proper std::ostream (boost::iostreams are not)
 			// and can thereby be used with the standard operator<< overloading
 			std::ostringstream oss;
-			ow.writeComments(oss, comments);
+			writeComments(oss, comments);
 			for (size_t n = 0; n < data.size(); n += linebreak)
 			{
 				vector_type part_vec(data.begin() + n, data.begin() + n + linebreak);
@@ -109,6 +109,21 @@ namespace Utility {
 			std::cerr << "Could not open output filestream for file: " << filename << std::endl;
 		}
 	};
+
+	inline void saveString(const std::string& text, const std::string& filename)
+	{
+		std::ofstream ofile(filename, std::ios_base::out | std::ios_base::binary);
+		if (ofile.is_open()) {
+			boost::iostreams::filtering_ostream out;
+			out.push(boost::iostreams::gzip_compressor());
+			out.push(ofile);
+			out << text;
+			out.pop(); // flushes the filter chain and closes the file
+		}
+		else {
+			std::cerr << "Could not open output filestream for file: " << filename << std::endl;
+		}
+	}
 #else // End using boost
 	// Provides an easy-to-use method that uses std::ofstream to write <data> to <filename> in plain text
 	template <typename vector_type, typename data_type = typename vector_type::value_type>
@@ -155,7 +170,7 @@ namespace Utility {
 		std::ofstream out(filename);
 		if (out.is_open()) {
 			OutputWriter<std::ofstream, vector_type, data_type> ow;
-			ow.writeComments(out, comments);
+			writeComments(out, comments);
 
 			for (size_t n = linebreak; n < data.size(); n += linebreak)
 			{
@@ -174,5 +189,16 @@ namespace Utility {
 	{
 		saveData(std::vector<vector_type>{ first, second }, filename, comments);
 	};
+
+	inline void saveString(const std::string& text, const std::string& filename)
+	{
+		std::ofstream out(filename);
+		if (out.is_open()) {
+			out << text;
+		}
+		else {
+			std::cerr << "Could not open output filestream for file: " << filename << std::endl;
+		}
+	}
 #endif // End not using boost
 }
