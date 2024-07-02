@@ -194,10 +194,9 @@ namespace Utility::Numerics::iEoM {
 			for(amplitude_it it = amplitude_it::begin(starting_states); it != amplitude_it::end(starting_states); ++resolvent_it, ++it) {
 				resolvent_it->setStartingState(it->amplitude_state);
 				if(resolvent_it->data.name.empty()) resolvent_it->data.name = "amplitude_" + it->name;
-				resolvent_it->compute(solver_matrix, LANCZOS_ITERATION_NUMBER);
 			}
 #pragma omp parallel for
-			for(int i = phase_size(starting_states); i < amplitude_size(starting_states); ++i) {
+			for(int i = phase_size(starting_states); i < phase_size(starting_states) + amplitude_size(starting_states); ++i) {
 				resolvents[i].compute(solver_matrix, LANCZOS_ITERATION_NUMBER);
 			}
 

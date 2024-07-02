@@ -373,14 +373,14 @@ namespace Utility::Numerics {
 	}
 
 	template<class RealType>
-	to_json(nlohmann::json& j, const ResolventData<RealType>& res_data) {
+	void to_json(nlohmann::json& j, const ResolventData<RealType>& res_data) {
 		j = nlohmann::json{
 			{"a_i", res_data.a_i}, {"b_i", res_data.b_i}
 		};
 	}
 
 	template<class RealType>
-	to_json(nlohmann::json& j, const ResolventDataWrapper<RealType>& res_data) {
+	void to_json(nlohmann::json& j, const ResolventDataWrapper<RealType>& res_data) {
 		j = nlohmann::json{
 			{"name", res_data.name}, {"lanczos", res_data.lanczos}
 		};
