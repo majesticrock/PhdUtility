@@ -3,8 +3,9 @@
 #include "_internal_functions.hpp"
 #include "../../IsComplex.hpp"
 #include "../../ConstexprPower.hpp"
-#include <chrono>
 #include "../PivotToBlockStructure.hpp"
+#include <chrono>
+#include <string>
 
 namespace Utility::Numerics::iEoM {
 	template<class Derived, class NumberType>
@@ -18,6 +19,7 @@ namespace Utility::Numerics::iEoM {
 
 	protected:
 		Matrix M, N;
+		std::vector<std::string> resolvent_names;
 		std::vector<ComplexVector> starting_states;
 
 	public:
@@ -106,6 +108,14 @@ namespace Utility::Numerics::iEoM {
 
 			const int N_RESOLVENT_TYPES = starting_states.size();
 			std::vector<Resolvent<RealType, true>> resolvents(3 * N_RESOLVENT_TYPES);
+			resolvents.resize(3 * N_RESOLVENT_TYPES);
+			if(N_RESOLVENT_TYPES < resolvent_names.size()) {
+				for(size_t i = 0U; i < N_RESOLVENT_TYPES; ++i) {
+					resolvents[3 * i].data.name = resolvent_names[i] + "_a";
+					resolvents[3 * i + 1].data.name = resolvent_names[i] + "_a+b";
+					resolvents[3 * i + 2].data.name = resolvent_names[i] + "_a+ib";
+				}
+			}
 
 #pragma omp parallel for
 			for (int i = 0; i < N_RESOLVENT_TYPES; i++)

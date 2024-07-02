@@ -7,54 +7,43 @@
 #include <type_traits>
 #include <Eigen/Dense>
 #include <cmath>
+#include <nlohmann/json.hpp>
 
 namespace Utility::Numerics {
 	using std::abs;
 
-	template <typename T>
+	template <class RealType>
 	struct ResolventData {
-		std::vector<T> a_i;
-		std::vector<T> b_i;
+		std::vector<RealType> a_i;
+		std::vector<RealType> b_i;
 	};
 
 	template<class RealType>
 	struct ResolventDataWrapper {
-		typedef ResolventData<RealType> resolvent_data;
-		std::vector<resolvent_data> data;
+		std::vector<ResolventData<RealType>> lanczos;
+		std::string name;
 
-		void push_back(resolvent_data&& data_point) {
-			data.push_back(std::move(data_point));
+		ResolventDataWrapper() = default;
+		ResolventDataWrapper(const std::string& _name) 
+			: name(_name) {};
+
+		void push_back(ResolventData<RealType>&& data_point) {
+			lanczos.push_back(std::move(data_point));
 		};
-		void push_back(const resolvent_data& data_point) {
-			data.push_back(data_point);
+		void push_back(const ResolventData<RealType>& data_point) {
+			lanczos.push_back(data_point);
 		};
 		// Prints the computed data to <filename>
 		// Asummes that the data has been computed before...
 		void writeDataToFile(const std::string& filename, const std::vector<std::string>& comments = {}) const
 		{
-			std::cout << "Total Lanczos iterations: " << data[0].a_i.size() << std::endl;
-			for (const auto& res_data : data) {
+			for (const auto& res_data : lanczos) {
 				if (checkDataForNaN(res_data.a_i)) std::cerr << "Resolvent a_i" << std::endl;
 				if (checkDataForNaN(res_data.b_i)) std::cerr << "Resolvent b_i" << std::endl;
 			}
-			saveData(data, filename + ".dat.gz");
+			saveData(lanczos, filename + ".dat.gz");
 		};
 	};
-
-	template <typename T>
-	inline std::ostream& operator<<(std::ostream& os, const ResolventData<T>& data)
-	{
-		for (const auto& elem : data.a_i) {
-			os << elem << " ";
-		}
-		os << "\n";
-		for (const auto& elem : data.b_i) {
-			os << elem << " ";
-		}
-		os << "\n";
-
-		return os;
-	}
 
 	// choose the floating point precision, i.e. float, double or long double
 	template <class RealType, bool isComplex>
@@ -62,16 +51,13 @@ namespace Utility::Numerics {
 	{
 	private:
 		using ComputationType = std::conditional_t<isComplex, std::complex<RealType>, RealType>;
-		using error_type = std::conditional_t< sizeof(RealType) >= sizeof(double), double, RealType >;
+		using matrix_t = Eigen::Matrix<ComputationType, Eigen::Dynamic, Eigen::Dynamic>;
+		using vector_t = Eigen::Vector<ComputationType, Eigen::Dynamic>;
+		using resolvent_data = ResolventData<RealType>;
 
-		typedef Eigen::Matrix<ComputationType, Eigen::Dynamic, Eigen::Dynamic> matrix_t;
-		typedef Eigen::Vector<ComputationType, Eigen::Dynamic> vector_t;
-
-		typedef ResolventData<RealType> resolvent_data;
-
+	public:
 		vector_t startingState;
 		ResolventDataWrapper<RealType> data;
-	public:
 		// Sets the starting state
 		inline void setStartingState(const vector_t& state) {
 			this->startingState = state;
@@ -79,12 +65,15 @@ namespace Utility::Numerics {
 		const vector_t& getStartingState() const {
 			return this->startingState;
 		}
-		Resolvent(const vector_t& _StargingState) : startingState(_StargingState) {};
-		Resolvent() {};
+		Resolvent(const vector_t& _StargingState, const std::string& name="") 
+			: startingState(_StargingState), data(name) { };
+		Resolvent(const std::string name)
+			: data(name) { };
+		Resolvent() = default;
 
 		// Computes the resolvent's parameters a_i and b_i
 		// Symplectic needs to be atleast positive semidefinite!
-		void compute(const matrix_t& toSolve, const matrix_t& symplectic, int maxIter, error_type errorMargin = 1e-10)
+		void compute(const matrix_t& toSolve, const matrix_t& symplectic, int maxIter)
 		{
 			size_t matrixSize = toSolve.rows();
 
@@ -155,7 +144,7 @@ namespace Utility::Numerics {
 		};
 
 		// Computes the resolvent for a Hermitian problem (i.e. the symplectic matrix is the identity)
-		void compute(const matrix_t& toSolve, int maxIter, error_type errorMargin = 1e-10)
+		void compute(const matrix_t& toSolve, int maxIter)
 		{
 			const size_t matrixSize = toSolve.rows();
 
@@ -219,7 +208,7 @@ namespace Utility::Numerics {
 		};
 
 		// Computes the resolvent directly from M and N. This might be more stable for complex matrices
-		void computeFromNM(const matrix_t& toSolve, const matrix_t& symplectic, const matrix_t& N, int maxIter, error_type errorMargin = 1e-10)
+		void computeFromNM(const matrix_t& toSolve, const matrix_t& symplectic, const matrix_t& N, int maxIter)
 		{
 			auto matrixSize = toSolve.rows();
 
@@ -291,7 +280,7 @@ namespace Utility::Numerics {
 
 		// Computes the resolvent for a Hermitian problem (i.e. the symplectic matrix is the identity)
 		// Additionally, this function orthogonalizes the Krylov basis each step
-		void computeWithReorthogonalization(const matrix_t& toSolve, int maxIter, error_type errorMargin = 1e-10)
+		void computeWithReorthogonalization(const matrix_t& toSolve, int maxIter)
 		{
 			const size_t matrixSize = toSolve.rows();
 
@@ -368,4 +357,32 @@ namespace Utility::Numerics {
 			data.writeDataToFile(filename);
 		};
 	};
+
+	template <typename T>
+	inline std::ostream& operator<<(std::ostream& os, const ResolventData<T>& data)
+	{
+		for (const auto& elem : data.a_i) {
+			os << elem << " ";
+		}
+		os << "\n";
+		for (const auto& elem : data.b_i) {
+			os << elem << " ";
+		}
+		os << "\n";
+		return os;
+	}
+
+	template<class RealType>
+	to_json(nlohmann::json& j, const ResolventData<RealType>& res_data) {
+		j = nlohmann::json{
+			{"a_i", res_data.a_i}, {"b_i", res_data.b_i}
+		};
+	}
+
+	template<class RealType>
+	to_json(nlohmann::json& j, const ResolventDataWrapper<RealType>& res_data) {
+		j = nlohmann::json{
+			{"name", res_data.name}, {"lanczos", res_data.lanczos}
+		};
+	}
 }
