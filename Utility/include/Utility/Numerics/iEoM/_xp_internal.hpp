@@ -2,6 +2,7 @@
 #include "../../VectorWrapper.hpp"
 #include <string>
 #include <numeric>
+#include <algorithm>
 
 namespace Utility::Numerics::iEoM { 
     template<class RealType>
@@ -12,10 +13,10 @@ namespace Utility::Numerics::iEoM {
 		std::string name;
 
 		inline bool contains_amplitude_state() const noexcept {
-			return amplitude_state.size() == 0;
+			return amplitude_state.size() != 0;
 		}
 		inline bool contains_phase_state() const noexcept {
-			return phase_state.size() == 0;
+			return phase_state.size() != 0;
 		}
 		inline size_t size() const noexcept {
 			return static_cast<size_t>(contains_amplitude_state()) + static_cast<size_t>(contains_phase_state());
@@ -31,18 +32,16 @@ namespace Utility::Numerics::iEoM {
 	};
 
     template<class RealType>
-    int phase_size(std::vector<StartingState<RealType>> const& states) {
-        return std::accumulate(states.begin(), states.end(), int{}, [](int current, const StartingState<RealType>& state){ 
-            if(state.contains_phase_state()) return std::move(current) + 1;
-            return std::move(current);
+    auto phase_size(std::vector<StartingState<RealType>> const& states) {
+        return std::count_if(states.begin(), states.end(), [](const StartingState<RealType>& state){ 
+            return state.contains_phase_state();
             });
     }
 
     template<class RealType>
-    int amplitude_size(std::vector<StartingState<RealType>> const& states) {
-        return std::accumulate(states.begin(), states.end(), int{}, [](int current, const StartingState<RealType>& state){ 
-            if(state.contains_amplitude_state()) return std::move(current) + 1;
-            return std::move(current);
+    auto amplitude_size(std::vector<StartingState<RealType>> const& states) {
+        return std::count_if(states.begin(), states.end(), [](const StartingState<RealType>& state){ 
+            return state.contains_amplitude_state();
             });
     }
 

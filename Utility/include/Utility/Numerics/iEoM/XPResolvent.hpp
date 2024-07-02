@@ -1,10 +1,8 @@
 #pragma once
 #include "_internal_functions.hpp"
 #include "_xp_internal.hpp"
-
 #include "../PivotToBlockStructure.hpp"
 #include "../Resolvent.hpp"
-
 #include <Eigen/Dense>
 #include <chrono>
 
@@ -17,6 +15,15 @@ namespace Utility::Numerics::iEoM {
 
 		using phase_it = PhaseIterator<RealType>;
 		using amplitude_it = AmplitudeIterator<RealType>;
+
+		// Returns a starting state object with an empty phase part and a zero-initialized amplitude part of size /size/
+		static StartingState<RealType> OnlyAmplitude(Eigen::Index size, std::string const& name=""){
+            return StartingState<RealType>{ Vector{}, Vector::Zero(size), name };
+        }
+		// Returns a starting state object with an empty amplitude part and a zero-initialized phase part of size /size/
+        static StartingState<RealType> OnlyPhase(Eigen::Index size, std::string const& name=""){
+            return StartingState<RealType>{ Vector::Zero(size), Vector{}, name };
+        }
 
 		Matrix K_plus, K_minus, L;
 		std::vector<StartingState<RealType>> starting_states;
@@ -152,7 +159,7 @@ namespace Utility::Numerics::iEoM {
 				// I forego another matrix to save some memory
 				N_new = n_solution.eigenvectors * n_solution.eigenvalues.asDiagonal() * n_solution.eigenvectors.adjoint();
 				for (auto& starting_state : starting_states) {
-					starting_state[plus_index].applyOnTheLeft(N_new * L);
+					if(starting_state[plus_index].size() > 0) starting_state[plus_index].applyOnTheLeft(N_new * L);
 				}
 
 				end_in = std::chrono::steady_clock::now();
