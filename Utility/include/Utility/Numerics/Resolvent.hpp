@@ -379,10 +379,17 @@ namespace Utility::Numerics {
 		};
 	}
 
+	//template<class RealType>
+	//void to_json(nlohmann::json& j, const ResolventDataWrapper<RealType>& res_data) {
+	//	j = nlohmann::json{
+	//		{res_data.name, res_data.lanczos}
+	//	};
+	//}
+
 	template<class RealType>
-	void to_json(nlohmann::json& j, const ResolventDataWrapper<RealType>& res_data) {
-		j = nlohmann::json{
-			{"name", res_data.name}, {"lanczos", res_data.lanczos}
-		};
+	void to_json(nlohmann::json& j, const std::vector<ResolventDataWrapper<RealType>>& vec_resolvent_data) {
+		for(const auto& res : vec_resolvent_data) {
+			j[res.name] = res.lanczos;
+		}
 	}
 }
