@@ -36,7 +36,7 @@ namespace Utility::Numerics::Roots {
             }
         } while(std::abs(end - begin) > tol && --maxiter >= 0);
         if (maxiter < 0) {
-			std::cerr << "Bisection terminated by maxiter-constraint!" << std::endl;
+			std::cerr << "Bisection terminated by maxiter-constraint! Function type:" << typeid(Function).name() << std::endl;
 		}
         return middle;
     }

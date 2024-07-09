@@ -16,7 +16,8 @@ def linestyle_labels_dict(labels, ax):
     linestyle_labels = {unique_linestyles[i]: labels[i] if i < len(labels) else '' for i in range(len(unique_linestyles))}
     return linestyle_labels
 
-def color_and_linestyle_legends(ax, color_legend_loc='upper right', linestyle_legend_loc='lower right', linestyle_legend_color='black', color_legend_title='', linestyle_legend_title='', color_labels=None, linestyle_labels=None):
+def color_and_linestyle_legends(ax, color_legend_loc='upper right', linestyle_legend_loc='lower right', linestyle_legend_color='black', 
+                                color_legend_title='', linestyle_legend_title='', color_labels=None, linestyle_labels=None):
     lines = ax.get_lines()
     # Create dictionaries to store unique colors and linestyles
     unique_colors = OrderedDict()
