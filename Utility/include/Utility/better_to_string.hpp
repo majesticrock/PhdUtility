@@ -10,7 +10,7 @@ namespace Utility {
 	template <typename... Args>
 	std::string better_to_string(Args&&... format_args)
 	{
-		std::array<char, 20> str;
+		std::array<char, 23> str;
 		auto result = std::to_chars(str.data(), str.data() + str.size(), std::forward<Args>(format_args)...);
 
 		if (result.ec == std::errc())
