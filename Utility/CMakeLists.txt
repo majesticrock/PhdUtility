@@ -12,6 +12,8 @@ target_include_directories(Utility INTERFACE
     $<INSTALL_INTERFACE:include>
 )
 
+add_subdirectory(test)
+
 # Optionally install the header-only library (for use with `find_package`)
 install(DIRECTORY include/ DESTINATION include)
 install(TARGETS Utility EXPORT UtilityConfig)
