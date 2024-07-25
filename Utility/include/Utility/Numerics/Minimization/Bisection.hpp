@@ -10,11 +10,9 @@ namespace Utility::Numerics::Minimization {
 		}
 		RealType middle = 0.5 * (begin + end);
 		RealType d{};
-
 		while (end - begin > tol && --maxiter >= 0) {
 			if (middle - begin > end - middle) {
-				d = (begin + middle) * .5;
-
+				d = (begin + middle) * 0.5;
 				if (function(d) < function(middle)) {
 					end = middle;
 					middle = d;
@@ -24,8 +22,7 @@ namespace Utility::Numerics::Minimization {
 				}
 			}
 			else {
-				d = (middle + end) * .5;
-
+				d = (middle + end) * 0.5;
 				if (function(d) < function(middle)) {
 					begin = middle;
 					middle = d;

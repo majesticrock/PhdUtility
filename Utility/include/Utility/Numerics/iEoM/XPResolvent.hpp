@@ -3,6 +3,7 @@
 #include "_xp_internal.hpp"
 #include "../PivotToBlockStructure.hpp"
 #include "../Resolvent.hpp"
+#include "../../ConstexprPower.hpp"
 #include <Eigen/Dense>
 #include <chrono>
 
@@ -74,14 +75,24 @@ namespace Utility::Numerics::iEoM {
 			return false;
 		};
 
+		template<int CheckHermitian = -1>
 		std::vector<ResolventDataWrapper<RealType>> computeCollectiveModes(unsigned int LANCZOS_ITERATION_NUMBER)
 		{
 			std::chrono::time_point begin = std::chrono::steady_clock::now();
 			_derived->fillMatrices();
 			_derived->createStartingStates();
 
-			K_minus = _internal.removeNoise(K_minus);
-			K_plus = _internal.removeNoise(K_plus);
+			K_minus = this->_internal.removeNoise(K_minus);
+			K_plus = this->_internal.removeNoise(K_plus);
+
+			if constexpr (CheckHermitian > 0) {
+				if ((K_plus - K_plus.adjoint()).norm() > constexprPower<-CheckHermitian, RealType, RealType>(10.)) {
+					throw std::runtime_error("K_plus is not Hermitian!");
+				}
+				if ((K_minus - K_minus.adjoint()).norm() > constexprPower<-CheckHermitian, RealType, RealType>(10.)) {
+					throw std::runtime_error("K_minus is not Hermitian!");
+				}
+			}
 
 			std::chrono::time_point end = std::chrono::steady_clock::now();
 			std::cout << "Time for filling of M and N: "

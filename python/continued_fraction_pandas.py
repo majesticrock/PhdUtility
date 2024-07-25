@@ -5,10 +5,11 @@ import matplotlib.pyplot as plt
 NORM_FACTOR = -(1. / np.pi) 
 
 class ContinuedFraction:
-    def __init__(self, data_frame, z_squared=True, messages=True, ignore_first=5):
+    def __init__(self, data_frame, z_squared=True, messages=True, ignore_first=5, ignore_last=80):
         self.z_squared = z_squared
         self.messages = messages
         self.ignore_first = ignore_first
+        self.ignore_last = ignore_last
         
         if z_squared:
             self.roots = np.array(data_frame.at["continuum_boundaries"])**2
@@ -62,8 +63,11 @@ class ContinuedFraction:
         A = self.__coeffs_A__(name, index)
         B = self.__coeffs_B__(name, index)
         
-        deviation_from_infinity = np.zeros(len(A) - 1)
-        for i in range(0, len(A) - 1):
+        if self.ignore_last > len(A) - 1:
+            self.ignore_last = len(A) - 1
+            
+        deviation_from_infinity = np.zeros(self.ignore_last)
+        for i in range(0, self.ignore_last):
             deviation_from_infinity[i] = abs((A[i] - self.a_infinity) / self.a_infinity) + abs((np.sqrt(B[i + 1]) - self.b_infinity) / self.b_infinity)
 
         best_approx = np.argmin(deviation_from_infinity[self.ignore_first:]) + self.ignore_first
