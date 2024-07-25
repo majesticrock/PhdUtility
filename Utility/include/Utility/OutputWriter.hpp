@@ -34,8 +34,8 @@ namespace Utility {
 	}
 
 	// Returns the current time in a readable format
-	// default = "YYYY-MM-DD HH:MM:SS"
-	inline std::string time_stamp(const std::string& fmt = "%F %T")
+	// default = "DD-MM-YYYY HH:MM:SS"
+	inline std::string time_stamp(const std::string& fmt = "%d-%m-%Y %T")
 	{
 		auto bt = localtime_xp(std::time(0));
 		char buf[64];
