@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cmath>
 #include <limits>
+#include <string>
 
 namespace Utility::Numerics::Roots {
 	template <class Function, class RealType>
@@ -17,7 +18,7 @@ namespace Utility::Numerics::Roots {
         if(is_zero(f_lower)) return begin;
 
         if(f_lower * f_upper > 0){
-            throw std::invalid_argument("There is no root in the given interval!");
+            throw std::invalid_argument("There is no root in the given interval!" + std::string(typeid(Function).name()));
         }
         if(f_lower > 0) {
             // Ensure that the function is rising
