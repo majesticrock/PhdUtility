@@ -48,9 +48,9 @@ namespace Utility {
 
         ImagPartIterator(std::complex<T> const * ptr) : ptr(ptr) {}
 
-        T operator*() const { return ptr->real(); }
+        T operator*() const { return ptr->imag(); }
         T operator[](difference_type n) const {
-            return (ptr + n)->real();
+            return (ptr + n)->imag();
         }
 
         ImagPartIterator& operator++() { ++ptr; return *this; }
