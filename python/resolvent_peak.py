@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.optimize as opt
-from lib.bounded_minimize import bounded_minimize
-import lib.continued_fraction as cf
+from bounded_minimize import bounded_minimize
+import continued_fraction as cf
 
 def linear_function(x, a, b):
     return a * x + b
