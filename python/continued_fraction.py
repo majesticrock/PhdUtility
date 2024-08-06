@@ -166,7 +166,7 @@ class ContinuedFraction:
 def continuum_edges(data_folder, name_suffix, xp_basis=True):
     if xp_basis:
         if name_suffix == "AFM" or name_suffix == "CDW":
-            res = ContinuedFraction(data_folder, f"resolvent_amplitude_{name_suffix}", True, False)
+            res = ContinuedFraction(data_folder, f"resolvent_higgs_{name_suffix}", True, False)
         else:
             res = ContinuedFraction(data_folder, f"resolvent_{name_suffix}", True, False)
     else:
@@ -194,7 +194,7 @@ def resolvent_data_log_z(data_folder, name_suffix, lower_edge=None, range=None, 
     data = np.zeros(number_of_values, dtype=complex)
     if xp_basis:
         if name_suffix == "AFM" or name_suffix == "CDW":
-            res = ContinuedFraction(data_folder, f"resolvent_amplitude_{name_suffix}", True, messages, ingore_first)
+            res = ContinuedFraction(data_folder, f"resolvent_higgs_{name_suffix}", True, messages, ingore_first)
         else:
             res = ContinuedFraction(data_folder, f"resolvent_{name_suffix}", True, messages, ingore_first)
         
@@ -225,7 +225,7 @@ def resolvent_data(data_folder, name_suffix, lower_edge, upper_edge=None, xp_bas
     data = np.zeros(number_of_values, dtype=complex)
     if xp_basis:
         if name_suffix == "AFM" or name_suffix == "CDW" or name_suffix == "AFM_trans":
-            res = ContinuedFraction(data_folder, f"resolvent_amplitude_{name_suffix}", True, messages, ingore_first)
+            res = ContinuedFraction(data_folder, f"resolvent_higgs_{name_suffix}", True, messages, ingore_first)
         else:
             res = ContinuedFraction(data_folder, f"resolvent_{name_suffix}", True, messages, ingore_first)
         
