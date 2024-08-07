@@ -45,6 +45,7 @@ namespace SymbolicOperators {
 				}
 			}
 		}
+		remove_zeros();
 	}
 
 	Momentum& Momentum::operator+=(const Momentum& rhs)
