@@ -67,6 +67,10 @@ namespace SymbolicOperators {
 		void remove_zeros();
 		// replaces 'momentum' with -'momentum' if it exists within momentum_list
 		void flip_single(char momentum);
+		inline bool is_zero() const {
+			if(add_Q) return false;
+			return momentum_list.empty();
+		}
 
 		bool operator==(const Momentum& rhs) const;
 		inline bool operator!=(const Momentum& rhs) const {
