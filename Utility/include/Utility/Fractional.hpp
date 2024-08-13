@@ -141,7 +141,10 @@ namespace Utility {
             os << frac.numerator / frac.denominator;
         }
         else {
-            os << "(" << frac.numerator << "/" << frac.denominator << ")";
+            if(frac.numerator < 0) {
+                os << "-";
+            }
+            os << "(" << std::abs(frac.numerator) << "/" << frac.denominator << ")";
         }
         return os;
     }
@@ -161,6 +164,11 @@ namespace Utility {
     template<class _int>
     inline Fractional<_int> operator/(Fractional<_int> lhs, const Fractional<_int>& rhs) {
         return lhs /= rhs;
+    }
+
+    template<class _int>
+    inline Fractional<_int> operator-(Fractional<_int> rhs) {
+        return rhs *= _int{-1};
     }
 
     template<class _int>
