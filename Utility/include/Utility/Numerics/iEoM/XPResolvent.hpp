@@ -198,7 +198,7 @@ namespace Utility::Numerics::iEoM {
 			}
 #pragma omp parallel for
 			for(int i = 0; i < phase_size(starting_states); ++i) {
-				resolvents[i].compute(solver_matrix, LANCZOS_ITERATION_NUMBER);
+				resolvents[i].computeWithReorthogonalization(solver_matrix, LANCZOS_ITERATION_NUMBER);
 			}
 
 			compute_solver_matrix(1, 0);
@@ -208,7 +208,7 @@ namespace Utility::Numerics::iEoM {
 			}
 #pragma omp parallel for
 			for(int i = phase_size(starting_states); i < phase_size(starting_states) + amplitude_size(starting_states); ++i) {
-				resolvents[i].compute(solver_matrix, LANCZOS_ITERATION_NUMBER);
+				resolvents[i].computeWithReorthogonalization(solver_matrix, LANCZOS_ITERATION_NUMBER);
 			}
 
 			end = std::chrono::steady_clock::now();

@@ -104,13 +104,14 @@ namespace SymbolicOperators {
 			}
 		}
 		else if (sub.substr(0U, sub_delimiter) == "c") {
+			std::cout << expression << "  " << sub << std::endl;
 			this->coefficients.push_back(Coefficient::parse_string(sub.substr(sub_delimiter + 1)));
 		}
 		else if (sub.substr(0U, sub_delimiter) == "o") {
 			this->operators.push_back(WickOperator(sub.substr(sub_delimiter + 1)));
 		}
 		else {
-			throw std::invalid_argument("Did parse expression <" + expression + "> at <" + sub + "> with delimiter " + std::to_string(sub_delimiter));
+			throw std::invalid_argument("Did not parse expression <" + expression + "> at <" + sub + "> with delimiter " + std::to_string(sub_delimiter));
 		}
 	}
 
