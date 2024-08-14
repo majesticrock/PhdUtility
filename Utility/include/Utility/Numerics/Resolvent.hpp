@@ -181,7 +181,7 @@ namespace Utility::Numerics {
 				else {
 					deltas.push_back(basisVectors.back().dot(buffer));
 				}
-				currentSolution = (buffer - (deltas.back() * basisVectors.back())) - (gammas.back() * basisVectors[iterNum]);
+				currentSolution = buffer - (deltas.back() * basisVectors.back() + gammas.back() * basisVectors[iterNum]);
 				gammas.push_back(currentSolution.norm());
 				basisVectors.push_back(currentSolution / gammas.back());
 				++iterNum;
@@ -315,10 +315,10 @@ namespace Utility::Numerics {
 					deltas.push_back(basisVectors.back().dot(buffer));
 				}
 				if (iterNum > 0U) {
-					currentSolution = (buffer - (deltas.back() * basisVectors.back())) - (gammas.back() * basisVectors[iterNum]);
+					currentSolution = buffer - (deltas.back() * basisVectors.back() + gammas.back() * basisVectors[iterNum]);
 				}
 				else {
-					currentSolution = (buffer - (deltas.back() * basisVectors.back()));
+					currentSolution = buffer - (deltas.back() * basisVectors.back());
 				}
 				GramSchmidt<ComputationType>::orthogonalizeSingleVector(currentSolution, basisVectors);
 				gammas.push_back(currentSolution.norm());
