@@ -15,7 +15,7 @@ namespace SymbolicOperators{
     void TranslationalSymmetry::apply_to(WickTerm& term) const
     {
         for (auto& op : term.operators) {
-            if (op.momentum.momentum_list[0].first < 0) {
+            if (!op.momentum.momentum_list.empty() && op.momentum.momentum_list[0].first < 0) {
                 op.momentum.flipMomentum();
             }
         }

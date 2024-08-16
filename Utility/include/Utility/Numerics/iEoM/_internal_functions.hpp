@@ -66,7 +66,7 @@ namespace Utility::Numerics::iEoM {
 			{
 				if (ev < _sqrt_precision) {
 					if constexpr (pseudo_inverse) {
-						ev = 0;
+						ev = RealType{};
 					}
 					else {
 						if constexpr (option == IEOM_INVERSE) {

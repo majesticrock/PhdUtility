@@ -205,4 +205,18 @@ namespace SymbolicOperators {
 		if (rhs.momentum_list.empty()) return false;
 		return lhs.momentum_list.front() < rhs.momentum_list.front();
 	}
+
+	bool momentum_order(const Momentum& lhs, const Momentum& rhs)
+	{
+		if(rhs.momentum_list.empty()) {
+			if(lhs.momentum_list.empty() && !lhs.add_Q && rhs.add_Q) return true;
+			return false; 
+		}
+		if(lhs.momentum_list.empty()) return true;
+		if(lhs.momentum_list[0].second < rhs.momentum_list[0].second) return true;
+		if(lhs.momentum_list[0].second == rhs.momentum_list[0].second) {
+			if(!lhs.add_Q && rhs.add_Q) return true;
+		}
+		return false;
+	}
 }

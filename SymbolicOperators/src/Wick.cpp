@@ -168,10 +168,6 @@ namespace SymbolicOperators {
 				symmetry->apply_to(*it);
 			}
 
-			//it->applyPhaseSymmetry();
-			//it->applySpinSymmetry();
-			//it->applyTranslationalSymmetry();
-
 			for (auto jt = it->sums.spins.begin(); jt != it->sums.spins.end();)
 			{
 				if (it->usesIndex(*jt)) {
