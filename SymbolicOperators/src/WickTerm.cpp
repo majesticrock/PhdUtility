@@ -104,7 +104,6 @@ namespace SymbolicOperators {
 			}
 		}
 		else if (sub.substr(0U, sub_delimiter) == "c") {
-			std::cout << expression << "  " << sub << std::endl;
 			this->coefficients.push_back(Coefficient::parse_string(sub.substr(sub_delimiter + 1)));
 		}
 		else if (sub.substr(0U, sub_delimiter) == "o") {
@@ -546,13 +545,8 @@ namespace SymbolicOperators {
 					std::swap(operators[i], operators[j]);
 				}
 				else if (operators[i].type == operators[j].type) {
-					if (operators[i].momentum.momentum_list[0].second > operators[j].momentum.momentum_list[0].second) {
+					if (momentum_order(operators[i].momentum, operators[j].momentum)) {
 						std::swap(operators[i], operators[j]);
-					}
-					else if (operators[i].momentum.momentum_list[0].second == operators[j].momentum.momentum_list[0].second) {
-						if (operators[i].momentum.add_Q && !(operators[j].momentum.add_Q)) {
-							std::swap(operators[i], operators[j]);
-						}
 					}
 				}
 			}

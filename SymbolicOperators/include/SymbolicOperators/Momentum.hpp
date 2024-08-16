@@ -78,6 +78,8 @@ namespace SymbolicOperators {
 		};
 	};
 
+	bool momentum_order(const Momentum& lhs, const Momentum& rhs);
+
 	inline Momentum operator+(Momentum lhs, const Momentum& rhs) {
 		lhs += rhs;
 		return lhs;

@@ -311,7 +311,6 @@ namespace SymbolicOperators {
 				}
 			}
 		}
-
 		size_t new_n;
 		size_t n = operators.size();
 		while (n > 1U) {
@@ -357,7 +356,7 @@ namespace SymbolicOperators {
 				if (operators[i].isDaggered != operators[i - 1].isDaggered) continue;
 				if (operators[i].indizes[0] != operators[i - 1].indizes[0]) continue;
 
-				if (operators[i - 1].momentum.momentum_list[0].second > operators[i].momentum.momentum_list[0].second) {
+				if(momentum_order(operators[i - 1].momentum, operators[i].momentum)) {
 					std::swap(operators[i], operators[i - 1]);
 					flipSign();
 					new_n = i;
@@ -619,7 +618,6 @@ namespace SymbolicOperators {
 	void cleanUp(std::vector<Term>& terms)
 	{
 		for (std::vector<Term>::iterator it = terms.begin(); it != terms.end();) {
-			//std::cout << count++ << " of " << terms.size() << ":&\t" << *it << "\\\\" << std::endl;
 			if (!(it->setDeltas())) {
 				it = terms.erase(it);
 				continue;
@@ -636,10 +634,8 @@ namespace SymbolicOperators {
 			it->discardZeroMomenta();
 			it->renameSums();
 			it->sort();
-
 			++it;
 		}
-
 		// remove duplicates
 		for (int i = 0; i < terms.size(); i++)
 		{
@@ -653,7 +649,6 @@ namespace SymbolicOperators {
 				}
 			}
 		}
-
 		// removes any terms that have a 0 prefactor
 		for (auto it = terms.begin(); it != terms.end();)
 		{
