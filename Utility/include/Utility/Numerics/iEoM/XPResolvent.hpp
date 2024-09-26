@@ -4,6 +4,7 @@
 #include "../PivotToBlockStructure.hpp"
 #include "../Resolvent.hpp"
 #include "../../ConstexprPower.hpp"
+#include "../../OutputConvenience.hpp"
 #include <Eigen/Dense>
 #include <chrono>
 
@@ -76,7 +77,7 @@ namespace Utility::Numerics::iEoM {
 		};
 
 		template<int CheckHermitian = -1>
-		std::vector<ResolventDataWrapper<RealType>> computeCollectiveModes(unsigned int LANCZOS_ITERATION_NUMBER)
+		std::vector<ResolventDataWrapper<RealType>> computeCollectiveModes(unsigned int LANCZOS_ITERATION_NUMBER, std::string const& full_diag_file_name = "")
 		{
 			std::chrono::time_point begin = std::chrono::steady_clock::now();
 			_derived->fillMatrices();
@@ -192,6 +193,13 @@ namespace Utility::Numerics::iEoM {
 			auto resolvent_it = resolvents.begin();
 
 			compute_solver_matrix(0, 1);
+			if(full_diag_file_name != "") {
+				Eigen::SelfAdjointEigenSolver<Matrix> full_solver(solver_matrix);
+				std::vector<RealType> vec( full_solver.eigenvalues().data(), full_solver.eigenvalues().data() + full_solver.eigenvalues().size() );
+				saveData(vec, full_diag_file_name + "-values.dat.gz");
+				vec = std::vector<RealType>( full_solver.eigenvectors().data(), full_solver.eigenvectors().data() + full_solver.eigenvectors().size() );
+				saveData(vec, solver_matrix.rows(), full_diag_file_name + "-vectors.dat.gz");
+			}
 			for(phase_it it = phase_it::begin(starting_states); it != phase_it::end(starting_states); ++resolvent_it, ++it) {
 				resolvent_it->setStartingState(it->phase_state);
 				if(resolvent_it->data.name.empty()) resolvent_it->data.name = "phase_" + it->name;
@@ -202,6 +210,13 @@ namespace Utility::Numerics::iEoM {
 			}
 
 			compute_solver_matrix(1, 0);
+			if(full_diag_file_name != "") {
+				Eigen::SelfAdjointEigenSolver<Matrix> full_solver(solver_matrix);
+				std::vector<RealType> vec( full_solver.eigenvalues().data(), full_solver.eigenvalues().data() + full_solver.eigenvalues().size() );
+				saveData(vec, full_diag_file_name + "+values.dat.gz");
+				vec = std::vector<RealType>( full_solver.eigenvectors().data(), full_solver.eigenvectors().data() + full_solver.eigenvectors().size() );
+				saveData(vec, solver_matrix.rows(), full_diag_file_name + "+vectors.dat.gz");
+			}
 			for(amplitude_it it = amplitude_it::begin(starting_states); it != amplitude_it::end(starting_states); ++resolvent_it, ++it) {
 				resolvent_it->setStartingState(it->amplitude_state);
 				if(resolvent_it->data.name.empty()) resolvent_it->data.name = "amplitude_" + it->name;
