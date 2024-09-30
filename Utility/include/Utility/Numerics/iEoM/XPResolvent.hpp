@@ -192,17 +192,21 @@ namespace Utility::Numerics::iEoM {
 			resolvents.resize(N_RESOLVENT_TYPES);
 			auto resolvent_it = resolvents.begin();
 
+			Eigen::SelfAdjointEigenSolver<Matrix> full_solver;
 			compute_solver_matrix(0, 1);
 			if(full_diag_file_name != "") {
-				Eigen::SelfAdjointEigenSolver<Matrix> full_solver(solver_matrix);
+				full_solver.compute(solver_matrix);
 				std::vector<RealType> vec( full_solver.eigenvalues().data(), full_solver.eigenvalues().data() + full_solver.eigenvalues().size() );
 				saveData(vec, full_diag_file_name + "-values.dat.gz");
-				vec = std::vector<RealType>( full_solver.eigenvectors().data(), full_solver.eigenvectors().data() + full_solver.eigenvectors().size() );
-				saveData(vec, solver_matrix.rows(), full_diag_file_name + "-vectors.dat.gz");
 			}
 			for(phase_it it = phase_it::begin(starting_states); it != phase_it::end(starting_states); ++resolvent_it, ++it) {
 				resolvent_it->setStartingState(it->phase_state);
 				if(resolvent_it->data.name.empty()) resolvent_it->data.name = "phase_" + it->name;
+
+				if (full_diag_file_name != "") {
+					Vector coeffs = (full_solver.eigenvectors().adjoint() * it->phase_state).cwiseAbs2();
+					saveData(coeffs, full_diag_file_name + it->name + "-weights.dat.gz");
+				}
 			}
 #pragma omp parallel for
 			for(int i = 0; i < phase_size(starting_states); ++i) {
@@ -211,15 +215,18 @@ namespace Utility::Numerics::iEoM {
 
 			compute_solver_matrix(1, 0);
 			if(full_diag_file_name != "") {
-				Eigen::SelfAdjointEigenSolver<Matrix> full_solver(solver_matrix);
+				full_solver.compute(solver_matrix);
 				std::vector<RealType> vec( full_solver.eigenvalues().data(), full_solver.eigenvalues().data() + full_solver.eigenvalues().size() );
 				saveData(vec, full_diag_file_name + "+values.dat.gz");
-				vec = std::vector<RealType>( full_solver.eigenvectors().data(), full_solver.eigenvectors().data() + full_solver.eigenvectors().size() );
-				saveData(vec, solver_matrix.rows(), full_diag_file_name + "+vectors.dat.gz");
 			}
 			for(amplitude_it it = amplitude_it::begin(starting_states); it != amplitude_it::end(starting_states); ++resolvent_it, ++it) {
 				resolvent_it->setStartingState(it->amplitude_state);
 				if(resolvent_it->data.name.empty()) resolvent_it->data.name = "amplitude_" + it->name;
+
+				if (full_diag_file_name != "") {
+					Vector coeffs = (full_solver.eigenvectors().adjoint() * it->amplitude_state).cwiseAbs2();
+					saveData(coeffs, full_diag_file_name + it->name + "+weights.dat.gz");
+				}
 			}
 #pragma omp parallel for
 			for(int i = phase_size(starting_states); i < phase_size(starting_states) + amplitude_size(starting_states); ++i) {
