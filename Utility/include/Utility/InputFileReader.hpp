@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <vector>
+#include <string>
 
 /**
 * InputFileReader
@@ -114,7 +115,7 @@ namespace Utility {
 			int i = find(name);
 			if (i == -1) throw std::invalid_argument("Could not find parameter " + name);
 			used[i] = true;
-			return stoi(contents[i]);
+			return std::stoi(contents[i]);
 		};
 		// get the content as list of integers
 		inline std::vector<int> getIntList(std::string name)
@@ -128,7 +129,7 @@ namespace Utility {
 			size_t pos = 0;
 			bool done = false;
 			while (!done) {
-				result.push_back(stoi(s, &pos));
+				result.push_back(std::stoi(s, &pos));
 				if (s.size() > pos) {
 					s = s.substr(pos + 1);
 				}
@@ -144,7 +145,7 @@ namespace Utility {
 			int i = find(name);
 			if (i == -1) throw std::invalid_argument("Could not find parameter " + name);
 			used[i] = true;
-			return stod(contents[i]);
+			return std::stod(contents[i]);
 		};
 		// get the content as list of doubles
 		inline std::vector<double> getDoubleList(std::string name)
@@ -158,7 +159,7 @@ namespace Utility {
 			size_t pos = 0;
 			bool done = false;
 			while (!done) {
-				result.push_back(stod(s, &pos));
+				result.push_back(std::stod(s, &pos));
 				if (s.size() > pos) {
 					s = s.substr(pos + 1);
 				}

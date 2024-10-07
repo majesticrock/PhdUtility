@@ -24,7 +24,7 @@ namespace Utility::Numerics::Roots {
 	public:
 		// the function must have the following signature void func(const VectorType& input, VectorType& output)
 		template<class FunctionType>
-		static bool compute(const FunctionType& func, VectorType& x0, const int MAX_ITER = 200)
+		static bool compute(const FunctionType& func, VectorType& x0, const unsigned int MAX_ITER = 200)
 		{
 			size_t DIM = x0.rows();
 			// You may play around with EPS_X and EPS_F to your desire

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _ITERATIVE_SOLVER_HPP
+#define _ITERATIVE_SOLVER_HPP
+
 #include <iostream>
 #include <iomanip>
 #include <Eigen/Dense>
@@ -44,10 +46,10 @@ namespace Utility::Selfconsistency {
 		Model* _model{};
 		SelfconsistencyAttributes* _attr{};
 		const RealType _precision{ PRECISION<RealType> };
-		const size_t NUMBER_OF_PARAMETERS{};
+		const unsigned int NUMBER_OF_PARAMETERS{};
 
 		inline bool hasSignFlippingBehaviour(const ParameterVector& x0) {
-			for (size_t j = 0U; j < this->NUMBER_OF_PARAMETERS; ++j)
+			for (unsigned int j = 0U; j < this->NUMBER_OF_PARAMETERS; ++j)
 			{
 				if (abs(x0[j]) > 1e1 * _precision) {
 					if (abs((x0[j] + (*this->_attr)[j]) / x0[j]) < _precision) {
@@ -58,7 +60,7 @@ namespace Utility::Selfconsistency {
 			return false;
 		};
 
-		ConvergenceInfo<RealType> procedureIterative(const size_t MAX_STEPS)
+		ConvergenceInfo<RealType> procedureIterative(const unsigned int MAX_STEPS)
 		{
 			ConvergenceInfo<RealType> convergence;
 
@@ -70,7 +72,7 @@ namespace Utility::Selfconsistency {
 				std::cout << "-1:\t" << std::scientific << std::setprecision(4) << "\n" << x0.transpose() << std::endl;
 			}
 
-			size_t iterNum = 0U;
+			unsigned int iterNum = 0U;
 			while (iterNum < MAX_STEPS && convergence.error > _precision) {
 				this->_model->iterationStep(x0, f0);
 				if (hasSignFlippingBehaviour(x0)) {
@@ -98,7 +100,7 @@ namespace Utility::Selfconsistency {
 			return convergence;
 		};
 	public:
-		virtual const SelfconsistencyAttributes& compute(bool print_time = false, const size_t MAX_STEPS = 1500)
+		virtual const SelfconsistencyAttributes& compute(bool print_time = false, const unsigned int MAX_STEPS = 1500)
 		{
 			std::chrono::time_point begin = std::chrono::steady_clock::now();
 			this->_attr->converged = true;
@@ -138,3 +140,4 @@ namespace Utility::Selfconsistency {
 		return IterativeSolver<DataType, Model, SelfconsistencyAttributes, WarnNoConvergence>(model_ptr, attribute_ptr, precision);
 	}
 }
+#endif
