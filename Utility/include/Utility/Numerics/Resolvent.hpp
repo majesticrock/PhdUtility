@@ -3,6 +3,7 @@
 #define assertm(exp, msg) assert(((void)msg, exp))
 
 #include "../OutputConvenience.hpp"
+#include "../RangeUtility.hpp"
 #include "GramSchmidt.hpp"
 #include <type_traits>
 #include <Eigen/Dense>
@@ -18,7 +19,7 @@ namespace Utility::Numerics {
 		std::vector<RealType> b_i;
 	};
 
-	template<class RealType>
+	template <class RealType>
 	struct ResolventDataWrapper {
 		std::vector<ResolventData<RealType>> lanczos;
 		std::string name;
@@ -44,6 +45,30 @@ namespace Utility::Numerics {
 			saveData(lanczos, filename + ".dat.gz");
 		};
 	};
+
+	template <class RealType>
+	void join_data_wrapper(std::vector<ResolventDataWrapper<RealType>>& target, ResolventDataWrapper<RealType> const& new_data)
+	{
+		for(auto& sub_target : target) {
+			if(sub_target.name == new_data.name) {
+				append_vector(sub_target.lanczos, new_data.lanczos);
+				return;
+			}
+		}
+		target.push_back(new_data);
+	}
+
+	template <class RealType>
+	void join_data_wrapper(std::vector<ResolventDataWrapper<RealType>>& target, std::vector<ResolventDataWrapper<RealType>> const& new_data)
+	{
+		if(target.empty()) {
+			target = new_data;
+			return;
+		}
+		for(const auto& _new : new_data) {
+			join_data_wrapper(target, _new);
+		}
+	}
 
 	// choose the floating point precision, i.e. float, double or long double
 	template <class RealType, bool isComplex>

@@ -109,7 +109,7 @@ namespace Utility::Numerics::iEoM {
 			const int N_RESOLVENT_TYPES = starting_states.size();
 			std::vector<Resolvent<RealType, true>> resolvents(3 * N_RESOLVENT_TYPES);
 			resolvents.resize(3 * N_RESOLVENT_TYPES);
-			if(N_RESOLVENT_TYPES < resolvent_names.size()) {
+			if(N_RESOLVENT_TYPES <= resolvent_names.size()) {
 				for(size_t i = 0U; i < N_RESOLVENT_TYPES; ++i) {
 					resolvents[3 * i].data.name = resolvent_names[i] + "_a";
 					resolvents[3 * i + 1].data.name = resolvent_names[i] + "_a+b";

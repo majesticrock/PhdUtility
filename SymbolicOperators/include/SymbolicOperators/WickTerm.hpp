@@ -142,4 +142,14 @@ namespace SymbolicOperators {
 
 	std::ostream& operator<<(std::ostream& os, const WickTerm& term);
 	std::ostream& operator<<(std::ostream& os, const WickTermCollector& terms);
+
+	class bad_term_exception : public std::runtime_error {
+	protected:
+		const WickTerm _term;
+	public:
+		bad_term_exception(const std::string& what_arg, const WickTerm& term) : std::runtime_error(what_arg), _term(term) {};
+		bad_term_exception(const char* what_arg, const WickTerm& term) : std::runtime_error(what_arg), _term(term) {};
+
+		const WickTerm& which_term() const noexcept { return this->_term; };
+	};
 }
