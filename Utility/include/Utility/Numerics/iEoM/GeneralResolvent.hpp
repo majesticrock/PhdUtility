@@ -74,32 +74,30 @@ namespace Utility::Numerics::iEoM {
 				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
 			begin = std::chrono::steady_clock::now();
 
-			Eigen::SelfAdjointEigenSolver<Matrix> M_solver(M);
-			RealVector& evs_M = const_cast<RealVector&>(M_solver.eigenvalues());
-			this->_internal.template applyMatrixOperation<IEOM_NONE>(evs_M);
+			matrix_wrapper<NumberType> M_solver = Utility::Numerics::matrix_wrapper<NumberType>::pivot_and_solve(M);
+			this->_internal.template applyMatrixOperation<IEOM_NONE>(M_solver.eigenvalues);
 
-			auto bufferMatrix = N * M_solver.eigenvectors();
+			auto bufferMatrix = N * M_solver.eigenvectors;
 			// = N * 1/M * N
 			Matrix n_hacek = bufferMatrix
-				* evs_M.unaryExpr([this](RealType x) { return abs(x) < this->_internal._precision ? 0 : 1. / x; }).asDiagonal()
+				* M_solver.eigenvalues.unaryExpr([this](RealType x) { return abs(x) < this->_internal._precision ? 0 : 1. / x; }).asDiagonal()
 				* bufferMatrix.adjoint();
 
-			Eigen::SelfAdjointEigenSolver<Matrix> norm_solver(n_hacek);
-			RealVector& evs_norm = const_cast<RealVector&>(norm_solver.eigenvalues());
-			this->_internal.template applyMatrixOperation<IEOM_SQRT>(evs_norm);
+			matrix_wrapper<NumberType> norm_solver = Utility::Numerics::matrix_wrapper<NumberType>::pivot_and_solve(n_hacek);
+			this->_internal.template applyMatrixOperation<IEOM_SQRT>(norm_solver.eigenvalues);
 
 			// n_hacek -> n_hacek^(-1/2)
-			n_hacek = norm_solver.eigenvectors()
-				* evs_norm.unaryExpr([this](RealType x) { return abs(x) < this->_internal._precision ? 0 : 1. / x; }).asDiagonal()
-				* norm_solver.eigenvectors().adjoint();
+			n_hacek = norm_solver.eigenvectors
+				* norm_solver.eigenvalues.unaryExpr([this](RealType x) { return abs(x) < this->_internal._precision ? 0 : 1. / x; }).asDiagonal()
+				* norm_solver.eigenvectors.adjoint();
 			// Starting here M is the adjusted solver matrix (s s hackem)
 			// n_hacek * M * n_hacek
-			M = n_hacek * M_solver.eigenvectors() * evs_M.asDiagonal() * M_solver.eigenvectors().adjoint() * n_hacek;
+			M = n_hacek * M_solver.eigenvectors * M_solver.eigenvalues.asDiagonal() * M_solver.eigenvectors.adjoint() * n_hacek;
 			// Starting here N is the extra matrix that defines |a> (n s hackem N)
 			N.applyOnTheLeft(n_hacek);
 
 			// Starting here h_hacek is its own inverse (defining |b>)
-			n_hacek = norm_solver.eigenvectors() * evs_norm.asDiagonal() * norm_solver.eigenvectors().adjoint();
+			n_hacek = norm_solver.eigenvectors * norm_solver.eigenvalues.asDiagonal() * norm_solver.eigenvectors.adjoint();
 
 			end = std::chrono::steady_clock::now();
 			std::cout << "Time for adjusting of the matrices: "
