@@ -70,11 +70,8 @@ namespace Utility::Numerics {
 		return block_indices;
 	};
 
-	template <class NumberType>
+	template <class MatrixType, class RealType = UnderlyingFloatingPoint_t<typename MatrixType::Scalar>, class RealVector = Eigen::Vector<RealType, Eigen::Dynamic>>
 	struct matrix_wrapper {
-		using RealType = UnderlyingFloatingPoint_t<NumberType>;
-		using MatrixType = Eigen::Matrix<NumberType, Eigen::Dynamic, Eigen::Dynamic>;
-		using RealVector = Eigen::Vector<RealType, Eigen::Dynamic>;
 		MatrixType eigenvectors;
 		RealVector eigenvalues;
 
