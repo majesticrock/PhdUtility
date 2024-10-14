@@ -14,13 +14,12 @@ namespace Utility::Numerics::iEoM {
 		using RealType = UnderlyingFloatingPoint_t<NumberType>;
 		using Matrix = Eigen::Matrix<NumberType, Eigen::Dynamic, Eigen::Dynamic>;
 		using Vector = Eigen::Vector<NumberType, Eigen::Dynamic>;
-		using RealVector = Eigen::Vector<RealType, Eigen::Dynamic>;
-		using ComplexVector = Eigen::Vector<std::complex<RealType>, Eigen::Dynamic>;
+		using ResolventType = Resolvent<Matrix, Eigen::Vector< std::complex<RealType>, Eigen::Dynamic >>;
 
 	protected:
 		Matrix M, N;
 		std::vector<std::string> resolvent_names;
-		std::vector<ComplexVector> starting_states;
+		std::vector<Vector> starting_states;
 
 	public:
 		GeneralResolvent(Derived* derived_ptr, RealType const& sqrt_precision, bool negative_matrix_is_error = true)
@@ -41,7 +40,7 @@ namespace Utility::Numerics::iEoM {
 				}
 			}
 			M = this->_internal.removeNoise(M);
-			if (not matrix_wrapper<NumberType>::is_non_negative(M, this->_internal._sqrt_precision)) {
+			if (not matrix_wrapper<Matrix>::is_non_negative(M, this->_internal._sqrt_precision)) {
 				return true;
 			}
 
@@ -74,7 +73,7 @@ namespace Utility::Numerics::iEoM {
 				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
 			begin = std::chrono::steady_clock::now();
 
-			matrix_wrapper<NumberType> M_solver = Utility::Numerics::matrix_wrapper<NumberType>::pivot_and_solve(M);
+			matrix_wrapper<Matrix> M_solver = matrix_wrapper<Matrix>::pivot_and_solve(M);
 			this->_internal.template applyMatrixOperation<IEOM_NONE>(M_solver.eigenvalues);
 
 			auto bufferMatrix = N * M_solver.eigenvectors;
@@ -83,7 +82,7 @@ namespace Utility::Numerics::iEoM {
 				* M_solver.eigenvalues.unaryExpr([this](RealType x) { return abs(x) < this->_internal._precision ? 0 : 1. / x; }).asDiagonal()
 				* bufferMatrix.adjoint();
 
-			matrix_wrapper<NumberType> norm_solver = Utility::Numerics::matrix_wrapper<NumberType>::pivot_and_solve(n_hacek);
+			matrix_wrapper<Matrix> norm_solver = matrix_wrapper<Matrix>::pivot_and_solve(n_hacek);
 			this->_internal.template applyMatrixOperation<IEOM_SQRT>(norm_solver.eigenvalues);
 
 			// n_hacek -> n_hacek^(-1/2)
@@ -105,7 +104,7 @@ namespace Utility::Numerics::iEoM {
 			begin = std::chrono::steady_clock::now();
 
 			const int N_RESOLVENT_TYPES = starting_states.size();
-			std::vector<Resolvent<RealType, true>> resolvents(3 * N_RESOLVENT_TYPES);
+			std::vector< ResolventType > resolvents(3 * N_RESOLVENT_TYPES);
 			resolvents.resize(3 * N_RESOLVENT_TYPES);
 			if(N_RESOLVENT_TYPES <= resolvent_names.size()) {
 				for(size_t i = 0U; i < N_RESOLVENT_TYPES; ++i) {
@@ -118,8 +117,8 @@ namespace Utility::Numerics::iEoM {
 #pragma omp parallel for
 			for (int i = 0; i < N_RESOLVENT_TYPES; i++)
 			{
-				ComplexVector a = N * starting_states[i];
-				ComplexVector b = n_hacek * starting_states[i];
+				Vector a = N * starting_states[i];
+				Vector b = n_hacek * starting_states[i];
 
 				resolvents[3 * i].setStartingState(a);
 				resolvents[3 * i + 1].setStartingState(0.5 * (a + b));
