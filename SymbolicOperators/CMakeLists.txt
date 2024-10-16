@@ -10,6 +10,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # Include directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
+#find_package(ZLIB REQUIRED)
+#find_package(Boost REQUIRED COMPONENTS serialization iostreams)
+
 set(SYM_OP_SOURCES
     src/Coefficient.cpp
     src/IndexWrapper.cpp
@@ -48,12 +51,11 @@ target_include_directories(SymbolicOperators PUBLIC
     $<INSTALL_INTERFACE:include>
 )
 
-find_package(Utility REQUIRED)
-if(NOT Utility_FOUND)
-    message(FATAL_ERROR "Utility library not found")
-endif()
-target_link_libraries(SymbolicOperators PRIVATE Utility::Utility)
-target_include_directories(SymbolicOperators PRIVATE ${Utility_INCLUDE_DIRS})
+include(CMakeFindDependencyMacro)
+find_dependency(Utility REQUIRED)
+
+target_link_libraries(SymbolicOperators PUBLIC Utility::Utility)
+target_include_directories(SymbolicOperators PUBLIC ${Utility_INCLUDE_DIRS})
 
 # Installation settings
 install(TARGETS SymbolicOperators

@@ -1,0 +1,8 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(ZLIB REQUIRED)
+find_dependency(Boost REQUIRED COMPONENTS serialization iostreams)
+
+include("${CMAKE_CURRENT_LIST_DIR}/UtilityTargets.cmake")

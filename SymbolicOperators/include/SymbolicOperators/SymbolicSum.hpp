@@ -64,6 +64,13 @@ namespace SymbolicOperators {
 		inline void push_back(const Index spin) {
 			this->spins.push_back(spin);
 		}
+
+		inline bool has_momentum() const noexcept {
+			return !momenta.empty();
+		}
+		inline bool has_spins() const noexcept {
+			return !spins.empty();
+		}
 	};
 
 	inline bool operator==(const SumContainer& lhs, const SumContainer& rhs) {
