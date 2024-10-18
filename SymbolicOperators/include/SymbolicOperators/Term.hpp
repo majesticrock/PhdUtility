@@ -83,6 +83,19 @@ namespace SymbolicOperators {
 				op.momentum.replaceOccurances(what, Momentum(to));
 			}
 		};
+		inline void remove_momentum_contribution(char value) {
+			for(auto& coeff : coefficients) {
+				coeff.remove_momentum_contribution(value);
+			}
+			for(auto& op : operators) {
+				op.remove_momentum_contribution(value);
+			}
+			for(auto& delta : delta_momenta) {
+				delta.first.remove_contribution(value);
+				delta.second.remove_contribution(value);
+			}
+			std::erase_if(sums.momenta._vector, [&](char sum_idx) { return sum_idx == value; });
+		}
 	};
 	void commutator(std::vector<Term>& reciever, const std::vector<Term>& left, const std::vector<Term>& right);
 	inline void commutator(std::vector<Term>& reciever, const Term& left, const std::vector<Term>& right) {

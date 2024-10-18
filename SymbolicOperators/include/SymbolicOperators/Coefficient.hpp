@@ -57,6 +57,8 @@ namespace SymbolicOperators {
 			assert(momenta.size() == 1U);
 			return this->momenta.front().momentum_list.size() == 2U;
 		};
+
+		void remove_momentum_contribution(char value);
 	};
 
 	inline bool operator==(const Coefficient& lhs, const Coefficient& rhs) {

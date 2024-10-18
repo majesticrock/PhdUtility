@@ -99,6 +99,20 @@ namespace SymbolicOperators {
 		void renameSums();
 		void sort();
 		void includeTemplateResult(const TemplateResult::SingleResult& result);
+
+		inline void remove_momentum_contribution(char value) {
+			for(auto& coeff : coefficients) {
+				coeff.remove_momentum_contribution(value);
+			}
+			for(auto& op : operators) {
+				op.remove_momentum_contribution(value);
+			}
+			for(auto& delta : delta_momenta) {
+				delta.first.remove_contribution(value);
+				delta.second.remove_contribution(value);
+			}
+			std::erase_if(sums.momenta._vector, [&](char sum_idx) { return sum_idx == value; });
+		}
 	};
 
 	inline bool operator==(const WickOperator& lhs, const WickOperator& rhs) {

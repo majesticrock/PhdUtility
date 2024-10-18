@@ -48,6 +48,13 @@ namespace SymbolicOperators {
 		remove_zeros();
 	}
 
+	void Momentum::remove_contribution(char momentum) 
+	{
+		const int idx = this->isUsed(momentum);
+		if (idx < 0) return;
+		this->momentum_list.erase(this->momentum_list.begin() + idx);
+	}
+
 	Momentum& Momentum::operator+=(const Momentum& rhs)
 	{
 		this->add_Q = (rhs.add_Q != this->add_Q);
