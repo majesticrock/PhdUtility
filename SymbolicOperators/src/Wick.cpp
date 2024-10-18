@@ -187,6 +187,28 @@ namespace SymbolicOperators {
 			++it;
 		}
 
+		// Setup so that we always have a structure like delta_(l,k+something)
+		for(auto& term : terms){
+			for(auto& delta : term.delta_momenta) {
+				assert(delta.first.momentum_list.size() == 1U);
+				int l_is = delta.first.isUsed('l');
+				if(l_is == 0) continue;
+
+				l_is = delta.second.isUsed('l');
+				if(l_is == -1){
+					std::cout << term << std::endl;
+					throw;
+				}
+				const Momentum l_mom('l', delta.second.momentum_list[l_is].first);
+				const Momentum remainder = delta.second - l_mom;
+				delta -= remainder;
+				std::swap(delta.first, delta.second);
+				if(delta.first.add_Q) {
+					delta.second.add_Q = !delta.second.add_Q;
+					delta.first.add_Q = false;
+				}
+			}
+		}
 		// remove duplicates
 		for (int i = 0; i < terms.size(); i++)
 		{

@@ -27,6 +27,7 @@ namespace SymbolicOperators {
 		Momentum(char, char) = delete;
 
 		void sort();
+		void remove_contribution(char momentum);
 
 		Momentum& operator+=(const Momentum& rhs);
 		Momentum& operator-=(const Momentum& rhs);

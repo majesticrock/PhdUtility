@@ -39,6 +39,9 @@ namespace SymbolicOperators {
 			ret.momentum += Momentum(to_add);
 			return ret;
 		}
+		inline void remove_momentum_contribution(char value) {
+			momentum.remove_contribution(value);
+		}
 	};
 
 	inline bool operator==(const Operator& lhs, const Operator& rhs) {

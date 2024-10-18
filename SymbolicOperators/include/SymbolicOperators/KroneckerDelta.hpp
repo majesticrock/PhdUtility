@@ -1,6 +1,7 @@
 #pragma once
 #include <utility>
 #include <iostream>
+#include <Utility/defines_arithmetic_operators.hpp>
 
 namespace SymbolicOperators {
 	template<typename T>
@@ -39,6 +40,28 @@ namespace SymbolicOperators {
 	bool operator!=(const KroneckerDelta<T>& lhs, const KroneckerDelta<T>& rhs) {
 		return !(lhs == rhs);
 	};
+
+	template<typename T> requires Utility::defines_plus<T>::value
+	inline KroneckerDelta<T>& operator+=(KroneckerDelta<T>& lhs, T& rhs) {
+		lhs.first += rhs;
+		lhs.second += rhs;
+		return lhs;
+	}
+	template<typename T> requires Utility::defines_minus<T>::value
+	inline KroneckerDelta<T>& operator-=(KroneckerDelta<T>& lhs, const T& rhs) {
+		lhs.first -= rhs;
+		lhs.second -= rhs;
+		return lhs;
+	}
+
+	template<typename T> requires Utility::defines_plus<T>::value
+	inline KroneckerDelta<T> operator+(KroneckerDelta<T> lhs, T const& rhs) {
+		return (lhs += rhs);
+	}
+	template<typename T> requires Utility::defines_minus<T>::value
+	inline KroneckerDelta<T> operator-(KroneckerDelta<T> lhs, T const& rhs) {
+		return (lhs -= rhs);
+	}
 
 	template<typename T>
 	inline std::ostream& operator<<(std::ostream& os, const KroneckerDelta<T>& delta) {

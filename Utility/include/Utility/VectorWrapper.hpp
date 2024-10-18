@@ -8,11 +8,10 @@
 
 namespace Utility {
 	template<class T, class Allocator = std::allocator<T>>
-	class VectorWrapper {
-	protected:
+	struct VectorWrapper {
+	public:
 		std::vector<T, Allocator> _vector;
 
-	public:
 		using value_type = typename std::vector<T>::value_type;
 		using allocator_type = typename std::vector<T>::allocator_type;
 		using size_type = typename std::vector<T>::size_type;

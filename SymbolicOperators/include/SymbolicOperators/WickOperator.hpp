@@ -33,6 +33,9 @@ namespace SymbolicOperators {
 		inline bool dependsOn(char momentum) const noexcept {
 			return this->momentum.isUsed(momentum) != -1;
 		}
+		inline void remove_momentum_contribution(char value) {
+			momentum.remove_contribution(value);
+		}
 	};
 
 	std::ostream& operator<<(std::ostream& os, const WickOperator& op);

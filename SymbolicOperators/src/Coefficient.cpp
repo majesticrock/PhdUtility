@@ -2,6 +2,13 @@
 #include <Utility/StringUtility.hpp>
 
 namespace SymbolicOperators {
+	void Coefficient::remove_momentum_contribution(char value)
+	{
+		for(auto& mom : momenta) {
+			mom.remove_contribution(value);
+		}
+	}
+
 	Coefficient Coefficient::parse_string(const std::string& expression)
 	{
 		// Syntax:   name{Momentum_expression1,Momentum_expression1;index1,index2,...}
