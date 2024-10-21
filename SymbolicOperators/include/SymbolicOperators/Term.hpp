@@ -4,6 +4,19 @@
 #include "SymbolicSum.hpp"
 #include <Utility/Fractional.hpp>
 
+//#define _TRACK_TERM
+#ifdef _TRACK_TERM
+#define _TERM_TRACKER_PARAMETER bool is_tracked = false
+#define _TERM_TRACKER_ATTRIBUTE bool is_tracked{};
+#define IF_IS_TERM_TRACKED(statement) if ( is_tracked ) { statement ; }
+#define CLEAR_TRACKED(terms) for(auto& __term__ : terms) { __term__.is_tracked = false; }
+#else
+#define _TERM_TRACKER_PARAMETER 
+#define _TERM_TRACKER_ATTRIBUTE 
+#define IF_IS_TERM_TRACKED(statement)
+#define CLEAR_TRACKED(terms)
+#endif
+
 namespace SymbolicOperators {
 	using IntFractional = Utility::Fractional<int>;
 
@@ -15,6 +28,7 @@ namespace SymbolicOperators {
 		std::vector<KroneckerDelta<Momentum>> delta_momenta;
 		std::vector<KroneckerDelta<Index>> delta_indizes;
 		IntFractional multiplicity;
+		_TERM_TRACKER_ATTRIBUTE;
 
 		friend struct WickTerm;
 		Term(IntFractional _multiplicity, Coefficient _coefficient, const SumContainer& _sums,

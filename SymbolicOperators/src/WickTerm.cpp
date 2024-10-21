@@ -116,33 +116,13 @@ namespace SymbolicOperators {
 
 	bool WickTerm::setDeltas()
 	{
-		//remove_delta_squared(this->delta_indizes);
-		//remove_delta_squared(this->delta_momenta);
-
 		// Erase delta_k,k etc
 		remove_delta_is_one(this->delta_indizes);
 		remove_delta_is_one(this->delta_momenta);
 
 		for (auto& delta : delta_momenta)
 		{
-			for (auto it = delta.first.momentum_list.begin(); it != delta.first.momentum_list.end(); )
-			{
-				int index = delta.second.isUsed(it->second);
-				if (index < 0) {
-					++it;
-					continue;
-				}
-
-				int remainder = delta.second.momentum_list[index].first - it->first;
-				if (remainder == 0) {
-					delta.second.momentum_list.erase(delta.second.momentum_list.begin() + index);
-					it = delta.first.momentum_list.erase(it);
-					continue;
-				}
-
-				delta.second.momentum_list[index].first = remainder;
-				it = delta.first.momentum_list.erase(it);
-			}
+			remove_double_occurances(delta);
 			if (delta.first.momentum_list.empty()) {
 				if (delta.second.momentum_list.empty()) continue;
 				std::swap(delta.first, delta.second);
@@ -155,13 +135,14 @@ namespace SymbolicOperators {
 				delta.first.flipMomentum();
 				delta.second.flipMomentum();
 			}
-			if (delta.first.momentum_list.size() > 1 && delta.second.momentum_list.empty()) {
+			if (delta.first.momentum_list.size() > 1U && delta.second.momentum_list.empty()) {
 				delta.second.momentum_list.push_back(delta.first.momentum_list[1]);
 				delta.second.flipMomentum();
 				delta.first.momentum_list.erase(delta.first.momentum_list.begin() + 1);
 			}
 		}
 
+		// Removes delta_{0,Q} and delta_{0,0}
 		for (auto it = delta_momenta.begin(); it != delta_momenta.end(); )
 		{
 			if (it->first.momentum_list.empty() && it->second.momentum_list.empty()) {
@@ -177,19 +158,9 @@ namespace SymbolicOperators {
 		// Set all deltas up to the same notation
 		for (auto& delta : delta_momenta) {
 			for (auto& delta2 : delta_momenta) {
-				for (auto it = delta2.first.momentum_list.begin(); it != delta2.first.momentum_list.end();) {
-					int pos = delta2.second.isUsed(it->second);
-					if (pos < 0) { ++it; continue; }
-					it->first -= delta2.second.momentum_list[pos].first;
-					if (it->first == 0) {
-						it = delta2.first.momentum_list.erase(it);
-						delta2.second.momentum_list.erase(delta2.second.momentum_list.begin() + pos);
-						continue;
-					}
-					++it;
-				}
+				remove_double_occurances(delta2);
 			}
-
+			// Make sure that the first entry of each delta is not empty
 			if (delta.first.momentum_list.empty()) {
 				if (delta.second.momentum_list.empty()) continue;
 				if (delta.second.momentum_list.size() == 1) {
@@ -206,15 +177,20 @@ namespace SymbolicOperators {
 					delta.second.momentum_list.pop_back();
 				}
 			}
+
+			// Make sure that the first entry of each delta is of size 1
 			if (delta.second.momentum_list.size() == 1 && delta.first.momentum_list.size() > 1) {
 				std::swap(delta.first, delta.second);
 			}
-			if (delta.first.momentum_list.size() > 1 && delta.second.momentum_list.size() > 1) {
+			else if (delta.first.momentum_list.size() > 1 && delta.second.momentum_list.size() > 1) {
 				bool foundCandidate = false;
 				int index = 0;
+				// Create a delta_{0, something} situation
 				delta.second -= delta.first;
 				delta.first.momentum_list.clear();
+				delta.first.add_Q = false;
 
+				// See, whether we can find a sum index within our delta
 				for (auto m : sums.momenta)
 				{
 					index = delta.second.isUsed(m);
@@ -225,6 +201,7 @@ namespace SymbolicOperators {
 						}
 					}
 				}
+				// If we could not find any, just use the first one we see
 				if (!foundCandidate) index = 0;
 
 				if (delta.second.momentum_list[index].first > 0) {
