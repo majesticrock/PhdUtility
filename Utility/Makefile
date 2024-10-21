@@ -9,6 +9,10 @@ $(BUILD_DIR)/Makefile: CMakeLists.txt
 	@mkdir -p $(BUILD_DIR)
 	@cd $(BUILD_DIR) && cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) ..
 
+test: $(BUILD_DIR)/Makefile
+	@$(MAKE) -C $(BUILD_DIR)
+	cd build/test && ctest
+
 # Clean up the build directory
 clean:
 	@rm -rf $(BUILD_DIR)
