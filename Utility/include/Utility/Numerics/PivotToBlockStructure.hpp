@@ -1,19 +1,14 @@
 #pragma once
 #include <Eigen/Dense>
 #include <omp.h>
-#include "../UnderlyingFloatingPoint.hpp"
+#include "BlockDiagonalMatrix.hpp"
 
 namespace Utility::Numerics {
-	namespace Detail {
-		template<class EigenMatrixType>
-		using RealScalar = UnderlyingFloatingPoint_t<typename EigenMatrixType::Scalar>;
-	}
-
 	// Pivots a matrix so that all offdiagonal 0 blocks are contiguous
 	// The permutation matrix is returned
 	// epsilon is used to determine if a matrix element is 0 (especially important for floating point operations)
 	template<class EigenMatrixType>
-	auto pivot_to_block_structure(const EigenMatrixType& matrix, const Detail::RealScalar<EigenMatrixType> epsilon = 1e-12) {
+	Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic> pivot_to_block_structure(const EigenMatrixType& matrix, const detail::RealScalar<EigenMatrixType> epsilon = 1e-12) {
 		Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic> P(matrix.rows());
 		P.setIdentity();
 
@@ -33,42 +28,6 @@ namespace Utility::Numerics {
 		return P;
 	};
 
-	struct HermitianBlock {
-		Eigen::Index position{};
-		Eigen::Index size{};
-	};
-
-	inline std::ostream& operator<<(std::ostream& os, const HermitianBlock& block) {
-		os << block.position << "\t" << block.size;
-		return os;
-	};
-
-	template<class EigenMatrixType>
-	auto identify_hermitian_blocks(const EigenMatrixType& matrix, const Detail::RealScalar<EigenMatrixType> epsilon = 1e-12) {
-		Eigen::Index block_index{ 1 };
-		Eigen::Index block_size{};
-		std::vector<HermitianBlock> block_indices;
-		for (Eigen::Index i = 0; i < matrix.rows(); ++i)
-		{
-			for (Eigen::Index j = matrix.cols() - 1; j > block_index; --j)
-			{
-				if (abs(matrix(i, j)) > epsilon) {
-					block_index = j;
-					break;
-				}
-			}
-			if (block_index == i) {
-				if (block_indices.empty()) {
-					block_indices.push_back({ Eigen::Index{}, block_index + 1 });
-				}
-				else {
-					block_size = block_index - (block_indices.back().size + block_indices.back().position) + 1;
-					block_indices.push_back({ block_index - block_size + 1, block_size });
-				}
-			}
-		}
-		return block_indices;
-	};
 
 	template <class MatrixType, class RealType = UnderlyingFloatingPoint_t<typename MatrixType::Scalar>, class RealVector = Eigen::Vector<RealType, Eigen::Dynamic>>
 	struct matrix_wrapper {
@@ -86,11 +45,7 @@ namespace Utility::Numerics {
 			return eigenvectors * eigenvalues.asDiagonal() * eigenvectors.adjoint();
 		};
 
-		static matrix_wrapper pivot_and_solve(MatrixType& toSolve)
-		{
-			auto pivot = pivot_to_block_structure(toSolve);
-			toSolve = pivot.transpose() * toSolve * pivot;
-			auto blocks = identify_hermitian_blocks(toSolve);
+		static matrix_wrapper solve_block_diagonal_matrix(const MatrixType& toSolve, const std::vector<HermitianBlock>& blocks) {
 			matrix_wrapper solution(toSolve.rows());
 
 #pragma omp parallel for
@@ -100,6 +55,16 @@ namespace Utility::Numerics {
 				solution.eigenvalues.segment(blocks[i].position, blocks[i].size) = solver.eigenvalues();
 				solution.eigenvectors.block(blocks[i].position, blocks[i].position, blocks[i].size, blocks[i].size) = solver.eigenvectors();
 			}
+			
+			return solution;
+		}
+
+		static matrix_wrapper pivot_and_solve(MatrixType& toSolve)
+		{
+			auto pivot = pivot_to_block_structure(toSolve);
+			toSolve = pivot.transpose() * toSolve * pivot;
+			const auto blocks = identify_hermitian_blocks(toSolve);
+			auto solution = solve_block_diagonal_matrix(toSolve, blocks);
 			solution.eigenvectors.applyOnTheLeft(pivot);
 			return solution;
 		};
@@ -128,5 +93,32 @@ namespace Utility::Numerics {
 			}
 			return true;
 		};
+	};
+
+	template <class Number>
+	struct matrix_wrapper<BlockDiagonalMatrix<Number>, UnderlyingFloatingPoint_t<Number>, Eigen::Vector<UnderlyingFloatingPoint_t<Number>, Eigen::Dynamic>> {
+		BlockDiagonalMatrix<Number> eigenvectors;
+		Eigen::Vector<UnderlyingFloatingPoint_t<Number>, Eigen::Dynamic> eigenvalues;
+
+		inline Eigen::MatrixXd reconstruct_matrix() const
+		{
+			return eigenvectors * eigenvalues.asDiagonal() * eigenvectors.adjoint();
+		};
+
+		static matrix_wrapper solve_block_diagonal_matrix(const BlockDiagonalMatrix<Number>& toSolve) {
+			matrix_wrapper solution;
+			solution.eigenvalues = Eigen::Vector<UnderlyingFloatingPoint_t<Number>, Eigen::Dynamic>::Zero(toSolve.rows());
+			solution.eigenvectors.blocks.resize(toSolve.blocks.size());
+			solution.eigenvectors.blocks_begin = toSolve.blocks_begin;
+#pragma omp parallel for
+			for (int i = 0; i < toSolve.blocks.size(); ++i)
+			{
+				Eigen::SelfAdjointEigenSolver<typename BlockDiagonalMatrix<Number>::InternalMatrix> solver(toSolve.blocks[i]);
+				solution.eigenvectors.blocks[i] = solver.eigenvectors();
+				solution.eigenvalues.segment(toSolve.blocks_begin[i], toSolve.blocks[i].rows()) = solver.eigenvalues();
+			}
+			
+			return solution;
+		}
 	};
 }

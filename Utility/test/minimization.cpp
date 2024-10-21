@@ -15,7 +15,7 @@ int main(){
     if(std::abs(x1 - x1_bi) < sqrt(std::numeric_limits<double>::epsilon())){
         std::cout << "Test 1 passed! ";
     } else {
-        std::cout << "Test 1 failed! ";
+        return 1;
     }
     std::cout << std::scientific << std::setprecision(16) << "x0 = " << x1 << "   we found   x0 = " << x1_bi << std::endl;
     return 0;

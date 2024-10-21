@@ -73,8 +73,22 @@ namespace Utility::Numerics::iEoM {
 				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
 			begin = std::chrono::steady_clock::now();
 
-			matrix_wrapper<Matrix> M_solver = matrix_wrapper<Matrix>::pivot_and_solve(M);
+			const auto pivot = pivot_to_block_structure(M);
+			M = pivot.transpose() * M * pivot;
+			const std::vector<HermitianBlock> blocks = identify_hermitian_blocks(M);
+			N = pivot.transpose() * N * pivot;
+			end = std::chrono::steady_clock::now();
+			std::cout << "Time for pivoting: "
+				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+			begin = std::chrono::steady_clock::now();
+
+			matrix_wrapper<Matrix> M_solver = matrix_wrapper<Matrix>::solve_block_diagonal_matrix(M, blocks);
 			this->_internal.template applyMatrixOperation<IEOM_NONE>(M_solver.eigenvalues);
+
+			end = std::chrono::steady_clock::now();
+			std::cout << "Time for first solving: "
+				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+			begin = std::chrono::steady_clock::now();
 
 			auto bufferMatrix = N * M_solver.eigenvectors;
 			// = N * 1/M * N
@@ -82,7 +96,7 @@ namespace Utility::Numerics::iEoM {
 				* M_solver.eigenvalues.unaryExpr([this](RealType x) { return abs(x) < this->_internal._precision ? 0 : 1. / x; }).asDiagonal()
 				* bufferMatrix.adjoint();
 
-			matrix_wrapper<Matrix> norm_solver = matrix_wrapper<Matrix>::pivot_and_solve(n_hacek);
+			matrix_wrapper<Matrix> norm_solver = matrix_wrapper<Matrix>::solve_block_diagonal_matrix(n_hacek, blocks);
 			this->_internal.template applyMatrixOperation<IEOM_SQRT>(norm_solver.eigenvalues);
 
 			// n_hacek -> n_hacek^(-1/2)
@@ -117,8 +131,8 @@ namespace Utility::Numerics::iEoM {
 #pragma omp parallel for
 			for (int i = 0; i < N_RESOLVENT_TYPES; i++)
 			{
-				Vector a = N * starting_states[i];
-				Vector b = n_hacek * starting_states[i];
+				Vector a = N * pivot.transpose() * starting_states[i];
+				Vector b = n_hacek * pivot.transpose() * starting_states[i];
 
 				resolvents[3 * i].setStartingState(a);
 				resolvents[3 * i + 1].setStartingState(0.5 * (a + b));
