@@ -27,26 +27,11 @@ namespace SymbolicOperators {
 
 	bool Term::setDeltas()
 	{
+		IF_IS_TERM_TRACKED( std::cout << "setDeltas() 1:&" << (*this) << "\\\\" << std::endl; );
+
 		for (auto& delta : delta_momenta)
 		{
-			for (auto it = delta.first.momentum_list.begin(); it != delta.first.momentum_list.end(); )
-			{
-				int index = delta.second.isUsed(it->second);
-				if (index < 0) {
-					++it;
-					continue;
-				}
-
-				int remainder = delta.second.momentum_list[index].first - it->first;
-				if (remainder == 0) {
-					delta.second.momentum_list.erase(delta.second.momentum_list.begin() + index);
-					it = delta.first.momentum_list.erase(it);
-					continue;
-				}
-
-				delta.second.momentum_list[index].first = remainder;
-				it = delta.first.momentum_list.erase(it);
-			}
+			remove_double_occurances(delta);
 			if (delta.first.momentum_list.empty()) {
 				if (delta.second.momentum_list.empty()) continue;
 				std::swap(delta.first, delta.second);
@@ -66,6 +51,8 @@ namespace SymbolicOperators {
 			}
 		}
 
+		IF_IS_TERM_TRACKED( std::cout << "setDeltas() 2:&" << (*this) << "\\\\" << std::endl; );
+		// Removes delta_{0,Q} and delta_{0,0}
 		for (auto it = delta_momenta.begin(); it != delta_momenta.end(); )
 		{
 			if (it->first.momentum_list.empty() && it->second.momentum_list.empty()) {
@@ -80,20 +67,12 @@ namespace SymbolicOperators {
 
 		// Set all deltas up to the same notation
 		for (auto& delta : delta_momenta) {
+			IF_IS_TERM_TRACKED( std::cout << "setDeltas() 3a:&" << (*this) << "\\\\" << std::endl; );
 			for (auto& delta2 : delta_momenta) {
-				for (auto it = delta2.first.momentum_list.begin(); it != delta2.first.momentum_list.end();) {
-					int pos = delta2.second.isUsed(it->second);
-					if (pos < 0) { ++it; continue; }
-					it->first -= delta2.second.momentum_list[pos].first;
-					if (it->first == 0) {
-						it = delta2.first.momentum_list.erase(it);
-						delta2.second.momentum_list.erase(delta2.second.momentum_list.begin() + pos);
-						continue;
-					}
-					++it;
-				}
+				remove_double_occurances(delta2);
 			}
-
+			IF_IS_TERM_TRACKED( std::cout << "setDeltas() 3b:&" << (*this) << "\\\\" << std::endl; );
+			// Make sure that the first entry of each delta is not empty
 			if (delta.first.momentum_list.empty()) {
 				if (delta.second.momentum_list.empty()) continue;
 				if (delta.second.momentum_list.size() == 1) {
@@ -110,25 +89,32 @@ namespace SymbolicOperators {
 					delta.second.momentum_list.pop_back();
 				}
 			}
+			IF_IS_TERM_TRACKED( std::cout << "setDeltas() 3c:&" << (*this) << "\\\\" << std::endl; );
+
+			// Make sure that the first entry of each delta is of size 1
 			if (delta.second.momentum_list.size() == 1 && delta.first.momentum_list.size() > 1) {
 				std::swap(delta.first, delta.second);
 			}
-			if (delta.first.momentum_list.size() > 1 && delta.second.momentum_list.size() > 1) {
+			else if (delta.first.momentum_list.size() > 1 && delta.second.momentum_list.size() > 1) {
 				bool foundCandidate = false;
 				int index = 0;
+				// Create a delta_{0, something} situation
 				delta.second -= delta.first;
 				delta.first.momentum_list.clear();
+				delta.first.add_Q = false;
 
+				// See, whether we can find a sum index within our delta
 				for (auto m : sums.momenta)
 				{
 					index = delta.second.isUsed(m);
-					if (index >= 0) {
+					if (index > -1) {
 						foundCandidate = true;
 						if (abs(delta.second.momentum_list[index].first) == 1) {
 							break;
 						}
 					}
 				}
+				// If we could not find any, just use the first one we see
 				if (!foundCandidate) index = 0;
 
 				if (delta.second.momentum_list[index].first > 0) {
@@ -139,6 +125,7 @@ namespace SymbolicOperators {
 				if (abs(delta.first.momentum_list[0].first) != 1) std::cerr << "Not yet implemented! " << delta.first << std::endl;
 				delta.second.momentum_list.erase(delta.second.momentum_list.begin() + index);
 			}
+			
 			if (delta.first.add_Q) {
 				delta.first.add_Q = false;
 				delta.second.add_Q = !(delta.second.add_Q);
@@ -147,7 +134,7 @@ namespace SymbolicOperators {
 				delta.first.flipMomentum();
 				delta.second.flipMomentum();
 			}
-
+			IF_IS_TERM_TRACKED( std::cout << "setDeltas() 3d:&" << (*this) << "\\\\" << std::endl; );
 			if (abs(delta.first.momentum_list[0].first) != 1) std::cerr << "Not yet implemented! " << delta.first << std::endl;
 			for (auto& op : operators) {
 				op.momentum.replaceOccurances(delta.first.momentum_list[0].second, delta.second);
@@ -160,7 +147,10 @@ namespace SymbolicOperators {
 				delta2.first.replaceOccurances(delta.first.momentum_list[0].second, delta.second);
 				delta2.second.replaceOccurances(delta.first.momentum_list[0].second, delta.second);
 			}
+			IF_IS_TERM_TRACKED( std::cout << "setDeltas() 3e:&" << (*this) << "\\\\" << std::endl; );
 		}
+
+		IF_IS_TERM_TRACKED( std::cout << "setDeltas() 4:&" << (*this) << "\\\\" << std::endl; );
 		for (auto& delta : delta_indizes) {
 			for (auto& op : operators) {
 				for (auto it = op.indizes.begin(); it != op.indizes.end(); ++it)
@@ -555,14 +545,14 @@ namespace SymbolicOperators {
 	void commutator(std::vector<Term>& reciever, const std::vector<Term>& left, const std::vector<Term>& right)
 	{
 		reciever.reserve(2 * left.size() * right.size());
-		std::vector<Term> reciever_buffer(2);
-
-		for (int i = 0; i < left.size(); i++)
+		
+		for (const auto& left_term : left)
 		{
-			for (int j = 0; j < right.size(); j++)
+			for (const auto& right_term : right)
 			{
-				commutator(reciever_buffer, left[i], right[j]);
-				Utility::append_vector(reciever, reciever_buffer);
+				std::vector<Term> reciever_buffer(2);
+				commutator(reciever_buffer, left_term, right_term);
+				Utility::append_vector(reciever, std::move(reciever_buffer));
 			}
 		}
 	}
@@ -605,6 +595,10 @@ namespace SymbolicOperators {
 
 	void cleanUp(std::vector<Term>& terms)
 	{
+#ifdef _TRACK_TERM
+		CLEAR_TRACKED(terms);
+		terms.back().is_tracked = true;
+#endif
 		for (std::vector<Term>::iterator it = terms.begin(); it != terms.end();) {
 			if (!(it->setDeltas())) {
 				it = terms.erase(it);
@@ -615,6 +609,7 @@ namespace SymbolicOperators {
 				it = terms.erase(it);
 				continue;
 			}
+
 			if (!(it->setDeltas())) {
 				it = terms.erase(it);
 				continue;
@@ -624,6 +619,30 @@ namespace SymbolicOperators {
 			it->sort();
 			++it;
 		}
+
+		// Setup so that we always have a structure like delta_(l,k+something)
+		for(auto& term : terms){
+			for(auto& delta : term.delta_momenta) {
+				assert(delta.first.momentum_list.size() == 1U);
+				int l_is = delta.first.isUsed('l');
+				if(l_is == 0) continue;
+
+				l_is = delta.second.isUsed('l');
+				if(l_is == -1){
+					std::cout << term << std::endl;
+					throw;
+				}
+				const Momentum l_mom('l', delta.second.momentum_list[l_is].first);
+				const Momentum remainder = delta.second - l_mom;
+				delta -= remainder;
+				std::swap(delta.first, delta.second);
+				if(delta.first.add_Q) {
+					delta.second.add_Q = !delta.second.add_Q;
+					delta.first.add_Q = false;
+				}
+			}
+		}
+
 		// remove duplicates
 		for (int i = 0; i < terms.size(); i++)
 		{
