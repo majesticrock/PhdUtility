@@ -104,7 +104,7 @@ namespace Utility::Numerics {
 			size_t matrix_size = toSolve.rows();
 
 			if (toSolve.rows() != toSolve.cols()) {
-				std::cerr << "EigenMatrixType is not square!" << std::endl;
+				std::cerr << "Matrix is not square!" << std::endl;
 				throw;
 			}
 
@@ -175,7 +175,7 @@ namespace Utility::Numerics {
 			const size_t matrix_size = toSolve.rows();
 
 			if (toSolve.rows() != toSolve.cols()) {
-				std::cerr << "EigenMatrixType is not square!" << std::endl;
+				std::cerr << "Matrix is not square!" << std::endl;
 				throw;
 			}
 
@@ -239,7 +239,7 @@ namespace Utility::Numerics {
 			auto matrix_size = toSolve.rows();
 
 			if (toSolve.rows() != toSolve.cols()) {
-				std::cerr << "EigenMatrixType is not square!" << std::endl;
+				std::cerr << "Matrix is not square!" << std::endl;
 				throw;
 			}
 
@@ -311,7 +311,7 @@ namespace Utility::Numerics {
 			const size_t matrix_size = toSolve.rows();
 
 			if (toSolve.rows() != toSolve.cols()) {
-				std::cerr << "EigenMatrixType is not square!" << std::endl;
+				std::cerr << "Matrix is not square!" << std::endl;
 				throw;
 			}
 

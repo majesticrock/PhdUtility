@@ -14,7 +14,8 @@ namespace Utility::Numerics::iEoM {
 		using RealType = UnderlyingFloatingPoint_t<NumberType>;
 		using Matrix = Eigen::Matrix<NumberType, Eigen::Dynamic, Eigen::Dynamic>;
 		using Vector = Eigen::Vector<NumberType, Eigen::Dynamic>;
-		using ResolventType = Resolvent<Matrix, Eigen::Vector< std::complex<RealType>, Eigen::Dynamic >>;
+		using BlockedMatrix = BlockDiagonalMatrix<NumberType>;
+		using ResolventType = Resolvent<BlockedMatrix, Eigen::Vector< std::complex<RealType>, Eigen::Dynamic >>;
 
 	protected:
 		Matrix M, N;
@@ -50,6 +51,7 @@ namespace Utility::Numerics::iEoM {
 		template<int CheckHermitian = -1>
 		std::vector<ResolventDataWrapper<RealType>> computeCollectiveModes(unsigned int LANCZOS_ITERATION_NUMBER)
 		{
+			using __matrix_wrapper__ = blocked_matrix_wrapper<NumberType>;
 			std::chrono::time_point begin = std::chrono::steady_clock::now();
 			std::chrono::time_point end = std::chrono::steady_clock::now();
 
@@ -77,12 +79,16 @@ namespace Utility::Numerics::iEoM {
 			M = pivot.transpose() * M * pivot;
 			const std::vector<HermitianBlock> blocks = identify_hermitian_blocks(M);
 			N = pivot.transpose() * N * pivot;
+
+			BlockedMatrix M_blocked(M, blocks);
+			BlockedMatrix N_blocked(N, blocks);
+			
 			end = std::chrono::steady_clock::now();
 			std::cout << "Time for pivoting: "
 				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
 			begin = std::chrono::steady_clock::now();
 
-			matrix_wrapper<Matrix> M_solver = matrix_wrapper<Matrix>::solve_block_diagonal_matrix(M, blocks);
+			__matrix_wrapper__ M_solver = __matrix_wrapper__::solve_block_diagonal_matrix(M_blocked); // , blocks
 			this->_internal.template applyMatrixOperation<IEOM_NONE>(M_solver.eigenvalues);
 
 			end = std::chrono::steady_clock::now();
@@ -90,13 +96,13 @@ namespace Utility::Numerics::iEoM {
 				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
 			begin = std::chrono::steady_clock::now();
 
-			auto bufferMatrix = N * M_solver.eigenvectors;
+			auto bufferMatrix = N_blocked * M_solver.eigenvectors;
 			// = N * 1/M * N
-			Matrix n_hacek = bufferMatrix
+			BlockedMatrix n_hacek = bufferMatrix
 				* M_solver.eigenvalues.unaryExpr([this](RealType x) { return abs(x) < this->_internal._precision ? 0 : 1. / x; }).asDiagonal()
 				* bufferMatrix.adjoint();
 
-			matrix_wrapper<Matrix> norm_solver = matrix_wrapper<Matrix>::solve_block_diagonal_matrix(n_hacek, blocks);
+			__matrix_wrapper__ norm_solver = __matrix_wrapper__::solve_block_diagonal_matrix(n_hacek); // , blocks
 			this->_internal.template applyMatrixOperation<IEOM_SQRT>(norm_solver.eigenvalues);
 
 			// n_hacek -> n_hacek^(-1/2)
@@ -105,9 +111,9 @@ namespace Utility::Numerics::iEoM {
 				* norm_solver.eigenvectors.adjoint();
 			// Starting here M is the adjusted solver matrix (s s hackem)
 			// n_hacek * M * n_hacek
-			M = n_hacek * M_solver.eigenvectors * M_solver.eigenvalues.asDiagonal() * M_solver.eigenvectors.adjoint() * n_hacek;
+			M_blocked = n_hacek * M_solver.eigenvectors * M_solver.eigenvalues.asDiagonal() * M_solver.eigenvectors.adjoint() * n_hacek;
 			// Starting here N is the extra matrix that defines |a> (n s hackem N)
-			N.applyOnTheLeft(n_hacek);
+			N_blocked.applyOnTheLeft(n_hacek);
 
 			// Starting here h_hacek is its own inverse (defining |b>)
 			n_hacek = norm_solver.eigenvectors * norm_solver.eigenvalues.asDiagonal() * norm_solver.eigenvectors.adjoint();
@@ -131,17 +137,18 @@ namespace Utility::Numerics::iEoM {
 #pragma omp parallel for
 			for (int i = 0; i < N_RESOLVENT_TYPES; i++)
 			{
-				Vector a = N * pivot.transpose() * starting_states[i];
-				Vector b = n_hacek * pivot.transpose() * starting_states[i];
+				Vector a = N * (pivot.transpose() * starting_states[i]).eval();
+				Vector b = n_hacek * (pivot.transpose() * starting_states[i]).eval();
 
 				resolvents[3 * i].setStartingState(a);
 				resolvents[3 * i + 1].setStartingState(0.5 * (a + b));
 				resolvents[3 * i + 2].setStartingState(0.5 * (a + std::complex<RealType>{ 0, 1 } *b));
 			}
+			//M = M_blocked.construct_matrix();
 #pragma omp parallel for
 			for (int i = 0; i < 3 * N_RESOLVENT_TYPES; i++)
 			{
-				resolvents[i].compute(M, LANCZOS_ITERATION_NUMBER);
+				resolvents[i].compute(M_blocked, LANCZOS_ITERATION_NUMBER);
 			}
 
 			end = std::chrono::steady_clock::now();
