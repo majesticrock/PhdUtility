@@ -100,10 +100,13 @@ namespace Utility::Numerics {
 		BlockDiagonalMatrix<Number> eigenvectors;
 		Eigen::Vector<UnderlyingFloatingPoint_t<Number>, Eigen::Dynamic> eigenvalues;
 
-		inline Eigen::MatrixXd reconstruct_matrix() const
+		inline BlockDiagonalMatrix<Number> reconstruct_matrix() const
 		{
 			return eigenvectors * eigenvalues.asDiagonal() * eigenvectors.adjoint();
-		};
+		}
+		inline BlockDiagonalMatrix<Number>::InternalMatrix reconstruct_matrix_as_eigen() const {
+			return reconstruct_matrix().construct_matrix();
+		}
 
 		static matrix_wrapper solve_block_diagonal_matrix(const BlockDiagonalMatrix<Number>& toSolve) {
 			matrix_wrapper solution;
@@ -121,4 +124,6 @@ namespace Utility::Numerics {
 			return solution;
 		}
 	};
+
+	template <class Number> using blocked_matrix_wrapper = matrix_wrapper<BlockDiagonalMatrix<Number>, UnderlyingFloatingPoint_t<Number>, Eigen::Vector<UnderlyingFloatingPoint_t<Number>, Eigen::Dynamic>>;
 }

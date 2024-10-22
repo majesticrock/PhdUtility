@@ -11,7 +11,7 @@ $(BUILD_DIR)/Makefile: CMakeLists.txt
 
 test: $(BUILD_DIR)/Makefile
 	@$(MAKE) -C $(BUILD_DIR)
-	cd build/test && ctest
+	cd build/test && ctest --output-on-failure
 
 # Clean up the build directory
 clean:
