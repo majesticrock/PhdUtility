@@ -8,13 +8,15 @@
 x64/
 Debug/
 Release/
-*/build/*
-build/*
+*/build/
+build/
 *.csv
 stdout*
 stderr*
 */__pycache__/*
 *.bin
+*.egg-info
+*.pyd
 
 !CMakeLists.txt
 

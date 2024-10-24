@@ -1,20 +1,17 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import cpp_continued_fraction as ccf
 
 NORM_FACTOR = -(1. / np.pi) 
 
 class ContinuedFraction:
-    def __init__(self, data_frame, z_squared=True, messages=True, ignore_first=5, ignore_last=80):
-        self.z_squared = z_squared
+    def __init__(self, data_frame, messages=True, ignore_first=5, ignore_last=80):
         self.messages = messages
         self.ignore_first = ignore_first
         self.ignore_last = ignore_last
-        
-        if z_squared:
-            self.roots = np.array(data_frame.at["continuum_boundaries"])**2
-        else:
-            self.roots = np.array(data_frame.at["continuum_boundaries"])
+        self.roots = np.array(data_frame.at["continuum_boundaries"])**2
+
         self.a_infinity = (self.roots[1] + self.roots[0]) * 0.5
         self.b_infinity = (self.roots[1] - self.roots[0]) * 0.25
         
@@ -30,27 +27,15 @@ class ContinuedFraction:
         if hasattr(w, '__len__'):
             return_arr = np.zeros(len(w), dtype=complex)
             for i in range(0, len(w)):
-                if w_param[i].real > 0:
-                    if w[i].real > self.roots[0]:
-                        return_arr[i] = (p[i] - root[i]) / (2. * self.b_infinity**2)
-                    else:
-                        return_arr[i] = (p[i] + root[i]) / (2. * self.b_infinity**2)
+                if w[i].real > self.roots[int(w_param[i].real <= 0)]:
+                    return_arr[i] = (p[i] - root[i]) / (2. * self.b_infinity**2)
                 else:
-                    if w[i].real > self.roots[1]:
-                        return_arr[i] = (p[i] - root[i]) / (2. * self.b_infinity**2)
-                    else:
-                        return_arr[i] = (p[i] + root[i]) / (2. * self.b_infinity**2)
+                    return_arr[i] = (p[i] + root[i]) / (2. * self.b_infinity**2)
         else:
-            if w_param.real > 0:
-                if w.real > self.roots[0]:
-                    return (p - root) / (2. * self.b_infinity**2)
-                else:
-                    return (p + root) / (2. * self.b_infinity**2)
+            if w.real > self.roots[int(w_param.real <= 0)]:
+                return (p - root) / (2. * self.b_infinity**2)
             else:
-                if w.real > self.roots[1]:
-                    return (p - root) / (2. * self.b_infinity**2)
-                else:
-                    return (p + root) / (2. * self.b_infinity**2)
+                return (p + root) / (2. * self.b_infinity**2)
         return return_arr
     
     def __coeffs_A__(self, name, index):
@@ -86,14 +71,10 @@ class ContinuedFraction:
         self.__termination_depth_if_required__(name, index)
         A = self.__coeffs_A__(name, index)
         B = self.__coeffs_B__(name, index)
-        w = w_param**2
-        if withTerminator:
-            G = w - A[len(A) - self.terminate_at[name][index]] - B[len(B) - self.terminate_at[name][index]] * self.terminator(w_param.real)
-        else:
-            G = w - A[len(A) - self.terminate_at[name][index]]
-        for j in range(len(A) - self.terminate_at[name][index] - 1, -1, -1):
-            G = w - A[j] - B[j + 1] / G
-        return B[0] / G
+        termination_index = len(A) - self.terminate_at[name][index]
+        
+        data = ccf.ContinuedFractionData(self.a_infinity, self.b_infinity**2, self.roots, A, B, termination_index)
+        return ccf.continued_fraction(w_param, data, withTerminator)
     
     def spectral_density(self, w_param, name, index=0, withTerminator = True):
         return NORM_FACTOR * self.continued_fraction(w_param, name, index, withTerminator).imag
@@ -103,11 +84,13 @@ class ContinuedFraction:
         A = self.__coeffs_A__(name, index)
         B = self.__coeffs_B__(name, index)
         w = w_param**2
+        
+        termination_index = len(A) - self.terminate_at[name][index]
         if withTerminator:
-            G = w - A[len(A) - self.terminate_at[name][index]] - B[len(B) - self.terminate_at[name][index]] * self.terminator(w_param.real)
+            G = w - A[termination_index] - B[len(B) - self.terminate_at[name][index]] * self.terminator(w_param.real)
         else:
-            G = w - A[len(A) - self.terminate_at[name][index]]
-        for j in range(len(A) - self.terminate_at[name][index] - 1, -1, -1):
+            G = w - A[termination_index]
+        for j in range(termination_index - 1, -1, -1):
             G = w - A[j] - B[j + 1] / G
         return G / B[0]
     
@@ -122,13 +105,7 @@ class ContinuedFraction:
         else:
             plotter = axes.axvspan
             
-        if self.z_squared:
-            plotter(scale_factor * np.sqrt(self.roots[0]), scale_factor * np.sqrt(self.roots[1]), **args)
-        else:
-            plotter(scale_factor * self.roots[0], scale_factor * self.roots[1], **args)
+        plotter(scale_factor * np.sqrt(self.roots[0]), scale_factor * np.sqrt(self.roots[1]), **args)
     
     def continuum_edges(self):
-        if not self.z_squared:
-            return self.roots
-        else:
-            return np.sqrt(self.roots)
+        return np.sqrt(self.roots)
