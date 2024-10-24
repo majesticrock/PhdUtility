@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import continuum_boundaries as cb
+import cpp_continued_fraction as ccf
 
 NORM_FACTOR = -(1. / np.pi) 
 
 class Dispersions2D:
-    def __init__(self, data_frame, z_squared=True, messages=True, ignore_first=5, ignore_last=80):
-        self.z_squared = z_squared
+    def __init__(self, data_frame, messages=True, ignore_first=5, ignore_last=80):
         self.messages = messages
         self.ignore_first = ignore_first
         self.ignore_last = ignore_last
@@ -21,8 +21,8 @@ class Dispersions2D:
             self.roots[i + self.N_k] = np.array(cb.continuum_bounds(single.dispersion, 1, i / self.N_k, self.N_k))
         for i in range(0, self.N_k):
             self.roots[i + 2 * self.N_k] = np.array(cb.continuum_bounds(single.dispersion, 1 - i / self.N_k, 1 - i / self.N_k, self.N_k))
-        if z_squared:
-            self.roots = self.roots**2
+
+        self.roots = self.roots**2
 
         self.a_infinity = np.zeros(3 * self.N_k)
         self.b_infinity = np.zeros(3 * self.N_k)
@@ -97,14 +97,10 @@ class Dispersions2D:
         self.__termination_depth_if_required__(name, index)
         A = self.__coeffs_A__(name, index)
         B = self.__coeffs_B__(name, index)
-        w = w_param**2
-        if withTerminator:
-            G = w - A[len(A) - self.terminate_at[name][index]] - B[len(B) - self.terminate_at[name][index]] * self.terminator(w_param.real, index)
-        else:
-            G = w - A[len(A) - self.terminate_at[name][index]]
-        for j in range(len(A) - self.terminate_at[name][index] - 1, -1, -1):
-            G = w - A[j] - B[j + 1] / G
-        return B[0] / G
+        termination_index = len(A) - self.terminate_at[name][index]
+        
+        data = ccf.ContinuedFractionData(self.a_infinity[index], self.b_infinity[index]**2, self.roots[index], A, B, termination_index)
+        return ccf.continued_fraction(w_param, data, withTerminator)
     
     def spectral_density(self, w_param, name, index, withTerminator=True):
         return NORM_FACTOR * self.continued_fraction(w_param, name, index, withTerminator).imag
@@ -132,14 +128,7 @@ class Dispersions2D:
             plotter = plt.axvspan
         else:
             plotter = axes.axvspan
-            
-        if self.z_squared:
-            plotter(scale_factor * np.sqrt(self.roots[index][0]), scale_factor * np.sqrt(self.roots[index][1]), **args)
-        else:
-            plotter(scale_factor * self.roots[index][0], scale_factor * self.roots[index][1], **args)
-    
+        plotter(scale_factor * np.sqrt(self.roots[index][0]), scale_factor * np.sqrt(self.roots[index][1]), **args)
+
     def continuum_edges(self, index):
-        if not self.z_squared:
-            return self.roots[index]
-        else:
-            return np.sqrt(self.roots[index])
+        return np.sqrt(self.roots[index])
