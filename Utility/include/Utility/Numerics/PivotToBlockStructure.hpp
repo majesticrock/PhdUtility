@@ -48,7 +48,9 @@ namespace Utility::Numerics {
 		static matrix_wrapper solve_block_diagonal_matrix(const MatrixType& toSolve, const std::vector<HermitianBlock>& blocks) {
 			matrix_wrapper solution(toSolve.rows());
 
+#ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
+#endif
 			for (int i = 0; i < blocks.size(); ++i)
 			{
 				Eigen::SelfAdjointEigenSolver<MatrixType> solver(toSolve.block(blocks[i].position, blocks[i].position, blocks[i].size, blocks[i].size));
@@ -113,7 +115,9 @@ namespace Utility::Numerics {
 			solution.eigenvalues = Eigen::Vector<UnderlyingFloatingPoint_t<Number>, Eigen::Dynamic>::Zero(toSolve.rows());
 			solution.eigenvectors.blocks.resize(toSolve.blocks.size());
 			solution.eigenvectors.blocks_begin = toSolve.blocks_begin;
+#ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
+#endif
 			for (int i = 0; i < toSolve.blocks.size(); ++i)
 			{
 				Eigen::SelfAdjointEigenSolver<typename BlockDiagonalMatrix<Number>::InternalMatrix> solver(toSolve.blocks[i]);

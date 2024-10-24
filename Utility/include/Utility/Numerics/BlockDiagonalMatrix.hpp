@@ -3,6 +3,8 @@
 #include <vector>
 #include "../UnderlyingFloatingPoint.hpp"
 
+#define _BLOCKS_USE_OMP
+
 namespace Utility::Numerics {
     namespace detail {
         template<class Number> using MatrixN = Eigen::Matrix<Number, Eigen::Dynamic, Eigen::Dynamic>;
@@ -111,7 +113,9 @@ namespace Utility::Numerics {
         InternalMatrix construct_matrix() const 
         {
             InternalMatrix ret = InternalMatrix::Zero(rows(), cols());
+#ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
+#endif
             for(int i = 0; i < blocks.size(); ++i) {
                 ret.block(blocks_begin[i], blocks_begin[i], blocks[i].rows(), blocks[i].cols()) = blocks[i];
             }
@@ -157,21 +161,27 @@ namespace Utility::Numerics {
         }
 
         BlockDiagonalMatrix& operator+=(const BlockDiagonalMatrix& rhs) {
+#ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
+#endif
             for(int i = 0; i < blocks.size(); ++i) {
                 this->blocks[i] += rhs.blocks[i];
             }
             return *this;
         }
         BlockDiagonalMatrix& operator-=(const BlockDiagonalMatrix& rhs) {
+#ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
+#endif
             for(int i = 0; i < blocks.size(); ++i) {
                 this->blocks[i] -= rhs.blocks[i];
             }
             return *this;
         }
         BlockDiagonalMatrix& operator*=(const BlockDiagonalMatrix& rhs) {
+#ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
+#endif
             for(int i = 0; i < blocks.size(); ++i) {
                 this->blocks[i] *= rhs.blocks[i];
             }
@@ -179,21 +189,27 @@ namespace Utility::Numerics {
         }
 	
         BlockDiagonalMatrix& operator+=(const BlockDiagonalMatrixAdjointView<Number>& rhs) {
+#ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
+#endif
             for(int i = 0; i < blocks.size(); ++i) {
                 this->blocks[i] += rhs._matrix.blocks[i].adjoint();
             }
             return *this;
         }
         BlockDiagonalMatrix& operator-=(const BlockDiagonalMatrixAdjointView<Number>& rhs) {
+#ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
+#endif
             for(int i = 0; i < blocks.size(); ++i) {
                 this->blocks[i] -= rhs._matrix.blocks[i].adjoint();
             }
             return *this;
         }
         BlockDiagonalMatrix& operator*=(const BlockDiagonalMatrixAdjointView<Number>& rhs) {
+#ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
+#endif
             for(int i = 0; i < blocks.size(); ++i) {
                 this->blocks[i] *= rhs._matrix.blocks[i].adjoint();
             }
@@ -209,7 +225,9 @@ namespace Utility::Numerics {
         }
         template<class __matrix__>
         BlockDiagonalMatrix& operator-=(const Eigen::DiagonalWrapper<__matrix__>& rhs) {
+#ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
+#endif
             for(int i = 0; i < blocks.size(); ++i) {
                 this->blocks[i] -= rhs.diagonal().segment(this->blocks_begin[i], this->blocks[i].rows()).asDiagonal();
             }
@@ -217,7 +235,9 @@ namespace Utility::Numerics {
         }
         template<class __matrix__>
         BlockDiagonalMatrix& operator*=(const Eigen::DiagonalWrapper<__matrix__>& rhs) {
+#ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
+#endif
             for(int i = 0; i < blocks.size(); ++i) {
                 this->blocks[i] *= rhs.diagonal().segment(this->blocks_begin[i], this->blocks[i].rows()).asDiagonal();
             }
@@ -261,7 +281,9 @@ namespace Utility::Numerics {
     }
     template <class Number>
     BlockDiagonalMatrix<Number> operator*(const BlockDiagonalMatrixAdjointView<Number>& lhs, BlockDiagonalMatrix<Number> rhs) {
+#ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
+#endif
         for(int i = 0; i < rhs.blocks.size(); ++i) {
             rhs.blocks[i].applyOnTheLeft(lhs._matrix.blocks[i].adjoint());
         }
@@ -291,7 +313,9 @@ namespace Utility::Numerics {
     }
     template <class Number, class __matrix__>
     BlockDiagonalMatrix<Number> operator*(const Eigen::DiagonalWrapper<__matrix__>& lhs, BlockDiagonalMatrix<Number> rhs) {
+#ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
+#endif
         for(int i = 0; i < rhs.blocks.size(); ++i) {
             rhs.blocks[i].applyOnTheLeft(lhs.diagonal().segment(rhs.blocks_begin[i], rhs.blocks[i].rows()).asDiagonal());
         }
@@ -301,7 +325,9 @@ namespace Utility::Numerics {
     template <class EigenMatrixType, class BlockNumber>
     EigenMatrixType operator*(EigenMatrixType basic_matrix, const BlockDiagonalMatrix<BlockNumber>& block_matrix) {
         assert(basic_matrix.cols() == block_matrix.rows());
+#ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
+#endif
         for(int i = 0; i < block_matrix.blocks.size(); ++i){
             basic_matrix.block(0, block_matrix.blocks_begin[i], 
                 basic_matrix.rows(), block_matrix.blocks[i].cols()).applyOnTheRight(block_matrix.blocks[i]);
@@ -311,7 +337,9 @@ namespace Utility::Numerics {
     template <class EigenMatrixType, class BlockNumber>
     EigenMatrixType operator*(const BlockDiagonalMatrix<BlockNumber>& block_matrix, EigenMatrixType basic_matrix) {
         assert(block_matrix.cols() == basic_matrix.rows());
+#ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
+#endif
         for(int i = 0; i < block_matrix.blocks.size(); ++i){
             basic_matrix.block(block_matrix.blocks_begin[i], 0, 
                 block_matrix.blocks[i].rows(), basic_matrix.cols()).applyOnTheLeft(block_matrix.blocks[i]);
@@ -322,7 +350,9 @@ namespace Utility::Numerics {
     template <class EigenMatrixType, class BlockNumber>
     EigenMatrixType operator*(EigenMatrixType basic_matrix, const BlockDiagonalMatrixAdjointView<BlockNumber>& block_view) {
         assert(basic_matrix.cols() == block_view.rows());
+#ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
+#endif
         for(int i = 0; i < block_view._matrix.blocks.size(); ++i){
             basic_matrix.block(0, block_view._matrix.blocks_begin[i], 
                 basic_matrix.rows(), block_view._matrix.blocks[i].rows()).applyOnTheRight(block_view._matrix.blocks[i].adjoint());
@@ -332,7 +362,9 @@ namespace Utility::Numerics {
     template <class EigenMatrixType, class BlockNumber>
     EigenMatrixType operator*(const BlockDiagonalMatrixAdjointView<BlockNumber>& block_view, EigenMatrixType basic_matrix) {
         assert(block_view.cols() == basic_matrix.rows());
+#ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
+#endif
         for(int i = 0; i < block_view._matrix.blocks.size(); ++i){
             basic_matrix.block(block_view._matrix.blocks_begin[i], 0, 
                 block_view._matrix.blocks[i].cols(), basic_matrix.cols()).applyOnTheLeft(block_view._matrix.blocks[i].adjoint());
