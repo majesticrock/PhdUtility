@@ -17,6 +17,7 @@ stderr*
 *.bin
 *.egg-info
 *.pyd
+*.so
 
 !CMakeLists.txt
 
