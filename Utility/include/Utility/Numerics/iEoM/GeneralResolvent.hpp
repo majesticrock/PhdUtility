@@ -14,7 +14,7 @@ namespace Utility::Numerics::iEoM {
 		using RealType = UnderlyingFloatingPoint_t<NumberType>;
 		using Matrix = Eigen::Matrix<NumberType, Eigen::Dynamic, Eigen::Dynamic>;
 		using Vector = Eigen::Vector<NumberType, Eigen::Dynamic>;
-		using BlockedMatrix = BlockDiagonalMatrix<NumberType>;
+		using BlockedMatrix = BlockDiagonalMatrix<Matrix>;
 		using ResolventType = Resolvent<BlockedMatrix, Eigen::Vector< std::complex<RealType>, Eigen::Dynamic >>;
 
 	protected:
@@ -96,7 +96,7 @@ namespace Utility::Numerics::iEoM {
 				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
 			begin = std::chrono::steady_clock::now();
 
-			auto bufferMatrix = N_blocked * M_solver.eigenvectors;
+			const auto bufferMatrix = N_blocked * M_solver.eigenvectors;
 			// = N * 1/M * N
 			BlockedMatrix n_hacek = bufferMatrix
 				* M_solver.eigenvalues.unaryExpr([this](RealType x) { return abs(x) < this->_internal._precision ? 0 : 1. / x; }).asDiagonal()
@@ -105,13 +105,18 @@ namespace Utility::Numerics::iEoM {
 			__matrix_wrapper__ norm_solver = __matrix_wrapper__::solve_block_diagonal_matrix(n_hacek); // , blocks
 			this->_internal.template applyMatrixOperation<IEOM_SQRT>(norm_solver.eigenvalues);
 
+			end = std::chrono::steady_clock::now();
+			std::cout << "Time for norm solving: "
+				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+			begin = std::chrono::steady_clock::now();
+
 			// n_hacek -> n_hacek^(-1/2)
 			n_hacek = norm_solver.eigenvectors
 				* norm_solver.eigenvalues.unaryExpr([this](RealType x) { return abs(x) < this->_internal._precision ? 0 : 1. / x; }).asDiagonal()
 				* norm_solver.eigenvectors.adjoint();
 			// Starting here M is the adjusted solver matrix (s s hackem)
 			// n_hacek * M * n_hacek
-			M_blocked = n_hacek * M_solver.eigenvectors * M_solver.eigenvalues.asDiagonal() * M_solver.eigenvectors.adjoint() * n_hacek;
+			M_blocked = n_hacek * M_blocked * n_hacek; // M_solver.eigenvectors * M_solver.eigenvalues.asDiagonal() * M_solver.eigenvectors.adjoint()
 			// Starting here N is the extra matrix that defines |a> (n s hackem N)
 			N_blocked.applyOnTheLeft(n_hacek);
 

@@ -1,14 +1,14 @@
 #pragma once
 #include <Eigen/Dense>
 #include <vector>
+#include <type_traits>
 #include "../UnderlyingFloatingPoint.hpp"
 
-#define _BLOCKS_USE_OMP
+//#define _BLOCKS_USE_OMP
 
 namespace Utility::Numerics {
     namespace detail {
         template<class Number> using MatrixN = Eigen::Matrix<Number, Eigen::Dynamic, Eigen::Dynamic>;
-
         template<class EigenMatrixType> using RealScalar = UnderlyingFloatingPoint_t<typename EigenMatrixType::Scalar>;
     }
 
@@ -49,38 +49,30 @@ namespace Utility::Numerics {
 		return block_indices;
 	};
 
-    template <class Number> struct BlockDiagonalMatrix;
-    template <class Number>
-    struct BlockDiagonalMatrixAdjointView {
-        using InternalMatrix = detail::MatrixN<Number>;
-        using Scalar = Number;
+    template<class _matrix_base>
+    struct base_traits {
+        using mutable_base = std::remove_cvref_t<_matrix_base>;
+        using mutable_vector = std::vector<mutable_base>;
+        using as_is_vector = std::conditional_t<std::is_const_v<_matrix_base>, std::add_const_t<mutable_vector>, mutable_vector>;
+    };
 
-        const BlockDiagonalMatrix<Number>& _matrix;
+    template<class source, class target>
+    concept not_same_as = !std::is_same_v<target, source>;
 
-        BlockDiagonalMatrixAdjointView() = default;
-        explicit BlockDiagonalMatrixAdjointView(const BlockDiagonalMatrix<Number>& matrix) : _matrix(matrix) {};
+    template<class _matrix_base>
+    struct BlockDiagonalMatrix {
+        using InternalBase = _matrix_base;
+        using Scalar = InternalBase::Scalar;
+        using ConstructedMatrix = detail::MatrixN<Scalar>;
 
-        InternalMatrix construct_matrix() const {
-            return _matrix.construct_matrix.adjoint();
-        }
-        inline Eigen::Index rows() const {
-            return _matrix.cols();
-        }
-        inline Eigen::Index cols() const {
-            return _matrix.rows();
-        }
-	};
-
-    template <class Number>
-	struct BlockDiagonalMatrix {
-        using InternalMatrix = detail::MatrixN<Number>;
-        using Scalar = Number;
-
-        std::vector<InternalMatrix> blocks;
+        typename base_traits<_matrix_base>::as_is_vector blocks;
         std::vector<Eigen::Index> blocks_begin;
 
+        using adjoint_view = decltype(blocks.front().adjoint());
+        using eval_result = decltype(blocks.front().eval());
+
         BlockDiagonalMatrix() = default;
-        BlockDiagonalMatrix(const detail::MatrixN<Number>& matrix, const std::vector<HermitianBlock>& block_indizes) 
+        BlockDiagonalMatrix(const ConstructedMatrix& matrix, const std::vector<HermitianBlock>& block_indizes) 
         {
             blocks.reserve(block_indizes.size());
             blocks_begin.reserve(block_indizes.size());
@@ -90,7 +82,7 @@ namespace Utility::Numerics {
                 blocks_begin.push_back(block_index.position);
             }
         }
-        explicit BlockDiagonalMatrix(const detail::MatrixN<Number>& matrix) 
+        explicit BlockDiagonalMatrix(const ConstructedMatrix& matrix) 
         {
             const std::vector<HermitianBlock>& block_indizes = identify_hermitian_blocks(matrix);
             blocks.reserve(block_indizes.size());
@@ -101,18 +93,38 @@ namespace Utility::Numerics {
                 blocks_begin.push_back(block_index.position);
             }
         }
-        BlockDiagonalMatrix(const BlockDiagonalMatrixAdjointView<Number>& _adjoint) 
-            : blocks_begin(_adjoint._matrix.blocks_begin) 
+        BlockDiagonalMatrix(typename base_traits<_matrix_base>::mutable_vector&& _blocks, std::vector<Eigen::Index> const& _blocks_begin) 
+            : blocks(std::move(_blocks)), blocks_begin(_blocks_begin) {};
+
+        template<not_same_as<_matrix_base> _other_base>
+        BlockDiagonalMatrix(BlockDiagonalMatrix<_other_base> const& other)
+            : blocks(other.blocks.size()), blocks_begin(other.blocks_begin)
         {
-            this->blocks.reserve(_adjoint._matrix.blocks.size());
-            for(const auto& block : _adjoint._matrix.blocks) {
-                this->blocks.push_back(block.adjoint());
+#ifdef _BLOCKS_USE_OMP
+#pragma omp parallel for
+#endif
+            for(int i = 0; i < other.blocks.size(); ++i) {
+                this->blocks[i] = other.blocks[i].eval();
             }
         }
 
-        InternalMatrix construct_matrix() const 
+        template<not_same_as<_matrix_base> _other_base>
+        BlockDiagonalMatrix& operator=(BlockDiagonalMatrix<_other_base> const& other)
         {
-            InternalMatrix ret = InternalMatrix::Zero(rows(), cols());
+            this->blocks.resize(other.blocks.size());
+            this->blocks_begin = other.blocks_begin;
+#ifdef _BLOCKS_USE_OMP
+#pragma omp parallel for
+#endif
+            for(int i = 0; i < other.blocks.size(); ++i) {
+                this->blocks[i] = other.blocks[i].eval();
+            }
+            return *this;
+        }
+
+        ConstructedMatrix construct_matrix() const 
+        {
+            ConstructedMatrix ret = ConstructedMatrix::Zero(rows(), cols());
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
 #endif
@@ -122,14 +134,37 @@ namespace Utility::Numerics {
             return ret;
         }
 
-        BlockDiagonalMatrixAdjointView<Number> adjoint() const {
-            return BlockDiagonalMatrixAdjointView<Number>(*this);
+        BlockDiagonalMatrix<eval_result> eval() const {
+            typename base_traits<eval_result>::mutable_vector new_blocks(this->blocks.size());
+#ifdef _BLOCKS_USE_OMP
+#pragma omp parallel for
+#endif
+            for(int i = 0; i < this->blocks.size(); ++i) {
+                new_blocks[i] = this->blocks[i].eval();
+            }
+            return BlockDiagonalMatrix<eval_result>(std::move(new_blocks), blocks_begin);
+        }
+
+        BlockDiagonalMatrix<adjoint_view> adjoint() const {
+            typename base_traits<adjoint_view>::mutable_vector new_blocks;
+            new_blocks.reserve(this->blocks.size());
+            for(const auto& block : this->blocks) {
+                new_blocks.push_back(block.adjoint());
+            }
+            return BlockDiagonalMatrix<adjoint_view>(std::move(new_blocks), blocks_begin);
         }
         BlockDiagonalMatrix& adjointInPlace() {
             for(auto& block : this->blocks) {
                 block.adjointInPlace();
             }
             return *this;
+        }
+
+        inline const InternalBase& block(size_t i) const {
+            return blocks[i];
+        }
+        inline InternalBase& block(size_t i) {
+            return blocks[i];
         }
 
         inline Eigen::Index rows() const {
@@ -147,20 +182,26 @@ namespace Utility::Numerics {
             return __cols;
         }
 
-        BlockDiagonalMatrix& applyOnTheLeft(BlockDiagonalMatrix other) {
-            other *= (*this);
-            return (*this = other);
+        BlockDiagonalMatrix& applyOnTheLeft(BlockDiagonalMatrix const& other) {
+#ifdef _BLOCKS_USE_OMP
+#pragma omp parallel for
+#endif
+            for(size_t i = 0U; i < blocks.size(); ++i) {
+                this->blocks[i].applyOnTheLeft(other.blocks[i]);
+            }
+            return *this;
         }
 
         BlockDiagonalMatrix operator-() const {
             BlockDiagonalMatrix copy(*this);
             for(auto& block : copy.blocks) {
-                block *= -1;
+                block *= Scalar{-1.};
             }
             return copy;
         }
 
-        BlockDiagonalMatrix& operator+=(const BlockDiagonalMatrix& rhs) {
+        template<class _other_base>
+        BlockDiagonalMatrix& operator+=(const BlockDiagonalMatrix<_other_base>& rhs) {
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
 #endif
@@ -169,7 +210,9 @@ namespace Utility::Numerics {
             }
             return *this;
         }
-        BlockDiagonalMatrix& operator-=(const BlockDiagonalMatrix& rhs) {
+
+        template<class _other_base>
+        BlockDiagonalMatrix& operator-=(const BlockDiagonalMatrix<_other_base>& rhs) {
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
 #endif
@@ -178,7 +221,9 @@ namespace Utility::Numerics {
             }
             return *this;
         }
-        BlockDiagonalMatrix& operator*=(const BlockDiagonalMatrix& rhs) {
+
+        template<class _other_base>
+        BlockDiagonalMatrix& operator*=(const BlockDiagonalMatrix<_other_base>& rhs) {
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
 #endif
@@ -187,42 +232,18 @@ namespace Utility::Numerics {
             }
             return *this;
         }
-	
-        BlockDiagonalMatrix& operator+=(const BlockDiagonalMatrixAdjointView<Number>& rhs) {
-#ifdef _BLOCKS_USE_OMP
-#pragma omp parallel for
-#endif
-            for(int i = 0; i < blocks.size(); ++i) {
-                this->blocks[i] += rhs._matrix.blocks[i].adjoint();
-            }
-            return *this;
-        }
-        BlockDiagonalMatrix& operator-=(const BlockDiagonalMatrixAdjointView<Number>& rhs) {
-#ifdef _BLOCKS_USE_OMP
-#pragma omp parallel for
-#endif
-            for(int i = 0; i < blocks.size(); ++i) {
-                this->blocks[i] -= rhs._matrix.blocks[i].adjoint();
-            }
-            return *this;
-        }
-        BlockDiagonalMatrix& operator*=(const BlockDiagonalMatrixAdjointView<Number>& rhs) {
-#ifdef _BLOCKS_USE_OMP
-#pragma omp parallel for
-#endif
-            for(int i = 0; i < blocks.size(); ++i) {
-                this->blocks[i] *= rhs._matrix.blocks[i].adjoint();
-            }
-            return *this;
-        }
-	
+
         template<class __matrix__>
         BlockDiagonalMatrix& operator+=(const Eigen::DiagonalWrapper<__matrix__>& rhs) {
+#ifdef _BLOCKS_USE_OMP
+#pragma omp parallel for
+#endif
             for(int i = 0; i < blocks.size(); ++i) {
                 this->blocks[i] += rhs.diagonal().segment(this->blocks_begin[i], this->blocks[i].rows()).asDiagonal();
             }
             return *this;
         }
+
         template<class __matrix__>
         BlockDiagonalMatrix& operator-=(const Eigen::DiagonalWrapper<__matrix__>& rhs) {
 #ifdef _BLOCKS_USE_OMP
@@ -233,6 +254,7 @@ namespace Utility::Numerics {
             }
             return *this;
         }
+
         template<class __matrix__>
         BlockDiagonalMatrix& operator*=(const Eigen::DiagonalWrapper<__matrix__>& rhs) {
 #ifdef _BLOCKS_USE_OMP
@@ -245,85 +267,55 @@ namespace Utility::Numerics {
         }
     };
 
-    template <class Number>
-    BlockDiagonalMatrix<Number> operator+(BlockDiagonalMatrix<Number> lhs, const BlockDiagonalMatrix<Number>& rhs) {
-        return (lhs += rhs);
-    }
-    template <class Number>
-    BlockDiagonalMatrix<Number> operator-(BlockDiagonalMatrix<Number> lhs, const BlockDiagonalMatrix<Number>& rhs) {
-        return (lhs -= rhs);
-    }
-    template <class Number>
-    BlockDiagonalMatrix<Number> operator*(BlockDiagonalMatrix<Number> lhs, const BlockDiagonalMatrix<Number>& rhs) {
-        return (lhs *= rhs);
+    namespace detail {
+        template<class _base, class _other_base>
+        using addition_result = decltype(std::declval<_base>() + std::declval<_other_base>());
+        template<class _base, class _other_base>
+        using substraction_result = decltype(std::declval<_base>() - std::declval<_other_base>());
+        template<class _base, class _other_base>
+        using multiplication_result = decltype(std::declval<_base>() * std::declval<_other_base>());
     }
 
-    template <class Number>
-    BlockDiagonalMatrix<Number> operator+(BlockDiagonalMatrix<Number> lhs, const BlockDiagonalMatrixAdjointView<Number>& rhs) {
-        return (lhs += rhs);
-    }
-    template <class Number>
-    BlockDiagonalMatrix<Number> operator-(BlockDiagonalMatrix<Number> lhs, const BlockDiagonalMatrixAdjointView<Number>& rhs) {
-        return (lhs -= rhs);
-    }
-    template <class Number>
-    BlockDiagonalMatrix<Number> operator*(BlockDiagonalMatrix<Number> lhs, const BlockDiagonalMatrixAdjointView<Number>& rhs) {
-        return (lhs *= rhs);
-    }
+    /*
+    *   Basic operations between two BlockDiagonalMatrix objects
+    */
 
-    template <class Number>
-    BlockDiagonalMatrix<Number> operator+(const BlockDiagonalMatrixAdjointView<Number>& lhs, BlockDiagonalMatrix<Number> rhs) {
-        return (rhs += lhs);
-    }
-    template <class Number>
-    BlockDiagonalMatrix<Number> operator-(const BlockDiagonalMatrixAdjointView<Number>& lhs, BlockDiagonalMatrix<Number> rhs) {
-        return -(rhs -= lhs);
-    }
-    template <class Number>
-    BlockDiagonalMatrix<Number> operator*(const BlockDiagonalMatrixAdjointView<Number>& lhs, BlockDiagonalMatrix<Number> rhs) {
-#ifdef _BLOCKS_USE_OMP
-#pragma omp parallel for
-#endif
-        for(int i = 0; i < rhs.blocks.size(); ++i) {
-            rhs.blocks[i].applyOnTheLeft(lhs._matrix.blocks[i].adjoint());
+    template<class _base, class _other_base>
+    BlockDiagonalMatrix<detail::addition_result<_base, _other_base>> operator+(BlockDiagonalMatrix<_base> const& lhs, BlockDiagonalMatrix<_other_base> const& rhs) {
+        typename base_traits<detail::addition_result<_base, _other_base>>::mutable_vector new_blocks;
+        new_blocks.reserve(lhs.blocks.size());
+        for(size_t i = 0U; i < lhs.blocks.size(); ++i) {
+            new_blocks.push_back(lhs.blocks[i] + rhs.blocks[i]);
         }
-        return rhs;
+        return BlockDiagonalMatrix<detail::addition_result<_base, _other_base>>(std::move(new_blocks), lhs.blocks_begin);
     }
 
-    template <class Number, class __matrix__>
-    BlockDiagonalMatrix<Number> operator+(BlockDiagonalMatrix<Number> lhs, const Eigen::DiagonalWrapper<__matrix__>& rhs) {
-        return (lhs += rhs);
-    }
-    template <class Number, class __matrix__>
-    BlockDiagonalMatrix<Number> operator-(BlockDiagonalMatrix<Number> lhs, const Eigen::DiagonalWrapper<__matrix__>& rhs) {
-        return (lhs -= rhs);
-    }
-    template <class Number, class __matrix__>
-    BlockDiagonalMatrix<Number> operator*(BlockDiagonalMatrix<Number> lhs, const Eigen::DiagonalWrapper<__matrix__>& rhs) {
-        return (lhs *= rhs);
-    }
-
-    template <class Number, class __matrix__>
-    BlockDiagonalMatrix<Number> operator+(const Eigen::DiagonalWrapper<__matrix__>& lhs, BlockDiagonalMatrix<Number> rhs) {
-        return (rhs += lhs);
-    }
-    template <class Number, class __matrix__>
-    BlockDiagonalMatrix<Number> operator-(const Eigen::DiagonalWrapper<__matrix__>& lhs, BlockDiagonalMatrix<Number> rhs) {
-        return -(rhs -= lhs);
-    }
-    template <class Number, class __matrix__>
-    BlockDiagonalMatrix<Number> operator*(const Eigen::DiagonalWrapper<__matrix__>& lhs, BlockDiagonalMatrix<Number> rhs) {
-#ifdef _BLOCKS_USE_OMP
-#pragma omp parallel for
-#endif
-        for(int i = 0; i < rhs.blocks.size(); ++i) {
-            rhs.blocks[i].applyOnTheLeft(lhs.diagonal().segment(rhs.blocks_begin[i], rhs.blocks[i].rows()).asDiagonal());
+    template<class _base, class _other_base>
+    BlockDiagonalMatrix<detail::substraction_result<_base, _other_base>> operator-(BlockDiagonalMatrix<_base> const& lhs, BlockDiagonalMatrix<_other_base> const& rhs) {
+        typename base_traits<detail::substraction_result<_base, _other_base>>::mutable_vector new_blocks;
+        new_blocks.reserve(lhs.blocks.size());
+        for(size_t i = 0U; i < lhs.blocks.size(); ++i) {
+            new_blocks.push_back(lhs.blocks[i] - rhs.blocks[i]);
         }
-        return rhs;
+        return BlockDiagonalMatrix<detail::substraction_result<_base, _other_base>>(std::move(new_blocks), lhs.blocks_begin);
     }
 
-    template <class EigenMatrixType, class BlockNumber>
-    EigenMatrixType operator*(EigenMatrixType basic_matrix, const BlockDiagonalMatrix<BlockNumber>& block_matrix) {
+    template<class _base, class _other_base>
+    BlockDiagonalMatrix<detail::multiplication_result<_base, _other_base>> operator*(BlockDiagonalMatrix<_base> const& lhs, BlockDiagonalMatrix<_other_base> const& rhs) {
+        typename base_traits<detail::multiplication_result<_base, _other_base>>::mutable_vector new_blocks;
+        new_blocks.reserve(lhs.blocks.size());
+        for(size_t i = 0U; i < lhs.blocks.size(); ++i) {
+            new_blocks.push_back(lhs.blocks[i] * rhs.blocks[i]);
+        }
+        return BlockDiagonalMatrix<detail::multiplication_result<_base, _other_base>>(std::move(new_blocks), lhs.blocks_begin);
+    }
+
+    /*
+    *   Basic operations between Eigen::Matrix objects and BlockDiagonalMatrix objects
+    */
+
+    template <class EigenMatrixType, class _base>
+    EigenMatrixType operator*(EigenMatrixType basic_matrix, const BlockDiagonalMatrix<_base>& block_matrix) {
         assert(basic_matrix.cols() == block_matrix.rows());
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
@@ -334,8 +326,8 @@ namespace Utility::Numerics {
         }
         return basic_matrix;
     }
-    template <class EigenMatrixType, class BlockNumber>
-    EigenMatrixType operator*(const BlockDiagonalMatrix<BlockNumber>& block_matrix, EigenMatrixType basic_matrix) {
+    template <class EigenMatrixType, class _base>
+    EigenMatrixType operator*(const BlockDiagonalMatrix<_base>& block_matrix, EigenMatrixType basic_matrix) {
         assert(block_matrix.cols() == basic_matrix.rows());
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
@@ -347,29 +339,41 @@ namespace Utility::Numerics {
         return basic_matrix;
     }
 
-    template <class EigenMatrixType, class BlockNumber>
-    EigenMatrixType operator*(EigenMatrixType basic_matrix, const BlockDiagonalMatrixAdjointView<BlockNumber>& block_view) {
-        assert(basic_matrix.cols() == block_view.rows());
-#ifdef _BLOCKS_USE_OMP
-#pragma omp parallel for
-#endif
-        for(int i = 0; i < block_view._matrix.blocks.size(); ++i){
-            basic_matrix.block(0, block_view._matrix.blocks_begin[i], 
-                basic_matrix.rows(), block_view._matrix.blocks[i].rows()).applyOnTheRight(block_view._matrix.blocks[i].adjoint());
-        }
-        return basic_matrix;
-    }
-    template <class EigenMatrixType, class BlockNumber>
-    EigenMatrixType operator*(const BlockDiagonalMatrixAdjointView<BlockNumber>& block_view, EigenMatrixType basic_matrix) {
-        assert(block_view.cols() == basic_matrix.rows());
-#ifdef _BLOCKS_USE_OMP
-#pragma omp parallel for
-#endif
-        for(int i = 0; i < block_view._matrix.blocks.size(); ++i){
-            basic_matrix.block(block_view._matrix.blocks_begin[i], 0, 
-                block_view._matrix.blocks[i].cols(), basic_matrix.cols()).applyOnTheLeft(block_view._matrix.blocks[i].adjoint());
-        }
-        return basic_matrix;
+    /*
+    *   Basic operations between Eigen::DiagonalWrapper and BlockDiagonalMatrix
+    */
+    namespace detail {
+        template<class _matrix>
+        using diagonal_segment_type = decltype(std::declval<Eigen::DiagonalWrapper<_matrix>>().diagonal().segment(0, 1).asDiagonal());
     }
 
+    template <class _matrix_base, class __matrix__>
+    BlockDiagonalMatrix<detail::addition_result<_matrix_base, detail::diagonal_segment_type<__matrix__>>> operator+(BlockDiagonalMatrix<_matrix_base> const& lhs, Eigen::DiagonalWrapper<__matrix__> const& rhs) {
+        typename base_traits<detail::addition_result<_matrix_base, detail::diagonal_segment_type<__matrix__>>>::mutable_vector new_blocks;
+        new_blocks.reserve(lhs.blocks.size());
+        for(int i = 0; i < lhs.blocks.size(); ++i) {
+            new_blocks.push_back(lhs.blocks[i] + rhs.diagonal().segment(lhs.blocks_begin[i], lhs.blocks[i].rows()).asDiagonal());
+        }
+        return BlockDiagonalMatrix<detail::addition_result<_matrix_base, detail::diagonal_segment_type<__matrix__>>>(std::move(new_blocks), lhs.blocks_begin);
+    }
+
+    template <class _matrix_base, class __matrix__>
+    BlockDiagonalMatrix<detail::substraction_result<_matrix_base, detail::diagonal_segment_type<__matrix__>>> operator-(BlockDiagonalMatrix<_matrix_base> const& lhs, Eigen::DiagonalWrapper<__matrix__> const& rhs) {
+        typename base_traits<detail::substraction_result<_matrix_base, detail::diagonal_segment_type<__matrix__>>>::mutable_vector new_blocks;
+        new_blocks.reserve(lhs.blocks.size());
+        for(int i = 0; i < lhs.blocks.size(); ++i) {
+            new_blocks.push_back(lhs.blocks[i] - rhs.diagonal().segment(lhs.blocks_begin[i], lhs.blocks[i].rows()).asDiagonal());
+        }
+        return BlockDiagonalMatrix<detail::substraction_result<_matrix_base, detail::diagonal_segment_type<__matrix__>>>(std::move(new_blocks), lhs.blocks_begin);
+    }
+
+    template <class _matrix_base, class __matrix__>
+    BlockDiagonalMatrix<detail::multiplication_result<_matrix_base, detail::diagonal_segment_type<__matrix__>>> operator*(BlockDiagonalMatrix<_matrix_base> const& lhs, Eigen::DiagonalWrapper<__matrix__> const& rhs) {
+        typename base_traits<detail::multiplication_result<_matrix_base, detail::diagonal_segment_type<__matrix__>>>::mutable_vector new_blocks;
+        new_blocks.reserve(lhs.blocks.size());
+        for(int i = 0; i < lhs.blocks.size(); ++i) {
+            new_blocks.push_back(lhs.blocks[i] * rhs.diagonal().segment(lhs.blocks_begin[i], lhs.blocks[i].rows()).asDiagonal());
+        }
+        return BlockDiagonalMatrix<detail::multiplication_result<_matrix_base, detail::diagonal_segment_type<__matrix__>>>(std::move(new_blocks), lhs.blocks_begin);
+    }
 }

@@ -98,19 +98,19 @@ namespace Utility::Numerics {
 	};
 
 	template <class Number>
-	struct matrix_wrapper<BlockDiagonalMatrix<Number>, UnderlyingFloatingPoint_t<Number>, Eigen::Vector<UnderlyingFloatingPoint_t<Number>, Eigen::Dynamic>> {
-		BlockDiagonalMatrix<Number> eigenvectors;
+	struct matrix_wrapper<BlockDiagonalMatrix<detail::MatrixN<Number>>, UnderlyingFloatingPoint_t<Number>, Eigen::Vector<UnderlyingFloatingPoint_t<Number>, Eigen::Dynamic>> {
+		BlockDiagonalMatrix<detail::MatrixN<Number>> eigenvectors;
 		Eigen::Vector<UnderlyingFloatingPoint_t<Number>, Eigen::Dynamic> eigenvalues;
 
-		inline BlockDiagonalMatrix<Number> reconstruct_matrix() const
+		inline auto reconstruct_matrix() const
 		{
 			return eigenvectors * eigenvalues.asDiagonal() * eigenvectors.adjoint();
 		}
-		inline BlockDiagonalMatrix<Number>::InternalMatrix reconstruct_matrix_as_eigen() const {
+		inline detail::MatrixN<Number> reconstruct_matrix_as_eigen() const {
 			return reconstruct_matrix().construct_matrix();
 		}
 
-		static matrix_wrapper solve_block_diagonal_matrix(const BlockDiagonalMatrix<Number>& toSolve) {
+		static matrix_wrapper solve_block_diagonal_matrix(const BlockDiagonalMatrix<detail::MatrixN<Number>>& toSolve) {
 			matrix_wrapper solution;
 			solution.eigenvalues = Eigen::Vector<UnderlyingFloatingPoint_t<Number>, Eigen::Dynamic>::Zero(toSolve.rows());
 			solution.eigenvectors.blocks.resize(toSolve.blocks.size());
@@ -120,7 +120,7 @@ namespace Utility::Numerics {
 #endif
 			for (int i = 0; i < toSolve.blocks.size(); ++i)
 			{
-				Eigen::SelfAdjointEigenSolver<typename BlockDiagonalMatrix<Number>::InternalMatrix> solver(toSolve.blocks[i]);
+				Eigen::SelfAdjointEigenSolver<detail::MatrixN<Number>> solver(toSolve.blocks[i]);
 				solution.eigenvectors.blocks[i] = solver.eigenvectors();
 				solution.eigenvalues.segment(toSolve.blocks_begin[i], toSolve.blocks[i].rows()) = solver.eigenvalues();
 			}
@@ -129,5 +129,5 @@ namespace Utility::Numerics {
 		}
 	};
 
-	template <class Number> using blocked_matrix_wrapper = matrix_wrapper<BlockDiagonalMatrix<Number>, UnderlyingFloatingPoint_t<Number>, Eigen::Vector<UnderlyingFloatingPoint_t<Number>, Eigen::Dynamic>>;
+	template <class Number> using blocked_matrix_wrapper = matrix_wrapper<BlockDiagonalMatrix<detail::MatrixN<Number>>, UnderlyingFloatingPoint_t<Number>, Eigen::Vector<UnderlyingFloatingPoint_t<Number>, Eigen::Dynamic>>;
 }
