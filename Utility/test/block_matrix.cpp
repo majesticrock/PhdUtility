@@ -1,6 +1,7 @@
 #include "../include/Utility/Numerics/PivotToBlockStructure.hpp"
 #include <iostream>
 #include <chrono>
+//#include "../include/Utility/print_type.hpp"
 
 using namespace Utility::Numerics;
 
@@ -24,13 +25,15 @@ inline double rel_error(const Eigen::MatrixXd& original, const Eigen::MatrixXd& 
     return (original - other).norm() / original.norm();
 }
 
+using BlockMatrix = BlockDiagonalMatrix<Eigen::MatrixXd>;
+
 int main() {
     const int N = 500;
     const int n_blocks = 4;
     Eigen::MatrixXd toSolve = constructBlockDiagonalMatrix(N, n_blocks);
 
     std::vector<HermitianBlock> block_indizes = identify_hermitian_blocks(toSolve);
-    BlockDiagonalMatrix<double> blocked_toSolve(toSolve, block_indizes);
+    BlockMatrix blocked_toSolve(toSolve, block_indizes);
 
     if((toSolve - blocked_toSolve.construct_matrix()).norm() > 1e-12) {
         return 1;
@@ -38,11 +41,11 @@ int main() {
 
     Eigen::MatrixXd second_matrix = constructBlockDiagonalMatrix(N, n_blocks);
     std::vector<HermitianBlock> second_block_indizes = identify_hermitian_blocks(second_matrix);
-    BlockDiagonalMatrix<double> second_blocked(second_matrix, second_block_indizes);
+    BlockMatrix second_blocked(second_matrix, second_block_indizes);
 
     {
         Eigen::MatrixXd tester = toSolve + second_matrix;
-        BlockDiagonalMatrix<double> blocked_tester = blocked_toSolve + second_blocked;
+        const auto blocked_tester = blocked_toSolve + second_blocked;
         const double error = rel_error(tester, blocked_tester.construct_matrix());
         if(error > 1e-12) {
             std::cerr << "Addition failed " << error << std::endl;
@@ -51,7 +54,7 @@ int main() {
     }
     {
         Eigen::MatrixXd tester = toSolve - second_matrix;
-        BlockDiagonalMatrix<double> blocked_tester = blocked_toSolve - second_blocked;
+        const auto blocked_tester = blocked_toSolve - second_blocked;
         const double error = rel_error(tester, blocked_tester.construct_matrix());
         if(error > 1e-12) {
             std::cerr << "Substraction failed " << error << std::endl;
@@ -60,7 +63,7 @@ int main() {
     }
     {
         Eigen::MatrixXd tester = toSolve * second_matrix;
-        BlockDiagonalMatrix<double> blocked_tester = blocked_toSolve * second_blocked;
+        const auto blocked_tester = blocked_toSolve * second_blocked;
         const double error = rel_error(tester, blocked_tester.construct_matrix());
         if(error > 1e-12) {
             std::cerr << "Multiplication failed " << error << std::endl;
