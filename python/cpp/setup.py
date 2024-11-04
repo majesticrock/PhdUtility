@@ -21,6 +21,7 @@ ext_modules = [
 
 setup(
     name='cpp_continued_fraction',
+    version='1.0.0',
     ext_modules=ext_modules,
     zip_safe=False,
 )
