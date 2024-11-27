@@ -117,7 +117,7 @@ namespace SymbolicOperators {
 
 	inline bool operator==(const WickOperator& lhs, const WickOperator& rhs) {
 		if (lhs.type != rhs.type) return false;
-		if (lhs.isDaggered != rhs.isDaggered) return false;
+		if (lhs.is_daggered != rhs.is_daggered) return false;
 		if (lhs.momentum != rhs.momentum) return false;
 		return (lhs.indizes == rhs.indizes);
 	};

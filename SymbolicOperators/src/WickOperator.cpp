@@ -3,12 +3,12 @@
 #include <cassert>
 
 namespace SymbolicOperators {
-	WickOperator::WickOperator(const OperatorType& _type, const bool _isDaggered, const Momentum& _momentum, const IndexWrapper& _indizes)
-		: type(_type), isDaggered(_isDaggered), momentum(_momentum), indizes(_indizes) {}
-	WickOperator::WickOperator(const OperatorType& _type, const bool _isDaggered, const Momentum& _momentum, const Index _index)
-		: type(_type), isDaggered(_isDaggered), momentum(_momentum), indizes(_index) {}
+	WickOperator::WickOperator(const OperatorType& _type, const bool _is_daggered, const Momentum& _momentum, const IndexWrapper& _indizes)
+		: type(_type), is_daggered(_is_daggered), momentum(_momentum), indizes(_indizes) {}
+	WickOperator::WickOperator(const OperatorType& _type, const bool _is_daggered, const Momentum& _momentum, const Index _index)
+		: type(_type), is_daggered(_is_daggered), momentum(_momentum), indizes(_index) {}
 	WickOperator::WickOperator()
-		: type(Undefined_Type), isDaggered(false), momentum(), indizes() {}
+		: type(Undefined_Type), is_daggered(false), momentum(), indizes() {}
 
 	WickOperator::WickOperator(const std::string& expression)
 	{
@@ -26,7 +26,7 @@ namespace SymbolicOperators {
 			this->indizes.push_back(string_to_index.at(arg));
 		}
 
-		this->isDaggered = expression.find("^+") != std::string::npos;
+		this->is_daggered = expression.find("^+") != std::string::npos;
 	}
 
 	std::ostream& operator<<(std::ostream& os, const WickOperator& op)
@@ -36,7 +36,7 @@ namespace SymbolicOperators {
 			os << index << " ";
 		}
 		os << "}";
-		if (op.isDaggered) {
+		if (op.is_daggered) {
 			os << "^\\dagger";
 		}
 		os << " \\rangle";

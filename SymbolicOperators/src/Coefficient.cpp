@@ -36,7 +36,7 @@ namespace SymbolicOperators {
 		if (!coeff.indizes.empty()) {
 			os << "_{ " << coeff.indizes << "}";
 		}
-		if (coeff.isDaggered) {
+		if (coeff.is_daggered) {
 			os << "^*";
 		}
 		os << coeff.momenta << " ";
@@ -51,13 +51,13 @@ namespace SymbolicOperators {
 	}
 
 	Coefficient::Coefficient()
-		: name(""), momenta(), indizes(), Q_changes_sign(false), isDaggered(false) {}
+		: name(""), momenta(), indizes(), Q_changes_sign(false), is_daggered(false) {}
 	Coefficient::Coefficient(std::string _name)
-		: name(_name), momenta(), indizes(), Q_changes_sign(false), isDaggered(false) {}
-	Coefficient::Coefficient(std::string _name, const Momentum& _momentum, const IndexWrapper& _indizes, bool _Q_changes_sign, bool _isDaggered)
-		: name(_name), momenta(_momentum), indizes(_indizes), Q_changes_sign(_Q_changes_sign), isDaggered(_isDaggered) {}
-	Coefficient::Coefficient(std::string _name, const Momentum& _momentum, bool _Q_changes_sign, bool _isDaggered)
-		: name(_name), momenta(_momentum), indizes(), Q_changes_sign(_Q_changes_sign), isDaggered(_isDaggered) {}
-	Coefficient::Coefficient(std::string _name, const MomentumList& _momenta, const IndexWrapper& _indizes, bool _Q_changes_sign, bool _isDaggered)
-		: name(_name), momenta(_momenta), indizes(), Q_changes_sign(_Q_changes_sign), isDaggered(_isDaggered) { }
+		: name(_name), momenta(), indizes(), Q_changes_sign(false), is_daggered(false) {}
+	Coefficient::Coefficient(std::string _name, const Momentum& _momentum, const IndexWrapper& _indizes, bool _Q_changes_sign, bool _is_daggered)
+		: name(_name), momenta(_momentum), indizes(_indizes), Q_changes_sign(_Q_changes_sign), is_daggered(_is_daggered) {}
+	Coefficient::Coefficient(std::string _name, const Momentum& _momentum, bool _Q_changes_sign, bool _is_daggered)
+		: name(_name), momenta(_momentum), indizes(), Q_changes_sign(_Q_changes_sign), is_daggered(_is_daggered) {}
+	Coefficient::Coefficient(std::string _name, const MomentumList& _momenta, const IndexWrapper& _indizes, bool _Q_changes_sign, bool _is_daggered)
+		: name(_name), momenta(_momenta), indizes(), Q_changes_sign(_Q_changes_sign), is_daggered(_is_daggered) { }
 }

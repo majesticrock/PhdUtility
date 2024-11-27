@@ -7,20 +7,20 @@
 namespace SymbolicOperators {
 	struct WickOperator {
 		OperatorType type;
-		bool isDaggered{};
+		bool is_daggered{};
 		Momentum momentum;
 		IndexWrapper indizes;
 
 		template<class Archive>
 		void serialize(Archive& ar, const unsigned int version) {
 			ar& type;
-			ar& isDaggered;
+			ar& is_daggered;
 			ar& momentum;
 			ar& indizes;
 		}
 
-		WickOperator(const OperatorType& _type, const bool _isDaggered, const Momentum& _momentum, const IndexWrapper& _indizes = IndexWrapper());
-		WickOperator(const OperatorType& _type, const bool _isDaggered, const Momentum& _momentum, const Index _index);
+		WickOperator(const OperatorType& _type, const bool _is_daggered, const Momentum& _momentum, const IndexWrapper& _indizes = IndexWrapper());
+		WickOperator(const OperatorType& _type, const bool _is_daggered, const Momentum& _momentum, const Index _index);
 		WickOperator();
 		WickOperator(const std::string& expression);
 

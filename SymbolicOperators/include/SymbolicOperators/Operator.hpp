@@ -7,23 +7,23 @@ namespace SymbolicOperators {
 		Momentum momentum;
 		// Contains all indizes, standard: first index = spin, all others arbitrary, e.g., orbitals, bands etc
 		IndexWrapper indizes;
-		bool isDaggered;
+		bool is_daggered;
 
 		template<class Archive>
 		void serialize(Archive& ar, const unsigned int version) {
 			ar& momentum;
 			ar& indizes;
-			ar& isDaggered;
+			ar& is_daggered;
 		}
 
 		Operator() = default;
-		Operator(const Momentum& _momentum, const IndexWrapper _indizes, bool _isDaggered);
-		Operator(const momentum_pairs& _momentum, const IndexWrapper _indizes, bool _isDaggered);
-		Operator(char _momentum, bool add_Q, const IndexWrapper _indizes, bool _isDaggered);
-		Operator(char _momentum, int sign, bool add_Q, const IndexWrapper _indizes, bool _isDaggered);
+		Operator(const Momentum& _momentum, const IndexWrapper _indizes, bool _is_daggered);
+		Operator(const momentum_pairs& _momentum, const IndexWrapper _indizes, bool _is_daggered);
+		Operator(char _momentum, bool add_Q, const IndexWrapper _indizes, bool _is_daggered);
+		Operator(char _momentum, int sign, bool add_Q, const IndexWrapper _indizes, bool _is_daggered);
 
 		inline void hermitianConjugate() {
-			this->isDaggered = !(this->isDaggered);
+			this->is_daggered = !(this->is_daggered);
 		};
 		inline Operator with_momentum(Momentum const& new_momentum) const {
 			assert(this->momentum.momentum_list.size() == 1U);
@@ -53,7 +53,7 @@ namespace SymbolicOperators {
 	};
 
 	inline bool operator==(const Operator& lhs, const Operator& rhs) {
-		if (lhs.isDaggered != rhs.isDaggered) return false;
+		if (lhs.is_daggered != rhs.is_daggered) return false;
 		if (lhs.indizes != rhs.indizes) return false;
 		return (lhs.momentum == rhs.momentum);
 	}

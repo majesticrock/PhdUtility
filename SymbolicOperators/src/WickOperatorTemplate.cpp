@@ -19,13 +19,13 @@ namespace SymbolicOperators {
 
 	TemplateResult WickOperatorTemplate::_handle_sc_type(const Operator& left, const Operator& right) const {
 		// c_{-k-q} c_{k} or c_{k}^+ c_{-k-q}^+
-		const Operator& base{ left.isDaggered ? right : left };
-		const Operator& other{ left.isDaggered ? left : right };
+		const Operator& base{ left.is_daggered ? right : left };
+		const Operator& other{ left.is_daggered ? left : right };
 		// q
 		const Momentum momentum_diff{ -(base.momentum + other.momentum) };
 
 		TemplateResult result(1U, this->type, base.momentum);
-		result.results.front().op.isDaggered = left.isDaggered;
+		result.results.front().op.is_daggered = left.is_daggered;
 		result.momentum_delta = make_delta(this->momentum_difference, momentum_diff);
 
 		for (size_t i = 0U; i < indexComparison.size(); ++i)
@@ -67,7 +67,7 @@ namespace SymbolicOperators {
 		std::vector<KroneckerDelta<Index>> index_delta;
 
 		TemplateResult result(1U, this->type, left.momentum);
-		result.results.front().op.isDaggered = false;
+		result.results.front().op.is_daggered = false;
 		result.momentum_delta = make_delta(this->momentum_difference, momentum_diff);
 
 		for (size_t i = 0U; i < indexComparison.size(); ++i)
@@ -93,16 +93,16 @@ namespace SymbolicOperators {
 
 	TemplateResult WickOperatorTemplate::createFromOperators(const Operator& left, const Operator& right) const {
 		if (this->is_sc_type) {
-			if (left.isDaggered != right.isDaggered)
+			if (left.is_daggered != right.is_daggered)
 				return TemplateResult::null_result();
 			return this->_handle_sc_type(left, right);
 		}
 
-		if (left.isDaggered == right.isDaggered)
+		if (left.is_daggered == right.is_daggered)
 			return TemplateResult::null_result();
 		// The input needs to be normal ordered.
 		// This means that the left input must be daggered here
-		assert(left.isDaggered);
+		assert(left.is_daggered);
 		return this->_handle_num_type(left, right);
 	}
 }
