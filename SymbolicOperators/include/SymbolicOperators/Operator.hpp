@@ -14,7 +14,7 @@ namespace SymbolicOperators {
 		Operator(const momentum_pairs& _momentum, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
 		Operator(char _momentum, bool add_Q, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
 		Operator(char _momentum, int sign, bool add_Q, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
-		Operator(char _momentum, int sign, bool add_Q, bool _is_daggered, bool _is_fermion = true);
+		//Operator(char _momentum, int sign, bool add_Q, bool _is_daggered, bool _is_fermion = true);
 
 		inline void hermitianConjugate() {
 			this->is_daggered = !(this->is_daggered);

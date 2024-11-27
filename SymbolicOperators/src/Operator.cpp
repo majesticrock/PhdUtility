@@ -35,6 +35,6 @@ namespace SymbolicOperators {
 	Operator::Operator(char _momentum, int sign, bool add_Q, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion)
 		: momentum(_momentum, sign, add_Q), indizes(_indizes), is_daggered(_is_daggered), is_fermion(_is_fermion) {}
 
-	Operator::Operator(char _momentum, int sign, bool add_Q, bool _is_daggered, bool _is_fermion)
-		: momentum(_momentum, sign, add_Q), indizes(), is_daggered(_is_daggered), is_fermion(_is_fermion) {}
+	//Operator::Operator(char _momentum, int sign, bool add_Q, bool _is_daggered, bool _is_fermion)
+	//	: momentum(_momentum, sign, add_Q), indizes(), is_daggered(_is_daggered), is_fermion(_is_fermion) {}
 }
