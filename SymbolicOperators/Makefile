@@ -16,6 +16,10 @@ $(CLUSTER_BUILD_DIR)/Makefile: CMakeLists.txt
 	@mkdir -p $(CLUSTER_BUILD_DIR)
 	@cd $(CLUSTER_BUILD_DIR) && cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) -DCLUSTER_BUILD=ON ..
 
+test: $(BUILD_DIR)/Makefile
+	@$(MAKE) -C $(BUILD_DIR)
+	cd build/tests && ctest --output-on-failure
+
 clean:
 	@rm -rf $(BUILD_DIR) $(CLUSTER_BUILD_DIR)
 
