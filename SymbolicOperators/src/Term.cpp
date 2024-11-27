@@ -310,10 +310,10 @@ namespace SymbolicOperators {
 						perform_operator_swap(operators[i], operators[i - 1]);
 						new_n = i;
 					}
-					else if(operators[i - 1].first_index() < operators[i].first_index()) {
+					/* else if(operators[i - 1].first_index() < operators[i].first_index()) {
 						perform_operator_swap(operators[i], operators[i - 1]);
 						new_n = i;
-					}
+					} */
 				}
 				else {
 					// c c
@@ -325,10 +325,10 @@ namespace SymbolicOperators {
 						perform_operator_swap(operators[i], operators[i - 1]);
 						new_n = i;
 					}
-					else if(operators[i - 1].first_index() > operators[i].first_index()) {
+					/* else if(operators[i - 1].first_index() > operators[i].first_index()) {
 						perform_operator_swap(operators[i], operators[i - 1]);
 						new_n = i;
-					}
+					} */
 				}
 			}
 			n = new_n;
