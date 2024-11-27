@@ -10,6 +10,14 @@ namespace SymbolicOperators {
 		bool is_daggered{};
 		bool is_fermion{ true };
 
+		template<class Archive>
+		void serialize(Archive& ar, const unsigned int version) {
+			ar& momentum;
+			ar& indizes;
+			ar& is_daggered;
+		}
+
+		Operator() = default;
 		Operator(const Momentum& _momentum, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
 		Operator(const momentum_pairs& _momentum, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
 		Operator(char _momentum, bool add_Q, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
