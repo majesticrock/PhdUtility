@@ -23,7 +23,13 @@ namespace SymbolicOperators {
 		Operator(const momentum_pairs& _momentum, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
 		Operator(char _momentum, bool add_Q, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
 		Operator(char _momentum, int sign, bool add_Q, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
-		//Operator(char _momentum, int sign, bool add_Q, bool _is_daggered, bool _is_fermion = true);
+
+		inline static Operator Boson(const Momentum& _momentum, const IndexWrapper _indizes, bool _is_daggered) {
+			return Operator(_momentum, _indizes, _is_daggered, false);
+		}
+		inline static Operator Boson(const Momentum& _momentum, bool _is_daggered) {
+			return Operator(_momentum, IndexWrapper{}, _is_daggered, false);
+		}
 
 		inline void hermitianConjugate() {
 			this->is_daggered = !(this->is_daggered);
