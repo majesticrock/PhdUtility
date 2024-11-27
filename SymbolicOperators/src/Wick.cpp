@@ -197,7 +197,7 @@ namespace SymbolicOperators {
 				l_is = delta.second.isUsed('l');
 				if(l_is == -1){
 					std::cout << term << std::endl;
-					throw;
+					throw std::runtime_error("l_is -1, but we need an l!");
 				}
 				const Momentum l_mom('l', delta.second.momentum_list[l_is].first);
 				const Momentum remainder = delta.second - l_mom;

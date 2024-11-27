@@ -596,13 +596,9 @@ namespace SymbolicOperators {
 	}
 	std::ostream& operator<<(std::ostream& os, const WickTermCollector& terms)
 	{
-		static int _n_ = 0;
-		std::cout << "????" << std::endl;
 		for (WickTermCollector::const_iterator it = terms.begin(); it != terms.end(); ++it)
 		{
-			std::cout << "\n" << _n_ << std::endl;
 			os << "\t&" << *it;
-			std::cout << _n_ << ".2" << std::endl;
 			if (it != terms.end() - 1) {
 				os << " \\\\";
 			}

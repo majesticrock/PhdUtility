@@ -138,6 +138,7 @@ namespace SymbolicOperators {
 			}
 			std::erase_if(sums.momenta._vector, [&](char sum_idx) { return sum_idx == value; });
 		}
+		bool is_normal_ordered() const;
 	};
 	void commutator(std::vector<Term>& reciever, const std::vector<Term>& left, const std::vector<Term>& right);
 	inline void commutator(std::vector<Term>& reciever, const Term& left, const std::vector<Term>& right) {

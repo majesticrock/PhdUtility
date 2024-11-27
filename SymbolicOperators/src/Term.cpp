@@ -465,7 +465,8 @@ namespace SymbolicOperators {
 		normalOrder_outerLoop:
 			if (t >= terms.size()) break;
 			size_t n = terms[t].operators.size();
-			size_t new_n;
+			size_t new_n{};
+			// First sort so that the bosons are upfront
 			while (n > 1U) {
 				new_n = 0U;
 				for (size_t i = 1U; i < terms[t].operators.size(); ++i)
@@ -474,8 +475,18 @@ namespace SymbolicOperators {
 						new_n = i;
 						std::swap(terms[t].operators[i - 1], terms[t].operators[i]);
 					}
-					else if (!(terms[t].operators[i - 1].is_daggered) && (terms[t].operators[i].is_daggered)) {
-						if (!terms[t].operators[i - 1].is_fermion && terms[t].operators[i].is_fermion) continue;
+				}
+				n = new_n;
+			}
+			
+			n = terms[t].operators.size();
+			new_n = 0U;
+			while (n > 1U) {
+				new_n = 0U;
+				for (size_t i = 1U; i < terms[t].operators.size(); ++i)
+				{
+					if (!terms[t].operators[i - 1].is_fermion && terms[t].operators[i].is_fermion) continue;
+					if (!(terms[t].operators[i - 1].is_daggered) && (terms[t].operators[i].is_daggered)) {
 						bool other_deltas = false;
 						new_n = i;
 						// Swap cc^+
@@ -680,5 +691,22 @@ namespace SymbolicOperators {
 				++it;
 			}
 		}
+		for(const auto& term : terms) {
+			for(const auto& op : term.operators){
+				if(!op.is_fermion) { std::cerr << "NONONON" << std::endl;}
+			}
+			assert(term.is_normal_ordered());
+		}
+	}
+
+	bool Term::is_normal_ordered() const {
+		for	(size_t i = 1U; i < operators.size(); ++i) {
+			if (operators[i - 1].is_fermion == operators[i].is_fermion) {
+				if(!operators[i - 1].is_daggered && operators[i].is_daggered) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 }
