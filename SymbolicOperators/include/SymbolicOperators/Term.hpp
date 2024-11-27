@@ -66,6 +66,14 @@ namespace SymbolicOperators {
 		inline void flipSign() {
 			this->multiplicity *= -1;
 		}
+		// Swaps the two operators lhs and rhs. 
+		// Does NOT consider possible additional terms spawned by this operation due to non-commutivity!
+		inline void perform_operator_swap(Operator& lhs, Operator& rhs) {
+			if (lhs.is_fermion && rhs.is_fermion) {
+				this->multiplicity *= -1;
+			}
+			std::swap(lhs, rhs);
+		}
 		inline const std::vector<Operator>& getOperators() const {
 			return this->operators;
 		}
@@ -102,6 +110,16 @@ namespace SymbolicOperators {
 			}
 		};
 		inline void renameMomenta(char what, char to) {
+			for(auto& mom_sum : sums.momenta){
+				if(mom_sum == what){
+					mom_sum = to;
+				}
+			}
+			for(auto& coeff : coefficients) {
+				for(auto& mom : coeff.momenta){
+					mom.replaceOccurances(what, Momentum(to));
+				}
+			}
 			for (auto& op : operators)
 			{
 				op.momentum.replaceOccurances(what, Momentum(to));
@@ -120,6 +138,7 @@ namespace SymbolicOperators {
 			}
 			std::erase_if(sums.momenta._vector, [&](char sum_idx) { return sum_idx == value; });
 		}
+		bool is_normal_ordered() const;
 	};
 	void commutator(std::vector<Term>& reciever, const std::vector<Term>& left, const std::vector<Term>& right);
 	inline void commutator(std::vector<Term>& reciever, const Term& left, const std::vector<Term>& right) {
