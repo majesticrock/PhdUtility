@@ -298,8 +298,8 @@ namespace SymbolicOperators {
 			new_n = 0U;
 			for (size_t i = 1U; i < n; ++i)
 			{
-				if (operators[i].isDaggered != operators[i - 1].isDaggered) continue;
-				if (operators[i].isDaggered) {
+				if (operators[i].is_daggered != operators[i - 1].is_daggered) continue;
+				if (operators[i].is_daggered) {
 					// c^+ c^+
 					if (operators[i].indizes[0] == SpinUp && operators[i - 1].indizes[0] != SpinUp) {
 						std::swap(operators[i], operators[i - 1]);
@@ -334,7 +334,7 @@ namespace SymbolicOperators {
 			new_n = 0U;
 			for (size_t i = 1U; i < n; ++i)
 			{
-				if (operators[i].isDaggered != operators[i - 1].isDaggered) continue;
+				if (operators[i].is_daggered != operators[i - 1].is_daggered) continue;
 				if (operators[i].indizes[0] != operators[i - 1].indizes[0]) continue;
 
 				if(momentum_order(operators[i - 1].momentum, operators[i].momentum)) {
@@ -465,7 +465,7 @@ namespace SymbolicOperators {
 				new_n = 0U;
 				for (size_t i = 1U; i < terms[t].operators.size(); ++i)
 				{
-					if (!(terms[t].operators[i - 1].isDaggered) && (terms[t].operators[i].isDaggered)) {
+					if (!(terms[t].operators[i - 1].is_daggered) && (terms[t].operators[i].is_daggered)) {
 						bool other_deltas = false;
 						new_n = i;
 						// Swap cc^+

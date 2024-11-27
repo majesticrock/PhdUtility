@@ -13,23 +13,23 @@ namespace SymbolicOperators {
 		bool translationalInvariance = true;
 		// if Coeff(k+Q) = -Coeff(k)
 		bool Q_changes_sign{};
-		bool isDaggered{};
+		bool is_daggered{};
 
 		template<class Archive>
 		void serialize(Archive& ar, const unsigned int version) {
 			ar& name;
 			ar& momenta;
 			ar& indizes;
-			ar& isDaggered;
+			ar& is_daggered;
 			ar& translationalInvariance;
 			ar& Q_changes_sign;
 		}
 
 		Coefficient();
 		explicit Coefficient(std::string _name);
-		Coefficient(std::string _name, const Momentum& _momentum, const IndexWrapper& _indizes, bool _Q_changes_sign = false, bool _isDaggered = false);
-		Coefficient(std::string _name, const Momentum& _momentum, bool _Q_changes_sign = false, bool _isDaggered = false);
-		Coefficient(std::string _name, const MomentumList& _momenta, const IndexWrapper& _indizes = IndexWrapper{}, bool _Q_changes_sign = false, bool _isDaggered = false);
+		Coefficient(std::string _name, const Momentum& _momentum, const IndexWrapper& _indizes, bool _Q_changes_sign = false, bool _is_daggered = false);
+		Coefficient(std::string _name, const Momentum& _momentum, bool _Q_changes_sign = false, bool _is_daggered = false);
+		Coefficient(std::string _name, const MomentumList& _momenta, const IndexWrapper& _indizes = IndexWrapper{}, bool _Q_changes_sign = false, bool _is_daggered = false);
 
 		static Coefficient parse_string(const std::string& expression);
 
@@ -64,7 +64,7 @@ namespace SymbolicOperators {
 	inline bool operator==(const Coefficient& lhs, const Coefficient& rhs) {
 		if (lhs.name != rhs.name) return false;
 		if (lhs.momenta != rhs.momenta) return false;
-		if (lhs.isDaggered != rhs.isDaggered) return false;
+		if (lhs.is_daggered != rhs.is_daggered) return false;
 		return (lhs.indizes == rhs.indizes);
 	}
 	inline bool operator!=(const Coefficient& lhs, const Coefficient& rhs) {

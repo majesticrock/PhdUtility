@@ -510,7 +510,7 @@ namespace SymbolicOperators {
 		for (auto& op : operators) {
 			if (op.type == CDW_Type && op.momentum.add_Q) {
 				op.momentum.add_Q = false;
-				op.isDaggered = !(op.isDaggered);
+				op.is_daggered = !(op.is_daggered);
 			}
 		}
 

@@ -29,7 +29,7 @@ namespace SymbolicOperators
                     };
                 if ( (equals_op(operators) || ...) )
                 {
-                    op.isDaggered = false;
+                    op.is_daggered = false;
                 }
             }
         };
