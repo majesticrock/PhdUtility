@@ -3,7 +3,12 @@
 namespace SymbolicOperators {
 	std::ostream& operator<<(std::ostream& os, const Operator& op)
 	{
-		os << "c_{ " << op.momentum << ", " << op.indizes << "}";
+		if (op.is_fermion) {
+			os << "c";
+		} else {
+			os << "b";
+		}
+		os << "_{ " << op.momentum << ", " << op.indizes << "}";
 		if (op.is_daggered) {
 			os << "^\\dagger ";
 		}
@@ -18,15 +23,18 @@ namespace SymbolicOperators {
 		return os;
 	}
 
-	Operator::Operator(const Momentum& _momentum, const IndexWrapper _indizes, bool _is_daggered)
-		: momentum(_momentum), indizes(_indizes), is_daggered(_is_daggered) {}
+	Operator::Operator(const Momentum& _momentum, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion)
+		: momentum(_momentum), indizes(_indizes), is_daggered(_is_daggered), is_fermion(_is_fermion) {}
 
-	Operator::Operator(const momentum_pairs& _momentum, const IndexWrapper _indizes, bool _is_daggered)
-		: momentum(_momentum), indizes(_indizes), is_daggered(_is_daggered) {}
+	Operator::Operator(const momentum_pairs& _momentum, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion)
+		: momentum(_momentum), indizes(_indizes), is_daggered(_is_daggered), is_fermion(_is_fermion) {}
 
-	Operator::Operator(char _momentum, bool add_Q, const IndexWrapper _indizes, bool _is_daggered)
-		: momentum(_momentum, add_Q), indizes(_indizes), is_daggered(_is_daggered) {}
+	Operator::Operator(char _momentum, bool add_Q, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion)
+		: momentum(_momentum, add_Q), indizes(_indizes), is_daggered(_is_daggered), is_fermion(_is_fermion) {}
 
-	Operator::Operator(char _momentum, int sign, bool add_Q, const IndexWrapper _indizes, bool _is_daggered)
-		: momentum(_momentum, sign, add_Q), indizes(_indizes), is_daggered(_is_daggered) {}
+	Operator::Operator(char _momentum, int sign, bool add_Q, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion)
+		: momentum(_momentum, sign, add_Q), indizes(_indizes), is_daggered(_is_daggered), is_fermion(_is_fermion) {}
+
+	Operator::Operator(char _momentum, int sign, bool add_Q, bool _is_daggered, bool _is_fermion)
+		: momentum(_momentum, sign, add_Q), indizes(), is_daggered(_is_daggered), is_fermion(_is_fermion) {}
 }

@@ -6,8 +6,8 @@
 
 #define LEFT temporary_operators[i]
 #define RIGHT temporary_operators[i + 1]
-#define L_SPIN temporary_operators[i].indizes[0]
-#define R_SPIN temporary_operators[i + 1].indizes[0]
+#define L_SPIN temporary_operators[i].first_index()
+#define R_SPIN temporary_operators[i + 1].first_index()
 
 namespace SymbolicOperators {
 	// Constructors
@@ -239,7 +239,7 @@ namespace SymbolicOperators {
 			for (auto& op : operators) {
 				for (auto it = op.indizes.begin(); it != op.indizes.end(); ++it)
 				{
-					if (delta.first == SpinUp || delta.first == SpinDown) {
+					if (delta.first == Index::SpinUp || delta.first == Index::SpinDown) {
 						if (*it == delta.second) {
 							*it = delta.first;
 						}
@@ -462,22 +462,22 @@ namespace SymbolicOperators {
 		}
 		discardZeroMomenta();
 
-		if(sums.spins.size() == 1U && sums.spins.front() == SigmaPrime) {
+		if(sums.spins.size() == 1U && sums.spins.front() == Index::SigmaPrime) {
 			for(auto& coeff : coefficients){
 				for(auto& index : coeff.indizes){
-					if(index == SigmaPrime) index = Sigma;
+					if(index == Index::SigmaPrime) index = Index::Sigma;
 				}
 			}
 			for(auto& op : operators){
 				for(auto& index : op.indizes){
-					if(index == SigmaPrime) index = Sigma;
+					if(index == Index::SigmaPrime) index = Index::Sigma;
 				}
 			}
 			for(auto& delta_index : delta_indizes){
-				if(delta_index.first == SigmaPrime) delta_index.first = Sigma;
-				if(delta_index.second == SigmaPrime) delta_index.second = Sigma;
+				if(delta_index.first == Index::SigmaPrime) delta_index.first = Index::Sigma;
+				if(delta_index.second == Index::SigmaPrime) delta_index.second = Index::Sigma;
 			}
-			sums.spins.front() = Sigma;
+			sums.spins.front() = Index::Sigma;
 		}
 	}
 
@@ -585,7 +585,6 @@ namespace SymbolicOperators {
 		for (const auto& delta : term.delta_indizes) {
 			os << "\\delta_{" << delta.first << ", " << delta.second << "} ";
 		}
-
 		if (term.isIdentity()) {
 			os << " \\mathbb{1} ";
 			return os;
@@ -597,9 +596,13 @@ namespace SymbolicOperators {
 	}
 	std::ostream& operator<<(std::ostream& os, const WickTermCollector& terms)
 	{
+		static int _n_ = 0;
+		std::cout << "????" << std::endl;
 		for (WickTermCollector::const_iterator it = terms.begin(); it != terms.end(); ++it)
 		{
+			std::cout << "\n" << _n_ << std::endl;
 			os << "\t&" << *it;
+			std::cout << _n_ << ".2" << std::endl;
 			if (it != terms.end() - 1) {
 				os << " \\\\";
 			}

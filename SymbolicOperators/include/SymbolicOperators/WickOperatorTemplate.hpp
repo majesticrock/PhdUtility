@@ -9,8 +9,8 @@
 namespace SymbolicOperators {
 	struct IndexComparison {
 		bool any_identical;
-		Index base{ UndefinedIndex };
-		Index other{ UndefinedIndex };
+		Index base{ Index::UndefinedIndex };
+		Index other{ Index::UndefinedIndex };
 	};
 
 	struct TemplateResult {

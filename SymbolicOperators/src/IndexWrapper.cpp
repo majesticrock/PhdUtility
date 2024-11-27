@@ -5,17 +5,22 @@ namespace SymbolicOperators {
 	{
 		switch (index)
 		{
-		case SpinUp:
+		case Index::SpinUp:
 			os << "\\uparrow";
 			break;
-		case SpinDown:
+		case Index::SpinDown:
 			os << "\\downarrow";
 			break;
-		case Sigma:
+		case Index::Sigma:
 			os << "\\sigma";
 			break;
-		case SigmaPrime:
+		case Index::SigmaPrime:
 			os << "\\sigma'";
+			break;
+		case Index::GeneralSpin_S:
+			os << "S";
+			break;
+		case Index::NoIndex:
 			break;
 		default:
 			os << "ERROR_INDEX";

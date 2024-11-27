@@ -7,20 +7,14 @@ namespace SymbolicOperators {
 		Momentum momentum;
 		// Contains all indizes, standard: first index = spin, all others arbitrary, e.g., orbitals, bands etc
 		IndexWrapper indizes;
-		bool is_daggered;
+		bool is_daggered{};
+		bool is_fermion{ true };
 
-		template<class Archive>
-		void serialize(Archive& ar, const unsigned int version) {
-			ar& momentum;
-			ar& indizes;
-			ar& is_daggered;
-		}
-
-		Operator() = default;
-		Operator(const Momentum& _momentum, const IndexWrapper _indizes, bool _is_daggered);
-		Operator(const momentum_pairs& _momentum, const IndexWrapper _indizes, bool _is_daggered);
-		Operator(char _momentum, bool add_Q, const IndexWrapper _indizes, bool _is_daggered);
-		Operator(char _momentum, int sign, bool add_Q, const IndexWrapper _indizes, bool _is_daggered);
+		Operator(const Momentum& _momentum, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
+		Operator(const momentum_pairs& _momentum, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
+		Operator(char _momentum, bool add_Q, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
+		Operator(char _momentum, int sign, bool add_Q, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
+		Operator(char _momentum, int sign, bool add_Q, bool _is_daggered, bool _is_fermion = true);
 
 		inline void hermitianConjugate() {
 			this->is_daggered = !(this->is_daggered);
@@ -50,9 +44,13 @@ namespace SymbolicOperators {
 		inline void remove_momentum_contribution(char value) {
 			momentum.remove_contribution(value);
 		}
+		inline Index first_index() const {
+			return (indizes.empty() ? Index::NoIndex : indizes[0]);
+		}
 	};
 
 	inline bool operator==(const Operator& lhs, const Operator& rhs) {
+		if (lhs.is_fermion != rhs.is_fermion) return false;
 		if (lhs.is_daggered != rhs.is_daggered) return false;
 		if (lhs.indizes != rhs.indizes) return false;
 		return (lhs.momentum == rhs.momentum);

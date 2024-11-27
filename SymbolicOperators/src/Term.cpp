@@ -155,7 +155,7 @@ namespace SymbolicOperators {
 			for (auto& op : operators) {
 				for (auto it = op.indizes.begin(); it != op.indizes.end(); ++it)
 				{
-					if (delta.first == SpinUp || delta.first == SpinDown) {
+					if (delta.first == Index::SpinUp || delta.first == Index::SpinDown) {
 						if (*it == delta.second) {
 							*it = delta.first;
 						}
@@ -299,29 +299,34 @@ namespace SymbolicOperators {
 			for (size_t i = 1U; i < n; ++i)
 			{
 				if (operators[i].is_daggered != operators[i - 1].is_daggered) continue;
+				if (operators[i].is_fermion != operators[i - 1].is_fermion) continue;
 				if (operators[i].is_daggered) {
 					// c^+ c^+
-					if (operators[i].indizes[0] == SpinUp && operators[i - 1].indizes[0] != SpinUp) {
-						std::swap(operators[i], operators[i - 1]);
-						flipSign();
+					if (operators[i].first_index() == Index::SpinUp && operators[i - 1].first_index() != Index::SpinUp) {
+						perform_operator_swap(operators[i], operators[i - 1]);
 						new_n = i;
 					}
-					else if (operators[i - 1].indizes[0] == SpinDown && operators[i].indizes[0] != SpinDown) {
-						std::swap(operators[i], operators[i - 1]);
-						flipSign();
+					else if (operators[i - 1].first_index() == Index::SpinDown && operators[i].first_index() != Index::SpinDown) {
+						perform_operator_swap(operators[i], operators[i - 1]);
+						new_n = i;
+					}
+					else if(operators[i - 1].first_index() < operators[i].first_index()) {
+						perform_operator_swap(operators[i], operators[i - 1]);
 						new_n = i;
 					}
 				}
 				else {
 					// c c
-					if (operators[i].indizes[0] == SpinDown && operators[i - 1].indizes[0] != SpinDown) {
-						std::swap(operators[i], operators[i - 1]);
-						flipSign();
+					if (operators[i].first_index() == Index::SpinDown && operators[i - 1].first_index() != Index::SpinDown) {
+						perform_operator_swap(operators[i], operators[i - 1]);
 						new_n = i;
 					}
-					else if (operators[i - 1].indizes[0] == SpinUp && operators[i].indizes[0] != SpinUp) {
-						std::swap(operators[i], operators[i - 1]);
-						flipSign();
+					else if (operators[i - 1].first_index() == Index::SpinUp && operators[i].first_index() != Index::SpinUp) {
+						perform_operator_swap(operators[i], operators[i - 1]);
+						new_n = i;
+					}
+					else if(operators[i - 1].first_index() > operators[i].first_index()) {
+						perform_operator_swap(operators[i], operators[i - 1]);
 						new_n = i;
 					}
 				}
@@ -335,11 +340,10 @@ namespace SymbolicOperators {
 			for (size_t i = 1U; i < n; ++i)
 			{
 				if (operators[i].is_daggered != operators[i - 1].is_daggered) continue;
-				if (operators[i].indizes[0] != operators[i - 1].indizes[0]) continue;
+				if (operators[i].first_index() != operators[i - 1].first_index()) continue;
 
 				if(momentum_order(operators[i - 1].momentum, operators[i].momentum)) {
-					std::swap(operators[i], operators[i - 1]);
-					flipSign();
+					perform_operator_swap(operators[i], operators[i - 1]);
 					new_n = i;
 				}
 			}
@@ -376,12 +380,13 @@ namespace SymbolicOperators {
 
 	void Term::renameSums()
 	{
-		constexpr char name_list[3] = { 'q', 'p', 'r' };
-		constexpr char buffer_list[3] = { ':', ';', '|' };
+		constexpr int N_BUFFER = 6;
+		constexpr char name_list[N_BUFFER] = { 'q', 'p', 'r', 's', 't', 'u' };
+		constexpr char buffer_list[N_BUFFER] = { ':', ';', '|', '?', '!', '.' };
 		for (size_t i = 0U; i < sums.momenta.size(); ++i)
 		{
-			if (i >= 3) {
-				std::cerr << "More than 3 momenta, time to implement this..." << std::endl;
+			if (i >= N_BUFFER) {
+				std::cerr << "More than " << N_BUFFER << "momenta, time to implement this..." << std::endl;
 				break;
 			}
 			if (sums.momenta[i] == name_list[i]) continue;
@@ -405,16 +410,16 @@ namespace SymbolicOperators {
 			}
 		}
 
-		if (sums.spins.size() == 1U && sums.spins.front() == SigmaPrime) {
-			sums.spins.front() = Sigma;
+		if (sums.spins.size() == 1U && sums.spins.front() == Index::SigmaPrime) {
+			sums.spins.front() = Index::Sigma;
 			for (auto& op : operators) {
 				for (auto& index : op.indizes) {
-					if (index == SigmaPrime) index = Sigma;
+					if (index == Index::SigmaPrime) index = Index::Sigma;
 				}
 			}
 			for (auto& coeff : coefficients) {
 				for (auto& index : coeff.indizes) {
-					if (index == SigmaPrime) index = Sigma;
+					if (index == Index::SigmaPrime) index = Index::Sigma;
 				}
 			}
 		}
@@ -457,7 +462,7 @@ namespace SymbolicOperators {
 
 	void normalOrder(std::vector<Term>& terms) {
 		for (int t = 0; t < terms.size();) {
-		normalOder_outerLoop:
+		normalOrder_outerLoop:
 			if (t >= terms.size()) break;
 			size_t n = terms[t].operators.size();
 			size_t new_n;
@@ -465,27 +470,34 @@ namespace SymbolicOperators {
 				new_n = 0U;
 				for (size_t i = 1U; i < terms[t].operators.size(); ++i)
 				{
-					if (!(terms[t].operators[i - 1].is_daggered) && (terms[t].operators[i].is_daggered)) {
+					if (terms[t].operators[i - 1].is_fermion && !terms[t].operators[i].is_fermion) {
+						new_n = i;
+						std::swap(terms[t].operators[i - 1], terms[t].operators[i]);
+					}
+					else if (!(terms[t].operators[i - 1].is_daggered) && (terms[t].operators[i].is_daggered)) {
+						if (!terms[t].operators[i - 1].is_fermion && terms[t].operators[i].is_fermion) continue;
 						bool other_deltas = false;
 						new_n = i;
 						// Swap cc^+
-						terms[t].flipSign();
 						std::swap(terms[t].operators[i - 1], terms[t].operators[i]);
 
 						// Add a new term where cc^+ is replaced by the appropriate delta
 						Term new_term(terms[t]);
-						new_term.flipSign();
+						// flip the signs if we have fermions
+						if (terms[t].operators[i - 1].is_fermion && terms[t].operators[i].is_fermion) {
+							terms[t].flipSign();
+						}			
 						if (new_term.operators[i - 1].indizes.size() != new_term.operators[i].indizes.size()) {
 							throw std::invalid_argument("Operators do not have the same index count.");
 						}
 
-						if( (new_term.operators[i - 1].indizes[0] == SpinUp && new_term.operators[i].indizes[0] == SpinDown)
-							|| (new_term.operators[i - 1].indizes[0] == SpinDown && new_term.operators[i].indizes[0] == SpinUp) ) {
+						if( (new_term.operators[i - 1].first_index() == Index::SpinUp && new_term.operators[i].first_index() == Index::SpinDown)
+							|| (new_term.operators[i - 1].first_index() == Index::SpinDown && new_term.operators[i].first_index() == Index::SpinUp) ) {
 								continue;
 						}
-						else if(new_term.operators[i - 1].indizes[0] != new_term.operators[i].indizes[0]) {
+						else if(new_term.operators[i - 1].first_index() != new_term.operators[i].first_index()) {
 							new_term.delta_indizes.push_back(
-								make_delta(new_term.operators[i - 1].indizes[0], new_term.operators[i].indizes[0]));
+								make_delta(new_term.operators[i - 1].first_index(), new_term.operators[i].first_index()));
 						}
 						for (int c = 1; c < new_term.operators[i - 1].indizes.size(); c++)
 						{
@@ -511,9 +523,11 @@ namespace SymbolicOperators {
 						if (other_deltas) terms.push_back(new_term);
 					}
 					else if (terms[t].operators[i - 1] == terms[t].operators[i]) {
-						// two identical fermion operators = 0
-						terms.erase(terms.begin() + t);
-						goto normalOder_outerLoop;
+						if (terms[t].operators[i - 1].is_fermion) {
+							// two identical fermion operators = 0
+							terms.erase(terms.begin() + t);
+							goto normalOrder_outerLoop;
+						}
 					}
 				}
 				n = new_n;

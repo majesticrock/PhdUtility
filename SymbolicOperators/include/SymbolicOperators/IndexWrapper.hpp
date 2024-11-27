@@ -5,14 +5,14 @@
 #include <map>
 
 namespace SymbolicOperators {
-	enum Index { SpinUp = 0, SpinDown, Sigma, SigmaPrime, UndefinedIndex };
+	enum class Index { SpinUp = 0, SpinDown, Sigma, SigmaPrime, GeneralSpin_S, UndefinedIndex, NoIndex = 256 };
 	inline const std::map<std::string, Index> string_to_index = {
-		{"up", Index::SpinUp}, {"down", Index::SpinDown}, {"sigma", Index::Sigma}, {"sigma'", Index::SigmaPrime}
+		{"up", Index::SpinUp}, {"down", Index::SpinDown}, {"sigma", Index::Sigma}, {"sigma'", Index::SigmaPrime}, {"S", Index::GeneralSpin_S}
 	};
 	// Returns true if the index represents a variable and false otherwise
 	// Example: If the index is SpinUp it is fixed, i.e., non-mutable
 	constexpr bool is_mutable(const Index idx) {
-		return (idx > 1);
+		return (static_cast<int>(idx) > 1);
 	}
 
 	std::ostream& operator<<(std::ostream& os, const Index index);
