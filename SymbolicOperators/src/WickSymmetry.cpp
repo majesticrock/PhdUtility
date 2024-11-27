@@ -6,8 +6,8 @@ namespace SymbolicOperators{
     {
         for (auto& op : term.operators) {
             for(auto& idx : op.indizes){
-                if(idx == SpinDown)
-                    idx = SpinUp;
+                if(idx == Index::SpinDown)
+                    idx = Index::SpinUp;
             }
         }
     }
