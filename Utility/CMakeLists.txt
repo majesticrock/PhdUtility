@@ -15,7 +15,7 @@ target_include_directories(Utility INTERFACE
     ${Boost_INCLUDE_DIRS}
 )
 
-add_subdirectory(test)
+add_subdirectory(tests)
 
 install(TARGETS Utility
     EXPORT UtilityTargets

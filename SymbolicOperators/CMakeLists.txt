@@ -97,3 +97,5 @@ install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/SymbolicOperatorsConfigVersion.cmake"
     DESTINATION lib/cmake/SymbolicOperators
 )
+
+add_subdirectory(tests)

@@ -9,6 +9,14 @@ namespace SymbolicOperators {
 		IndexWrapper indizes;
 		bool isDaggered;
 
+		template<class Archive>
+		void serialize(Archive& ar, const unsigned int version) {
+			ar& momentum;
+			ar& indizes;
+			ar& isDaggered;
+		}
+
+		Operator() = default;
 		Operator(const Momentum& _momentum, const IndexWrapper _indizes, bool _isDaggered);
 		Operator(const momentum_pairs& _momentum, const IndexWrapper _indizes, bool _isDaggered);
 		Operator(char _momentum, bool add_Q, const IndexWrapper _indizes, bool _isDaggered);

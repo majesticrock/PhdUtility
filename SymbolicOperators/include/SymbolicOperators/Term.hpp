@@ -30,6 +30,16 @@ namespace SymbolicOperators {
 		IntFractional multiplicity;
 		_TERM_TRACKER_ATTRIBUTE;
 
+		template<class Archive>
+		void serialize(Archive& ar, const unsigned int version) {
+			ar& coefficients;
+			ar& sums;
+			ar& operators;
+			ar& delta_momenta;
+			ar& delta_indizes;
+			ar& multiplicity;
+		}
+
 		friend struct WickTerm;
 		Term(IntFractional _multiplicity, Coefficient _coefficient, const SumContainer& _sums,
 			const std::vector<Operator>& _operators = std::vector<Operator>());
