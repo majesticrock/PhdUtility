@@ -300,35 +300,37 @@ namespace SymbolicOperators {
 			{
 				if (operators[i].is_daggered != operators[i - 1].is_daggered) continue;
 				if (operators[i].is_fermion != operators[i - 1].is_fermion) continue;
+				const Index l_idx = operators[i - 1].first_index();
+				const Index r_idx = operators[i].first_index();
 				if (operators[i].is_daggered) {
 					// c^+ c^+
-					if (operators[i].first_index() == Index::SpinUp && operators[i - 1].first_index() != Index::SpinUp) {
+					if (r_idx == Index::SpinUp && l_idx != Index::SpinUp) {
 						perform_operator_swap(operators[i], operators[i - 1]);
 						new_n = i;
 					}
-					else if (operators[i - 1].first_index() == Index::SpinDown && operators[i].first_index() != Index::SpinDown) {
+					else if (l_idx == Index::SpinDown && r_idx != Index::SpinDown) {
 						perform_operator_swap(operators[i], operators[i - 1]);
 						new_n = i;
 					}
-					/* else if(operators[i - 1].first_index() < operators[i].first_index()) {
+					else if (l_idx > Index::SpinDown && r_idx > Index::SpinDown && l_idx < r_idx) {
 						perform_operator_swap(operators[i], operators[i - 1]);
 						new_n = i;
-					} */
+					}
 				}
 				else {
 					// c c
-					if (operators[i].first_index() == Index::SpinDown && operators[i - 1].first_index() != Index::SpinDown) {
+					if (r_idx == Index::SpinDown && l_idx != Index::SpinDown) {
 						perform_operator_swap(operators[i], operators[i - 1]);
 						new_n = i;
 					}
-					else if (operators[i - 1].first_index() == Index::SpinUp && operators[i].first_index() != Index::SpinUp) {
+					else if (l_idx == Index::SpinUp && r_idx != Index::SpinUp) {
 						perform_operator_swap(operators[i], operators[i - 1]);
 						new_n = i;
 					}
-					/* else if(operators[i - 1].first_index() > operators[i].first_index()) {
+					else if(l_idx > Index::SpinDown && r_idx > Index::SpinDown && l_idx > r_idx) {
 						perform_operator_swap(operators[i], operators[i - 1]);
 						new_n = i;
-					} */
+					}
 				}
 			}
 			n = new_n;
@@ -692,9 +694,6 @@ namespace SymbolicOperators {
 			}
 		}
 		for(const auto& term : terms) {
-			for(const auto& op : term.operators){
-				if(!op.is_fermion) { std::cerr << "NONONON" << std::endl;}
-			}
 			assert(term.is_normal_ordered());
 		}
 	}
