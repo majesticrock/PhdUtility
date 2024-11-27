@@ -15,6 +15,7 @@ namespace SymbolicOperators {
 			ar& momentum;
 			ar& indizes;
 			ar& is_daggered;
+			ar& is_fermion;
 		}
 
 		Operator() = default;
