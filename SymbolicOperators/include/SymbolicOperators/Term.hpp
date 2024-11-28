@@ -3,6 +3,7 @@
 #include "Coefficient.hpp"
 #include "SymbolicSum.hpp"
 #include <Utility/Fractional.hpp>
+#include <algorithm>
 
 //#define _TRACK_TERM
 #ifdef _TRACK_TERM
@@ -61,6 +62,12 @@ namespace SymbolicOperators {
 
 		inline bool isIdentity() const {
 			return this->operators.empty();
+		}
+		inline bool contains_boson() const {
+			return std::any_of(operators.begin(), operators.end(), [](Operator const& op) { return (!op.is_fermion); });
+		}
+		inline bool contains_fermion() const {
+			return std::any_of(operators.begin(), operators.end(), [](Operator const& op) { return op.is_fermion; });
 		}
 		void print() const;
 		inline void flipSign() {
@@ -125,6 +132,39 @@ namespace SymbolicOperators {
 				op.momentum.replaceOccurances(what, Momentum(to));
 			}
 		};
+
+		inline void transform_momentum_sum(char what, Momentum to, char new_sum_index) {
+			auto pos = std::find(sums.momenta.begin(), sums.momenta.end(), what);
+			if (pos == sums.momenta.end()) {
+				throw std::invalid_argument("You are trying to perform a sum transformation on a momentum that is not being summed over!");
+			} 
+			else {
+				*pos = new_sum_index;
+			}
+			for (auto& coeff : coefficients) {
+				for (auto& mom : coeff.momenta) {
+					mom.replaceOccurances(what, to);
+				}
+			}
+			for (auto& op : operators) {
+				op.momentum.replaceOccurances(what, to);
+			}
+		};
+		
+		inline void invert_momentum_sum(char what) {
+			if (std::find(sums.momenta.begin(), sums.momenta.end(), what) == sums.momenta.end()) {
+				throw std::invalid_argument("You are trying to perform a sum transformation on a momentum that is not being summed over!");
+			}
+			for (auto& coeff : coefficients) {
+				for (auto& mom : coeff.momenta) {
+					mom.flip_single(what);
+				}
+			}
+			for (auto& op : operators) {
+				op.momentum.flip_single(what);
+			}
+		}
+
 		inline void remove_momentum_contribution(char value) {
 			for(auto& coeff : coefficients) {
 				coeff.remove_momentum_contribution(value);

@@ -27,4 +27,4 @@ target_link_libraries(continuum_test PRIVATE SymbolicOperators)
 enable_testing()
 
 # Add a test
-add_test(NAME continuum_test COMMAND continuum_test out)
+add_test(NAME continuum_test COMMAND continuum_test)
