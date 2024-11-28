@@ -10,7 +10,7 @@ namespace SymbolicOperators {
 		// Contains all indizes, standard: first index = spin, all others arbitrary, e.g. orbitals, bands etc
 		IndexWrapper indizes;
 		// if Coeff(k) = Coeff(-k)
-		bool translationalInvariance = true;
+		bool translational_invariance{ true };
 		// if Coeff(k+Q) = -Coeff(k)
 		bool Q_changes_sign{};
 		bool is_daggered{};
@@ -21,15 +21,15 @@ namespace SymbolicOperators {
 			ar& momenta;
 			ar& indizes;
 			ar& is_daggered;
-			ar& translationalInvariance;
+			ar& translational_invariance;
 			ar& Q_changes_sign;
 		}
 
-		Coefficient();
+		Coefficient() = default;
 		explicit Coefficient(std::string _name);
-		Coefficient(std::string _name, const Momentum& _momentum, const IndexWrapper& _indizes, bool _Q_changes_sign = false, bool _is_daggered = false);
-		Coefficient(std::string _name, const Momentum& _momentum, bool _Q_changes_sign = false, bool _is_daggered = false);
-		Coefficient(std::string _name, const MomentumList& _momenta, const IndexWrapper& _indizes = IndexWrapper{}, bool _Q_changes_sign = false, bool _is_daggered = false);
+		Coefficient(std::string _name, const Momentum& _momentum, const IndexWrapper& _indizes, bool _Q_changes_sign = false, bool _translational_invariance = true, bool _is_daggered = false);
+		Coefficient(std::string _name, const Momentum& _momentum, bool _Q_changes_sign = false, bool _translational_invariance = true, bool _is_daggered = false);
+		Coefficient(std::string _name, const MomentumList& _momenta, const IndexWrapper& _indizes = IndexWrapper{}, bool _Q_changes_sign = false, bool _translational_invariance = true, bool _is_daggered = false);
 
 		static Coefficient parse_string(const std::string& expression);
 

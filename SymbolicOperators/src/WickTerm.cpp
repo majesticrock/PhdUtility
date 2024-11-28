@@ -533,7 +533,7 @@ namespace SymbolicOperators {
 			for (auto& momentum : coeff.momenta) {
 				momentum.sort();
 
-				if (coeff.translationalInvariance && !momentum.momentum_list.empty()) {
+				if (coeff.translational_invariance && !momentum.momentum_list.empty()) {
 					if (momentum.momentum_list[0].first < 0) {
 						momentum.flipMomentum();
 					}

@@ -23,6 +23,8 @@ namespace SymbolicOperators {
 			: momentum_list(1, std::make_pair(plus_minus, value)), add_Q(Q) {};
 		explicit Momentum(const momentum_pairs& _momenta, bool Q = false)
 			: momentum_list(_momenta), add_Q(Q) {};
+		explicit Momentum(std::pair<int, char> const& momentum_pair, bool Q = false)
+			: momentum_list({momentum_pair}), add_Q(Q) {};
 		Momentum(const std::string& expression, bool Q = false);
 		Momentum(char, char) = delete;
 

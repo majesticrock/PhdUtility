@@ -50,14 +50,12 @@ namespace SymbolicOperators {
 		return os;
 	}
 
-	Coefficient::Coefficient()
-		: name(""), momenta(), indizes(), Q_changes_sign(false), is_daggered(false) {}
 	Coefficient::Coefficient(std::string _name)
 		: name(_name), momenta(), indizes(), Q_changes_sign(false), is_daggered(false) {}
-	Coefficient::Coefficient(std::string _name, const Momentum& _momentum, const IndexWrapper& _indizes, bool _Q_changes_sign, bool _is_daggered)
-		: name(_name), momenta(_momentum), indizes(_indizes), Q_changes_sign(_Q_changes_sign), is_daggered(_is_daggered) {}
-	Coefficient::Coefficient(std::string _name, const Momentum& _momentum, bool _Q_changes_sign, bool _is_daggered)
-		: name(_name), momenta(_momentum), indizes(), Q_changes_sign(_Q_changes_sign), is_daggered(_is_daggered) {}
-	Coefficient::Coefficient(std::string _name, const MomentumList& _momenta, const IndexWrapper& _indizes, bool _Q_changes_sign, bool _is_daggered)
-		: name(_name), momenta(_momenta), indizes(), Q_changes_sign(_Q_changes_sign), is_daggered(_is_daggered) { }
+	Coefficient::Coefficient(std::string _name, const Momentum& _momentum, const IndexWrapper& _indizes, bool _Q_changes_sign, bool _translational_invariance, bool _is_daggered)
+		: name(_name), momenta(_momentum), indizes(_indizes), translational_invariance{_translational_invariance}, Q_changes_sign(_Q_changes_sign), is_daggered(_is_daggered) {}
+	Coefficient::Coefficient(std::string _name, const Momentum& _momentum, bool _Q_changes_sign, bool _translational_invariance, bool _is_daggered)
+		: name(_name), momenta(_momentum), indizes(), translational_invariance{_translational_invariance}, Q_changes_sign(_Q_changes_sign), is_daggered(_is_daggered) {}
+	Coefficient::Coefficient(std::string _name, const MomentumList& _momenta, const IndexWrapper& _indizes, bool _Q_changes_sign, bool _translational_invariance, bool _is_daggered)
+		: name(_name), momenta(_momenta), indizes(), translational_invariance{_translational_invariance}, Q_changes_sign(_Q_changes_sign), is_daggered(_is_daggered) { }
 }

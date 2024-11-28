@@ -281,7 +281,7 @@ namespace SymbolicOperators {
 			for (auto& momentum : coeff.momenta) {
 				momentum.sort();
 
-				if (coeff.translationalInvariance && !momentum.momentum_list.empty()) {
+				if (coeff.translational_invariance && !momentum.momentum_list.empty()) {
 					if (momentum.momentum_list[0].first < 0) {
 						momentum.flipMomentum();
 					}
@@ -312,7 +312,7 @@ namespace SymbolicOperators {
 						perform_operator_swap(operators[i], operators[i - 1]);
 						new_n = i;
 					}
-					else if (l_idx > Index::SpinDown && r_idx > Index::SpinDown && l_idx < r_idx) {
+					else if (l_idx > Index::SpinDown && r_idx > Index::SpinDown && l_idx > r_idx) {
 						perform_operator_swap(operators[i], operators[i - 1]);
 						new_n = i;
 					}
@@ -327,7 +327,7 @@ namespace SymbolicOperators {
 						perform_operator_swap(operators[i], operators[i - 1]);
 						new_n = i;
 					}
-					else if(l_idx > Index::SpinDown && r_idx > Index::SpinDown && l_idx > r_idx) {
+					else if(l_idx > Index::SpinDown && r_idx > Index::SpinDown && l_idx < r_idx) {
 						perform_operator_swap(operators[i], operators[i - 1]);
 						new_n = i;
 					}
@@ -355,7 +355,7 @@ namespace SymbolicOperators {
 		// check whether we can swap the sign of each momentum in the coefficients
 		// 26.04.2024, I have no idea what I did here, nor do I know why I did what I did
 		for (const auto& coeff : coefficients) {
-			if (!(coeff.translationalInvariance)) return;
+			if (!(coeff.translational_invariance)) return;
 			if (std::any_of(coeff.momenta.begin(), coeff.momenta.end(), [](Momentum const& momentum) {
 				return momentum.momentum_list.size() > 1U;
 				})) return;
