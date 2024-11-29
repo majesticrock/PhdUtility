@@ -72,6 +72,7 @@ namespace Utility {
         inline Fractional& operator+=(Fractional const& other) {
             if(other.denominator == this->denominator){
                 this->numerator += other.numerator;
+                this->reduce_fraction();
                 return *this;
             }
             this->numerator = this->numerator * other.denominator + other.numerator * this->denominator;
@@ -82,6 +83,7 @@ namespace Utility {
         inline Fractional& operator-=(Fractional const& other) {
             if(other.denominator == this->denominator){
                 this->numerator -= other.numerator;
+                this->reduce_fraction();
                 return *this;
             }
             this->numerator = this->numerator * other.denominator - other.numerator * this->denominator;
