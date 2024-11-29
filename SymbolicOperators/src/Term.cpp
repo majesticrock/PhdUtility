@@ -427,6 +427,17 @@ namespace SymbolicOperators {
 		}
 	}
 
+	bool Term::is_normal_ordered() const {
+		for	(size_t i = 1U; i < operators.size(); ++i) {
+			if (operators[i - 1].is_fermion == operators[i].is_fermion) {
+				if(!operators[i - 1].is_daggered && operators[i].is_daggered) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
 	std::string Term::toStringWithoutPrefactor() const
 	{
 		std::ostringstream os;
@@ -670,6 +681,13 @@ namespace SymbolicOperators {
 			}
 		}
 
+		clear_duplicates(terms);
+		for(const auto& term : terms) {
+			assert(term.is_normal_ordered());
+		}
+	}
+
+	void clear_duplicates(std::vector<Term>& terms) {
 		// remove duplicates
 		for (int i = 0; i < terms.size(); i++)
 		{
@@ -693,19 +711,5 @@ namespace SymbolicOperators {
 				++it;
 			}
 		}
-		for(const auto& term : terms) {
-			assert(term.is_normal_ordered());
-		}
-	}
-
-	bool Term::is_normal_ordered() const {
-		for	(size_t i = 1U; i < operators.size(); ++i) {
-			if (operators[i - 1].is_fermion == operators[i].is_fermion) {
-				if(!operators[i - 1].is_daggered && operators[i].is_daggered) {
-					return false;
-				}
-			}
-		}
-		return true;
 	}
 }
