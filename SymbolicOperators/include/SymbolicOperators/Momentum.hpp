@@ -4,6 +4,9 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/string.hpp>
+#include <algorithm>
+#include <vector>
+#include <utility>
 
 namespace SymbolicOperators {
 	typedef std::vector<std::pair<int, char>> momentum_pairs;
@@ -73,6 +76,16 @@ namespace SymbolicOperators {
 		inline bool is_zero() const {
 			if(add_Q) return false;
 			return momentum_list.empty();
+		}
+
+		bool uses(char what) const {
+			for (const auto& momentum_pair : momentum_list) {
+				if(momentum_pair.second == what) return true;
+			}
+			return false;
+		}
+		inline size_t size() const {
+			return this->momentum_list.size();
 		}
 
 		bool operator==(const Momentum& rhs) const;
