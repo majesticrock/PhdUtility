@@ -180,6 +180,7 @@ namespace SymbolicOperators {
 		}
 		bool is_normal_ordered() const;
 	};
+
 	void commutator(std::vector<Term>& reciever, const std::vector<Term>& left, const std::vector<Term>& right);
 	inline void commutator(std::vector<Term>& reciever, const Term& left, const std::vector<Term>& right) {
 		const std::vector<Term> buffer = { left };
@@ -201,6 +202,7 @@ namespace SymbolicOperators {
 	std::ostream& operator<<(std::ostream& os, const std::vector<Coefficient>& coeffs);
 	std::ostream& operator<<(std::ostream& os, const std::vector<Term>& terms);
 
+	void clear_duplicates(std::vector<Term>& terms);
 	void cleanUp(std::vector<Term>& terms);
 	inline void hermitianConjugate(std::vector<Term>& terms) {
 		for (auto& t : terms) {

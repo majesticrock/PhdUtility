@@ -59,8 +59,17 @@ namespace SymbolicOperators {
 		inline void remove_momentum_contribution(char value) {
 			momentum.remove_contribution(value);
 		}
+		// Returns the first index, if the operator has an index.
+		// Return Index::NoIndex otherwise
 		inline Index first_index() const {
 			return (indizes.empty() ? Index::NoIndex : indizes[0]);
+		}
+		// Sets the first index, if the operator has an index
+		// Does nothing otherwise
+		inline void set_first_index(Index index) {
+			if (!indizes.empty()) {
+				indizes[0] = index;
+			}
 		}
 	};
 
