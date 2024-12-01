@@ -382,9 +382,9 @@ namespace SymbolicOperators {
 
 	void Term::renameSums()
 	{
-		constexpr int N_BUFFER = 6;
-		constexpr char name_list[N_BUFFER] = { 'q', 'p', 'r', 's', 't', 'u' };
-		constexpr char buffer_list[N_BUFFER] = { ':', ';', '|', '?', '!', '.' };
+		constexpr int N_BUFFER = 11;
+		constexpr char name_list[N_BUFFER]   = { 'q', 'p', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+		constexpr char buffer_list[N_BUFFER] = { ':', ';', '|', '?', '!', '.', '-', '_', '+', '/', '=' };
 		for (size_t i = 0U; i < sums.momenta.size(); ++i)
 		{
 			if (i >= N_BUFFER) {

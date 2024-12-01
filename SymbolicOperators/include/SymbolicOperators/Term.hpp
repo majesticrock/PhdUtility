@@ -4,6 +4,7 @@
 #include "SymbolicSum.hpp"
 #include <Utility/Fractional.hpp>
 #include <algorithm>
+#include <vector>
 
 //#define _TRACK_TERM
 #ifdef _TRACK_TERM

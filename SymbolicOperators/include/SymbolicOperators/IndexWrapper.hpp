@@ -17,18 +17,24 @@ namespace SymbolicOperators {
 
 	std::ostream& operator<<(std::ostream& os, const Index index);
 
-	struct IndexWrapper : public Utility::VectorWrapper<Index> {
+	struct IndexWrapper {
+		std::vector<Index> indizes;
+
 		template<class Archive>
 		void serialize(Archive& ar, const unsigned int version) {
-			ar& this->_vector;
+			ar& this->indizes;
 		}
 
 		IndexWrapper() = default;
-		IndexWrapper(Index _spin) : Utility::VectorWrapper<Index>(1U, _spin) {};
+		IndexWrapper(Index _spin) : indizes(1U, _spin) {};
 		IndexWrapper(const std::vector<Index>& _indizes)
-			: Utility::VectorWrapper<Index>(_indizes) {};
+			: indizes(_indizes) {};
 		IndexWrapper(std::vector<Index>&& _indizes)
-			: Utility::VectorWrapper<Index>(std::move(_indizes)) {};
+			: indizes(std::move(_indizes)) {};
+
+		VECTOR_WRAPPER_FILL_MEMBERS(Index, indizes);
+
+		inline auto operator<=>(const IndexWrapper& rhs) const = default;
 	};
 
 	std::ostream& operator<<(std::ostream& os, const IndexWrapper& indizes);
