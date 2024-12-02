@@ -21,7 +21,7 @@ namespace sym_op_test {
             if (A.size() != B.size()) {
                 return false;
             }
-            for(size_t i = 0U; i < A.size(); ++i) {
+            for (size_t i = 0U; i < A.size(); ++i) {
                 if (A[i] != B[i]) {
                     std::cerr << "No match for: \nA: " << A[i] << "\nB: " << B[i] << std::endl;
                     return false;
@@ -85,7 +85,7 @@ namespace sym_op_test {
             */
             std::vector<Term> second_commutation;
             std::vector<Term> base_dagger = base_term;
-            renameMomenta(base_dagger, 'k', 'l');
+            rename_momenta(base_dagger, 'k', 'l');
             hermitianConjugate(base_dagger);
             commutator(second_commutation, base_dagger, first_commutation);
             cleanUp(second_commutation);

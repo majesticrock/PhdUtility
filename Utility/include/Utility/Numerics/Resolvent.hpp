@@ -51,7 +51,7 @@ namespace Utility::Numerics {
 	template <class RealType>
 	void join_data_wrapper(std::vector<ResolventDataWrapper<RealType>>& target, ResolventDataWrapper<RealType> const& new_data)
 	{
-		for(auto& sub_target : target) {
+		for (auto& sub_target : target) {
 			if(sub_target.name == new_data.name) {
 				append_vector(sub_target.lanczos, new_data.lanczos);
 				return;
@@ -67,7 +67,7 @@ namespace Utility::Numerics {
 			target = new_data;
 			return;
 		}
-		for(const auto& _new : new_data) {
+		for (const auto& _new : new_data) {
 			join_data_wrapper(target, _new);
 		}
 	}
@@ -414,7 +414,7 @@ namespace Utility::Numerics {
 
 	template<class RealType>
 	void to_json(nlohmann::json& j, const std::vector<ResolventDataWrapper<RealType>>& vec_resolvent_data) {
-		for(const auto& res : vec_resolvent_data) {
+		for (const auto& res : vec_resolvent_data) {
 			j[res.name] = res.lanczos;
 		}
 	}

@@ -103,7 +103,7 @@ namespace Utility::Numerics {
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
 #endif
-            for(int i = 0; i < other.blocks.size(); ++i) {
+            for (int i = 0; i < other.blocks.size(); ++i) {
                 this->blocks[i] = other.blocks[i].eval();
             }
         }
@@ -116,7 +116,7 @@ namespace Utility::Numerics {
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
 #endif
-            for(int i = 0; i < other.blocks.size(); ++i) {
+            for (int i = 0; i < other.blocks.size(); ++i) {
                 this->blocks[i] = other.blocks[i].eval();
             }
             return *this;
@@ -128,7 +128,7 @@ namespace Utility::Numerics {
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
 #endif
-            for(int i = 0; i < blocks.size(); ++i) {
+            for (int i = 0; i < blocks.size(); ++i) {
                 ret.block(blocks_begin[i], blocks_begin[i], blocks[i].rows(), blocks[i].cols()) = blocks[i];
             }
             return ret;
@@ -139,7 +139,7 @@ namespace Utility::Numerics {
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
 #endif
-            for(int i = 0; i < this->blocks.size(); ++i) {
+            for (int i = 0; i < this->blocks.size(); ++i) {
                 new_blocks[i] = this->blocks[i].eval();
             }
             return BlockDiagonalMatrix<eval_result>(std::move(new_blocks), blocks_begin);
@@ -148,13 +148,13 @@ namespace Utility::Numerics {
         BlockDiagonalMatrix<adjoint_view> adjoint() const {
             typename base_traits<adjoint_view>::mutable_vector new_blocks;
             new_blocks.reserve(this->blocks.size());
-            for(const auto& block : this->blocks) {
+            for (const auto& block : this->blocks) {
                 new_blocks.push_back(block.adjoint());
             }
             return BlockDiagonalMatrix<adjoint_view>(std::move(new_blocks), blocks_begin);
         }
         BlockDiagonalMatrix& adjointInPlace() {
-            for(auto& block : this->blocks) {
+            for (auto& block : this->blocks) {
                 block.adjointInPlace();
             }
             return *this;
@@ -169,14 +169,14 @@ namespace Utility::Numerics {
 
         inline Eigen::Index rows() const {
             Eigen::Index __rows{};
-            for(const auto& block : blocks) {
+            for (const auto& block : blocks) {
                 __rows += block.rows();
             }
             return __rows;
         }
         inline Eigen::Index cols() const {
             Eigen::Index __cols{};
-            for(const auto& block : blocks) {
+            for (const auto& block : blocks) {
                 __cols += block.cols();
             }
             return __cols;
@@ -186,7 +186,7 @@ namespace Utility::Numerics {
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
 #endif
-            for(size_t i = 0U; i < blocks.size(); ++i) {
+            for (size_t i = 0U; i < blocks.size(); ++i) {
                 this->blocks[i].applyOnTheLeft(other.blocks[i]);
             }
             return *this;
@@ -194,7 +194,7 @@ namespace Utility::Numerics {
 
         BlockDiagonalMatrix operator-() const {
             BlockDiagonalMatrix copy(*this);
-            for(auto& block : copy.blocks) {
+            for (auto& block : copy.blocks) {
                 block *= Scalar{-1.};
             }
             return copy;
@@ -205,7 +205,7 @@ namespace Utility::Numerics {
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
 #endif
-            for(int i = 0; i < blocks.size(); ++i) {
+            for (int i = 0; i < blocks.size(); ++i) {
                 this->blocks[i] += rhs.blocks[i];
             }
             return *this;
@@ -216,7 +216,7 @@ namespace Utility::Numerics {
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
 #endif
-            for(int i = 0; i < blocks.size(); ++i) {
+            for (int i = 0; i < blocks.size(); ++i) {
                 this->blocks[i] -= rhs.blocks[i];
             }
             return *this;
@@ -227,7 +227,7 @@ namespace Utility::Numerics {
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
 #endif
-            for(int i = 0; i < blocks.size(); ++i) {
+            for (int i = 0; i < blocks.size(); ++i) {
                 this->blocks[i] *= rhs.blocks[i];
             }
             return *this;
@@ -238,7 +238,7 @@ namespace Utility::Numerics {
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
 #endif
-            for(int i = 0; i < blocks.size(); ++i) {
+            for (int i = 0; i < blocks.size(); ++i) {
                 this->blocks[i] += rhs.diagonal().segment(this->blocks_begin[i], this->blocks[i].rows()).asDiagonal();
             }
             return *this;
@@ -249,7 +249,7 @@ namespace Utility::Numerics {
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
 #endif
-            for(int i = 0; i < blocks.size(); ++i) {
+            for (int i = 0; i < blocks.size(); ++i) {
                 this->blocks[i] -= rhs.diagonal().segment(this->blocks_begin[i], this->blocks[i].rows()).asDiagonal();
             }
             return *this;
@@ -260,7 +260,7 @@ namespace Utility::Numerics {
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
 #endif
-            for(int i = 0; i < blocks.size(); ++i) {
+            for (int i = 0; i < blocks.size(); ++i) {
                 this->blocks[i] *= rhs.diagonal().segment(this->blocks_begin[i], this->blocks[i].rows()).asDiagonal();
             }
             return *this;
@@ -284,7 +284,7 @@ namespace Utility::Numerics {
     BlockDiagonalMatrix<detail::addition_result<_base, _other_base>> operator+(BlockDiagonalMatrix<_base> const& lhs, BlockDiagonalMatrix<_other_base> const& rhs) {
         typename base_traits<detail::addition_result<_base, _other_base>>::mutable_vector new_blocks;
         new_blocks.reserve(lhs.blocks.size());
-        for(size_t i = 0U; i < lhs.blocks.size(); ++i) {
+        for (size_t i = 0U; i < lhs.blocks.size(); ++i) {
             new_blocks.push_back(lhs.blocks[i] + rhs.blocks[i]);
         }
         return BlockDiagonalMatrix<detail::addition_result<_base, _other_base>>(std::move(new_blocks), lhs.blocks_begin);
@@ -294,7 +294,7 @@ namespace Utility::Numerics {
     BlockDiagonalMatrix<detail::substraction_result<_base, _other_base>> operator-(BlockDiagonalMatrix<_base> const& lhs, BlockDiagonalMatrix<_other_base> const& rhs) {
         typename base_traits<detail::substraction_result<_base, _other_base>>::mutable_vector new_blocks;
         new_blocks.reserve(lhs.blocks.size());
-        for(size_t i = 0U; i < lhs.blocks.size(); ++i) {
+        for (size_t i = 0U; i < lhs.blocks.size(); ++i) {
             new_blocks.push_back(lhs.blocks[i] - rhs.blocks[i]);
         }
         return BlockDiagonalMatrix<detail::substraction_result<_base, _other_base>>(std::move(new_blocks), lhs.blocks_begin);
@@ -304,7 +304,7 @@ namespace Utility::Numerics {
     BlockDiagonalMatrix<detail::multiplication_result<_base, _other_base>> operator*(BlockDiagonalMatrix<_base> const& lhs, BlockDiagonalMatrix<_other_base> const& rhs) {
         typename base_traits<detail::multiplication_result<_base, _other_base>>::mutable_vector new_blocks;
         new_blocks.reserve(lhs.blocks.size());
-        for(size_t i = 0U; i < lhs.blocks.size(); ++i) {
+        for (size_t i = 0U; i < lhs.blocks.size(); ++i) {
             new_blocks.push_back(lhs.blocks[i] * rhs.blocks[i]);
         }
         return BlockDiagonalMatrix<detail::multiplication_result<_base, _other_base>>(std::move(new_blocks), lhs.blocks_begin);
@@ -320,7 +320,7 @@ namespace Utility::Numerics {
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
 #endif
-        for(int i = 0; i < block_matrix.blocks.size(); ++i){
+        for (int i = 0; i < block_matrix.blocks.size(); ++i) {
             basic_matrix.block(0, block_matrix.blocks_begin[i], 
                 basic_matrix.rows(), block_matrix.blocks[i].cols()).applyOnTheRight(block_matrix.blocks[i]);
         }
@@ -332,7 +332,7 @@ namespace Utility::Numerics {
 #ifdef _BLOCKS_USE_OMP
 #pragma omp parallel for
 #endif
-        for(int i = 0; i < block_matrix.blocks.size(); ++i){
+        for (int i = 0; i < block_matrix.blocks.size(); ++i) {
             basic_matrix.block(block_matrix.blocks_begin[i], 0, 
                 block_matrix.blocks[i].rows(), basic_matrix.cols()).applyOnTheLeft(block_matrix.blocks[i]);
         }
@@ -351,7 +351,7 @@ namespace Utility::Numerics {
     BlockDiagonalMatrix<detail::addition_result<_matrix_base, detail::diagonal_segment_type<__matrix__>>> operator+(BlockDiagonalMatrix<_matrix_base> const& lhs, Eigen::DiagonalWrapper<__matrix__> const& rhs) {
         typename base_traits<detail::addition_result<_matrix_base, detail::diagonal_segment_type<__matrix__>>>::mutable_vector new_blocks;
         new_blocks.reserve(lhs.blocks.size());
-        for(int i = 0; i < lhs.blocks.size(); ++i) {
+        for (int i = 0; i < lhs.blocks.size(); ++i) {
             new_blocks.push_back(lhs.blocks[i] + rhs.diagonal().segment(lhs.blocks_begin[i], lhs.blocks[i].rows()).asDiagonal());
         }
         return BlockDiagonalMatrix<detail::addition_result<_matrix_base, detail::diagonal_segment_type<__matrix__>>>(std::move(new_blocks), lhs.blocks_begin);
@@ -361,7 +361,7 @@ namespace Utility::Numerics {
     BlockDiagonalMatrix<detail::substraction_result<_matrix_base, detail::diagonal_segment_type<__matrix__>>> operator-(BlockDiagonalMatrix<_matrix_base> const& lhs, Eigen::DiagonalWrapper<__matrix__> const& rhs) {
         typename base_traits<detail::substraction_result<_matrix_base, detail::diagonal_segment_type<__matrix__>>>::mutable_vector new_blocks;
         new_blocks.reserve(lhs.blocks.size());
-        for(int i = 0; i < lhs.blocks.size(); ++i) {
+        for (int i = 0; i < lhs.blocks.size(); ++i) {
             new_blocks.push_back(lhs.blocks[i] - rhs.diagonal().segment(lhs.blocks_begin[i], lhs.blocks[i].rows()).asDiagonal());
         }
         return BlockDiagonalMatrix<detail::substraction_result<_matrix_base, detail::diagonal_segment_type<__matrix__>>>(std::move(new_blocks), lhs.blocks_begin);
@@ -371,7 +371,7 @@ namespace Utility::Numerics {
     BlockDiagonalMatrix<detail::multiplication_result<_matrix_base, detail::diagonal_segment_type<__matrix__>>> operator*(BlockDiagonalMatrix<_matrix_base> const& lhs, Eigen::DiagonalWrapper<__matrix__> const& rhs) {
         typename base_traits<detail::multiplication_result<_matrix_base, detail::diagonal_segment_type<__matrix__>>>::mutable_vector new_blocks;
         new_blocks.reserve(lhs.blocks.size());
-        for(int i = 0; i < lhs.blocks.size(); ++i) {
+        for (int i = 0; i < lhs.blocks.size(); ++i) {
             new_blocks.push_back(lhs.blocks[i] * rhs.diagonal().segment(lhs.blocks_begin[i], lhs.blocks[i].rows()).asDiagonal());
         }
         return BlockDiagonalMatrix<detail::multiplication_result<_matrix_base, detail::diagonal_segment_type<__matrix__>>>(std::move(new_blocks), lhs.blocks_begin);

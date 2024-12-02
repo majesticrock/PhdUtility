@@ -23,8 +23,8 @@ namespace SymbolicOperators
     struct PhaseSymmetry : public WickSymmetry {
         void apply_to(WickTerm& term) const override
         {
-            for(auto& op : term.operators) {
-                auto equals_op = [&op](OperatorType comp){
+            for (auto& op : term.operators) {
+                auto equals_op = [&op](OperatorType comp) {
                     return op.type == comp;
                     };
                 if ( (equals_op(operators) || ...) )

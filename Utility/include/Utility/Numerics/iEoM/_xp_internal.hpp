@@ -33,21 +33,21 @@ namespace Utility::Numerics::iEoM {
 
     template<class RealType>
     auto phase_size(std::vector<StartingState<RealType>> const& states) {
-        return std::count_if(states.begin(), states.end(), [](const StartingState<RealType>& state){ 
+        return std::count_if(states.begin(), states.end(), [](const StartingState<RealType>& state) { 
             return state.contains_phase_state();
             });
     }
 
     template<class RealType>
     auto amplitude_size(std::vector<StartingState<RealType>> const& states) {
-        return std::count_if(states.begin(), states.end(), [](const StartingState<RealType>& state){ 
+        return std::count_if(states.begin(), states.end(), [](const StartingState<RealType>& state) { 
             return state.contains_amplitude_state();
             });
     }
 
     template<class RealType>
     int total_size(std::vector<StartingState<RealType>> const& states) {
-        return std::accumulate(states.begin(), states.end(), int{}, [](int current, const StartingState<RealType>& state){ 
+        return std::accumulate(states.begin(), states.end(), int{}, [](int current, const StartingState<RealType>& state) { 
             return std::move(current) + state.size(); 
             });
     }

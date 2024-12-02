@@ -463,17 +463,17 @@ namespace SymbolicOperators {
 		discardZeroMomenta();
 
 		if(sums.spins.size() == 1U && sums.spins.front() == Index::SigmaPrime) {
-			for(auto& coeff : coefficients){
-				for(auto& index : coeff.indizes){
+			for (auto& coeff : coefficients) {
+				for (auto& index : coeff.indizes) {
 					if(index == Index::SigmaPrime) index = Index::Sigma;
 				}
 			}
-			for(auto& op : operators){
-				for(auto& index : op.indizes){
+			for (auto& op : operators) {
+				for (auto& index : op.indizes) {
 					if(index == Index::SigmaPrime) index = Index::Sigma;
 				}
 			}
-			for(auto& delta_index : delta_indizes){
+			for (auto& delta_index : delta_indizes) {
 				if(delta_index.first == Index::SigmaPrime) delta_index.first = Index::Sigma;
 				if(delta_index.second == Index::SigmaPrime) delta_index.second = Index::Sigma;
 			}

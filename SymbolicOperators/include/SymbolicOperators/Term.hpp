@@ -11,7 +11,7 @@
 #define _TERM_TRACKER_PARAMETER bool is_tracked = false
 #define _TERM_TRACKER_ATTRIBUTE bool is_tracked{};
 #define IF_IS_TERM_TRACKED(statement) if ( is_tracked ) { statement ; }
-#define CLEAR_TRACKED(terms) for(auto& __term__ : terms) { __term__.is_tracked = false; }
+#define CLEAR_TRACKED(terms) for (auto& __term__ : terms) { __term__.is_tracked = false; }
 #else
 #define _TERM_TRACKER_PARAMETER 
 #define _TERM_TRACKER_ATTRIBUTE 
@@ -95,91 +95,42 @@ namespace SymbolicOperators {
 		//void wick(WickTermCollector& reciever) const;
 
 		// Checks for equality of everything except of multiplicity
-		inline bool isEqual(const Term& other) const {
+		inline bool is_equal(const Term& other) const {
 			if (this->coefficients != other.coefficients) return false;
 			if (this->sums != other.sums) return false;
 			if (this->delta_indizes != other.delta_indizes) return false;
 			if (this->delta_momenta != other.delta_momenta) return false;
 			if (this->operators != other.operators) return false;
-
 			return true;
 		};
 
-		std::string toStringWithoutPrefactor() const;
+		bool is_normal_ordered() const;
 
-		friend void normalOrder(std::vector<Term>& terms);
-		friend void commutator(std::vector<Term>& reciever, const Term& left, const Term& right);
-		friend std::ostream& operator<<(std::ostream& os, const Term& term);
+		std::string toStringWithoutPrefactor() const;
 
 		inline void hermitianConjugate() {
 			std::reverse(this->operators.begin(), this->operators.end());
 			for (auto& op : this->operators) {
 				op.hermitianConjugate();
 			}
-		};
-		inline void renameMomenta(char what, char to) {
-			for(auto& mom_sum : sums.momenta){
-				if(mom_sum == what){
-					mom_sum = to;
-				}
-			}
-			for(auto& coeff : coefficients) {
-				for(auto& mom : coeff.momenta){
-					mom.replaceOccurances(what, Momentum(to));
-				}
-			}
-			for (auto& op : operators)
-			{
-				op.momentum.replaceOccurances(what, Momentum(to));
-			}
-		};
-
-		inline void transform_momentum_sum(char what, Momentum to, char new_sum_index) {
-			auto pos = std::find(sums.momenta.begin(), sums.momenta.end(), what);
-			if (pos == sums.momenta.end()) {
-				throw std::invalid_argument("You are trying to perform a sum transformation on a momentum that is not being summed over!");
-			} 
-			else {
-				*pos = new_sum_index;
-			}
-			for (auto& coeff : coefficients) {
-				for (auto& mom : coeff.momenta) {
-					mom.replaceOccurances(what, to);
-				}
-			}
-			for (auto& op : operators) {
-				op.momentum.replaceOccurances(what, to);
-			}
-		};
-		
-		inline void invert_momentum_sum(char what) {
-			if (std::find(sums.momenta.begin(), sums.momenta.end(), what) == sums.momenta.end()) {
-				throw std::invalid_argument("You are trying to perform a sum transformation on a momentum that is not being summed over!");
-			}
-			for (auto& coeff : coefficients) {
-				for (auto& mom : coeff.momenta) {
-					mom.flip_single(what);
-				}
-			}
-			for (auto& op : operators) {
-				op.momentum.flip_single(what);
-			}
 		}
 
-		inline void remove_momentum_contribution(char value) {
-			for(auto& coeff : coefficients) {
-				coeff.remove_momentum_contribution(value);
-			}
-			for(auto& op : operators) {
-				op.remove_momentum_contribution(value);
-			}
-			for(auto& delta : delta_momenta) {
-				delta.first.remove_contribution(value);
-				delta.second.remove_contribution(value);
-			}
-			std::erase_if(sums.momenta._vector, [&](char sum_idx) { return sum_idx == value; });
+		void rename_indizes(Index what, Index to);
+		void rename_momenta(char what, char to);
+
+		inline void swap_momenta(char a, char b) {
+			this->rename_momenta(a, '_');
+			this->rename_momenta(b, a);
+			this->rename_momenta('_', b);
 		}
-		bool is_normal_ordered() const;
+
+		void transform_momentum_sum(char what, Momentum to, char new_sum_index);
+		void invert_momentum_sum(char what);
+		void remove_momentum_contribution(char value);
+
+		friend void normalOrder(std::vector<Term>& terms);
+		friend void commutator(std::vector<Term>& reciever, const Term& left, const Term& right);
+		friend std::ostream& operator<<(std::ostream& os, const Term& term);
 	};
 
 	void commutator(std::vector<Term>& reciever, const std::vector<Term>& left, const std::vector<Term>& right);
@@ -193,10 +144,10 @@ namespace SymbolicOperators {
 	};
 
 	inline bool operator==(const Term& lhs, const Term& rhs) {
-		return lhs.isEqual(rhs);
+		return lhs.is_equal(rhs);
 	};
 	inline bool operator!=(const Term& lhs, const Term& rhs) {
-		return !(lhs.isEqual(rhs));
+		return !(lhs.is_equal(rhs));
 	};
 
 	std::ostream& operator<<(std::ostream& os, const Coefficient& coeff);
@@ -210,9 +161,9 @@ namespace SymbolicOperators {
 			t.hermitianConjugate();
 		}
 	};
-	inline void renameMomenta(std::vector<Term>& terms, char what, char to) {
+	inline void rename_momenta(std::vector<Term>& terms, char what, char to) {
 		for (auto& t : terms) {
-			t.renameMomenta(what, to);
+			t.rename_momenta(what, to);
 		}
 	};
 	inline std::string toStringWithoutPrefactor(const std::vector<Term>& terms) {

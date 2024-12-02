@@ -132,7 +132,7 @@ namespace Utility::Numerics::iEoM {
 			std::vector< ResolventType > resolvents(3 * N_RESOLVENT_TYPES);
 			resolvents.resize(3 * N_RESOLVENT_TYPES);
 			if(N_RESOLVENT_TYPES <= resolvent_names.size()) {
-				for(size_t i = 0U; i < N_RESOLVENT_TYPES; ++i) {
+				for (size_t i = 0U; i < N_RESOLVENT_TYPES; ++i) {
 					resolvents[3 * i].data.name = resolvent_names[i] + "_a";
 					resolvents[3 * i + 1].data.name = resolvent_names[i] + "_a+b";
 					resolvents[3 * i + 2].data.name = resolvent_names[i] + "_a+ib";

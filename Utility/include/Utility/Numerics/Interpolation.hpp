@@ -45,7 +45,7 @@ namespace Utility::Numerics {
 
 		std::array<__detail::element_t<x_vector>, n> x_arr;
 		std::array<__detail::element_t<y_vector>, n> y_arr;
-		for(unsigned int i = 0U; i < n; ++i) {
+		for (unsigned int i = 0U; i < n; ++i) {
 			x_arr[i] = x_data[start_index_x + i];
 			y_arr[i] = y_data[start_index_x + i + index_offset_y];
 		}

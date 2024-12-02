@@ -164,7 +164,7 @@ namespace SymbolicOperators {
 			it->renameSums();
 			it->sort();
 
-			for(const auto& symmetry : symmetries) {
+			for (const auto& symmetry : symmetries) {
 				symmetry->apply_to(*it);
 			}
 
@@ -188,14 +188,14 @@ namespace SymbolicOperators {
 		}
 
 		// Setup so that we always have a structure like delta_(l,k+something)
-		for(auto& term : terms){
-			for(auto& delta : term.delta_momenta) {
+		for (auto& term : terms) {
+			for (auto& delta : term.delta_momenta) {
 				assert(delta.first.momentum_list.size() == 1U);
 				int l_is = delta.first.isUsed('l');
 				if(l_is == 0) continue;
 
 				l_is = delta.second.isUsed('l');
-				if(l_is == -1){
+				if(l_is == -1) {
 					std::cout << term << std::endl;
 					throw std::runtime_error("l_is -1, but we need an l!");
 				}

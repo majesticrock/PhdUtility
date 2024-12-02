@@ -20,6 +20,9 @@ namespace SymbolicOperators {
 		case Index::GeneralSpin_S:
 			os << "S";
 			break;
+		case Index::GeneralSpin_SPrime:
+			os << "S'";
+			break;
 		case Index::NoIndex:
 			break;
 		default:
