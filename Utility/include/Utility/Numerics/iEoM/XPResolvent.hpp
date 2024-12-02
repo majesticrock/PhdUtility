@@ -19,11 +19,11 @@ namespace Utility::Numerics::iEoM {
 		using amplitude_it = AmplitudeIterator<RealType>;
 
 		// Returns a starting state object with an empty phase part and a zero-initialized amplitude part of size /size/
-		static StartingState<RealType> OnlyAmplitude(Eigen::Index size, std::string const& name=""){
+		static StartingState<RealType> OnlyAmplitude(Eigen::Index size, std::string const& name="") {
             return StartingState<RealType>{ Vector{}, Vector::Zero(size), name };
         }
 		// Returns a starting state object with an empty amplitude part and a zero-initialized phase part of size /size/
-        static StartingState<RealType> OnlyPhase(Eigen::Index size, std::string const& name=""){
+        static StartingState<RealType> OnlyPhase(Eigen::Index size, std::string const& name="") {
             return StartingState<RealType>{ Vector::Zero(size), Vector{}, name };
         }
 
@@ -198,7 +198,7 @@ namespace Utility::Numerics::iEoM {
 				std::vector<RealType> vec( full_solver.eigenvalues().data(), full_solver.eigenvalues().data() + full_solver.eigenvalues().size() );
 				saveData(vec, full_diag_file_name + "-values.dat.gz");
 			}
-			for(phase_it it = phase_it::begin(starting_states); it != phase_it::end(starting_states); ++resolvent_it, ++it) {
+			for (phase_it it = phase_it::begin(starting_states); it != phase_it::end(starting_states); ++resolvent_it, ++it) {
 				resolvent_it->setStartingState(it->phase_state);
 				if(resolvent_it->data.name.empty()) resolvent_it->data.name = "phase_" + it->name;
 
@@ -208,7 +208,7 @@ namespace Utility::Numerics::iEoM {
 				}
 			}
 #pragma omp parallel for
-			for(int i = 0; i < phase_size(starting_states); ++i) {
+			for (int i = 0; i < phase_size(starting_states); ++i) {
 				resolvents[i].computeWithReorthogonalization(solver_matrix, LANCZOS_ITERATION_NUMBER);
 			}
 
@@ -218,7 +218,7 @@ namespace Utility::Numerics::iEoM {
 				std::vector<RealType> vec( full_solver.eigenvalues().data(), full_solver.eigenvalues().data() + full_solver.eigenvalues().size() );
 				saveData(vec, full_diag_file_name + "+values.dat.gz");
 			}
-			for(amplitude_it it = amplitude_it::begin(starting_states); it != amplitude_it::end(starting_states); ++resolvent_it, ++it) {
+			for (amplitude_it it = amplitude_it::begin(starting_states); it != amplitude_it::end(starting_states); ++resolvent_it, ++it) {
 				resolvent_it->setStartingState(it->amplitude_state);
 				if(resolvent_it->data.name.empty()) resolvent_it->data.name = "amplitude_" + it->name;
 
@@ -228,7 +228,7 @@ namespace Utility::Numerics::iEoM {
 				}
 			}
 #pragma omp parallel for
-			for(int i = phase_size(starting_states); i < phase_size(starting_states) + amplitude_size(starting_states); ++i) {
+			for (int i = phase_size(starting_states); i < phase_size(starting_states) + amplitude_size(starting_states); ++i) {
 				resolvents[i].computeWithReorthogonalization(solver_matrix, LANCZOS_ITERATION_NUMBER);
 			}
 

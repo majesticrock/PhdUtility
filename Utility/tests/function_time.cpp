@@ -4,7 +4,7 @@
 
 double test_cos(double x, int N) {
     double y{};
-    for(int i = 0; i < N; ++i) {
+    for (int i = 0; i < N; ++i) {
         y += std::cos(x + static_cast<double>(i));
     }
     return y;
@@ -12,7 +12,7 @@ double test_cos(double x, int N) {
 
 double test_cos_2() {
     double x = 1.2;
-    for(int i = 0; i < 100000; ++i) {
+    for (int i = 0; i < 100000; ++i) {
         x += std::cos(x + static_cast<double>(i));
     }
     return x;
@@ -22,14 +22,14 @@ struct TestStruct {
     double x{};
 
     double member_test(int N) {
-        for(int i = 0; i < N; ++i) {
+        for (int i = 0; i < N; ++i) {
             x += std::cos(x + static_cast<double>(i));
         }
         return x;
     }
 
     double member_test_2() {
-        for(int i = 0; i < 100000; ++i) {
+        for (int i = 0; i < 100000; ++i) {
             x += std::cos(x + static_cast<double>(i));
         }
         return x;

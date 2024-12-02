@@ -5,9 +5,10 @@
 #include <map>
 
 namespace SymbolicOperators {
-	enum class Index { SpinUp = 0, SpinDown, Sigma, SigmaPrime, GeneralSpin_S, UndefinedIndex, NoIndex = 256 };
+	enum class Index { SpinUp = 0, SpinDown, Sigma, SigmaPrime, GeneralSpin_S, GeneralSpin_SPrime, UndefinedIndex, NoIndex = 256 };
 	inline const std::map<std::string, Index> string_to_index = {
-		{"up", Index::SpinUp}, {"down", Index::SpinDown}, {"sigma", Index::Sigma}, {"sigma'", Index::SigmaPrime}, {"S", Index::GeneralSpin_S}
+		{"up", Index::SpinUp}, {"down", Index::SpinDown}, {"sigma", Index::Sigma}, {"sigma'", Index::SigmaPrime}, 
+		{"S", Index::GeneralSpin_S}, {"S'", Index::GeneralSpin_SPrime}
 	};
 	// Returns true if the index represents a variable and false otherwise
 	// Example: If the index is SpinUp it is fixed, i.e., non-mutable

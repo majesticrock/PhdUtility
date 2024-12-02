@@ -4,7 +4,7 @@
 namespace SymbolicOperators {
 	void Coefficient::remove_momentum_contribution(char value)
 	{
-		for(auto& mom : momenta) {
+		for (auto& mom : momenta) {
 			mom.remove_contribution(value);
 		}
 	}

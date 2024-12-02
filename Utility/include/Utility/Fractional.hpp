@@ -28,7 +28,7 @@ namespace Utility {
         }
         inline void reduce_fraction() {
             if constexpr (std::is_signed_v<_int>) {
-                if(denominator < 0){
+                if(denominator < 0) {
                     numerator *= -1;
                     denominator *= -1;
                 }
@@ -70,7 +70,7 @@ namespace Utility {
         };
 
         inline Fractional& operator+=(Fractional const& other) {
-            if(other.denominator == this->denominator){
+            if(other.denominator == this->denominator) {
                 this->numerator += other.numerator;
                 this->reduce_fraction();
                 return *this;
@@ -81,7 +81,7 @@ namespace Utility {
             return *this;
         }
         inline Fractional& operator-=(Fractional const& other) {
-            if(other.denominator == this->denominator){
+            if(other.denominator == this->denominator) {
                 this->numerator -= other.numerator;
                 this->reduce_fraction();
                 return *this;
@@ -129,7 +129,7 @@ namespace Utility {
         if(exponent == 0) return Fractional<_int>{_int(1), _int(1)};
         if(exponent < 0) return pow(Fractional<_int>{base.denominator, base.numerator}, exponent);
         if(exponent == 1) return base;
-        if(exponent & 1){
+        if(exponent & 1) {
             return base * pow(base) * pow(base);
         } 
         else {
@@ -139,7 +139,7 @@ namespace Utility {
 
     template<class _int>
     std::ostream& operator<<(std::ostream& os, const Fractional<_int>& frac) {
-        if(frac.is_integer()){
+        if(frac.is_integer()) {
             os << frac.numerator / frac.denominator;
         }
         else {

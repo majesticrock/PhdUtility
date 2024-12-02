@@ -51,11 +51,11 @@ py::array_t<std::complex<double>> continued_fraction(const py::array_t<std::comp
     const auto ptr_A = data.A.unchecked<1>();
     const auto ptr_B = data.B.unchecked<1>();
 
-    for(size_t i = 0U; i < n_x; ++i) {
+    for (size_t i = 0U; i < n_x; ++i) {
         const std::complex<double> x_squared{ ptr_x[i] * ptr_x[i] };
         ptr_result(i) = (ptr_x[i] * ptr_x[i]) - ptr_A(data.termination_index)
                         - (with_terminator ? ptr_B(data.termination_index + 1) * terminator(ptr_x[i].real(), data) : double{});
-        for(int k = data.termination_index - 1; k >= 0; --k) {
+        for (int k = data.termination_index - 1; k >= 0; --k) {
             ptr_result(i) = x_squared - ptr_A(k) - ptr_B(k+1) / ptr_result(i);
         }
         ptr_result(i) = ptr_B(0) / ptr_result(i);

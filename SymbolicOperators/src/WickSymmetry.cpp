@@ -5,7 +5,7 @@ namespace SymbolicOperators{
     void SpinSymmetry::apply_to(WickTerm& term) const
     {
         for (auto& op : term.operators) {
-            for(auto& idx : op.indizes){
+            for (auto& idx : op.indizes) {
                 if(idx == Index::SpinDown)
                     idx = Index::SpinUp;
             }

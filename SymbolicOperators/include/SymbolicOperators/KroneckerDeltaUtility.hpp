@@ -41,7 +41,7 @@ namespace SymbolicOperators {
 			delta.first.add_Q = false;
 			delta.second.add_Q = !(delta.second.add_Q);
 		}
-		for(auto it = delta.first.momentum_list.begin(); it != delta.first.momentum_list.end();) {
+		for (auto it = delta.first.momentum_list.begin(); it != delta.first.momentum_list.end();) {
 			const int idx = delta.second.isUsed(it->second);
 			if(idx < 0) {
 				++it;
@@ -50,7 +50,7 @@ namespace SymbolicOperators {
 
 			delta.second.momentum_list[idx].first -= it->first;
 			it = delta.first.momentum_list.erase(it);
-			if(delta.second.momentum_list[idx].first == 0){
+			if(delta.second.momentum_list[idx].first == 0) {
 				delta.second.momentum_list.erase(delta.second.momentum_list.begin() + idx);
 			}
 		}

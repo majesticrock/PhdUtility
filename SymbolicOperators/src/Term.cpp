@@ -235,7 +235,7 @@ namespace SymbolicOperators {
 
 		for (int i = 0; i < sums.momenta.size(); i++)
 		{
-			for(auto delta_it = delta_momenta.begin(); delta_it != delta_momenta.end(); ++delta_it)
+			for (auto delta_it = delta_momenta.begin(); delta_it != delta_momenta.end(); ++delta_it)
 			{
 				int idx = delta_it->second.isUsed(sums.momenta[i]);
 				if(idx > -1) {
@@ -473,6 +473,98 @@ namespace SymbolicOperators {
 		return os.str();
 	}
 
+	void Term::rename_indizes(Index what, Index to) {
+		if (what == to) return;
+		for (auto& index_sum : sums.spins) {
+			if (index_sum == to) {
+				throw std::invalid_argument("You are replacing an index sum with an index that already exists!");
+			}
+			if (index_sum == what) {
+				index_sum = to;
+			}
+		}
+		for (auto& coeff : coefficients) {
+			for (auto& index : coeff.indizes) {
+				if(index == what) {
+					index = to;
+				}
+			}
+		}
+		for (auto& op : operators) {
+			for (auto& index : op.indizes) {
+				if(index == what) {
+					index = to;
+				}
+			}
+		}
+	}
+
+	void Term::rename_momenta(char what, char to) {
+		if (what == to) return;
+		for (auto& mom_sum : sums.momenta) {
+			if (mom_sum == to) {
+				throw std::invalid_argument("You are replacing a momentum sum with an index that already exists!");
+			}
+			if (mom_sum == what) {
+				mom_sum = to;
+			}
+		}
+		for (auto& coeff : coefficients) {
+			for (auto& mom : coeff.momenta) {
+				mom.replaceOccurances(what, Momentum(to));
+			}
+		}
+		for (auto& op : operators) {
+			op.momentum.replaceOccurances(what, Momentum(to));
+		}
+	}
+
+	void Term::transform_momentum_sum(char what, Momentum to, char new_sum_index) {
+		auto pos = std::find(sums.momenta.begin(), sums.momenta.end(), what);
+		if (pos == sums.momenta.end()) {
+			throw std::invalid_argument("You are trying to perform a sum transformation on a momentum that is not being summed over!");
+		} 
+		else {
+			*pos = new_sum_index;
+		}
+		for (auto& coeff : coefficients) {
+			for (auto& mom : coeff.momenta) {
+				mom.replaceOccurances(what, to);
+			}
+		}
+		for (auto& op : operators) {
+			op.momentum.replaceOccurances(what, to);
+		}
+	}
+		
+	void Term::invert_momentum_sum(char what) {
+		if (std::find(sums.momenta.begin(), sums.momenta.end(), what) == sums.momenta.end()) {
+			throw std::invalid_argument("You are trying to perform a sum transformation on a momentum that is not being summed over!");
+		}
+		for (auto& coeff : coefficients) {
+			for (auto& mom : coeff.momenta) {
+				mom.flip_single(what);
+			}
+		}
+		for (auto& op : operators) {
+			op.momentum.flip_single(what);
+		}
+	}
+
+	void Term::remove_momentum_contribution(char value) {
+		for (auto& coeff : coefficients) {
+			coeff.remove_momentum_contribution(value);
+		}
+		for (auto& op : operators) {
+			op.remove_momentum_contribution(value);
+		}
+		for (auto& delta : delta_momenta) {
+			delta.first.remove_contribution(value);
+			delta.second.remove_contribution(value);
+		}
+		std::erase_if(sums.momenta._vector, [&](char sum_idx) { return sum_idx == value; });
+	}
+
 	void normalOrder(std::vector<Term>& terms) {
 		for (int t = 0; t < terms.size();) {
 		normalOrder_outerLoop:
@@ -659,14 +751,14 @@ namespace SymbolicOperators {
 		}
 
 		// Setup so that we always have a structure like delta_(l,k+something)
-		for(auto& term : terms){
-			for(auto& delta : term.delta_momenta) {
+		for (auto& term : terms) {
+			for (auto& delta : term.delta_momenta) {
 				assert(delta.first.momentum_list.size() == 1U);
 				int l_is = delta.first.isUsed('l');
 				if(l_is == 0) continue;
 
 				l_is = delta.second.isUsed('l');
-				if(l_is == -1){
+				if(l_is == -1) {
 					std::cout << term << std::endl;
 					throw;
 				}
@@ -682,7 +774,7 @@ namespace SymbolicOperators {
 		}
 
 		clear_duplicates(terms);
-		for(const auto& term : terms) {
+		for (const auto& term : terms) {
 			assert(term.is_normal_ordered());
 		}
 	}

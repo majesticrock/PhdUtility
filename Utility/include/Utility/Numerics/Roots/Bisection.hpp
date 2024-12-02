@@ -17,7 +17,7 @@ namespace Utility::Numerics::Roots {
         const RealType f_lower{ function(begin) };
         if(is_zero(f_lower)) return begin;
 
-        if(f_lower * f_upper > 0){
+        if(f_lower * f_upper > 0) {
             throw std::invalid_argument("There is no root in the given interval!" + std::string(typeid(Function).name()));
         }
         if(f_lower > 0) {
@@ -30,7 +30,7 @@ namespace Utility::Numerics::Roots {
             middle = 0.5 * (end + begin);
             f_middle = function(middle);
             if(is_zero(f_middle)) return middle;
-            if(f_middle < 0){
+            if(f_middle < 0) {
                 begin = middle;
             } else {
                 end = middle;

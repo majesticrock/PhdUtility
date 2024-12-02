@@ -7,9 +7,11 @@
 #include <algorithm>
 #include <vector>
 #include <utility>
+#include <Utility/VectorWrapper.hpp>
 
 namespace SymbolicOperators {
-	typedef std::vector<std::pair<int, char>> momentum_pairs;
+	typedef std::pair<int, char> momentum_pair;
+	typedef std::vector<momentum_pair> momentum_pairs;
 	struct Momentum {
 		// total momentum is then:    sum_i pair_i.first * pair_i.second
 		momentum_pairs momentum_list;
@@ -84,14 +86,13 @@ namespace SymbolicOperators {
 			}
 			return false;
 		}
-		inline size_t size() const {
-			return this->momentum_list.size();
-		}
 
 		bool operator==(const Momentum& rhs) const;
 		inline bool operator!=(const Momentum& rhs) const {
 			return !(*this == rhs);
 		};
+
+		VECTOR_WRAPPER_FILL_MEMBERS(momentum_pair, momentum_list);
 	};
 
 	bool momentum_order(const Momentum& lhs, const Momentum& rhs);
