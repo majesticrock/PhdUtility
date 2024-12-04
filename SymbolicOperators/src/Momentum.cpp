@@ -1,5 +1,7 @@
 #include <SymbolicOperators/Momentum.hpp>
 #include <cctype>
+#include <sstream>
+#include <string>
 
 namespace SymbolicOperators {
 	inline momentum_pairs::value_type identify_subexpression(const std::string& sub) {
@@ -166,6 +168,12 @@ namespace SymbolicOperators {
 			if (!foundOne) return false;
 		}
 		return true;
+	}
+
+	std::string Momentum::to_string() const {
+		std::ostringstream oss;
+        oss << *this;
+        return oss.str();
 	}
 
 	std::ostream& operator<<(std::ostream& os, const Momentum& momentum)
