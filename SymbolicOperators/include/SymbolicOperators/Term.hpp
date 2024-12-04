@@ -125,6 +125,9 @@ namespace SymbolicOperators {
 		}
 
 		void transform_momentum_sum(char what, Momentum to, char new_sum_index);
+		// Inverts a momenta, e.g., q -> -q
+		void invert_momentum(char what);
+		// Same as invert_momentum, but performs a check, whether 'what' is actually being summed over
 		void invert_momentum_sum(char what);
 		void remove_momentum_contribution(char value);
 

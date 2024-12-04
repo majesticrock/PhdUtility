@@ -536,11 +536,8 @@ namespace SymbolicOperators {
 			op.momentum.replaceOccurances(what, to);
 		}
 	}
-		
-	void Term::invert_momentum_sum(char what) {
-		if (std::find(sums.momenta.begin(), sums.momenta.end(), what) == sums.momenta.end()) {
-			throw std::invalid_argument("You are trying to perform a sum transformation on a momentum that is not being summed over!");
-		}
+
+	void Term::invert_momentum(char what) {
 		for (auto& coeff : coefficients) {
 			for (auto& mom : coeff.momenta) {
 				mom.flip_single(what);
@@ -549,6 +546,13 @@ namespace SymbolicOperators {
 		for (auto& op : operators) {
 			op.momentum.flip_single(what);
 		}
+	}
+
+	void Term::invert_momentum_sum(char what) {
+		if (std::find(sums.momenta.begin(), sums.momenta.end(), what) == sums.momenta.end()) {
+			throw std::invalid_argument("You are trying to perform a sum transformation on a momentum that is not being summed over!");
+		}
+		invert_momentum(what);
 	}
 
 	void Term::remove_momentum_contribution(char value) {
