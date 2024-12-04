@@ -92,6 +92,8 @@ namespace SymbolicOperators {
 			return !(*this == rhs);
 		};
 
+		std::string to_string() const;
+
 		VECTOR_WRAPPER_FILL_MEMBERS(momentum_pair, momentum_list);
 	};
 
