@@ -62,5 +62,11 @@ int main(int argc, char** argv) {
     symmetries.push_back(std::make_unique<PhaseSymmetry<SC_Type>>());
 
     sym_op_test::SymOpTest tester(COMPARE_DIR);
-    return tester.perform_test(H, base_term, templates, symmetries, argc > 1);
+    if (std::filesystem::exists(COMPARE_DIR)) {
+        std::cout << "Found compare dir " << COMPARE_DIR << std::endl;
+    }
+    else {
+        std::cout << "Did not find compare dir " << COMPARE_DIR << "\nCreating comparison data now..." << std::endl;
+    }
+    return tester.perform_test(H, base_term, templates, symmetries, (argc > 1) || !(std::filesystem::exists(COMPARE_DIR)));
 }
