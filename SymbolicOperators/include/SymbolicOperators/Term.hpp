@@ -43,6 +43,8 @@ namespace SymbolicOperators {
 		}
 
 		friend struct WickTerm;
+		Term(IntFractional _multiplicity, std::vector<Coefficient> _coefficients, const SumContainer& _sums,
+			const std::vector<Operator>& _operators = std::vector<Operator>());
 		Term(IntFractional _multiplicity, Coefficient _coefficient, const SumContainer& _sums,
 			const std::vector<Operator>& _operators = std::vector<Operator>());
 		Term(IntFractional _multiplicity, Coefficient _coefficient, const MomentumSum& _sum_momenta,
@@ -70,6 +72,13 @@ namespace SymbolicOperators {
 		inline bool contains_fermion() const {
 			return std::any_of(operators.begin(), operators.end(), [](Operator const& op) { return op.is_fermion; });
 		}
+		inline int count_bosons() const {
+			return std::count_if(operators.begin(), operators.end(), [](Operator const& op) { return (!op.is_fermion); });
+		}
+		inline int count_fermions() const {
+			return std::count_if(operators.begin(), operators.end(), [](Operator const& op) { return op.is_fermion; });
+		}
+		
 		void print() const;
 		inline void flipSign() {
 			this->multiplicity *= -1;

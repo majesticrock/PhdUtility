@@ -4,6 +4,8 @@
 #include <sstream>
 
 namespace SymbolicOperators {
+	Term::Term(IntFractional _multiplicity, std::vector<Coefficient> _coefficients, const SumContainer& _sums, const std::vector<Operator>& _operators)
+		: coefficients(_coefficients), sums(_sums), operators(_operators), multiplicity(_multiplicity) {}
 	Term::Term(IntFractional _multiplicity, Coefficient _coefficient, const SumContainer& _sums, const std::vector<Operator>& _operators)
 		: coefficients(1, _coefficient), sums(_sums), operators(_operators), multiplicity(_multiplicity) {}
 	Term::Term(IntFractional _multiplicity, Coefficient _coefficient, const MomentumSum& _sum_momenta, const std::vector<Operator>& _operators)
