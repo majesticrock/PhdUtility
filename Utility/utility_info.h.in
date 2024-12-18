@@ -1,0 +1,7 @@
+#ifndef GIT_INFO_H
+#define GIT_INFO_H
+
+constexpr char* GIT_COMMIT_HASH = "@GIT_COMMIT_HASH@";
+constexpr char* GIT_COMMIT_DATE = "@GIT_COMMIT_DATE@";
+
+#endif // GIT_INFO_H

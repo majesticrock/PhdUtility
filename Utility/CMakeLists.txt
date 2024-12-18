@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(Utility LANGUAGES CXX)
+project(Utility LANGUAGES CXX VERSION 1.0)
 
 include(CMakeFindDependencyMacro)
 find_dependency(ZLIB REQUIRED)
@@ -8,6 +8,8 @@ find_dependency(Boost REQUIRED COMPONENTS serialization iostreams)
 
 add_library(Utility INTERFACE)
 target_link_libraries(Utility INTERFACE ZLIB::ZLIB ${Boost_LIBRARIES})
+
+include(${CMAKE_SOURCE_DIR}/cmake/UtilityInformation.cmake)
 
 target_include_directories(Utility INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
