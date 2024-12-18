@@ -1,0 +1,21 @@
+set(GIT_INFO_HEADER ${CMAKE_BINARY_DIR}/utility_info.h)
+
+execute_process(
+    COMMAND git rev-parse HEAD
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_COMMIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+execute_process(
+    COMMAND git log -1 --format=%cd
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_COMMIT_DATE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+message("${CMAKE_SOURCE_DIR}")
+configure_file(
+    ${CMAKE_SOURCE_DIR}/utility_info.h.in
+    ${GIT_INFO_HEADER}
+    @ONLY
+)
