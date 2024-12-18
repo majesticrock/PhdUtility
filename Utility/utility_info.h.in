@@ -2,6 +2,8 @@
 #define GIT_INFO_H
 
 constexpr char* GIT_COMMIT_HASH = "@GIT_COMMIT_HASH@";
+constexpr char* GIT_COMMIT_NAME = "@GIT_COMMIT_NAME@";
 constexpr char* GIT_COMMIT_DATE = "@GIT_COMMIT_DATE@";
+constexpr char* COMPILE_DATE = "@COMPILE_DATE@";
 
 #endif // GIT_INFO_H
