@@ -6,6 +6,12 @@
 #include <string>
 
 namespace Utility::Numerics::Roots {
+    class NoRootException : public std::invalid_argument {
+    public:
+        explicit NoRootException(const std::string& algorithm, const std::string& function_id)
+            : std::invalid_argument("There is no root in the given interval! Encountered in " + algorithm + " using " + function_id) {}
+    };
+
 	template <class Function, class RealType>
 	RealType bisection(const Function& function, RealType begin, RealType end, RealType tol, int maxiter) {
         const auto is_zero = [](RealType val) {
@@ -18,7 +24,7 @@ namespace Utility::Numerics::Roots {
         if(is_zero(f_lower)) return begin;
 
         if(f_lower * f_upper > 0) {
-            throw std::invalid_argument("There is no root in the given interval!" + std::string(typeid(Function).name()));
+            throw NoRootException("Utility::Numerics::Roots::bisection", std::string(typeid(Function).name()));
         }
         if(f_lower > 0) {
             // Ensure that the function is rising
