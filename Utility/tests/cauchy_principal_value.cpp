@@ -20,13 +20,13 @@ result_set get_numerics(Real a, Real b, Real c) {
     auto f3 = [](Real x) { return std::exp(-x); }; // e^(-x) / (x-c)
     auto f4 = [](Real x) { return std::exp(x); }; // e^(x) / (x-c)
    
-    static auto integrator = Utility::Numerics::Integration::CauchyPrincipalValue<Real, 60>();
+    using integrator = Utility::Numerics::Integration::CauchyPrincipalValue<Real, 60>;
 
     return {
-        integrator.cauchy_principal_value(f1, a, b, c),
-        integrator.cauchy_principal_value(f2, a, b, c),
-        integrator.cauchy_principal_value(f3, a, b, c),
-        integrator.cauchy_principal_value(f4, a, b, c)
+        integrator::cauchy_principal_value(f1, a, b, c),
+        integrator::cauchy_principal_value(f2, a, b, c),
+        integrator::cauchy_principal_value(f3, a, b, c),
+        integrator::cauchy_principal_value(f4, a, b, c)
     };
 }
 
