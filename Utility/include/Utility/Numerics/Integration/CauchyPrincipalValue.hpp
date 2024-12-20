@@ -2,7 +2,7 @@
 #include <array>
 #include <limits>
 #include <boost/math/quadrature/gauss.hpp>
-#include <iostream>
+#include <type_traits>
 
 namespace Utility::Numerics::Integration {
     /* Computes the cauchy principal value of f(x) / (x - singularity) over the interval [lower, upper].
@@ -16,7 +16,7 @@ namespace Utility::Numerics::Integration {
         using gauss = boost::math::quadrature::gauss<Real, PolynomialDegree>;
         // Computes the cauchy principal value for int_-1^1 f(x) / x dx
         template <class F>
-        auto __cpv(F const& f, Real const& symmetrized_bound, Real const& singularity) const {
+        static decltype(std::declval<F>()(Real{})) __cpv(F const& f, Real const& symmetrized_bound, Real const& singularity) {
             auto proper_integrand = [&f, &symmetrized_bound, &singularity](const Real& x) {
                 assert(x >= std::numeric_limits<Real>::epsilon());
                 assert(x < Real{1});
@@ -33,7 +33,7 @@ namespace Utility::Numerics::Integration {
         }
         // Computes an integral of f(x + c) / x for and interval that does not include 0 
         template <class F>
-        auto __regular(F const& f, Real lower, Real upper, Real singularity) const {
+        static decltype(std::declval<F>()(Real{})) __regular(F const& f, Real lower, Real upper, Real singularity) {
             assert(lower * upper > 0);
             auto proper_integrand = [&f, &singularity](const Real& x) {
                 return f(x + singularity) / x;
@@ -42,8 +42,15 @@ namespace Utility::Numerics::Integration {
         }
     public:
         template <class F>
-        auto cauchy_principal_value(F const& f, Real lower, Real upper, Real singularity) const {
-            assert(lower < singularity && singularity < upper);
+        static decltype(std::declval<F>()(Real{})) cauchy_principal_value(F const& f, Real lower, Real upper, Real singularity) {
+            // assert that the lower edge is _actually_ the lower edge
+            if (lower > upper) {
+                return -cauchy_principal_value(f, upper, lower, singularity);
+            }
+            // If there is no singulartiy, we can just use the regular integration
+            if (singularity < lower || singularity > upper) {
+                return __regular(f, lower - singularity, upper - singularity, singularity);
+            }
 
             // Shift singularity to 0
             // x -> x + singularity
