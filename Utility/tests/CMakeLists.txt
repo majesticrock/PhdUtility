@@ -22,12 +22,12 @@ find_package(OpenMP REQUIRED)
 
 add_executable(minimization_test minimization.cpp)
 SET_COMPILER_FLAGS(minimization_test)
-
 add_executable(function_time_test function_time.cpp)
 SET_COMPILER_FLAGS(function_time_test)
-
 add_executable(block_matrix_test block_matrix.cpp)
 SET_COMPILER_FLAGS(block_matrix_test)
+add_executable(cauchy_principal_value_test cauchy_principal_value.cpp)
+SET_COMPILER_FLAGS(cauchy_principal_value_test)
 
 target_link_libraries(block_matrix_test PRIVATE OpenMP::OpenMP_CXX)
 
@@ -38,3 +38,4 @@ enable_testing()
 add_test(NAME minimization_test COMMAND minimization_test)
 add_test(NAME function_time_test COMMAND function_time_test)
 add_test(NAME block_matrix_test COMMAND block_matrix_test)
+add_test(NAME cauchy_principal_value_test COMMAND cauchy_principal_value_test)

@@ -28,7 +28,7 @@ inline double rel_error(const Eigen::MatrixXd& original, const Eigen::MatrixXd& 
 using BlockMatrix = BlockDiagonalMatrix<Eigen::MatrixXd>;
 
 int main() {
-    const int N = 500;
+    const int N = 250;
     const int n_blocks = 4;
     Eigen::MatrixXd toSolve = constructBlockDiagonalMatrix(N, n_blocks);
 
