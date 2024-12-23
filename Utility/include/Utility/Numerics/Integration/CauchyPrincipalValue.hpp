@@ -11,7 +11,7 @@ namespace Utility::Numerics::Integration {
     */
     template <class Real, int PolynomialDegree>
     class CauchyPrincipalValue {
-    private:
+    protected:
         static_assert(PolynomialDegree % 2 == 0, "Polynomial degree must be even");
         using gauss = boost::math::quadrature::gauss<Real, PolynomialDegree>;
         // Computes the cauchy principal value for int_-1^1 f(x) / x dx
@@ -27,8 +27,8 @@ namespace Utility::Numerics::Integration {
                 // We only need to consider the positive abscissas and boosts only saves the positive ones
                 result += (gauss::weights()[n] / gauss::abscissa()[n]) * proper_integrand(gauss::abscissa()[n]);
             }
-            // No deviding by symmetrized_bound required as we get one contribution from the Jacobi determinant
-            // and one contribution from the 1/x
+            // No additional contribution from symmetrized_bound required as we get one 
+            // contribution from the Jacobi determinant and one contribution from the 1/x
             return result;
         }
         // Computes an integral of f(x + c) / x for and interval that does not include 0 
