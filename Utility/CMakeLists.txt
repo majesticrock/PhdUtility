@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.16)
 
 project(Utility LANGUAGES CXX VERSION 1.0)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 include(CMakeFindDependencyMacro)
 find_dependency(ZLIB REQUIRED)
 find_dependency(Boost REQUIRED COMPONENTS serialization iostreams)
