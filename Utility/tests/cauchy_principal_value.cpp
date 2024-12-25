@@ -4,6 +4,7 @@
 #include "../include/Utility/Numerics/Integration/GeneralizedPrincipalValue.hpp"
 #include <array>
 #include <iostream>
+#include "../build/utility_info.h"
 
 constexpr size_t N_A = 4;
 typedef double Real;
@@ -50,6 +51,12 @@ result_set_A get_generalized_numerics(Real a, Real b, Real c) {
 }
 
 int main() {
+    std::cout << "Running tests on setup\n"
+        << "GIT_COMMIT_HASH: " << Utility::Info::GIT_COMMIT_HASH << "\n"
+        << "GIT_COMMIT_DATE: " << Utility::Info::GIT_COMMIT_DATE << "\n"
+        << "GIT_COMMIT_NAME: " << Utility::Info::GIT_COMMIT_NAME << "\n"
+        << "MAKE_DATE: "    << Utility::Info::MAKE_DATE << "\n" << std::endl;
+
     const std::string cpv_name = "CauchyPrincipalValue";
     const std::string gpv_name = "GeneralizedPrincipalValue";
     {

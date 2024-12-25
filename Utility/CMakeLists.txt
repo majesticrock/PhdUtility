@@ -62,3 +62,4 @@ configure_file(
 )
 
 install(DIRECTORY include/ DESTINATION include)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/utility_info.h" DESTINATION include/Utility)
