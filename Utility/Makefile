@@ -1,4 +1,4 @@
-BUILD_DIR = build
+BUILD_DIR = ../build/Utility
 INSTALL_PREFIX = $(HOME)/usr/local
 
 all: $(BUILD_DIR)/Makefile
@@ -6,11 +6,11 @@ all: $(BUILD_DIR)/Makefile
 
 $(BUILD_DIR)/Makefile: CMakeLists.txt
 	@mkdir -p $(BUILD_DIR)
-	@cd $(BUILD_DIR) && cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) ..
+	@cd $(BUILD_DIR) && cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) -DUTIL_TESTS=ON ../../Utility
 
 test: $(BUILD_DIR)/Makefile
 	@$(MAKE) -C $(BUILD_DIR)
-	cd build/tests && ctest --output-on-failure
+	cd $(BUILD_DIR)/tests && ctest --output-on-failure
 
 # Clean up the build directory
 clean:
@@ -20,4 +20,4 @@ clean:
 install: all
 	@$(MAKE) -C $(BUILD_DIR) install
 
-.PHONY: all clean install
+.PHONY: all clean install test

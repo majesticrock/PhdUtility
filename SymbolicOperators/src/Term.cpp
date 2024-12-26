@@ -1,9 +1,9 @@
-#include <SymbolicOperators/Term.hpp>
-#include <SymbolicOperators/KroneckerDeltaUtility.hpp>
-#include <Utility/RangeUtility.hpp>
+#include <mrock/SymbolicOperators/Term.hpp>
+#include <mrock/SymbolicOperators/KroneckerDeltaUtility.hpp>
+#include <mrock/Utility/RangeUtility.hpp>
 #include <sstream>
 
-namespace SymbolicOperators {
+namespace mrock::SymbolicOperators {
 	Term::Term(IntFractional _multiplicity, std::vector<Coefficient> _coefficients, const SumContainer& _sums, const std::vector<Operator>& _operators)
 		: coefficients(_coefficients), sums(_sums), operators(_operators), multiplicity(_multiplicity) {}
 	Term::Term(IntFractional _multiplicity, Coefficient _coefficient, const SumContainer& _sums, const std::vector<Operator>& _operators)
@@ -658,16 +658,16 @@ namespace SymbolicOperators {
 		}
 	}
 
-#define fill_reciever(x) reciever[0].x = left.x; Utility::append_vector(reciever[0].x, right.x); reciever[1].x = left.x; Utility::append_vector(reciever[1].x, right.x);
+#define fill_reciever(x) reciever[0].x = left.x; mrock::Utility::append_vector(reciever[0].x, right.x); reciever[1].x = left.x; mrock::Utility::append_vector(reciever[1].x, right.x);
 	void commutator(std::vector<Term>& reciever, const Term& left, const Term& right)
 	{
 		reciever.resize(2);
 		reciever[0] = left;
 		reciever[0].multiplicity *= right.multiplicity;
-		Utility::append_vector(reciever[0].operators, right.operators);
+		mrock::Utility::append_vector(reciever[0].operators, right.operators);
 		reciever[1] = right;
 		reciever[1].multiplicity *= left.multiplicity;
-		Utility::append_vector(reciever[1].operators, left.operators);
+		mrock::Utility::append_vector(reciever[1].operators, left.operators);
 		reciever[1].flipSign();
 
 		fill_reciever(coefficients);
@@ -688,7 +688,7 @@ namespace SymbolicOperators {
 			{
 				std::vector<Term> reciever_buffer(2);
 				commutator(reciever_buffer, left_term, right_term);
-				Utility::append_vector(reciever, std::move(reciever_buffer));
+				mrock::Utility::append_vector(reciever, std::move(reciever_buffer));
 			}
 		}
 	}

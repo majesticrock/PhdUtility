@@ -1,4 +1,4 @@
-#include "../include/Utility/FunctionTime.hpp"
+#include "../include/mrock/Utility/FunctionTime.hpp"
 #include <cmath>
 #include <iostream>
 
@@ -36,7 +36,7 @@ struct TestStruct {
     }
 };
 
-using namespace Utility;
+using namespace mrock::Utility;
 
 int main() {
     const double x = 0.1;

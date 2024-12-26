@@ -1,11 +1,11 @@
-#include <SymbolicOperators/WickOperatorTemplate.hpp>
-#include <SymbolicOperators/Momentum.hpp>
-#include <SymbolicOperators/KroneckerDelta.hpp>
-#include <SymbolicOperators/KroneckerDeltaUtility.hpp>
+#include <mrock/SymbolicOperators/WickOperatorTemplate.hpp>
+#include <mrock/SymbolicOperators/Momentum.hpp>
+#include <mrock/SymbolicOperators/KroneckerDelta.hpp>
+#include <mrock/SymbolicOperators/KroneckerDeltaUtility.hpp>
 #include <algorithm>
 #include <iterator>
 
-namespace SymbolicOperators {
+namespace mrock::SymbolicOperators {
 	TemplateResult::TemplateResult(size_t initial_size, OperatorType operator_type, const Momentum& base_momentum)
 		: results(initial_size)
 	{

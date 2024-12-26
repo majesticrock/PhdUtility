@@ -1,6 +1,6 @@
 #pragma once
-#include "../include/SymbolicOperators/Term.hpp"
-#include "../include/SymbolicOperators/Wick.hpp"
+#include "../include/mrock/SymbolicOperators/Term.hpp"
+#include "../include/mrock/SymbolicOperators/Wick.hpp"
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <fstream>
@@ -8,7 +8,7 @@
 #include <string>
 
 namespace sym_op_test {
-    using namespace SymbolicOperators;
+    using namespace mrock::SymbolicOperators;
 
     struct SymOpTest {
         const std::string COMPARE_DIR;

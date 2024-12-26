@@ -1,8 +1,8 @@
-#include <SymbolicOperators/WickOperator.hpp>
-#include <Utility/StringUtility.hpp>
+#include <mrock/SymbolicOperators/WickOperator.hpp>
+#include <mrock/Utility/StringUtility.hpp>
 #include <cassert>
 
-namespace SymbolicOperators {
+namespace mrock::SymbolicOperators {
 	WickOperator::WickOperator(const OperatorType& _type, const bool _is_daggered, const Momentum& _momentum, const IndexWrapper& _indizes)
 		: type(_type), is_daggered(_is_daggered), momentum(_momentum), indizes(_indizes) {}
 	WickOperator::WickOperator(const OperatorType& _type, const bool _is_daggered, const Momentum& _momentum, const Index _index)
@@ -15,8 +15,8 @@ namespace SymbolicOperators {
 		// Syntax    type{Momentum_expression;index1,index2,...}(^+)
 
 		this->type = string_to_wick.at(expression.substr(0U, expression.find('{')));
-		std::vector<std::string> momentum_strings = Utility::extract_elements(expression, '{', ';');
-		std::vector<std::string> index_strings = Utility::extract_elements(expression, ';', '}');
+		std::vector<std::string> momentum_strings = mrock::Utility::extract_elements(expression, '{', ';');
+		std::vector<std::string> index_strings = mrock::Utility::extract_elements(expression, ';', '}');
 
 		assert(momentum_strings.size() == 1U);
 		this->momentum = Momentum(momentum_strings.front());

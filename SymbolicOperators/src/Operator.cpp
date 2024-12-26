@@ -1,6 +1,6 @@
-#include <SymbolicOperators/Operator.hpp>
+#include <mrock/SymbolicOperators/Operator.hpp>
 
-namespace SymbolicOperators {
+namespace mrock::SymbolicOperators {
 	std::ostream& operator<<(std::ostream& os, const Operator& op)
 	{
 		if (op.is_fermion) {

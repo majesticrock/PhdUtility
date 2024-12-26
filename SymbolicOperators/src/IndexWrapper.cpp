@@ -1,6 +1,6 @@
-#include <SymbolicOperators/IndexWrapper.hpp>
+#include <mrock/SymbolicOperators/IndexWrapper.hpp>
 
-namespace SymbolicOperators {
+namespace mrock::SymbolicOperators {
 	std::ostream& operator<<(std::ostream& os, const Index index)
 	{
 		switch (index)

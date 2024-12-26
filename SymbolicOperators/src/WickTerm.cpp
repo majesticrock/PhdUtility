@@ -1,6 +1,6 @@
-#include <SymbolicOperators/WickTerm.hpp>
-#include <SymbolicOperators/KroneckerDeltaUtility.hpp>
-#include <Utility/StringUtility.hpp>
+#include <mrock/SymbolicOperators/WickTerm.hpp>
+#include <mrock/SymbolicOperators/KroneckerDeltaUtility.hpp>
+#include <mrock/Utility/StringUtility.hpp>
 #include <cctype>
 #include <cassert>
 
@@ -9,7 +9,7 @@
 #define L_SPIN temporary_operators[i].first_index()
 #define R_SPIN temporary_operators[i + 1].first_index()
 
-namespace SymbolicOperators {
+namespace mrock::SymbolicOperators {
 	// Constructors
 	WickTerm::WickTerm(const Term* base)
 		: multiplicity(base->multiplicity), coefficients(base->coefficients), sums(base->sums), operators(),
@@ -69,7 +69,7 @@ namespace SymbolicOperators {
 
 		if (sub.substr(0U, sub_delimiter) == "sum") {
 			const std::string type = expression.substr(sub_delimiter + 1, expression.find('{', sub_delimiter) - sub_delimiter - 1);
-			const std::vector<std::string> argument_list = Utility::extract_elements(expression);
+			const std::vector<std::string> argument_list = mrock::Utility::extract_elements(expression);
 
 			if (type == "index") {
 				this->sums.spins.reserve(argument_list.size());
@@ -90,7 +90,7 @@ namespace SymbolicOperators {
 		}
 		else if (sub.substr(0U, sub_delimiter) == "delta") {
 			const std::string type = expression.substr(sub_delimiter + 1, expression.find('{', sub_delimiter) - sub_delimiter - 1);
-			const std::vector<std::string> argument_list = Utility::extract_elements(expression);
+			const std::vector<std::string> argument_list = mrock::Utility::extract_elements(expression);
 			assert(argument_list.size() == 2U);
 
 			if (type == "index") {

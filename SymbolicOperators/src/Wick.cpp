@@ -1,11 +1,11 @@
-#include <SymbolicOperators/Wick.hpp>
-#include <SymbolicOperators/KroneckerDeltaUtility.hpp>
-#include <Utility/Numerics/MathFunctions.hpp>
-#include <Utility/RangeUtility.hpp>
+#include <mrock/SymbolicOperators/Wick.hpp>
+#include <mrock/SymbolicOperators/KroneckerDeltaUtility.hpp>
+#include <mrock/Utility/Numerics/MathFunctions.hpp>
+#include <mrock/Utility/RangeUtility.hpp>
 #include <variant>
 #include <numeric>
 
-namespace SymbolicOperators {
+namespace mrock::SymbolicOperators {
 	void wick_processor(const std::vector<Operator>& remaining, WickTermCollector& reciever_list, std::variant<WickTerm, Term> buffer)
 	{
 		if (remaining.empty()) {
@@ -45,7 +45,7 @@ namespace SymbolicOperators {
 	{
 		WickTermCollector prepared_wick;
 		const size_t estimated_size = std::accumulate(terms.begin(), terms.end(), size_t{}, [](size_t current, const Term& term) {
-			return current + Utility::Numerics::double_factorial(term.getOperators().size());
+			return current + mrock::Utility::Numerics::double_factorial(term.getOperators().size());
 			});
 
 		prepared_wick.reserve(estimated_size);
@@ -81,7 +81,7 @@ namespace SymbolicOperators {
 				return current + tr.results.size();
 				});
 			if (number_additional_elements > 1U) {
-				Utility::duplicate_n_inplace(ret, number_additional_elements - 1U);
+				mrock::Utility::duplicate_n_inplace(ret, number_additional_elements - 1U);
 			}
 
 			size_t template_result_it{};
@@ -109,7 +109,7 @@ namespace SymbolicOperators {
 		WickTermCollector prepared_wick = prepare_wick(terms);
 
 		for (auto& w_term : prepared_wick) {
-			Utility::append_if(reciever, identifyWickOperators(w_term, operator_templates), [](const WickTerm& wick) {
+			mrock::Utility::append_if(reciever, identifyWickOperators(w_term, operator_templates), [](const WickTerm& wick) {
 				return !(is_always_zero(wick.delta_indizes) || is_always_zero(wick.delta_momenta));
 				});
 		}

@@ -1,9 +1,9 @@
-#include <SymbolicOperators/Momentum.hpp>
+#include <mrock/SymbolicOperators/Momentum.hpp>
 #include <cctype>
 #include <sstream>
 #include <string>
 
-namespace SymbolicOperators {
+namespace mrock::SymbolicOperators {
 	inline momentum_pairs::value_type identify_subexpression(const std::string& sub) {
 		if (sub.front() == '+')
 			return identify_subexpression(std::string(sub.begin() + 1, sub.end()));

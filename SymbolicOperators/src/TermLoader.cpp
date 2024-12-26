@@ -1,9 +1,9 @@
-#include <SymbolicOperators/TermLoader.hpp>
+#include <mrock/SymbolicOperators/TermLoader.hpp>
 #include <fstream>
 #include <boost/archive/binary_iarchive.hpp>
 #include <filesystem>
 
-namespace SymbolicOperators {
+namespace mrock::SymbolicOperators {
 	void TermLoader::load(std::string const& folder, bool use_XP, int n_terms, int start_at/*=0*/) {
 		M.resize(n_terms * n_terms);
 		N.resize(n_terms * n_terms);

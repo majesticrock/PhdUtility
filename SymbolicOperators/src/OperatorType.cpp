@@ -1,6 +1,6 @@
-#include <SymbolicOperators/OperatorType.hpp>
+#include <mrock/SymbolicOperators/OperatorType.hpp>
 
-namespace SymbolicOperators {
+namespace mrock::SymbolicOperators {
     std::ostream& operator<<(std::ostream& os, const OperatorType op)
 	{
 		switch (op) {

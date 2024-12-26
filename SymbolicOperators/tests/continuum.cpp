@@ -1,6 +1,6 @@
 #include "compare_test.hpp"
 
-using namespace SymbolicOperators;
+using namespace mrock::SymbolicOperators;
 
 int main(int argc, char** argv) {
     const std::string COMPARE_DIR = "../../tests/correct_continuum/";

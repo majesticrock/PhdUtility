@@ -1,7 +1,7 @@
-#include <SymbolicOperators/WickSymmetry.hpp>
-#include <SymbolicOperators/WickTerm.hpp>
+#include <mrock/SymbolicOperators/WickSymmetry.hpp>
+#include <mrock/SymbolicOperators/WickTerm.hpp>
 
-namespace SymbolicOperators{
+namespace mrock::SymbolicOperators{
     void SpinSymmetry::apply_to(WickTerm& term) const
     {
         for (auto& op : term.operators) {

@@ -1,10 +1,10 @@
-#include "../include/Utility/Numerics/Minimization/Bisection.hpp"
+#include "../include/mrock/Utility/Numerics/Minimization/Bisection.hpp"
 #include <cmath>
 #include <iostream>
 #include <iomanip>
 #include <limits>
 
-using namespace Utility::Numerics::Minimization;
+using namespace mrock::Utility::Numerics::Minimization;
 
 int main() {
     auto f1 = [](double x) {

@@ -1,7 +1,7 @@
-#include <SymbolicOperators/Coefficient.hpp>
-#include <Utility/StringUtility.hpp>
+#include <mrock/SymbolicOperators/Coefficient.hpp>
+#include <mrock/Utility/StringUtility.hpp>
 
-namespace SymbolicOperators {
+namespace mrock::SymbolicOperators {
 	void Coefficient::remove_momentum_contribution(char value)
 	{
 		for (auto& mom : momenta) {
@@ -15,8 +15,8 @@ namespace SymbolicOperators {
 
 		Coefficient ret;
 		ret.name = expression.substr(0U, expression.find('{'));
-		std::vector<std::string> momentum_strings = Utility::extract_elements(expression, '{', ';');
-		std::vector<std::string> index_strings = Utility::extract_elements(expression, ';', '}');
+		std::vector<std::string> momentum_strings = mrock::Utility::extract_elements(expression, '{', ';');
+		std::vector<std::string> index_strings = mrock::Utility::extract_elements(expression, ';', '}');
 
 		ret.momenta.reserve(momentum_strings.size());
 		for (const auto& arg : momentum_strings) {

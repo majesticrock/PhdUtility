@@ -1,6 +1,6 @@
-#include <SymbolicOperators/MomentumList.hpp>
+#include <mrock/SymbolicOperators/MomentumList.hpp>
 
-namespace SymbolicOperators {
+namespace mrock::SymbolicOperators {
 	void MomentumList::replaceOccurances(const char replaceWhat, const Momentum& replaceWith) {
 		for (auto& mom : _vector) {
 			mom.replaceOccurances(replaceWhat, replaceWith);

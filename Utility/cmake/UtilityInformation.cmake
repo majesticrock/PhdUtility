@@ -15,20 +15,15 @@ function(run_command RESULT_VAR)
     set(${RESULT_VAR} "${${RESULT_VAR}}" PARENT_SCOPE)
 endfunction()
 
-set(INFO_HEADER ${CMAKE_BINARY_DIR}/utility_info.h)
+set(INFO_HEADER ${CMAKE_CURRENT_BINARY_DIR}/utility_info.h)
 
 run_command(GIT_COMMIT_HASH git rev-parse HEAD)
 run_command(GIT_COMMIT_NAME git log -1 --format=%B)
 run_command(GIT_COMMIT_DATE git log -1 --format=%cd)
 run_command(MAKE_DATE "date")
 
-message("GIT_COMMIT_HASH=${GIT_COMMIT_HASH}")
-message("GIT_COMMIT_NAME=${GIT_COMMIT_NAME}")
-message("GIT_COMMIT_DATE=${GIT_COMMIT_DATE}")
-message("MAKE_DATE=${MAKE_DATE}")
-
 configure_file(
-    ${CMAKE_SOURCE_DIR}/cmake/utility_info.h.in
+    ${CMAKE_CURRENT_LIST_DIR}/utility_info.h.in
     ${INFO_HEADER}
     @ONLY
 )
