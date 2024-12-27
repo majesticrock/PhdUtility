@@ -10,11 +10,11 @@ cluster: $(CLUSTER_BUILD_DIR)/Makefile
 
 $(BUILD_DIR)/Makefile: CMakeLists.txt
 	@mkdir -p $(BUILD_DIR)
-	@cd $(BUILD_DIR) && cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) -DSYM_OP_TESTS=ON ../../SymbolicOperators
+	@cd $(BUILD_DIR) && cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) -DSYM_OP_TESTS=ON -DONLY_SYM_OP=ON ../../SymbolicOperators
 
 $(CLUSTER_BUILD_DIR)/Makefile: CMakeLists.txt
 	@mkdir -p $(CLUSTER_BUILD_DIR)
-	@cd $(CLUSTER_BUILD_DIR) && cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) -DCLUSTER_BUILD=ON -DBUILD_TESTS=ON ../../SymbolicOperators
+	@cd $(CLUSTER_BUILD_DIR) && cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) -DCLUSTER_BUILD=ON -DONLY_SYM_OP=ON ../../SymbolicOperators
 
 test: $(BUILD_DIR)/Makefile
 	@$(MAKE) -C $(BUILD_DIR)
