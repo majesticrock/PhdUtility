@@ -4,7 +4,7 @@
 #include "IterativeSolver.hpp"
 #include "../Numerics/Roots/BroydensMethodEigen.hpp"
 
-namespace mrock::Utility::Selfconsistency {
+namespace mrock::utility::Selfconsistency {
 	template <class DataType, class Model, class SelfconsistencyAttributes, const DebugPolicy& debugPolicy = WarnNoConvergence>
 	class BroydenSolver : public IterativeSolver<DataType, Model, SelfconsistencyAttributes, debugPolicy>
 	{
@@ -25,7 +25,7 @@ namespace mrock::Utility::Selfconsistency {
 
 			ParameterVector x0{ ParameterVector::Zero(this->NUMBER_OF_PARAMETERS) };
 			std::copy(this->_attr->begin(), this->_attr->end(), x0.begin());
-			mrock::Utility::Numerics::Roots::BroydensMethodEigen<DataType, -1> broyden_solver;
+			mrock::utility::Numerics::Roots::BroydensMethodEigen<DataType, -1> broyden_solver;
 
 			if (!broyden_solver.compute(func, x0, MAX_STEPS)) {
 				if (debugPolicy.convergenceWarning) {

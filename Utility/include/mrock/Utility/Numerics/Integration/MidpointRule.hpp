@@ -1,7 +1,7 @@
 #pragma once
 #include <utility>
 
-namespace mrock::Utility::Numerics::Integration {
+namespace mrock::utility::Numerics::Integration {
 	template <class UnaryFunction, class RealType, class... Args>
 	auto midpoint_rule(const UnaryFunction& function, RealType begin, const RealType end, unsigned long num_steps, Args&&... args)
 	{

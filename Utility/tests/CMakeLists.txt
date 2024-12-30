@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(UtilityTests)
+project(utilityTests)
 
 function(SET_COMPILER_FLAGS TARGET)
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")

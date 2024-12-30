@@ -4,7 +4,7 @@
 #include <vector>
 #include "../UnderlyingFloatingPoint.hpp"
 
-namespace mrock::Utility::Numerics
+namespace mrock::utility::Numerics
 {
 	using std::abs;
 

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace mrock::Utility {
+namespace mrock::utility {
     template<int exponent, class NumberType, class ResultType = double>
     constexpr ResultType constexprPower(NumberType base) 
     {

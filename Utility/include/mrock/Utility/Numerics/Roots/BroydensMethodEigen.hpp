@@ -4,7 +4,7 @@
 #include <type_traits>
 #include <cstring>
 
-namespace mrock::Utility::Numerics::Roots {
+namespace mrock::utility::Numerics::Roots {
 	template<typename RealType, int t_vector_size>
 	class BroydensMethodEigen {
 		static_assert(std::is_floating_point<RealType>::value, "You're data type must be a floating point number");

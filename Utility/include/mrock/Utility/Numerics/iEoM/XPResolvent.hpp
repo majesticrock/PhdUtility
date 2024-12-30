@@ -8,7 +8,7 @@
 #include <Eigen/Dense>
 #include <chrono>
 
-namespace mrock::Utility::Numerics::iEoM {
+namespace mrock::utility::Numerics::iEoM {
 	template<class Derived, class RealType>
 	struct XPResolvent {
 	public:

@@ -2,7 +2,7 @@
 #include <utility>
 #include <iostream>
 
-namespace mrock::Utility::Numerics::Minimization {
+namespace mrock::utility::Numerics::Minimization {
 	template <class Function, class RealType>
 	RealType bisection(const Function& function, RealType begin, RealType end, RealType tol, int maxiter) {
 		if (begin > end) {

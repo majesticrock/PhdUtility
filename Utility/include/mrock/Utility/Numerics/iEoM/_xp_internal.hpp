@@ -4,7 +4,7 @@
 #include <numeric>
 #include <algorithm>
 
-namespace mrock::Utility::Numerics::iEoM { 
+namespace mrock::utility::Numerics::iEoM { 
     template<class RealType>
 	struct StartingState {
 		using Vector = Eigen::Vector<RealType, Eigen::Dynamic>;

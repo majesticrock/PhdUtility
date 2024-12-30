@@ -1,10 +1,10 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include "../include/mrock/Utility/Numerics/Integration/CauchyPrincipalValue.hpp"
-#include "../include/mrock/Utility/Numerics/Integration/GeneralizedPrincipalValue.hpp"
+#include "../include/mrock/utility/Numerics/Integration/CauchyPrincipalValue.hpp"
+#include "../include/mrock/utility/Numerics/Integration/GeneralizedPrincipalValue.hpp"
 #include <array>
 #include <iostream>
-#include "../../build/Utility/utility_info.h"
+#include "../../build/utility/utility_info.h"
 
 constexpr size_t N_A = 4;
 typedef double Real;
@@ -13,8 +13,8 @@ constexpr size_t N_B = 4;
 typedef std::array<Real, N_B> result_set_B;
 constexpr Real EPS = 1e-10;
 
-using base_integrator = mrock::Utility::Numerics::Integration::CauchyPrincipalValue<Real, 60>;
-using gen_integrator = mrock::Utility::Numerics::Integration::GeneralizedPrincipalValue<Real, 60>;
+using base_integrator = mrock::utility::Numerics::Integration::CauchyPrincipalValue<Real, 60>;
+using gen_integrator = mrock::utility::Numerics::Integration::GeneralizedPrincipalValue<Real, 60>;
 
 Real printer(Real ana, Real num, std::string const& algorithm) {
     std::cout << algorithm << ": \t" << "Analytical: " << ana << " Numerical: " << num << " Error: " << std::abs(ana - num) << std::endl;
@@ -52,10 +52,10 @@ result_set_A get_generalized_numerics(Real a, Real b, Real c) {
 
 int main() {
     std::cout << "Running tests on setup\n"
-        << "GIT_COMMIT_HASH: " << mrock::Utility::Info::GIT_COMMIT_HASH << "\n"
-        << "GIT_COMMIT_DATE: " << mrock::Utility::Info::GIT_COMMIT_DATE << "\n"
-        << "GIT_COMMIT_NAME: " << mrock::Utility::Info::GIT_COMMIT_NAME << "\n"
-        << "MAKE_DATE: "    << mrock::Utility::Info::MAKE_DATE << "\n" << std::endl;
+        << "GIT_COMMIT_HASH: " << mrock::utility::Info::GIT_COMMIT_HASH << "\n"
+        << "GIT_COMMIT_DATE: " << mrock::utility::Info::GIT_COMMIT_DATE << "\n"
+        << "GIT_COMMIT_NAME: " << mrock::utility::Info::GIT_COMMIT_NAME << "\n"
+        << "MAKE_DATE: "    << mrock::utility::Info::MAKE_DATE << "\n" << std::endl;
 
     const std::string cpv_name = "CauchyPrincipalValue";
     const std::string gpv_name = "GeneralizedPrincipalValue";
@@ -164,7 +164,7 @@ int main() {
             gen_integrator::generalized_principal_value(f2, a, b, std::vector<Real>{ c, d }),
             gen_integrator::generalized_principal_value(f3, a, b, std::vector<Real>{ -2 * M_PI, -M_PI, 0, M_PI, 2 * M_PI }),
             // Computing these kinds of logarithmic singularities is incredibly difficult, but possible
-            mrock::Utility::Numerics::Integration::GeneralizedPrincipalValue<Real, 10000>::generalized_principal_value(f4, a, b, std::vector<Real>{ 0.5 * (c - 1), 0.5 * (c + 1) })
+            mrock::utility::Numerics::Integration::GeneralizedPrincipalValue<Real, 10000>::generalized_principal_value(f4, a, b, std::vector<Real>{ 0.5 * (c - 1), 0.5 * (c + 1) })
         };
         result_set_A analytical_results = { 
             ana1(a, b, c),
@@ -191,7 +191,7 @@ int main() {
             gen_integrator::generalized_principal_value(f2, a, b, std::vector<Real>{ d, c }),
             gen_integrator::generalized_principal_value(f3, a, b, std::vector<Real>{ -4 * M_PI, -3 * M_PI, -2 * M_PI, -M_PI, 0, M_PI, 2 * M_PI, 3 * M_PI, 4 * M_PI }),
             // Computing these kinds of logarithmic singularities is incredibly difficult, but possible
-            mrock::Utility::Numerics::Integration::GeneralizedPrincipalValue<Real, 10000>::generalized_principal_value(f4, a, b, std::vector<Real>{ 0.5 * (c - 1), 0.5 * (c + 1) })
+            mrock::utility::Numerics::Integration::GeneralizedPrincipalValue<Real, 10000>::generalized_principal_value(f4, a, b, std::vector<Real>{ 0.5 * (c - 1), 0.5 * (c + 1) })
         };
         analytical_results = { 
             ana1(a, b, c),

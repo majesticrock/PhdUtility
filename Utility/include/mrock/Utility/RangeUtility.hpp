@@ -1,7 +1,7 @@
 #pragma once
 #include <iterator>
 
-namespace mrock::Utility {
+namespace mrock::utility {
 	template<class Vector>
 	void duplicate_n_inplace(Vector& target, size_t n) {
 		const size_t original_size = target.size();

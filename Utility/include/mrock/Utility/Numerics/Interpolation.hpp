@@ -4,7 +4,7 @@
 #include <utility>
 #include <type_traits>
 
-namespace mrock::Utility::Numerics {
+namespace mrock::utility::Numerics {
 	namespace __detail {
 		template<class _container>
 		using element_t = std::decay_t<decltype(std::declval<_container>()[0])>;

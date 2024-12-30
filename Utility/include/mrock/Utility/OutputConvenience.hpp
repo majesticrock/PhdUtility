@@ -13,7 +13,7 @@
 #include <sstream>
 #endif
 
-namespace mrock::Utility {
+namespace mrock::utility {
 #ifndef _NO_BOOST
 	template <typename vector_type, typename data_type = typename vector_type::value_type>
 	void saveData(const vector_type& data, const std::string& filename,

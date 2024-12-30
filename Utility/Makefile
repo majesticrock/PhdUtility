@@ -1,4 +1,4 @@
-BUILD_DIR = ../build/Utility
+BUILD_DIR = ../build/utility
 INSTALL_PREFIX = $(HOME)/usr/local
 
 all: $(BUILD_DIR)/Makefile
@@ -6,7 +6,7 @@ all: $(BUILD_DIR)/Makefile
 
 $(BUILD_DIR)/Makefile: CMakeLists.txt
 	@mkdir -p $(BUILD_DIR)
-	@cd $(BUILD_DIR) && cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) -DUTIL_TESTS=ON ../../Utility
+	@cd $(BUILD_DIR) && cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) -DUTIL_TESTS=ON ../../utility
 
 test: $(BUILD_DIR)/Makefile
 	@$(MAKE) -C $(BUILD_DIR)

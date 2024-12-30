@@ -4,14 +4,14 @@
 #include <Eigen/Dense>
 #include <iostream>
 
-namespace mrock::Utility::Numerics::iEoM {
+namespace mrock::utility::Numerics::iEoM {
 	template<class RealType>
 	class MatrixIsNegativeException : public std::runtime_error {
 	public:
 		RealType negative_eigenvalue{};
 		MatrixIsNegativeException(RealType _negative_eigenvalue, const std::string& name = "M")
 			: std::runtime_error("The matrix " + name + " is negative! Most negative eigenvalue = "
-				+ mrock::Utility::better_to_string(_negative_eigenvalue, std::chars_format::scientific, 6)),
+				+ mrock::utility::better_to_string(_negative_eigenvalue, std::chars_format::scientific, 6)),
 			negative_eigenvalue(_negative_eigenvalue)
 		{};
 	};

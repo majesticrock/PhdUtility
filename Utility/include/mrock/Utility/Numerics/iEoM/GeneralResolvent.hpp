@@ -7,7 +7,7 @@
 #include <chrono>
 #include <string>
 
-namespace mrock::Utility::Numerics::iEoM {
+namespace mrock::utility::Numerics::iEoM {
 	template<class Derived, class NumberType>
 	struct GeneralResolvent {
 	public:

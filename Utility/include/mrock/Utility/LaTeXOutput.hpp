@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-namespace mrock::Utility {
+namespace mrock::utility {
 	template <class T, class OutputStream>
 	void surround_with_env(const T& toPrint, OutputStream& os, const std::string& env) {
 		os << "\\begin{" << env << "}\n" << toPrint << " " << "\\end{" << env << "}";

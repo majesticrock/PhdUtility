@@ -6,7 +6,7 @@
 #include <string_view>
 #include <system_error>
 
-namespace mrock::Utility {
+namespace mrock::utility {
 	template <typename... Args>
 	std::string better_to_string(Args&&... format_args)
 	{

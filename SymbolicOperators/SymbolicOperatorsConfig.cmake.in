@@ -1,7 +1,0 @@
-include("${CMAKE_CURRENT_LIST_DIR}/SymbolicOperatorsTargets.cmake")
-
-# Configure the SymbolicOperators include directory variable
-set(SymbolicOperators_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
-
-# Provide the version information
-include("${CMAKE_CURRENT_LIST_DIR}/SymbolicOperatorsConfigVersion.cmake")

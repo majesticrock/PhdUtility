@@ -1,0 +1,54 @@
+@PACKAGE_INIT@
+
+macro(mrock_load_component comp required)
+    if(NOT TARGET mrock::${__mrock_lib})
+        set(__mrock_lib mrock_${comp})
+        get_filename_component(__mrock_path "${CMAKE_CURRENT_LIST_DIR}/../${__mrock_lib}/" ABSOLUTE)
+
+        include("${__mrock_path}/${__mrock_lib}-config.cmake")
+        add_library(mrock::${comp} ALIAS mrock::${__mrock_lib})
+
+        list(APPEND mrock_LIBRARIES mrock::${comp})
+
+        unset(__mrock_lib)
+        unset(__mrock_path)
+    endif()
+endmacro()
+
+# Load header location
+include("${CMAKE_CURRENT_LIST_DIR}/mrock-targets.cmake")
+get_target_property(mrock_INCLUDES mrock::mrock INTERFACE_INCLUDE_DIRECTORIES)
+if(mrock_INCLUDES)
+    list(APPEND mrock_INCLUDE_DIRS ${mrock_INCLUDES})
+else()
+    message(WARNING "Failed to retrieve INTERFACE_INCLUDE_DIRECTORIES for mrock::mrock")
+endif()
+
+# List of available components
+set(mrock_AVAILABLE_COMPONENTS utility symbolic_operators)
+
+# Handle COMPONENTS
+if (mrock_FIND_COMPONENTS)
+    foreach(component IN LISTS mrock_FIND_COMPONENTS)
+        if (component STREQUAL "utility")
+            mrock_load_component(utility REQUIRED)
+        elseif (component STREQUAL "symbolic_operators")
+            mrock_load_component(symbolic_operators REQUIRED)
+        endif()
+    endforeach()
+else()
+    # Default behavior if no COMPONENTS are specified: include everything
+    mrock_load_component(utility REQUIRED)
+    mrock_load_component(symbolic_operators REQUIRED)
+endif()
+
+if(TARGET mrock::mrock)
+    # Export package variables
+    set(mrock_VERSION "@PROJECT_VERSION@")
+    set(mrock_FOUND TRUE)
+    message("-- Found mrock")
+else()
+    message(FATAL_ERROR "Did not find mrock!")
+endif()
+
+check_required_components(mrock)

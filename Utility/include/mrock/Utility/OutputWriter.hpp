@@ -6,7 +6,7 @@
 #include <cmath>
 #include <iostream>
 
-namespace mrock::Utility {
+namespace mrock::utility {
 	// Casts a floating point number to a std::string with desired precision n
 	template <typename T>
 	std::string to_string_with_precision(const T a_value, const int n)

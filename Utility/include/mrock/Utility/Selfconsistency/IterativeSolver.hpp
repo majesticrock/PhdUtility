@@ -8,7 +8,7 @@
 #include <chrono>
 #include "../UnderlyingFloatingPoint.hpp"
 
-namespace mrock::Utility::Selfconsistency {
+namespace mrock::utility::Selfconsistency {
 	template<class RealType>
 	constexpr RealType PRECISION = 1e2 * std::numeric_limits<RealType>::epsilon();
 	template<> constexpr float PRECISION<float> = 1e1f * std::numeric_limits<float>::epsilon();

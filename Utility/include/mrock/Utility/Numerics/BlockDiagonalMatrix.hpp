@@ -6,7 +6,7 @@
 
 //#define _BLOCKS_USE_OMP
 
-namespace mrock::Utility::Numerics {
+namespace mrock::utility::Numerics {
     namespace detail {
         template<class Number> using MatrixN = Eigen::Matrix<Number, Eigen::Dynamic, Eigen::Dynamic>;
         template<class EigenMatrixType> using RealScalar = UnderlyingFloatingPoint_t<typename EigenMatrixType::Scalar>;

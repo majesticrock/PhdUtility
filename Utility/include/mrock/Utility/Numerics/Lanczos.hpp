@@ -3,7 +3,7 @@
 #include <Eigen/Dense>
 #include <iostream>
 
-namespace mrock::Utility::Numerics {
+namespace mrock::utility::Numerics {
 	template <typename T>
 	class Lanczos {
 	private:

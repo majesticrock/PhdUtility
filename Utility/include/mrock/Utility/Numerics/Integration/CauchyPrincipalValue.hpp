@@ -4,7 +4,7 @@
 #include <boost/math/quadrature/gauss.hpp>
 #include <type_traits>
 
-namespace mrock::Utility::Numerics::Integration {
+namespace mrock::utility::Numerics::Integration {
     /* Computes the cauchy principal value of f(x) / (x - singularity) over the interval [lower, upper].
     *  Based on the algorithm proposed in https://link.springer.com/article/10.1007/BF01935567
     *  Uses the Gauss-Legendre implementation from boost as a basis

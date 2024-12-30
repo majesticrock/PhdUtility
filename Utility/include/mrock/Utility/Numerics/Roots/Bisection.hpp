@@ -5,7 +5,7 @@
 #include <limits>
 #include <string>
 
-namespace mrock::Utility::Numerics::Roots {
+namespace mrock::utility::Numerics::Roots {
     class NoRootException : public std::invalid_argument {
     public:
         explicit NoRootException(const std::string& algorithm, const std::string& function_id)
@@ -24,7 +24,7 @@ namespace mrock::Utility::Numerics::Roots {
         if(is_zero(f_lower)) return begin;
 
         if(f_lower * f_upper > 0) {
-            throw NoRootException("mrock::Utility::Numerics::Roots::bisection", std::string(typeid(Function).name()));
+            throw NoRootException("mrock::utility::Numerics::Roots::bisection", std::string(typeid(Function).name()));
         }
         if(f_lower > 0) {
             // Ensure that the function is rising

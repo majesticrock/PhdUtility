@@ -4,7 +4,7 @@
 #include <vector>
 #include <sstream>
 
-namespace mrock::Utility {
+namespace mrock::utility {
     // Splits the string at delimiter
 	inline std::vector<std::string> split(const std::string &str, char delimiter) {
 		std::vector<std::string> tokens;

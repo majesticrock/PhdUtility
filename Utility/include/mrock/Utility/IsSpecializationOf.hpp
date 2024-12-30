@@ -1,7 +1,7 @@
 #pragma once
 #include <type_traits>
 
-namespace mrock::Utility {
+namespace mrock::utility {
 	template<typename Test, template<typename...> class Ref>
     struct IsSpecializationOf_t : std::false_type {};
 

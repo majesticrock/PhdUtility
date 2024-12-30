@@ -2,7 +2,7 @@
 #include <complex>
 #include <iterator>
 
-namespace mrock::Utility {
+namespace mrock::utility {
     template<typename T>
     class RealPartIterator {
     public:

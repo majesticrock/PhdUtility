@@ -2,7 +2,7 @@
 #include <fstream>
 #include <vector>
 
-namespace mrock::Utility::BinaryIO {
+namespace mrock::utility::BinaryIO {
 	inline std::ifstream createReader(const std::string& filename) {
 		return std::ifstream(filename, std::ios::out | std::ios::binary);
 	};

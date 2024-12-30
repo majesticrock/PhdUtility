@@ -5,7 +5,7 @@ Both work in essentially the same way.
 A user-defined class should inherit from either of the algorithm-providing classes in the following way
 
 ```
-class MyClass : public mrock::Utility::Numerics::iEoM::XPResolvent<MyClass, double>
+class MyClass : public mrock::utility::Numerics::iEoM::XPResolvent<MyClass, double>
 ```
 
 The user is required to define the following methods:

@@ -2,7 +2,7 @@
 #include <utility>
 #include <type_traits>
 
-namespace mrock::Utility {
+namespace mrock::utility {
 	namespace _internal_utility {
 		template<class _internal>
 		using plus_type = std::decay_t<decltype((std::declval<_internal>().operator+=(std::declval<_internal>())))>;
@@ -91,7 +91,7 @@ struct no_plus {};
 enum enum_test { one, two, three };
 
 void test() {
-	using namespace mrock::Utility;
+	using namespace mrock::utility;
 
 	std::cout << "std::complex<double>: " << is_linearly_combinable<std::complex<double>>::value << std::endl;
 	std::cout << "has_plus: " << is_linearly_combinable<has_plus>::value << std::endl;

@@ -3,13 +3,13 @@
 #include <iostream>
 #include <algorithm>
 
-namespace mrock::Utility::Numerics::Integration {
+namespace mrock::utility::Numerics::Integration {
     template <class Real, int PolynomialDegree>
     class GeneralizedPrincipalValue {
     private:
         static_assert(PolynomialDegree % 2 == 0, "Polynomial degree must be even");
         using gauss = boost::math::quadrature::gauss<Real, PolynomialDegree>;
-        using cauchy = mrock::Utility::Numerics::Integration::CauchyPrincipalValue<Real, PolynomialDegree>;
+        using cauchy = mrock::utility::Numerics::Integration::CauchyPrincipalValue<Real, PolynomialDegree>;
         template<class F, class G> using result_type = std::common_type_t<decltype(std::declval<F>()(Real{})), decltype(std::declval<G>()(Real{}))>;
 
         template <class F>

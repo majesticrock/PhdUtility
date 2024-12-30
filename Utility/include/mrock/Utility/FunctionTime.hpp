@@ -5,7 +5,7 @@
 #include <functional>
 #include <type_traits>
 
-namespace mrock::Utility {
+namespace mrock::utility {
 	using clock = std::chrono::high_resolution_clock;
 
 	// Prints the runtime of a function to the console and returns the function's return value

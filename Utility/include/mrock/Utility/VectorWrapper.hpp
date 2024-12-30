@@ -107,7 +107,7 @@
 			return _vector.insert(pos, first, last); \
 		} \
 
-namespace mrock::Utility {
+namespace mrock::utility {
 	template<class T, class Allocator = std::allocator<T>>
 	struct VectorWrapper {
 	public:

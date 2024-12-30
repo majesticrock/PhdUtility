@@ -30,7 +30,7 @@
 * cout << M << endl // Output: 1024
 * etc.
 **/
-namespace mrock::Utility {
+namespace mrock::utility {
 	class InputFileReader {
 	private:
 		// a list of the parameter names

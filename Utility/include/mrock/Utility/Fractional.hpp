@@ -3,7 +3,7 @@
 #include <type_traits>
 #include <iostream>
 
-namespace mrock::Utility {
+namespace mrock::utility {
     template<class _int>
     struct Fractional {
         _int numerator{};

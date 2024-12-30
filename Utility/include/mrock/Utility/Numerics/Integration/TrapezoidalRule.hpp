@@ -1,7 +1,7 @@
 #pragma once
 #include <utility>
 
-namespace mrock::Utility::Numerics::Integration {
+namespace mrock::utility::Numerics::Integration {
 	template <class UnaryFunction, class RealType, class... Args>
 	auto trapezoidal_rule(const UnaryFunction& function, const RealType begin, const RealType end, unsigned long num_steps, Args&&... args) {
 		const RealType step = (end - begin) / num_steps;

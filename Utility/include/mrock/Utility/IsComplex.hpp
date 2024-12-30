@@ -2,7 +2,7 @@
 #include <type_traits>
 #include <complex>
 
-namespace mrock::Utility {
+namespace mrock::utility {
 	template <class T>
 	struct IsComplex_t : public std::false_type {};
 

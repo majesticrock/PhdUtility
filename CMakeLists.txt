@@ -1,29 +1,18 @@
 cmake_minimum_required(VERSION 3.16)
-project(mrock LANGUAGES CXX)
+project(mrock LANGUAGES CXX VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-add_subdirectory(Utility)
-add_subdirectory(SymbolicOperators)
+add_library(mrock INTERFACE)
 
-# Write Global Config File
-include(CMakePackageConfigHelpers)
-configure_package_config_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/mrockConfig.cmake.in
-    ${CMAKE_BINARY_DIR}/mrockConfig.cmake
-    INSTALL_DESTINATION lib/cmake/mrock
+target_include_directories(mrock INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 
-write_basic_package_version_file(
-    "${CMAKE_BINARY_DIR}/mrockConfigVersion.cmake"
-    VERSION 1.0.0
-    COMPATIBILITY SameMajorVersion
-)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/mrock_install.cmake)
+mrock_install(mrock)
 
-# Install Global Configs
-install(FILES
-    "${CMAKE_BINARY_DIR}/mrockConfig.cmake"
-    "${CMAKE_BINARY_DIR}/mrockConfigVersion.cmake"
-    DESTINATION lib/cmake/mrock
-)
+add_subdirectory(utility)
+add_subdirectory(symbolic_operators)
