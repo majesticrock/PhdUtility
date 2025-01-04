@@ -38,6 +38,8 @@ SET_COMPILER_FLAGS(mrock_symbolic_operators)
 
 if(ONLY_SYM_OP)
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../utility ${CMAKE_BINARY_DIR}/utility)
+    target_include_directories(mrock_symbolic_operators PUBLIC 
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/../utility/include>)
 endif()
 target_link_libraries(mrock_symbolic_operators PUBLIC mrock::utility)
 

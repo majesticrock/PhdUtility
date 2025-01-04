@@ -17,11 +17,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-include_directories("~/usr/local/include")
-
 add_executable(continuum_test continuum.cpp)
 SET_COMPILER_FLAGS(continuum_test)
-target_link_libraries(continuum_test PRIVATE symbolic_operators)
+target_link_libraries(continuum_test PRIVATE mrock_symbolic_operators)
+target_include_directories(continuum_test PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../symbolic_operators/include)
+target_include_directories(continuum_test PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../utility/include)
 
 # Enable CTest
 enable_testing()

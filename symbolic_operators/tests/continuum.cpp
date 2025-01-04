@@ -3,7 +3,7 @@
 using namespace mrock::symbolic_operators;
 
 int main(int argc, char** argv) {
-    const std::string COMPARE_DIR = "../../tests/correct_continuum/";
+    const std::string COMPARE_DIR = "../../../symbolic_operators/tests/correct_continuum/";
     // Setup
     const Momentum base_k = Momentum('k');
 
