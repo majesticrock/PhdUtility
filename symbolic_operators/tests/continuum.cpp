@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
 
     sym_op_test::SymOpTest tester(COMPARE_DIR);
     if (std::filesystem::exists(COMPARE_DIR)) {
-        std::cout << "Found compare dir " << COMPARE_DIR << std::endl;
+        std::cout << "Found compare dir " << std::filesystem::canonical(COMPARE_DIR) << std::endl;
     }
     else {
         std::cout << "Did not find compare dir " << COMPARE_DIR << "\nCreating comparison data now..." << std::endl;

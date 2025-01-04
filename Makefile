@@ -7,7 +7,7 @@ all: $(BUILD_DIR)/Makefile
 
 $(BUILD_DIR)/Makefile: CMakeLists.txt
 	@mkdir -p $(BUILD_DIR)
-	@cd $(BUILD_DIR) && cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) ..
+	@cd $(BUILD_DIR) && cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) -DBUILD_TESTS=ON ..
 
 cluster: $(CLUSTER_BUILD_DIR)/Makefile
 	@$(MAKE) -C $(CLUSTER_BUILD_DIR)
@@ -18,7 +18,7 @@ $(CLUSTER_BUILD_DIR)/Makefile: CMakeLists.txt
 
 test: $(BUILD_DIR)/Makefile
 	@$(MAKE) -C $(BUILD_DIR)
-	cd build/tests && ctest --output-on-failure
+	cd build && ctest --output-on-failure
 
 clean:
 	@rm -rf $(BUILD_DIR) $(CLUSTER_BUILD_DIR)
