@@ -1,0 +1,17 @@
+#ifndef _@CMAKE_PROJECT_NAME@_INFO_H
+#define _@CMAKE_PROJECT_NAME@_INFO_H
+
+namespace @CMAKE_PROJECT_NAME@ { struct info { public:
+    static constexpr char const * GIT_COMMIT_VERSION = "@MROCK_GIT_COMMIT_VERSION@";
+    static constexpr char const * GIT_COMMIT_NAME    = "@MROCK_GIT_COMMIT_NAME@";
+    static constexpr char const * GIT_COMMIT_DATE    = "@MROCK_GIT_COMMIT_DATE@";
+    static constexpr char const * MAKE_DATE          = "@MROCK_MAKE_DATE@";
+    static constexpr char const * CXX_COMPILER       = "@MROCK_COMPILER_VERSION@";
+    static constexpr char const * CXX_STANDARD       = "@CMAKE_CXX_STANDARD@";
+    static constexpr char const * PROJECT_VERSION    = "@PROJECT_VERSION@";
+    static constexpr char const * SYSTEM_NAME        = "@CMAKE_SYSTEM_NAME@";
+    static constexpr char const * SYSTEM_VERSION     = "@CMAKE_SYSTEM_VERSION@";
+    static constexpr char const * HOSTNAME           = "@MROCK_HOSTNAME@";
+}; }
+
+#endif // _@CMAKE_PROJECT_NAME@_INFO_H

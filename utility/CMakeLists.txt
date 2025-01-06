@@ -4,7 +4,6 @@ project(mrock_utility LANGUAGES CXX VERSION 1.0.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-set(MROCK_UTILITY_HEADERS include/mrock/utility)
 # --- Dependencies ---
 include(CMakeFindDependencyMacro)
 find_dependency(ZLIB REQUIRED)
@@ -24,10 +23,6 @@ target_link_libraries(mrock_utility INTERFACE
     Boost::serialization
     Boost::iostreams
 )
-
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/mrock_utility-information.cmake)
-
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/utility_info.h" DESTINATION ${MROCK_UTILITY_HEADERS})
 
 include(${CMAKE_CURRENT_LIST_DIR}/../cmake/mrock_install.cmake)
 mrock_install(mrock_utility)

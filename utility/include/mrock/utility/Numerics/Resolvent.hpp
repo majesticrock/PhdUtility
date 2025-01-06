@@ -2,15 +2,16 @@
 // Use (void) to silence unused warnings.
 #define assertm(exp, msg) assert(((void)msg, exp))
 
+#include <type_traits>
+#include <Eigen/Dense>
+#include <cmath>
+#include <nlohmann/json.hpp>
+
 #include "../OutputConvenience.hpp"
 #include "../RangeUtility.hpp"
 #include "../IsComplex.hpp"
 #include "../UnderlyingFloatingPoint.hpp"
 #include "GramSchmidt.hpp"
-#include <type_traits>
-#include <Eigen/Dense>
-#include <cmath>
-#include <nlohmann/json.hpp>
 
 namespace mrock::utility::Numerics {
 	using std::abs;
