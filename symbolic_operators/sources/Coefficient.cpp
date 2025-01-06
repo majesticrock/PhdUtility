@@ -1,5 +1,5 @@
 #include <mrock/symbolic_operators/Coefficient.hpp>
-#include <mrock/utility/Stringutility.hpp>
+#include <mrock/utility/StringUtility.hpp>
 
 namespace mrock::symbolic_operators {
 	void Coefficient::remove_momentum_contribution(char value)

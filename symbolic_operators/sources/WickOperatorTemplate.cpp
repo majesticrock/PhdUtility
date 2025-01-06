@@ -1,7 +1,7 @@
 #include <mrock/symbolic_operators/WickOperatorTemplate.hpp>
 #include <mrock/symbolic_operators/Momentum.hpp>
 #include <mrock/symbolic_operators/KroneckerDelta.hpp>
-#include <mrock/symbolic_operators/KroneckerDeltautility.hpp>
+#include <mrock/symbolic_operators/KroneckerDeltaUtility.hpp>
 #include <algorithm>
 #include <iterator>
 

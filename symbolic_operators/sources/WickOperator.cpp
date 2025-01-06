@@ -1,5 +1,5 @@
 #include <mrock/symbolic_operators/WickOperator.hpp>
-#include <mrock/utility/Stringutility.hpp>
+#include <mrock/utility/StringUtility.hpp>
 #include <cassert>
 
 namespace mrock::symbolic_operators {

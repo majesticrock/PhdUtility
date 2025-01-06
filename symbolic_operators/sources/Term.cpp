@@ -1,5 +1,5 @@
 #include <mrock/symbolic_operators/Term.hpp>
-#include <mrock/symbolic_operators/KroneckerDeltautility.hpp>
+#include <mrock/symbolic_operators/KroneckerDeltaUtility.hpp>
 #include <mrock/utility/RangeUtility.hpp>
 #include <sstream>
 
