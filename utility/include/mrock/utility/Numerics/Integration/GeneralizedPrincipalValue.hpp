@@ -2,6 +2,7 @@
 #include "CauchyPrincipalValue.hpp"
 #include <iostream>
 #include <algorithm>
+#include <limits>
 
 namespace mrock::utility::Numerics::Integration {
     template <class Real, int PolynomialDegree>
@@ -57,6 +58,7 @@ namespace mrock::utility::Numerics::Integration {
         }
 
         // Computes the principal value of any f(x) with a singularity at singularity over the interval [lower, upper]
+        // If one of the bounds of integration is close to the singularity, the other one should be too to guarentee numerical stability!
         template<class F>
         static decltype(std::declval<F>()(Real{})) generalized_principal_value(F const& f, Real lower, Real upper, Real singularity) {
             if (lower > upper) {
@@ -84,6 +86,7 @@ namespace mrock::utility::Numerics::Integration {
             }
         }
 
+        // If one of the bounds of integration is close to the singularity, the other one should be too to guarentee numerical stability!
         template<class F, class RandomAccessContainer>
         static decltype(std::declval<F>()(Real{})) generalized_principal_value(F const& f, Real lower, Real upper, RandomAccessContainer const& singularities) {
             int n = 0;
