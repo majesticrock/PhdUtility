@@ -25,4 +25,4 @@ For ```GeneralResolvent``` the starting states are plain vectors.
 
 Naturally, the classes need access to these methods either by being a friend or the methods being publically visible.
 
-Then ```computeCollectiveModes``` and ```dynamic_matrix_is_negative``` provide the algorithms to either compute the excitations of the system or to simply determine whether *M* is non-negative.
+Then ```compute_collective_modes``` and ```dynamic_matrix_is_negative``` provide the algorithms to either compute the excitations of the system or to simply determine whether *M* is non-negative.

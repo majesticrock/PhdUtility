@@ -2,6 +2,8 @@
 #include "Operator.hpp"
 #include "IndexWrapper.hpp"
 #include "MomentumList.hpp"
+#include <optional>
+#include <functional>
 
 namespace mrock::symbolic_operators {
 	struct Coefficient {
@@ -9,8 +11,12 @@ namespace mrock::symbolic_operators {
 		MomentumList momenta;
 		// Contains all indizes, standard: first index = spin, all others arbitrary, e.g. orbitals, bands etc
 		IndexWrapper indizes;
+		std::optional<std::function<void(Coefficient&)>> custom_symmetry = std::nullopt;
 		// if Coeff(k) = Coeff(-k)
-		bool translational_invariance{ true };
+		bool inversion_symmetry{ true };
+		// valid for most interactions that depend on 3 momenta
+		// allows V(k, k', q) = V(k', k, -q) and V(k, k', q) = V(-k, -k', -q)
+		bool is_symmetrized_interaction{ };
 		// if Coeff(k+Q) = -Coeff(k)
 		bool Q_changes_sign{};
 		bool is_daggered{};
@@ -21,31 +27,32 @@ namespace mrock::symbolic_operators {
 			ar& momenta;
 			ar& indizes;
 			ar& is_daggered;
-			ar& translational_invariance;
-			ar& Q_changes_sign;
 		}
 
 		Coefficient() = default;
-		explicit Coefficient(std::string _name);
-		Coefficient(std::string _name, const Momentum& _momentum, const IndexWrapper& _indizes, bool _Q_changes_sign = false, bool _translational_invariance = true, bool _is_daggered = false);
-		Coefficient(std::string _name, const Momentum& _momentum, bool _Q_changes_sign = false, bool _translational_invariance = true, bool _is_daggered = false);
-		Coefficient(std::string _name, const MomentumList& _momenta, const IndexWrapper& _indizes = IndexWrapper{}, bool _Q_changes_sign = false, bool _translational_invariance = true, bool _is_daggered = false);
+		explicit Coefficient(const std::string& _name);
+		Coefficient(const std::string& _name, const Momentum& _momentum, const IndexWrapper& _indizes, bool _Q_changes_sign = false, bool _inversion_symmetry = true, bool _is_daggered = false);
+		Coefficient(const std::string& _name, const Momentum& _momentum, bool _Q_changes_sign = false, bool _inversion_symmetry = true, bool _is_daggered = false);
+		Coefficient(const std::string& _name, const MomentumList& _momenta, const IndexWrapper& _indizes = IndexWrapper{}, bool _Q_changes_sign = false, bool _inversion_symmetry = true, bool _is_daggered = false);
 
+		static Coefficient RealInversionSymmetric(const std::string& _name, const MomentumList& _momenta, const std::optional<std::function<void(Coefficient&)>>& _custom_symmetry = std::nullopt);
+		static Coefficient RealInteraction(const std::string& _name, const MomentumList& _momenta, const std::optional<std::function<void(Coefficient&)>>& _custom_symmetry = std::nullopt);
+		
 		static Coefficient parse_string(const std::string& expression);
 
-		inline bool usesIndex(const Index index) const noexcept {
+		inline bool uses_index(const Index index) const noexcept {
 			for (const auto& idx : indizes) {
 				if (idx == index) return true;
 			}
 			return false;
 		}
-		inline bool dependsOnMomentum() const noexcept {
+		inline bool depends_on_momentum() const noexcept {
 			if (this->momenta.empty()) return false;
 			return std::any_of(this->momenta.begin(), this->momenta.end(), [](const Momentum& momentum) {
 				return !momentum.momentum_list.empty();
 				});
 		};
-		inline bool dependsOn(char momentum) const noexcept {
+		inline bool depends_on(char momentum) const noexcept {
 			if (this->momenta.empty()) return false;
 			return std::any_of(this->momenta.begin(), this->momenta.end(), [momentum](const Momentum& mom) {
 				return mom.isUsed(momentum) != -1;
@@ -53,12 +60,22 @@ namespace mrock::symbolic_operators {
 		}
 		// This function determines whether the coefficient depends on something like k-l
 		// Currently, this only makes sense if the coefficient does not depend on
-		inline bool dependsOnTwoMomenta() const noexcept {
+		inline bool depends_on_two_momenta() const noexcept {
 			assert(momenta.size() == 1U);
 			return this->momenta.front().momentum_list.size() == 2U;
 		};
 
+		void invert_momentum(char what);
+
+		// Utilizes V(k, k', q) = V(k', k, -q)
+		void use_symmetric_interaction_exchange();
+		// Utilizes V(k, k', q) = V(-k, -k', -q)
+		void use_symmetric_interaction_inversion();
+
 		void remove_momentum_contribution(char value);
+
+		// If a function is stored in custom_symmetry, it is applied to this
+		void apply_custom_symmetry();
 	};
 
 	inline bool operator==(const Coefficient& lhs, const Coefficient& rhs) {

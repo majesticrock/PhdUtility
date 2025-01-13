@@ -15,7 +15,7 @@ namespace mrock::symbolic_operators
         void apply_to(WickTerm& term) const override;
     };
     // Expectation values for k and -k are the same
-    struct TranslationalSymmetry : public WickSymmetry {
+    struct InversionSymmetry : public WickSymmetry {
         void apply_to(WickTerm& term) const override;
     };
     // <operator^+> = <operator>

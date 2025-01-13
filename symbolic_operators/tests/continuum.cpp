@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
     // Applicable symmetries
     std::vector<std::unique_ptr<WickSymmetry>> symmetries;
     symmetries.push_back(std::make_unique<SpinSymmetry>());
-    symmetries.push_back(std::make_unique<TranslationalSymmetry>());
+    symmetries.push_back(std::make_unique<InversionSymmetry>());
     symmetries.push_back(std::make_unique<PhaseSymmetry<SC_Type>>());
 
     sym_op_test::SymOpTest tester(COMPARE_DIR);

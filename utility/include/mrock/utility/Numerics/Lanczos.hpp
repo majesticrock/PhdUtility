@@ -17,7 +17,7 @@ namespace mrock::utility::Numerics {
 		vector_T eigenValues;
 	public:
 		// Sets the starting state
-		inline void setStartingState(const vector_T& state) {
+		inline void set_starting_state(const vector_T& state) {
 			this->startingState = state;
 			this->startingState.normalize();
 		};
@@ -31,7 +31,7 @@ namespace mrock::utility::Numerics {
 			return eigenValues;
 		}
 
-		matrix_T pseudoInverse(const T epsilon = 10e-12) const {
+		matrix_T pseudo_inverse(const T epsilon = 10e-12) const {
 			Eigen::SelfAdjointEigenSolver<matrix_T> solver;
 			solver.computeFromTridiagonal(eigenDelta, eigenGamma);
 
@@ -50,7 +50,7 @@ namespace mrock::utility::Numerics {
 			return complete_trafo * evs.asDiagonal() * complete_trafo.adjoint();
 		}
 
-		matrix_T pseudoInverseSquareRoot(const T epsilon = 10e-12) const {
+		matrix_T pseudo_inverse_square_root(const T epsilon = 10e-12) const {
 			Eigen::SelfAdjointEigenSolver<matrix_T> solver;
 			solver.computeFromTridiagonal(eigenDelta, eigenGamma);
 

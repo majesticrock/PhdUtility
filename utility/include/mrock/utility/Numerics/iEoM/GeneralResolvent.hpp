@@ -40,7 +40,7 @@ namespace mrock::utility::Numerics::iEoM {
 					return true;
 				}
 			}
-			M = this->_internal.removeNoise(M);
+			M = this->_internal.remove_noise(M);
 			if (not matrix_wrapper<Matrix>::is_non_negative(M, this->_internal._sqrt_precision)) {
 				return true;
 			}
@@ -49,7 +49,7 @@ namespace mrock::utility::Numerics::iEoM {
 		};
 
 		template<int CheckHermitian = -1>
-		std::vector<ResolventDataWrapper<RealType>> computeCollectiveModes(unsigned int LANCZOS_ITERATION_NUMBER)
+		std::vector<ResolventDataWrapper<RealType>> compute_collective_modes(unsigned int LANCZOS_ITERATION_NUMBER)
 		{
 			using __matrix_wrapper__ = blocked_matrix_wrapper<NumberType>;
 			std::chrono::time_point begin = std::chrono::steady_clock::now();
@@ -58,8 +58,8 @@ namespace mrock::utility::Numerics::iEoM {
 			_derived->fillMatrices();
 			_derived->createStartingStates();
 
-			M = this->_internal.removeNoise(M);
-			N = this->_internal.removeNoise(N);
+			M = this->_internal.remove_noise(M);
+			N = this->_internal.remove_noise(N);
 
 			if constexpr (CheckHermitian > 0) {
 				if ((M - M.adjoint()).norm() > constexprPower<-CheckHermitian, RealType, RealType>(10.)) {
@@ -89,7 +89,7 @@ namespace mrock::utility::Numerics::iEoM {
 			begin = std::chrono::steady_clock::now();
 
 			__matrix_wrapper__ M_solver = __matrix_wrapper__::solve_block_diagonal_matrix(M_blocked); // , blocks
-			this->_internal.template applyMatrixOperation<IEOM_NONE>(M_solver.eigenvalues);
+			this->_internal.template apply_matrix_operation<IEOM_NONE>(M_solver.eigenvalues);
 
 			end = std::chrono::steady_clock::now();
 			std::cout << "Time for first solving: "
@@ -103,7 +103,7 @@ namespace mrock::utility::Numerics::iEoM {
 				* bufferMatrix.adjoint();
 
 			__matrix_wrapper__ norm_solver = __matrix_wrapper__::solve_block_diagonal_matrix(n_hacek); // , blocks
-			this->_internal.template applyMatrixOperation<IEOM_SQRT>(norm_solver.eigenvalues);
+			this->_internal.template apply_matrix_operation<IEOM_SQRT>(norm_solver.eigenvalues);
 
 			end = std::chrono::steady_clock::now();
 			std::cout << "Time for norm solving: "
@@ -145,9 +145,9 @@ namespace mrock::utility::Numerics::iEoM {
 				Vector a = N * (pivot.transpose() * starting_states[i]).eval();
 				Vector b = n_hacek * (pivot.transpose() * starting_states[i]).eval();
 
-				resolvents[3 * i].setStartingState(a);
-				resolvents[3 * i + 1].setStartingState(0.5 * (a + b));
-				resolvents[3 * i + 2].setStartingState(0.5 * (a + std::complex<RealType>{ 0, 1 } *b));
+				resolvents[3 * i].set_starting_state(a);
+				resolvents[3 * i + 1].set_starting_state(0.5 * (a + b));
+				resolvents[3 * i + 2].set_starting_state(0.5 * (a + std::complex<RealType>{ 0, 1 } *b));
 			}
 			//M = M_blocked.construct_matrix();
 #pragma omp parallel for
@@ -164,7 +164,7 @@ namespace mrock::utility::Numerics::iEoM {
 			ret.reserve(resolvents.size());
 			for (const auto& re : resolvents)
 			{
-				ret.push_back(re.getData());
+				ret.push_back(re.get_data());
 			}
 			return ret;
 		}

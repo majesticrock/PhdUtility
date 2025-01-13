@@ -37,14 +37,14 @@ namespace mrock::symbolic_operators {
 			}
 			return *this;
 		};
-		inline void multiplyMomentum(int factor) {
+		inline void multiply_by(int factor) {
 			(*this) *= factor;
 		};
-		inline void flipMomentum() {
+		inline void flip_momentum() {
 			(*this) *= -1;
 		};
 
-		void replaceOccurances(const char replaceWhat, const Momentum& replaceWith);
+		void replace_occurances(const char replaceWhat, const Momentum& replaceWith);
 		void remove_zeros();
 		void flip_single(char momentum);
 		inline void sort() {

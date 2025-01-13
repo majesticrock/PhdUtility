@@ -33,7 +33,7 @@ namespace mrock::symbolic_operators {
 	}
 	inline bool is_always_zero(const std::vector<KroneckerDelta<Momentum>>& deltas) {
 		return std::any_of(deltas.begin(), deltas.end(), [](const KroneckerDelta<Momentum>& delta) {
-			return delta.first.differsOnlyInQ(delta.second);
+			return delta.first.differs_only_in_Q(delta.second);
 			});
 	}
 	inline void remove_double_occurances(KroneckerDelta<Momentum>& delta) {

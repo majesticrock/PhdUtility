@@ -132,12 +132,12 @@ namespace mrock::symbolic_operators {
 				delta.second.add_Q = !(delta.second.add_Q);
 			}
 			if (delta.first.momentum_list.front().first < 0) {
-				delta.first.flipMomentum();
-				delta.second.flipMomentum();
+				delta.first.flip_momentum();
+				delta.second.flip_momentum();
 			}
 			if (delta.first.momentum_list.size() > 1U && delta.second.momentum_list.empty()) {
 				delta.second.momentum_list.push_back(delta.first.momentum_list[1]);
-				delta.second.flipMomentum();
+				delta.second.flip_momentum();
 				delta.first.momentum_list.erase(delta.first.momentum_list.begin() + 1);
 			}
 		}
@@ -169,10 +169,10 @@ namespace mrock::symbolic_operators {
 				else {
 					delta.first.momentum_list.push_back(delta.second.momentum_list.back());
 					if (delta.first.momentum_list.front().first > 0) {
-						delta.second.flipMomentum();
+						delta.second.flip_momentum();
 					}
 					else {
-						delta.first.flipMomentum();
+						delta.first.flip_momentum();
 					}
 					delta.second.momentum_list.pop_back();
 				}
@@ -205,17 +205,17 @@ namespace mrock::symbolic_operators {
 				if (!foundCandidate) index = 0;
 
 				if (delta.second.momentum_list[index].first > 0) {
-					delta.second.flipMomentum();
+					delta.second.flip_momentum();
 				}
 				delta.first.momentum_list.push_back(delta.second.momentum_list[index]);
-				delta.first.flipMomentum();
+				delta.first.flip_momentum();
 				if (abs(delta.first.momentum_list[0].first) != 1) std::cerr << "Not yet implemented! " << delta.first << std::endl;
 				delta.second.momentum_list.erase(delta.second.momentum_list.begin() + index);
 			}
 
 			if (delta.first.momentum_list.size() == 1 && delta.first.momentum_list[0].first < 0) {
-				delta.first.flipMomentum();
-				delta.second.flipMomentum();
+				delta.first.flip_momentum();
+				delta.second.flip_momentum();
 			}
 			if (delta.first.add_Q) {
 				delta.first.add_Q = false;
@@ -224,15 +224,15 @@ namespace mrock::symbolic_operators {
 
 			if (abs(delta.first.momentum_list[0].first) != 1) std::cerr << "Not yet implemented! " << delta.first << std::endl;
 			for (auto& op : operators) {
-				op.momentum.replaceOccurances(delta.first.momentum_list[0].second, delta.second);
+				op.momentum.replace_occurances(delta.first.momentum_list[0].second, delta.second);
 			}
 			for (auto& coeff : coefficients) {
-				coeff.momenta.replaceOccurances(delta.first.momentum_list[0].second, delta.second);
+				coeff.momenta.replace_occurances(delta.first.momentum_list[0].second, delta.second);
 			}
 			for (auto& delta2 : delta_momenta) {
 				if (delta2 == delta) continue;
-				delta2.first.replaceOccurances(delta.first.momentum_list[0].second, delta.second);
-				delta2.second.replaceOccurances(delta.first.momentum_list[0].second, delta.second);
+				delta2.first.replace_occurances(delta.first.momentum_list[0].second, delta.second);
+				delta2.second.replace_occurances(delta.first.momentum_list[0].second, delta.second);
 			}
 		}
 		for (auto& delta : delta_indizes) {
@@ -267,8 +267,8 @@ namespace mrock::symbolic_operators {
 				}
 
 				auto delta_buffer = delta_momenta[j];
-				delta_buffer.first.flipMomentum();
-				delta_buffer.second.flipMomentum();
+				delta_buffer.first.flip_momentum();
+				delta_buffer.second.flip_momentum();
 				if (delta_momenta[i] == delta_buffer) {
 					delta_momenta.erase(delta_momenta.begin() + j);
 					--i;
@@ -347,14 +347,14 @@ namespace mrock::symbolic_operators {
 
 		auto changeAllMomenta = [&](const char replaceWhat, const Momentum replaceWith) {
 			for (auto& op : operators) {
-				op.momentum.replaceOccurances(replaceWhat, replaceWith);
+				op.momentum.replace_occurances(replaceWhat, replaceWith);
 			}
 			for (auto& coeff : coefficients) {
-				coeff.momenta.replaceOccurances(replaceWhat, replaceWith);
+				coeff.momenta.replace_occurances(replaceWhat, replaceWith);
 			}
 			for (auto it = delta_momenta.begin(); it != delta_momenta.end();) {
-				it->first.replaceOccurances(replaceWhat, replaceWith);
-				it->second.replaceOccurances(replaceWhat, replaceWith);
+				it->first.replace_occurances(replaceWhat, replaceWith);
+				it->second.replace_occurances(replaceWhat, replaceWith);
 				++it;
 			}
 			};
@@ -383,7 +383,7 @@ namespace mrock::symbolic_operators {
 					delta_momenta[j].second -= delta_momenta[j].first;
 
 					if (buffer.momentum_list[0].first > 0) {
-						delta_momenta[j].second.flipMomentum();
+						delta_momenta[j].second.flip_momentum();
 					}
 					changeAllMomenta(sums.momenta[i], delta_momenta[j].second);
 
@@ -398,7 +398,7 @@ namespace mrock::symbolic_operators {
 		return true;
 	}
 
-	void WickTerm::discardZeroMomenta()
+	void WickTerm::discard_zero_momenta()
 	{
 		for (auto& op : operators) {
 			op.momentum.remove_zeros();
@@ -420,10 +420,10 @@ namespace mrock::symbolic_operators {
 			if (sums.momenta[i] == name_list[i]) continue;
 
 			for (auto& op : operators) {
-				op.momentum.replaceOccurances(sums.momenta[i], Momentum(buffer_list[i]));
+				op.momentum.replace_occurances(sums.momenta[i], Momentum(buffer_list[i]));
 			}
 			for (auto& coeff : coefficients) {
-				coeff.momenta.replaceOccurances(sums.momenta[i], Momentum(buffer_list[i]));
+				coeff.momenta.replace_occurances(sums.momenta[i], Momentum(buffer_list[i]));
 			}
 			sums.momenta[i] = name_list[i];
 		}
@@ -431,10 +431,10 @@ namespace mrock::symbolic_operators {
 		for (int i = 0; i < sums.momenta.size(); i++)
 		{
 			for (auto& op : operators) {
-				op.momentum.replaceOccurances(buffer_list[i], Momentum(name_list[i]));
+				op.momentum.replace_occurances(buffer_list[i], Momentum(name_list[i]));
 			}
 			for (auto& coeff : coefficients) {
-				coeff.momenta.replaceOccurances(buffer_list[i], Momentum(name_list[i]));
+				coeff.momenta.replace_occurances(buffer_list[i], Momentum(name_list[i]));
 			}
 		}
 
@@ -446,21 +446,21 @@ namespace mrock::symbolic_operators {
 				if (op.momentum.momentum_list.size() == 1) break;
 
 				Momentum buffer = op.momentum;
-				if (buffer.momentum_list[index].first > 0) buffer.flipMomentum();
+				if (buffer.momentum_list[index].first > 0) buffer.flip_momentum();
 				buffer.momentum_list[index].first *= -1;
 				buffer.momentum_list[index].second = buffer_list[0];
 
 				for (auto& op2 : operators) {
-					op2.momentum.replaceOccurances(sum, buffer);
-					op2.momentum.replaceOccurances(buffer_list[0], Momentum(sum));
+					op2.momentum.replace_occurances(sum, buffer);
+					op2.momentum.replace_occurances(buffer_list[0], Momentum(sum));
 				}
 				for (auto& coeff : coefficients) {
-					coeff.momenta.replaceOccurances(sum, buffer);
-					coeff.momenta.replaceOccurances(buffer_list[0], Momentum(sum));
+					coeff.momenta.replace_occurances(sum, buffer);
+					coeff.momenta.replace_occurances(buffer_list[0], Momentum(sum));
 				}
 			}
 		}
-		discardZeroMomenta();
+		discard_zero_momenta();
 
 		if(sums.spins.size() == 1U && sums.spins.front() == Index::SigmaPrime) {
 			for (auto& coeff : coefficients) {
@@ -490,8 +490,8 @@ namespace mrock::symbolic_operators {
 				if (delta.first.momentum_list[0].second < delta.second.momentum_list[0].second) {
 					std::swap(delta.first, delta.second);
 					if (delta.first.momentum_list[0].first < 0) {
-						delta.first.flipMomentum();
-						delta.second.flipMomentum();
+						delta.first.flip_momentum();
+						delta.second.flip_momentum();
 					}
 					if (delta.first.add_Q) {
 						delta.first.add_Q = false;
@@ -499,10 +499,10 @@ namespace mrock::symbolic_operators {
 					}
 				}
 				for (auto& op : operators) {
-					op.momentum.replaceOccurances(delta.first.momentum_list[0].second, delta.second);
+					op.momentum.replace_occurances(delta.first.momentum_list[0].second, delta.second);
 				}
 				for (auto& coeff : coefficients) {
-					coeff.momenta.replaceOccurances(delta.first.momentum_list[0].second, delta.second);
+					coeff.momenta.replace_occurances(delta.first.momentum_list[0].second, delta.second);
 				}
 			}
 		}
@@ -533,9 +533,9 @@ namespace mrock::symbolic_operators {
 			for (auto& momentum : coeff.momenta) {
 				momentum.sort();
 
-				if (coeff.translational_invariance && !momentum.momentum_list.empty()) {
+				if (coeff.inversion_symmetry && !momentum.momentum_list.empty()) {
 					if (momentum.momentum_list[0].first < 0) {
-						momentum.flipMomentum();
+						momentum.flip_momentum();
 					}
 				}
 				if (coeff.Q_changes_sign && momentum.add_Q) {
@@ -546,30 +546,66 @@ namespace mrock::symbolic_operators {
 		}
 
 		for (auto& coeff : coefficients) {
+			if (coeff.momenta.size() == 3U) {
+				Momentum* first_momentum = &coeff.momenta.front();
+				if (first_momentum != nullptr && first_momentum->empty()) {
+					if (coeff.momenta.size() > 1U) first_momentum = &coeff.momenta[1];
+				}
+				if ((first_momentum != nullptr) && (!first_momentum->empty())) {
+					if (!first_momentum->first_momentum_is('k')) {
+						coeff.use_symmetric_interaction_exchange();
+					}
+					if (sums.momenta.empty()) {
+						if (coeff.momenta.back().first_momentum_is_negative()) {
+							coeff.use_symmetric_interaction_inversion();
+						}
+					}
+					else if ((!sums.momenta.is_summed_over(first_momentum->front().second)) && first_momentum->first_momentum_is_negative()) {
+						coeff.use_symmetric_interaction_inversion();
+					}
+				}
+			}
+			
 			for (auto& momentum : coeff.momenta) {
+				if (momentum.empty()) continue;
+				if ((!sums.momenta.is_summed_over(momentum.front().second)) && momentum.front().first < 0) {
+					if (coeff.inversion_symmetry) momentum.flip_momentum();
+				}
+
 				for (const auto& sum : sums.momenta) {
 					int idx = momentum.isUsed(sum);
 					if (idx < 0) continue;
 
 					if (momentum.momentum_list[idx].first < 0) {
-						for (auto& op : operators) {
-							op.momentum.flip_single(sum);
-						}
-						for (auto& coeff2 : coefficients) {
-							coeff2.momenta.flip_single(sum);
-						}
+						invert_momentum_sum(sum);
 					}
 				}
 			}
 		}
 	}
 
-	void WickTerm::includeTemplateResult(const TemplateResult::SingleResult& result) {
+	void WickTerm::include_template_result(const TemplateResult::SingleResult& result) {
 		this->delta_indizes.insert(this->delta_indizes.begin(), result.index_deltas.begin(), result.index_deltas.end());
 		this->operators.push_back(result.op);
 		this->multiplicity *= result.factor;
 	}
 	
+	void WickTerm::invert_momentum(char what) {
+		for (auto& coeff : coefficients) {
+			coeff.invert_momentum(what);
+		}
+		for (auto& op : operators) {
+			op.momentum.flip_single(what);
+		}
+	}
+
+	void WickTerm::invert_momentum_sum(char what) {
+		if (std::find(sums.momenta.begin(), sums.momenta.end(), what) == sums.momenta.end()) {
+			throw std::invalid_argument("You are trying to perform a sum transformation on a momentum that is not being summed over!");
+		}
+		invert_momentum(what);
+	}
+
 	// Operator overloads
 	std::ostream& operator<<(std::ostream& os, const WickTerm& term)
 	{
@@ -585,7 +621,7 @@ namespace mrock::symbolic_operators {
 		for (const auto& delta : term.delta_indizes) {
 			os << "\\delta_{" << delta.first << ", " << delta.second << "} ";
 		}
-		if (term.isIdentity()) {
+		if (term.is_identity()) {
 			os << " \\mathbb{1} ";
 			return os;
 		}

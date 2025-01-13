@@ -1,0 +1,10 @@
+include_guard()
+
+function(mrock_message MSG)
+    if(NOT WIN32)
+        string(ASCII 27 Esc)
+        set(BoldCyan "${Esc}[1;36m")
+        set(ColourReset "${Esc}[m")
+    endif()
+    message("${BoldCyan}${MSG}${ColourReset}")
+endfunction()

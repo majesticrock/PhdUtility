@@ -17,7 +17,7 @@ namespace mrock::utility::Numerics
 			return from.dot(to) * to;
 		};
 	public:
-		static vector_t& orthogonalizeSingleVector(vector_t& vector, const std::vector<vector_t>& basis) {
+		static vector_t& orthogonalize_single_vector(vector_t& vector, const std::vector<vector_t>& basis) {
 			for (size_t j = 0U; j < basis.size(); ++j)
 			{
 				vector -= projection(vector, basis[j]);

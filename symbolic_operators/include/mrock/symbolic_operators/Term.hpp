@@ -63,7 +63,7 @@ namespace mrock::symbolic_operators {
 			const std::vector<Operator>& _operators = std::vector<Operator>());
 		Term() = default;
 
-		inline bool isIdentity() const {
+		inline bool is_identity() const {
 			return this->operators.empty();
 		}
 		inline bool contains_boson() const {
@@ -97,7 +97,7 @@ namespace mrock::symbolic_operators {
 
 		bool setDeltas();
 		bool computeSums();
-		void discardZeroMomenta();
+		void discard_zero_momenta();
 		void sort();
 		// Unifies the sum indizes
 		void renameSums();
@@ -115,12 +115,12 @@ namespace mrock::symbolic_operators {
 
 		bool is_normal_ordered() const;
 
-		std::string toStringWithoutPrefactor() const;
+		std::string to_string_without_prefactor() const;
 
-		inline void hermitianConjugate() {
+		inline void hermitian_conjugate() {
 			std::reverse(this->operators.begin(), this->operators.end());
 			for (auto& op : this->operators) {
-				op.hermitianConjugate();
+				op.hermitian_conjugate();
 			}
 		}
 
@@ -140,7 +140,7 @@ namespace mrock::symbolic_operators {
 		void invert_momentum_sum(char what);
 		void remove_momentum_contribution(char value);
 
-		friend void normalOrder(std::vector<Term>& terms);
+		friend void normal_order(std::vector<Term>& terms);
 		friend void commutator(std::vector<Term>& reciever, const Term& left, const Term& right);
 		friend std::ostream& operator<<(std::ostream& os, const Term& term);
 	};
@@ -167,10 +167,10 @@ namespace mrock::symbolic_operators {
 	std::ostream& operator<<(std::ostream& os, const std::vector<Term>& terms);
 
 	void clear_duplicates(std::vector<Term>& terms);
-	void cleanUp(std::vector<Term>& terms);
-	inline void hermitianConjugate(std::vector<Term>& terms) {
+	void clean_up(std::vector<Term>& terms);
+	inline void hermitian_conjugate(std::vector<Term>& terms) {
 		for (auto& t : terms) {
-			t.hermitianConjugate();
+			t.hermitian_conjugate();
 		}
 	};
 	inline void rename_momenta(std::vector<Term>& terms, char what, char to) {
@@ -178,7 +178,7 @@ namespace mrock::symbolic_operators {
 			t.rename_momenta(what, to);
 		}
 	};
-	inline std::string toStringWithoutPrefactor(const std::vector<Term>& terms) {
+	inline std::string to_string_without_prefactor(const std::vector<Term>& terms) {
 		std::string ret = "";
 		for (size_t i = 0; i < terms.size(); i++)
 		{
@@ -188,7 +188,7 @@ namespace mrock::symbolic_operators {
 			else if (i > 0) {
 				ret += "+";
 			}
-			ret += terms[i].toStringWithoutPrefactor();
+			ret += terms[i].to_string_without_prefactor();
 		}
 		return ret;
 	}

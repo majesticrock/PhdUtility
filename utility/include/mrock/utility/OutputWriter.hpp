@@ -44,7 +44,7 @@ namespace mrock::utility {
 
 	// Checks whether the vector data contains any NaNs. Only defines if data_type is float, double or long double
 	template <typename vector_type, typename data_type = typename vector_type::value_type>
-	inline bool checkDataForNaN(const vector_type& data) {
+	inline bool check_data_for_NaN(const vector_type& data) {
 		static_assert(std::is_floating_point_v<data_type>);
 		for (const auto& value : data) {
 			if (std::isnan(value)) {
@@ -58,7 +58,7 @@ namespace mrock::utility {
 	// Writes the current time stamp and comments to the file
 	// If the latter is not provided only the time stamp is written
 	template <typename outstream_type>
-	void writeComments(outstream_type& out, const std::vector<std::string>& comments = std::vector<std::string>())
+	void write_comments(outstream_type& out, const std::vector<std::string>& comments = std::vector<std::string>())
 	{
 		out << "# " << time_stamp() << "\n#\n";
 		for (const auto& comment : comments) {
@@ -72,10 +72,10 @@ namespace mrock::utility {
 	class OutputWriter {
 	public:
 		// Appends a line consisting of <data> to <out>
-		void appendLine(const vector_type& data, outstream_type& out) const
+		void append_line(const vector_type& data, outstream_type& out) const
 		{
 			if constexpr (std::is_floating_point_v<data_type>) {
-				checkDataForNaN(data);
+				check_data_for_NaN(data);
 			}
 			for (size_t i = 0U; i < data.size(); ++i)
 			{
@@ -87,13 +87,13 @@ namespace mrock::utility {
 			out << "\n";
 		}
 
-		void saveData(const vector_type& data, outstream_type& out,
+		void save_data(const vector_type& data, outstream_type& out,
 			const std::vector<std::string>& comments = std::vector<std::string>()) const
 		{
 			if constexpr (std::is_floating_point_v<data_type>) {
-				checkDataForNaN(data);
+				check_data_for_NaN(data);
 			}
-			writeComments(out, comments);
+			write_comments(out, comments);
 			out << std::scientific << std::setprecision(10);
 			for (const auto& dat : data) {
 				out << dat << "\n";
@@ -101,13 +101,13 @@ namespace mrock::utility {
 		};
 
 		template<typename Allocator>
-		void saveData(const std::vector<vector_type, Allocator>& data, outstream_type& out,
+		void save_data(const std::vector<vector_type, Allocator>& data, outstream_type& out,
 			const std::vector<std::string>& comments = std::vector<std::string>()) const
 		{
-			writeComments(out, comments);
+			write_comments(out, comments);
 			out << std::scientific << std::setprecision(10);
 			for (const auto& data_line : data) {
-				appendLine(data_line, out);
+				append_line(data_line, out);
 			}
 		};
 	};

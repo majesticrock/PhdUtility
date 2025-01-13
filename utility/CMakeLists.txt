@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(mrock_utility LANGUAGES CXX VERSION 1.0.0)
+if(NOT MROCK_VERSION)
+    if(TARGET mrock)
+        message(WARNING "MROCK_VERSION not set!")
+    endif()
+    set(MROCK_VERSION 0.0.0)
+endif()
+project(mrock_utility VERSION ${MROCK_VERSION} LANGUAGES CXX)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 

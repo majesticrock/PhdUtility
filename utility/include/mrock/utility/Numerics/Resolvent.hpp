@@ -39,13 +39,13 @@ namespace mrock::utility::Numerics {
 		};
 		// Prints the computed data to <filename>
 		// Asummes that the data has been computed before...
-		void writeDataToFile(const std::string& filename, const std::vector<std::string>& comments = {}) const
+		void write_data_to_file(const std::string& filename, const std::vector<std::string>& comments = {}) const
 		{
 			for (const auto& res_data : lanczos) {
-				if (checkDataForNaN(res_data.a_i)) std::cerr << "Resolvent a_i" << std::endl;
-				if (checkDataForNaN(res_data.b_i)) std::cerr << "Resolvent b_i" << std::endl;
+				if (check_data_for_NaN(res_data.a_i)) std::cerr << "Resolvent a_i" << std::endl;
+				if (check_data_for_NaN(res_data.b_i)) std::cerr << "Resolvent b_i" << std::endl;
 			}
-			saveData(lanczos, filename + ".dat.gz");
+			save_data(lanczos, filename + ".dat.gz");
 		};
 	};
 
@@ -86,7 +86,7 @@ namespace mrock::utility::Numerics {
 		EigenVectorType startingState;
 		ResolventDataWrapper<RealType> data;
 		// Sets the starting state
-		inline void setStartingState(const EigenVectorType& state) {
+		inline void set_starting_state(const EigenVectorType& state) {
 			this->startingState = state;
 		};
 		const EigenVectorType& getStartingState() const {
@@ -235,7 +235,7 @@ namespace mrock::utility::Numerics {
 		};
 
 		// Computes the resolvent directly from M and N. This might be more stable for complex matrices
-		void computeFromNM(const EigenMatrixType& toSolve, const EigenMatrixType& symplectic, const EigenMatrixType& N, int maxIter)
+		void compute_from_N_M(const EigenMatrixType& toSolve, const EigenMatrixType& symplectic, const EigenMatrixType& N, int maxIter)
 		{
 			auto matrix_size = toSolve.rows();
 
@@ -307,7 +307,7 @@ namespace mrock::utility::Numerics {
 
 		// Computes the resolvent for a Hermitian problem (i.e. the symplectic EigenMatrixType is the identity)
 		// Additionally, this function orthogonalizes the Krylov basis each step
-		void computeWithReorthogonalization(const EigenMatrixType& toSolve, int maxIter)
+		void compute_with_reorthogonalization(const EigenMatrixType& toSolve, int maxIter)
 		{
 			const size_t matrix_size = toSolve.rows();
 
@@ -347,7 +347,7 @@ namespace mrock::utility::Numerics {
 				else {
 					currentSolution = buffer - (deltas.back() * basis_vectors.back());
 				}
-				GramSchmidt<typename EigenVectorType::Scalar>::orthogonalizeSingleVector(currentSolution, basis_vectors);
+				GramSchmidt<typename EigenVectorType::Scalar>::orthogonalize_single_vector(currentSolution, basis_vectors);
 				gammas.push_back(currentSolution.norm());
 				basis_vectors.push_back(currentSolution / gammas.back());
 				++iterNum;
@@ -373,15 +373,15 @@ namespace mrock::utility::Numerics {
 			data.push_back(std::move(res));
 		};
 
-		const ResolventDataWrapper<RealType>& getData() const {
+		const ResolventDataWrapper<RealType>& get_data() const {
 			return data;
 		};
 
 		// Prints the computed data to <filename>
 		// Asummes that the data has been computed before...
-		void writeDataToFile(const std::string& filename) const
+		void write_data_to_file(const std::string& filename) const
 		{
-			data.writeDataToFile(filename);
+			data.write_data_to_file(filename);
 		};
 	};
 

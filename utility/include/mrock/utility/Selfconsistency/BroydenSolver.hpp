@@ -17,10 +17,10 @@ namespace mrock::utility::Selfconsistency {
 		virtual const SelfconsistencyAttributes& compute(bool print_time=false, const unsigned int MAX_STEPS = 400)
 		{
             std::chrono::time_point begin = std::chrono::steady_clock::now();
-			this->_parent::procedureIterative(_MaxPreBroydenIterations);
+			this->_parent::procedure_iterative(_MaxPreBroydenIterations);
 
 			std::function<void(const ParameterVector&, ParameterVector&)> func = [&](const ParameterVector& x, ParameterVector& F) {
-                this->_model->iterationStep(x, F);
+                this->_model->iteration_step(x, F);
 			};
 
 			ParameterVector x0{ ParameterVector::Zero(this->NUMBER_OF_PARAMETERS) };
@@ -38,7 +38,7 @@ namespace mrock::utility::Selfconsistency {
 
 			if (debugPolicy.printSteps) {
 				ParameterVector f0{ ParameterVector::Zero(this->NUMBER_OF_PARAMETERS) };
-				this->_model->iterationStep(x0, f0);
+				this->_model->iteration_step(x0, f0);
 				std::cout << this->_model->info() << "\n";
 				std::cout << "x0 = (";
 				for (const auto& x : x0)
@@ -58,7 +58,7 @@ namespace mrock::utility::Selfconsistency {
 				std::cout << "Time for self-consistency computations: "
 					<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
                 ParameterVector f0{ ParameterVector::Zero(this->NUMBER_OF_PARAMETERS) };
-				this->_model->iterationStep(x0, f0);
+				this->_model->iteration_step(x0, f0);
 				std::cout << "Convergence achieved up to |f0| = " << std::scientific << std::setprecision(8) << f0.norm() << std::endl;
 			}
 

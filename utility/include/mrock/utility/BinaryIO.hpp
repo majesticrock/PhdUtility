@@ -3,15 +3,15 @@
 #include <vector>
 
 namespace mrock::utility::BinaryIO {
-	inline std::ifstream createReader(const std::string& filename) {
+	inline std::ifstream create_reader(const std::string& filename) {
 		return std::ifstream(filename, std::ios::out | std::ios::binary);
 	};
-	inline std::ofstream createWriter(const std::string& filename) {
+	inline std::ofstream create_writer(const std::string& filename) {
 		return std::ofstream(filename, std::ios::out | std::ios::binary);
 	};
 
 	template<class T>
-	inline T& readToVariable(T& destination, std::ifstream& reader) {
+	inline T& read_to_variable(T& destination, std::ifstream& reader) {
 		reader.read((char*)&destination, sizeof(T));
 		return destination;
 	};
@@ -24,7 +24,7 @@ namespace mrock::utility::BinaryIO {
 	inline std::vector<T>& readToVector(std::vector<T>& destination, std::ifstream& reader) {
 		for (auto& value : destination)
 		{
-			readToVariable(value, reader);
+			read_to_variable(value, reader);
 		}
 		return destination;
 	};
@@ -37,20 +37,20 @@ namespace mrock::utility::BinaryIO {
 
 	template<class T>
 	std::ifstream readSerializedVector(std::vector<T>& destination, const std::string& filename) {
-		auto reader = createReader(filename);
+		auto reader = create_reader(filename);
 		if (!reader) {
 			std::cerr << "Could not open file stream in readSerializedVector - " << filename << std::endl;
 			return reader;
 		}
 		size_t vector_size;
-		readToVariable(vector_size, reader);
+		read_to_variable(vector_size, reader);
 		destination.resize(vector_size);
 		readToVector(destination, reader);
 		return reader;
 	};
 	template<class T>
 	std::ofstream serializeVector(const std::vector<T>& source, const std::string& filename) {
-		auto writer = createWriter(filename);
+		auto writer = create_writer(filename);
 		if (!writer) {
 			std::cerr << "Could not open file stream in serializeVector - " << filename << std::endl;
 			return writer;

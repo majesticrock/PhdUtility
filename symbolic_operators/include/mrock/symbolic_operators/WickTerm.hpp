@@ -40,45 +40,45 @@ namespace mrock::symbolic_operators {
 
 		explicit WickTerm(const std::string& expression);
 
-		inline bool includesType(const OperatorType operator_type) const {
+		inline bool includes_type(const OperatorType operator_type) const {
 			return std::any_of(this->operators.begin(), this->operators.end(),
 				[operator_type](const WickOperator& op) { return op.type == operator_type; });
 		};
-		inline bool hasSingleCoefficient() const noexcept {
+		inline bool has_single_coefficient() const noexcept {
 			return this->coefficients.size() == 1U;
 		};
-		inline bool usesIndex(const Index index) const noexcept {
+		inline bool uses_index(const Index index) const noexcept {
 			for (const auto& op : operators) {
-				if (op.usesIndex(index)) return true;
+				if (op.uses_index(index)) return true;
 			}
 			for (const auto& coeff : coefficients) {
-				if (coeff.usesIndex(index)) return true;
+				if (coeff.uses_index(index)) return true;
 			}
 			return false;
 		}
-		inline bool isIdentity() const noexcept {
+		inline bool is_identity() const noexcept {
 			return this->operators.empty();
 		}
-		inline bool isBilinear() const noexcept {
+		inline bool is_bilinear() const noexcept {
 			return this->operators.size() == 1U;
 		};
-		inline bool isQuartic() const noexcept {
+		inline bool is_quartic() const noexcept {
 			return this->operators.size() == 2U;
 		}
 		// Returns this->multiplicity, but always as a double
-		inline double getFactor() const noexcept {
+		inline double get_factor() const noexcept {
 			return static_cast<double>(this->multiplicity);
 		}
 		// Returns the position of the first operator that depends on 'momentum'
 		// Returns -1 if no operators depend on 'momentum'.
-		inline int whichOperatorDependsOn(char momentum) const noexcept {
+		inline int which_operator_depends_on(char momentum) const noexcept {
 			for (int i = 0U; i < operators.size(); ++i)
 			{
-				if (operators[i].dependsOn(momentum)) return i;
+				if (operators[i].depends_on(momentum)) return i;
 			}
 			return -1;
 		}
-		inline const Coefficient& getFirstCoefficient() const {
+		inline const Coefficient& get_first_coefficient() const {
 			assert(!(this->coefficients.empty()));
 			return this->coefficients.front();
 		};
@@ -95,10 +95,15 @@ namespace mrock::symbolic_operators {
 		// May call setDeltas. If setDeltas returns false this functions also returns false
 		// In all other cases it returns true
 		bool computeSums();
-		void discardZeroMomenta();
+		void discard_zero_momenta();
 		void renameSums();
 		void sort();
-		void includeTemplateResult(const TemplateResult::SingleResult& result);
+		void include_template_result(const TemplateResult::SingleResult& result);
+
+		// Inverts a momenta, e.g., q -> -q
+		void invert_momentum(char what);
+		// Same as invert_momentum, but performs a check, whether 'what' is actually being summed over
+		void invert_momentum_sum(char what);
 
 		inline void remove_momentum_contribution(char value) {
 			for (auto& coeff : coefficients) {

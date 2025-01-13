@@ -35,7 +35,7 @@ namespace mrock::utility::Numerics::iEoM {
 			: _sqrt_precision(sqrt_precision), _precision(sqrt_precision* sqrt_precision), _negative_matrix_is_error(negative_matrix_is_error) {};
 
 		template <class EigenMatrixType>
-		inline EigenMatrixType removeNoise(EigenMatrixType const& matrix) const {
+		inline EigenMatrixType remove_noise(EigenMatrixType const& matrix) const {
 			return matrix.unaryExpr([this](typename EigenMatrixType::Scalar const& val) {
 				return (abs(val) < this->_precision ? typename EigenMatrixType::Scalar{} : val);
 				});
@@ -52,7 +52,7 @@ namespace mrock::utility::Numerics::iEoM {
 		* 3: Compute the pseudoinverse square root
 		*/
 		template<ieom_operation option, bool pseudo_inverse = true>
-		inline void applyMatrixOperation(RealVector& evs, const std::string& name = "M") const {
+		inline void apply_matrix_operation(RealVector& evs, const std::string& name = "M") const {
 			if (contains_negative(evs)) {
 				if (_negative_matrix_is_error) {
 					throw MatrixIsNegativeException<RealType>(evs.minCoeff(), name);

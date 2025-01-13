@@ -94,7 +94,7 @@ namespace mrock::symbolic_operators {
 
 		// Returns the corresponding WickOperator if construction is possible
 		// Otherwise, it returns an empty optional
-		TemplateResult createFromOperators(const Operator& left, const Operator& right) const;
+		TemplateResult create_from_operators(const Operator& left, const Operator& right) const;
 
 	private:
 		TemplateResult _handle_sc_type(const Operator& left, const Operator& right) const;

@@ -24,13 +24,13 @@ namespace mrock::symbolic_operators {
 		WickOperator();
 		WickOperator(const std::string& expression);
 
-		inline bool usesIndex(const Index index) const noexcept {
+		inline bool uses_index(const Index index) const noexcept {
 			for (const auto& idx : this->indizes) {
 				if (idx == index) return true;
 			}
 			return false;
 		};
-		inline bool dependsOn(char momentum) const noexcept {
+		inline bool depends_on(char momentum) const noexcept {
 			return this->momentum.isUsed(momentum) != -1;
 		}
 		inline void remove_momentum_contribution(char value) {

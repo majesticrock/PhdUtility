@@ -91,7 +91,7 @@ namespace mrock::symbolic_operators {
 		return result;
 	}
 
-	TemplateResult WickOperatorTemplate::createFromOperators(const Operator& left, const Operator& right) const {
+	TemplateResult WickOperatorTemplate::create_from_operators(const Operator& left, const Operator& right) const {
 		assert(left.is_fermion && right.is_fermion);
 		if (this->is_sc_type) {
 			if (left.is_daggered != right.is_daggered)

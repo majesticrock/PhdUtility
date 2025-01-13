@@ -34,3 +34,6 @@ configure_file(
     ${INFO_HEADER}
     @ONLY
 )
+
+include(${CMAKE_CURRENT_LIST_DIR}/mrock-message.cmake)
+mrock_message("Generated metadata header file.")

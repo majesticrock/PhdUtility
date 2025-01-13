@@ -31,7 +31,7 @@ namespace mrock::symbolic_operators {
 			return Operator(_momentum, IndexWrapper{}, _is_daggered, false);
 		}
 
-		inline void hermitianConjugate() {
+		inline void hermitian_conjugate() {
 			this->is_daggered = !(this->is_daggered);
 		};
 		inline Operator with_momentum(Momentum const& new_momentum) const {

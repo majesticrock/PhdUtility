@@ -12,11 +12,11 @@ namespace mrock::symbolic_operators{
         }
     }
 
-    void TranslationalSymmetry::apply_to(WickTerm& term) const
+    void InversionSymmetry::apply_to(WickTerm& term) const
     {
         for (auto& op : term.operators) {
             if (!op.momentum.momentum_list.empty() && op.momentum.momentum_list[0].first < 0) {
-                op.momentum.flipMomentum();
+                op.momentum.flip_momentum();
             }
         }
     }

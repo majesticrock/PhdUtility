@@ -48,7 +48,7 @@ namespace mrock::utility::Selfconsistency {
 		const RealType _precision{ PRECISION<RealType> };
 		const unsigned int NUMBER_OF_PARAMETERS{};
 
-		inline bool hasSignFlippingBehaviour(const ParameterVector& x0) {
+		inline bool has_sign_flipping_behaviour(const ParameterVector& x0) {
 			for (unsigned int j = 0U; j < this->NUMBER_OF_PARAMETERS; ++j)
 			{
 				if (abs(x0[j]) > 1e1 * _precision) {
@@ -60,7 +60,7 @@ namespace mrock::utility::Selfconsistency {
 			return false;
 		};
 
-		ConvergenceInfo<RealType> procedureIterative(const unsigned int MAX_STEPS)
+		ConvergenceInfo<RealType> procedure_iterative(const unsigned int MAX_STEPS)
 		{
 			ConvergenceInfo<RealType> convergence;
 
@@ -74,8 +74,8 @@ namespace mrock::utility::Selfconsistency {
 
 			unsigned int iterNum = 0U;
 			while (iterNum < MAX_STEPS && convergence.error > _precision) {
-				this->_model->iterationStep(x0, f0);
-				if (hasSignFlippingBehaviour(x0)) {
+				this->_model->iteration_step(x0, f0);
+				if (has_sign_flipping_behaviour(x0)) {
 					if constexpr (debugPolicy.convergenceWarning) {
 						std::cerr << "Sign flipper for " << this->_model->info() << std::endl;
 					}
@@ -104,7 +104,7 @@ namespace mrock::utility::Selfconsistency {
 		{
 			std::chrono::time_point begin = std::chrono::steady_clock::now();
 			this->_attr->converged = true;
-			auto _info = this->procedureIterative(MAX_STEPS);
+			auto _info = this->procedure_iterative(MAX_STEPS);
 			if (!_info) {
 				if constexpr (debugPolicy.convergenceWarning) {
 					std::cerr << "For " << this->_model->info() << ": " << _info << std::endl;

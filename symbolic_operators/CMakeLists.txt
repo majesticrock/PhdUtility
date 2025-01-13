@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(mrock_symbolic_operators VERSION 1.0.0 LANGUAGES CXX)
+if(NOT MROCK_VERSION)
+    if(TARGET mrock)
+        message(WARNING "MROCK_VERSION not set!")
+    endif()
+    set(MROCK_VERSION 0.0.0)
+endif()
+project(mrock_symbolic_operators VERSION ${MROCK_VERSION} LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
@@ -22,17 +28,13 @@ add_library(mrock_symbolic_operators STATIC
 add_library(mrock::symbolic_operators ALIAS mrock_symbolic_operators)
 
 # Compiler flags
-if(NOT WIN32)
-    string(ASCII 27 Esc)
-    set(BoldCyan "${Esc}[1;36m")
-    set(ColourReset "${Esc}[m")
-endif()
+include(${CMAKE_CURRENT_LIST_DIR}/../cmake/mrock-message.cmake)
 if(CLUSTER_BUILD)
     include(${CMAKE_CURRENT_LIST_DIR}/cmake/ClusterCompilerFlags.cmake)
-    message("${BoldCyan}Building for cascadelake!${ColourReset}")
+    mrock_message("Building for cascadelake!")
 else()
     include(${CMAKE_CURRENT_LIST_DIR}/cmake/DefaultCompilerFlags.cmake)
-    message("${BoldCyan}Building for the local machine!${ColourReset}")
+    mrock_message("Building for the local machine!")
 endif()
 SET_COMPILER_FLAGS(mrock_symbolic_operators)
 

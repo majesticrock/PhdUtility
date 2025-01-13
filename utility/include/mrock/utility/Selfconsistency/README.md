@@ -1,7 +1,7 @@
 # Prerequisites
 
 ## Some model class
-void iterationStep(const Eigen::Vector& input, const Eigen::Vector& error)
+void iteration_step(const Eigen::Vector& input, const Eigen::Vector& error)
 where error = input - new_delta
 
 std::string info() const

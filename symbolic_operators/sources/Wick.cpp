@@ -50,7 +50,7 @@ namespace mrock::symbolic_operators {
 
 		prepared_wick.reserve(estimated_size);
 		for (const auto& term : terms) {
-			if (term.isIdentity()) {
+			if (term.is_identity()) {
 				prepared_wick.push_back(WickTerm(term));
 			}
 			else {
@@ -71,7 +71,7 @@ namespace mrock::symbolic_operators {
 		{
 			std::vector<TemplateResult> template_results;
 			for (const auto& operator_template : operator_templates) {
-				auto template_result = operator_template.createFromOperators(source.temporary_operators[i], source.temporary_operators[i + 1U]);
+				auto template_result = operator_template.create_from_operators(source.temporary_operators[i], source.temporary_operators[i + 1U]);
 				if (template_result)
 					template_results.push_back(std::move(template_result));
 			}
@@ -90,7 +90,7 @@ namespace mrock::symbolic_operators {
 				old_it = template_result_it;
 				for (const auto& tr_result : tr.results) {
 					for (auto it = ret.begin(); it != ret.begin() + current_size; ++it) {
-						(it + template_result_it * current_size)->includeTemplateResult(tr_result);
+						(it + template_result_it * current_size)->include_template_result(tr_result);
 					}
 					++template_result_it;
 				}
@@ -115,7 +115,7 @@ namespace mrock::symbolic_operators {
 		}
 	}
 
-	void clearEtas(WickTermCollector& terms)
+	void clear_etas(WickTermCollector& terms)
 	{
 		for (auto it = terms.begin(); it != terms.end();) {
 			bool isEta = false;
@@ -134,7 +134,7 @@ namespace mrock::symbolic_operators {
 		}
 	}
 
-	void cleanWicks(WickTermCollector& terms, const std::vector<std::unique_ptr<WickSymmetry>>& symmetries /*= std::vector<std::unique_ptr<WickSymmetry>>{}*/)
+	void clean_wicks(WickTermCollector& terms, const std::vector<std::unique_ptr<WickSymmetry>>& symmetries /*= std::vector<std::unique_ptr<WickSymmetry>>{}*/)
 	{
 		for (auto& term : terms) {
 			for (std::vector<Coefficient>::iterator it = term.coefficients.begin(); it != term.coefficients.end();) {
@@ -151,7 +151,7 @@ namespace mrock::symbolic_operators {
 				it = terms.erase(it);
 				continue;
 			}
-			it->discardZeroMomenta();
+			it->discard_zero_momenta();
 			if (!(it->computeSums())) {
 				it = terms.erase(it);
 				continue;
@@ -160,7 +160,7 @@ namespace mrock::symbolic_operators {
 				it = terms.erase(it);
 				continue;
 			}
-			it->discardZeroMomenta();
+			it->discard_zero_momenta();
 			it->renameSums();
 			it->sort();
 
@@ -170,7 +170,7 @@ namespace mrock::symbolic_operators {
 
 			for (auto jt = it->sums.spins.begin(); jt != it->sums.spins.end();)
 			{
-				if (it->usesIndex(*jt)) {
+				if (it->uses_index(*jt)) {
 					++jt;
 				}
 				else {
@@ -180,9 +180,8 @@ namespace mrock::symbolic_operators {
 					jt = it->sums.spins.erase(jt);
 				}
 			}
-			// sort momentum lists in coefficients
 			for (auto& coeff : it->coefficients) {
-				coeff.momenta.sort();
+				coeff.apply_custom_symmetry();
 			}
 			++it;
 		}
@@ -250,7 +249,7 @@ namespace mrock::symbolic_operators {
 							std::swap(terms[i], terms[j]);
 						}
 						else if (terms[i].coefficients.size() > 0) {
-							if (terms[j].coefficients[0].name <terms[i].coefficients[0].name) {
+							if (terms[j].coefficients[0].name < terms[i].coefficients[0].name) {
 								std::swap(terms[i], terms[j]);
 							}
 						}
@@ -258,7 +257,7 @@ namespace mrock::symbolic_operators {
 				}
 				else if (terms[i].delta_momenta.empty() && terms[j].delta_momenta.empty()) {
 					if (terms[i].coefficients.size() > 0) {
-						if (terms[j].coefficients[0].name <terms[i].coefficients[0].name) {
+						if (terms[j].coefficients[0].name < terms[i].coefficients[0].name) {
 							std::swap(terms[i], terms[j]);
 						}
 					}

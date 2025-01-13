@@ -107,12 +107,12 @@ namespace mrock::symbolic_operators {
 		this->sort();
 		return *this;
 	}
-	void Momentum::addInPlace(const Momentum& rhs)
+	void Momentum::add_in_place(const Momentum& rhs)
 	{
 		(*this) += rhs;
 	}
 
-	void Momentum::replaceOccurances(const char replaceWhat, const Momentum& replaceWith)
+	void Momentum::replace_occurances(const char replaceWhat, const Momentum& replaceWith)
 	{
 		for (const auto& x : replaceWith.momentum_list) {
 			if (x.second == replaceWhat) {
@@ -122,7 +122,7 @@ namespace mrock::symbolic_operators {
 		for (size_t i = 0U; i < momentum_list.size(); ++i) {
 			if (momentum_list[i].second == replaceWhat) {
 				auto buffer = replaceWith;
-				buffer.multiplyMomentum(momentum_list[i].first);
+				buffer.multiply_by(momentum_list[i].first);
 				this->momentum_list.erase(momentum_list.begin() + i);
 
 				(*this) += buffer;

@@ -73,7 +73,7 @@ namespace sym_op_test {
             */
             std::vector<Term> first_commutation;
             commutator(first_commutation, H, base_term);
-            cleanUp(first_commutation);
+            clean_up(first_commutation);
             // This means the test has been passed. We generate a new comparison file
             if (is_baseline) save_as_comparison(file_names[0], first_commutation);
             if(!load_and_test(file_names[0], first_commutation)) return 1;
@@ -86,9 +86,9 @@ namespace sym_op_test {
             std::vector<Term> second_commutation;
             std::vector<Term> base_dagger = base_term;
             rename_momenta(base_dagger, 'k', 'l');
-            hermitianConjugate(base_dagger);
+            hermitian_conjugate(base_dagger);
             commutator(second_commutation, base_dagger, first_commutation);
-            cleanUp(second_commutation);
+            clean_up(second_commutation);
             // This means the test has been passed. We generate a new comparison file
             if (is_baseline) save_as_comparison(file_names[1], second_commutation);
             if(!load_and_test(file_names[1], second_commutation)) return 1;
@@ -100,8 +100,8 @@ namespace sym_op_test {
             */
             WickTermCollector wicks;
             wicks_theorem(second_commutation, templates, wicks);
-            clearEtas(wicks);
-            cleanWicks(wicks, symmetries);
+            clear_etas(wicks);
+            clean_wicks(wicks, symmetries);
             // This means the test has been passed. We generate a new comparison file
             if (is_baseline) save_as_comparison(file_names[2], wicks);
             if(!load_and_test(file_names[2], wicks)) return 1;

@@ -13,8 +13,8 @@ namespace mrock::symbolic_operators
 	void wicks_theorem(const std::vector<Term>& terms, const std::vector<WickOperatorTemplate>& operator_templates, WickTermCollector& reciever);
 
     // Call this function if <eta> = 0
-	void clearEtas(WickTermCollector& terms);
+	void clear_etas(WickTermCollector& terms);
     
-	void cleanWicks(WickTermCollector& terms, const std::vector<std::unique_ptr<WickSymmetry>>& symmetries = std::vector<std::unique_ptr<WickSymmetry>>{});
+	void clean_wicks(WickTermCollector& terms, const std::vector<std::unique_ptr<WickSymmetry>>& symmetries = std::vector<std::unique_ptr<WickSymmetry>>{});
 }
 #endif

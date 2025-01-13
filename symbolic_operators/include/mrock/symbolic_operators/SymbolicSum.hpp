@@ -19,6 +19,13 @@ namespace mrock::symbolic_operators {
 			: mrock::utility::VectorWrapper<SumIndex>(_indizes) {};
 		SymbolicSum(std::vector<SumIndex>&& _indizes)
 			: mrock::utility::VectorWrapper<SumIndex>(std::move(_indizes)) {};
+
+		inline bool is_summed_over(SumIndex what) const {
+			for (const auto& _s : this->_vector) {
+				if (_s == what) return true;
+			}
+			return false;
+		}
 	};
 
 	template<class SumIndex>

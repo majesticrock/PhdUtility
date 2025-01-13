@@ -48,10 +48,10 @@ namespace mrock::symbolic_operators {
 			return *this;
 		};
 
-		inline void multiplyMomentum(int factor) {
+		inline void multiply_by(int factor) {
 			(*this) *= factor;
 		};
-		inline void flipMomentum() {
+		inline void flip_momentum() {
 			(*this) *= -1;
 		};
 		// Returns the position in the momentum_list array of the momentum given in <value>
@@ -62,14 +62,14 @@ namespace mrock::symbolic_operators {
 			}
 			return -1;
 		};
-		inline bool differsOnlyInQ(Momentum rhs) const {
+		inline bool differs_only_in_Q(Momentum rhs) const {
 			if (rhs.add_Q == this->add_Q) return false;
 			rhs.add_Q = this->add_Q;
 			return (*this == rhs);
 		};
 
-		void addInPlace(const Momentum& rhs);
-		void replaceOccurances(const char replaceWhat, const Momentum& replaceWith);
+		void add_in_place(const Momentum& rhs);
+		void replace_occurances(const char replaceWhat, const Momentum& replaceWith);
 
 		// removes entries within the momentum_list that have a 0 prefactor
 		void remove_zeros();
@@ -80,11 +80,28 @@ namespace mrock::symbolic_operators {
 			return momentum_list.empty();
 		}
 
-		bool uses(char what) const {
+		inline bool uses(char what) const {
 			for (const auto& momentum_pair : momentum_list) {
 				if(momentum_pair.second == what) return true;
 			}
 			return false;
+		}
+
+		inline bool first_momentum_is_negative() const {
+			if (momentum_list.empty()) return false;
+			return momentum_list.front().first < 0;
+		}
+		inline bool first_momentum_is(char what) const {
+			if (momentum_list.empty()) return false;
+			return momentum_list.front().second == what;
+		}
+		inline bool last_momentum_is_negative() const {
+			if (momentum_list.empty()) return false;
+			return momentum_list.back().first < 0;
+		}
+		inline bool last_momentum_is(char what) const {
+			if (momentum_list.empty()) return false;
+			return momentum_list.back().second == what;
 		}
 
 		bool operator==(const Momentum& rhs) const;
@@ -116,7 +133,7 @@ namespace mrock::symbolic_operators {
 		return rhs;
 	}
 	inline Momentum operator-(Momentum rhs) {
-		rhs.flipMomentum();
+		rhs.flip_momentum();
 		return rhs;
 	}
 
