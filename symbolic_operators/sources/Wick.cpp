@@ -198,7 +198,7 @@ namespace mrock::symbolic_operators {
 					std::cout << term << std::endl;
 					throw std::runtime_error("l_is -1, but we need an l!");
 				}
-				const Momentum l_mom('l', delta.second.momentum_list[l_is].first);
+				const Momentum l_mom('l', delta.second.momentum_list[l_is].factor);
 				const Momentum remainder = delta.second - l_mom;
 				delta -= remainder;
 				std::swap(delta.first, delta.second);

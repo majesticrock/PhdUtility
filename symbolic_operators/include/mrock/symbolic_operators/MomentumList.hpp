@@ -44,9 +44,9 @@ namespace mrock::symbolic_operators {
 			(*this) *= -1;
 		};
 
-		void replace_occurances(const char replaceWhat, const Momentum& replaceWith);
+		void replace_occurances(const MomentumSymbol::name_type replaceWhat, const Momentum& replaceWith);
 		void remove_zeros();
-		void flip_single(char momentum);
+		void flip_single(const MomentumSymbol::name_type momentum);
 		inline void sort() {
 			std::sort(this->begin(), this->end());
 		};

@@ -30,8 +30,8 @@ int main(int argc, char** argv) {
     	std::vector<Operator>({
     		Operator('r', 1, false, Index::Sigma, true),
     		Operator('p', 1, false, Index::SigmaPrime, true),
-    		Operator(momentum_pairs({ std::make_pair(1, 'p'), std::make_pair(-1, 'q') }), Index::SigmaPrime, false),
-    		Operator(momentum_pairs({ std::make_pair(1, 'r'), std::make_pair(1, 'q') }), Index::Sigma, false),
+    		Operator(momentum_symbols({ MomentumSymbol(1, 'p'), MomentumSymbol(-1, 'q') }), Index::SigmaPrime, false),
+    		Operator(momentum_symbols({ MomentumSymbol(1, 'r'), MomentumSymbol(1, 'q') }), Index::Sigma, false),
     	}));
 
     const Term H_BG(-1, Coefficient("\\rho"), 

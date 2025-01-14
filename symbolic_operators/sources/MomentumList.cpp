@@ -1,7 +1,7 @@
 #include <mrock/symbolic_operators/MomentumList.hpp>
 
 namespace mrock::symbolic_operators {
-	void MomentumList::replace_occurances(const char replaceWhat, const Momentum& replaceWith) {
+	void MomentumList::replace_occurances(const MomentumSymbol::name_type replaceWhat, const Momentum& replaceWith) {
 		for (auto& mom : _vector) {
 			mom.replace_occurances(replaceWhat, replaceWith);
 		}
@@ -13,7 +13,7 @@ namespace mrock::symbolic_operators {
 		}
 	}
 
-	void MomentumList::flip_single(char momentum) {
+	void MomentumList::flip_single(const MomentumSymbol::name_type momentum) {
 		for (auto& mom : _vector) {
 			mom.flip_single(momentum);
 		}

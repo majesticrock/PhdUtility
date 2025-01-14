@@ -30,10 +30,10 @@ namespace mrock::symbolic_operators {
 			}
 			return false;
 		};
-		inline bool depends_on(char momentum) const noexcept {
+		inline bool depends_on(const MomentumSymbol::name_type momentum) const noexcept {
 			return this->momentum.isUsed(momentum) != -1;
 		}
-		inline void remove_momentum_contribution(char value) {
+		inline void remove_momentum_contribution(const MomentumSymbol::name_type value) {
 			momentum.remove_contribution(value);
 		}
 	};

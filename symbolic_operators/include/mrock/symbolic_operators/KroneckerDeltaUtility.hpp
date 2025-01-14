@@ -42,15 +42,15 @@ namespace mrock::symbolic_operators {
 			delta.second.add_Q = !(delta.second.add_Q);
 		}
 		for (auto it = delta.first.momentum_list.begin(); it != delta.first.momentum_list.end();) {
-			const int idx = delta.second.isUsed(it->second);
+			const int idx = delta.second.isUsed(it->name);
 			if(idx < 0) {
 				++it;
 				continue;
 			}
 
-			delta.second.momentum_list[idx].first -= it->first;
+			delta.second.momentum_list[idx].factor -= it->factor;
 			it = delta.first.momentum_list.erase(it);
-			if(delta.second.momentum_list[idx].first == 0) {
+			if(delta.second.momentum_list[idx].factor == 0) {
 				delta.second.momentum_list.erase(delta.second.momentum_list.begin() + idx);
 			}
 		}

@@ -18,7 +18,7 @@ endfunction()
 set(INFO_HEADER ${CMAKE_CURRENT_BINARY_DIR}/info.h)
 
 run_command(MROCK_GIT_COMMIT_VERSION git describe --always --dirty)
-run_command(MROCK_GIT_COMMIT_NAME git log -1 --format=%B)
+run_command(MROCK_GIT_COMMIT_NAME git log -1 --format=%s)
 run_command(MROCK_GIT_COMMIT_DATE git log -1 --format=%cd)
 run_command(MROCK_MAKE_DATE "date")
 run_command(MROCK_HOSTNAME "hostname")

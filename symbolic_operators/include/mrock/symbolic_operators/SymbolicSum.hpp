@@ -1,24 +1,36 @@
 #pragma once
 
+#include <concepts>
 #include <mrock/utility/VectorWrapper.hpp>
 #include <mrock/utility/RangeUtility.hpp>
 #include "IndexWrapper.hpp"
+#include "MomentumSymbol.hpp"
 
 namespace mrock::symbolic_operators {
 	template<class SumIndex>
 	struct SymbolicSum : public mrock::utility::VectorWrapper<SumIndex>
 	{
+	public:
 		template<class Archive>
 		void serialize(Archive& ar, const unsigned int version) {
 			ar& this->_vector;
 		}
 
 		SymbolicSum() = default;
-		SymbolicSum(SumIndex sum_index) : mrock::utility::VectorWrapper<SumIndex>(1U, sum_index) {};
+		SymbolicSum(SumIndex sum_index) : mrock::utility::VectorWrapper<SumIndex>(1U, sum_index) {}
 		SymbolicSum(const std::vector<SumIndex>& _indizes)
-			: mrock::utility::VectorWrapper<SumIndex>(_indizes) {};
+			: mrock::utility::VectorWrapper<SumIndex>(_indizes) {}
 		SymbolicSum(std::vector<SumIndex>&& _indizes)
-			: mrock::utility::VectorWrapper<SumIndex>(std::move(_indizes)) {};
+			: mrock::utility::VectorWrapper<SumIndex>(std::move(_indizes)) {}
+		
+		template<std::convertible_to<SumIndex> input_type> requires (!std::same_as<SumIndex, input_type>)
+		SymbolicSum(std::initializer_list<input_type> init) { 
+			this->_vector.reserve(init.size());
+			for (const auto& x : init) {
+				this->_vector.emplace_back(x);
+			}
+		}
+		SymbolicSum(std::initializer_list<SumIndex> init) : mrock::utility::VectorWrapper<SumIndex>(std::move(init)) {}
 
 		inline bool is_summed_over(SumIndex what) const {
 			for (const auto& _s : this->_vector) {
@@ -40,7 +52,7 @@ namespace mrock::symbolic_operators {
 	}
 
 	typedef SymbolicSum<Index> IndexSum;
-	typedef SymbolicSum<char> MomentumSum;
+	typedef SymbolicSum<MomentumSymbol::name_type> MomentumSum;
 
 	struct SumContainer {
 		MomentumSum momenta;
@@ -65,7 +77,7 @@ namespace mrock::symbolic_operators {
 			mrock::utility::append_vector(this->spins, other);
 			return *this;
 		}
-		inline void push_back(const char momentum) {
+		inline void push_back(const MomentumSymbol::name_type momentum) {
 			this->momenta.push_back(momentum);
 		}
 		inline void push_back(const Index spin) {

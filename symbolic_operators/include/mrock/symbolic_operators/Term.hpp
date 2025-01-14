@@ -124,21 +124,21 @@ namespace mrock::symbolic_operators {
 			}
 		}
 
-		void rename_indizes(Index what, Index to);
-		void rename_momenta(char what, char to);
+		void rename_indizes(const Index what, const Index to);
+		void rename_momenta(const MomentumSymbol::name_type what, const MomentumSymbol::name_type to);
 
-		inline void swap_momenta(char a, char b) {
+		inline void swap_momenta(const MomentumSymbol::name_type a, const MomentumSymbol::name_type b) {
 			this->rename_momenta(a, '_');
 			this->rename_momenta(b, a);
 			this->rename_momenta('_', b);
 		}
 
-		void transform_momentum_sum(char what, Momentum to, char new_sum_index);
+		void transform_momentum_sum(const MomentumSymbol::name_type what, const Momentum to, const MomentumSymbol::name_type new_sum_index);
 		// Inverts a momenta, e.g., q -> -q
-		void invert_momentum(char what);
+		void invert_momentum(const MomentumSymbol::name_type what);
 		// Same as invert_momentum, but performs a check, whether 'what' is actually being summed over
-		void invert_momentum_sum(char what);
-		void remove_momentum_contribution(char value);
+		void invert_momentum_sum(const MomentumSymbol::name_type what);
+		void remove_momentum_contribution(const MomentumSymbol::name_type value);
 
 		friend void normal_order(std::vector<Term>& terms);
 		friend void commutator(std::vector<Term>& reciever, const Term& left, const Term& right);
@@ -173,7 +173,7 @@ namespace mrock::symbolic_operators {
 			t.hermitian_conjugate();
 		}
 	};
-	inline void rename_momenta(std::vector<Term>& terms, char what, char to) {
+	inline void rename_momenta(std::vector<Term>& terms, const MomentumSymbol::name_type what, const MomentumSymbol::name_type to) {
 		for (auto& t : terms) {
 			t.rename_momenta(what, to);
 		}

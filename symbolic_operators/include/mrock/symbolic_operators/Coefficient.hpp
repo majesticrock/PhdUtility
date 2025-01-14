@@ -52,7 +52,7 @@ namespace mrock::symbolic_operators {
 				return !momentum.momentum_list.empty();
 				});
 		};
-		inline bool depends_on(char momentum) const noexcept {
+		inline bool depends_on(const MomentumSymbol::name_type momentum) const noexcept {
 			if (this->momenta.empty()) return false;
 			return std::any_of(this->momenta.begin(), this->momenta.end(), [momentum](const Momentum& mom) {
 				return mom.isUsed(momentum) != -1;
@@ -65,14 +65,14 @@ namespace mrock::symbolic_operators {
 			return this->momenta.front().momentum_list.size() == 2U;
 		};
 
-		void invert_momentum(char what);
+		void invert_momentum(const MomentumSymbol::name_type what);
 
 		// Utilizes V(k, k', q) = V(k', k, -q)
 		void use_symmetric_interaction_exchange();
 		// Utilizes V(k, k', q) = V(-k, -k', -q)
 		void use_symmetric_interaction_inversion();
 
-		void remove_momentum_contribution(char value);
+		void remove_momentum_contribution(const MomentumSymbol::name_type value);
 
 		// If a function is stored in custom_symmetry, it is applied to this
 		void apply_custom_symmetry();

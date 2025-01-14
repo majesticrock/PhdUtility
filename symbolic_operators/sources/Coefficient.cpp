@@ -2,12 +2,12 @@
 #include <mrock/utility/StringUtility.hpp>
 
 namespace mrock::symbolic_operators {
-	void Coefficient::invert_momentum(char what) {
+	void Coefficient::invert_momentum(const MomentumSymbol::name_type what) {
 		for (auto& mom : momenta) {
 			if (this->inversion_symmetry && mom.size() == 1U) {
 				// If the coefficient is translationally invariant, i.e., c(k) = c(-k),
 				// we want to make sure that the momentum is always positive
-				if (mom.front().first > 0) continue;
+				if (mom.front().factor > 0) continue;
 			}
 			mom.flip_single(what);
 		}
@@ -30,7 +30,7 @@ namespace mrock::symbolic_operators {
 		}
 	}
 
-	void Coefficient::remove_momentum_contribution(char value)
+	void Coefficient::remove_momentum_contribution(const MomentumSymbol::name_type value)
 	{
 		for (auto& mom : momenta) {
 			mom.remove_contribution(value);

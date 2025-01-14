@@ -71,7 +71,7 @@ namespace mrock::symbolic_operators {
 		}
 		// Returns the position of the first operator that depends on 'momentum'
 		// Returns -1 if no operators depend on 'momentum'.
-		inline int which_operator_depends_on(char momentum) const noexcept {
+		inline int which_operator_depends_on(const MomentumSymbol::name_type momentum) const noexcept {
 			for (int i = 0U; i < operators.size(); ++i)
 			{
 				if (operators[i].depends_on(momentum)) return i;
@@ -101,11 +101,11 @@ namespace mrock::symbolic_operators {
 		void include_template_result(const TemplateResult::SingleResult& result);
 
 		// Inverts a momenta, e.g., q -> -q
-		void invert_momentum(char what);
+		void invert_momentum(const MomentumSymbol::name_type what);
 		// Same as invert_momentum, but performs a check, whether 'what' is actually being summed over
-		void invert_momentum_sum(char what);
+		void invert_momentum_sum(const MomentumSymbol::name_type what);
 
-		inline void remove_momentum_contribution(char value) {
+		inline void remove_momentum_contribution(const MomentumSymbol::name_type value) {
 			for (auto& coeff : coefficients) {
 				coeff.remove_momentum_contribution(value);
 			}
@@ -116,7 +116,7 @@ namespace mrock::symbolic_operators {
 				delta.first.remove_contribution(value);
 				delta.second.remove_contribution(value);
 			}
-			std::erase_if(sums.momenta._vector, [&](char sum_idx) { return sum_idx == value; });
+			std::erase_if(sums.momenta._vector, [&](const MomentumSymbol::name_type sum_idx) { return sum_idx == value; });
 		}
 	};
 

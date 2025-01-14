@@ -4,22 +4,22 @@
 #include <string>
 
 namespace mrock::symbolic_operators {
-	inline momentum_pairs::value_type identify_subexpression(const std::string& sub) {
+	inline momentum_symbols::value_type identify_subexpression(const std::string& sub) {
 		if (sub.front() == '+')
 			return identify_subexpression(std::string(sub.begin() + 1, sub.end()));
 		if (sub.front() == '-') {
-			momentum_pairs::value_type ret = identify_subexpression(std::string(sub.begin() + 1, sub.end()));
-			ret.first *= -1;
+			momentum_symbols::value_type ret = identify_subexpression(std::string(sub.begin() + 1, sub.end()));
+			ret.factor *= -1;
 			return ret;
 		}
 		if (!std::isdigit(sub.front()))
-			return std::make_pair(1, sub.front());
+			return MomentumSymbol(1, sub.front());
 
 		const auto it = std::find_if(sub.begin(), sub.end(), [](const char c) {
 			return !std::isdigit(c);
 			});
 
-		return std::make_pair(std::stoi(std::string(sub.begin(), it)), sub.back());
+		return MomentumSymbol(std::stoi(std::string(sub.begin(), it)), sub.back());
 	}
 
 	Momentum::Momentum(const std::string& expression, bool Q/* = false*/) : add_Q(Q)
@@ -42,7 +42,7 @@ namespace mrock::symbolic_operators {
 			for (size_t j = i + 1U; j < momentum_list.size(); ++j)
 			{
 				// Comparing two chars is easy
-				if (momentum_list[i].second > momentum_list[j].second) {
+				if (momentum_list[i].name > momentum_list[j].name) {
 					std::swap(momentum_list[i], momentum_list[j]);
 				}
 			}
@@ -50,7 +50,7 @@ namespace mrock::symbolic_operators {
 		remove_zeros();
 	}
 
-	void Momentum::remove_contribution(char momentum) 
+	void Momentum::remove_contribution(const MomentumSymbol::name_type momentum) 
 	{
 		const int idx = this->isUsed(momentum);
 		if (idx < 0) return;
@@ -66,10 +66,10 @@ namespace mrock::symbolic_operators {
 			foundOne = false;
 			for (size_t j = 0U; j < this->momentum_list.size(); ++j)
 			{
-				if (rhs.momentum_list[i].second == this->momentum_list[j].second) {
+				if (rhs.momentum_list[i].name == this->momentum_list[j].name) {
 					foundOne = true;
-					this->momentum_list[j].first += rhs.momentum_list[i].first;
-					if (this->momentum_list[j].first == 0) {
+					this->momentum_list[j].factor += rhs.momentum_list[i].factor;
+					if (this->momentum_list[j].factor == 0) {
 						this->momentum_list.erase(this->momentum_list.begin() + j);
 					}
 					break;
@@ -82,6 +82,7 @@ namespace mrock::symbolic_operators {
 		this->sort();
 		return *this;
 	}
+
 	Momentum& Momentum::operator-=(const Momentum& rhs)
 	{
 		this->add_Q = (rhs.add_Q != this->add_Q);
@@ -91,17 +92,17 @@ namespace mrock::symbolic_operators {
 			foundOne = false;
 			for (size_t j = 0U; j < this->momentum_list.size(); ++j)
 			{
-				if (rhs.momentum_list[i].second == this->momentum_list[j].second) {
+				if (rhs.momentum_list[i].name == this->momentum_list[j].name) {
 					foundOne = true;
-					this->momentum_list[j].first -= rhs.momentum_list[i].first;
-					if (this->momentum_list[j].first == 0) {
+					this->momentum_list[j].factor -= rhs.momentum_list[i].factor;
+					if (this->momentum_list[j].factor == 0) {
 						this->momentum_list.erase(this->momentum_list.begin() + j);
 					}
 					break;
 				}
 			}
 			if (!foundOne) {
-				this->momentum_list.push_back(std::make_pair(-rhs.momentum_list[i].first, rhs.momentum_list[i].second));
+				this->momentum_list.push_back(MomentumSymbol(-rhs.momentum_list[i].factor, rhs.momentum_list[i].name));
 			}
 		}
 		this->sort();
@@ -112,17 +113,17 @@ namespace mrock::symbolic_operators {
 		(*this) += rhs;
 	}
 
-	void Momentum::replace_occurances(const char replaceWhat, const Momentum& replaceWith)
+	void Momentum::replace_occurances(const MomentumSymbol::name_type replaceWhat, const Momentum& replaceWith)
 	{
 		for (const auto& x : replaceWith.momentum_list) {
-			if (x.second == replaceWhat) {
+			if (x.name == replaceWhat) {
 				throw std::invalid_argument("You are trying to replace a momentum with itself. This has undefined behaviour!");
 			}
 		}
 		for (size_t i = 0U; i < momentum_list.size(); ++i) {
-			if (momentum_list[i].second == replaceWhat) {
+			if (momentum_list[i].name == replaceWhat) {
 				auto buffer = replaceWith;
-				buffer.multiply_by(momentum_list[i].first);
+				buffer.multiply_by(momentum_list[i].factor);
 				this->momentum_list.erase(momentum_list.begin() + i);
 
 				(*this) += buffer;
@@ -133,7 +134,7 @@ namespace mrock::symbolic_operators {
 	void Momentum::remove_zeros()
 	{
 		for (auto it = momentum_list.begin(); it != momentum_list.end();) {
-			if (it->first == 0) {
+			if (it->factor == 0) {
 				it = momentum_list.erase(it);
 			}
 			else {
@@ -142,11 +143,11 @@ namespace mrock::symbolic_operators {
 		}
 	}
 
-	void Momentum::flip_single(char momentum)
+	void Momentum::flip_single(const MomentumSymbol::name_type momentum)
 	{
-		for (auto& momentum_pair : momentum_list) {
-			if (momentum_pair.second == momentum) {
-				momentum_pair.first *= -1;
+		for (auto& momentum_symbol : momentum_list) {
+			if (momentum_symbol.name == momentum) {
+				momentum_symbol.factor *= -1;
 			}
 		}
 	}
@@ -187,18 +188,18 @@ namespace mrock::symbolic_operators {
 			}
 			return os;
 		}
-		for (momentum_pairs::const_iterator it = momentum.momentum_list.begin(); it != momentum.momentum_list.end(); ++it)
+		for (momentum_symbols::const_iterator it = momentum.momentum_list.begin(); it != momentum.momentum_list.end(); ++it)
 		{
-			if (it != momentum.momentum_list.begin() && it->first > 0) {
+			if (it != momentum.momentum_list.begin() && it->factor > 0) {
 				os << "+";
 			}
-			if (abs(it->first) != 1) {
-				os << it->first;
+			if (abs(it->factor) != 1) {
+				os << it->factor;
 			}
-			else if (it->first == -1) {
+			else if (it->factor == -1) {
 				os << "-";
 			}
-			os << it->second;
+			os << it->name;
 		}
 		if (momentum.add_Q) {
 			os << " + Q";
@@ -228,8 +229,8 @@ namespace mrock::symbolic_operators {
 			return false; 
 		}
 		if(lhs.momentum_list.empty()) return true;
-		if(lhs.momentum_list[0].second < rhs.momentum_list[0].second) return true;
-		if(lhs.momentum_list[0].second == rhs.momentum_list[0].second) {
+		if(lhs.momentum_list[0].name < rhs.momentum_list[0].name) return true;
+		if(lhs.momentum_list[0].name == rhs.momentum_list[0].name) {
 			if(!lhs.add_Q && rhs.add_Q) return true;
 		}
 		return false;

@@ -20,9 +20,9 @@ namespace mrock::symbolic_operators {
 
 		Operator() = default;
 		Operator(const Momentum& _momentum, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
-		Operator(const momentum_pairs& _momentum, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
-		Operator(char _momentum, bool add_Q, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
-		Operator(char _momentum, int sign, bool add_Q, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
+		Operator(const momentum_symbols& _momentum, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
+		Operator(const MomentumSymbol::name_type _momentum, bool add_Q, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
+		Operator(const MomentumSymbol::name_type _momentum, int sign, bool add_Q, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
 
 		inline static Operator Boson(const Momentum& _momentum, const IndexWrapper _indizes, bool _is_daggered) {
 			return Operator(_momentum, _indizes, _is_daggered, false);
@@ -37,13 +37,13 @@ namespace mrock::symbolic_operators {
 		inline Operator with_momentum(Momentum const& new_momentum) const {
 			assert(this->momentum.momentum_list.size() == 1U);
 			Operator ret{ *this };
-			ret.momentum = this->momentum.momentum_list.front().first * new_momentum;
+			ret.momentum = this->momentum.momentum_list.front().factor * new_momentum;
 			return ret;
 		};
-		inline Operator with_momentum(char new_momentum) const {
+		inline Operator with_momentum(const MomentumSymbol::name_type new_momentum) const {
 			assert(this->momentum.momentum_list.size() == 1U);
 			Operator ret{ *this };
-			ret.momentum.momentum_list.front().second = new_momentum;
+			ret.momentum.momentum_list.front().name = new_momentum;
 			return ret;
 		};
 		inline Operator add_momentum(Momentum const& to_add) const {
@@ -51,12 +51,12 @@ namespace mrock::symbolic_operators {
 			ret.momentum += to_add;
 			return ret;
 		}
-		inline Operator add_momentum(char to_add) const {
+		inline Operator add_momentum(const MomentumSymbol::name_type to_add) const {
 			Operator ret{ *this };
 			ret.momentum += Momentum(to_add);
 			return ret;
 		}
-		inline void remove_momentum_contribution(char value) {
+		inline void remove_momentum_contribution(const MomentumSymbol::name_type value) {
 			momentum.remove_contribution(value);
 		}
 		// Returns the first index, if the operator has an index.
