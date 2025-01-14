@@ -20,9 +20,9 @@ namespace mrock::symbolic_operators {
 			: _parent{ momentum } {};
 		MomentumList(const Momentum& first, const Momentum& second)
 			: _parent{ first, second } {};
-		MomentumList(std::initializer_list<Momentum> const& init)
+		MomentumList(std::initializer_list<Momentum> init)
 			: _parent(init) {};
-		MomentumList(std::initializer_list<char> const& init)
+		MomentumList(std::initializer_list<char> init)
 			: _parent{ std::vector<Momentum>(init.size()) }
 		{
 			for (size_t i = 0U; i < init.size(); i++)

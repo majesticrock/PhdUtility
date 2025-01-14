@@ -1,6 +1,5 @@
 #pragma once
 
-#include <concepts>
 #include <mrock/utility/VectorWrapper.hpp>
 #include <mrock/utility/RangeUtility.hpp>
 #include "IndexWrapper.hpp"
@@ -22,14 +21,6 @@ namespace mrock::symbolic_operators {
 			: mrock::utility::VectorWrapper<SumIndex>(_indizes) {}
 		SymbolicSum(std::vector<SumIndex>&& _indizes)
 			: mrock::utility::VectorWrapper<SumIndex>(std::move(_indizes)) {}
-		
-		template<std::convertible_to<SumIndex> input_type> requires (!std::same_as<SumIndex, input_type>)
-		SymbolicSum(std::initializer_list<input_type> init) { 
-			this->_vector.reserve(init.size());
-			for (const auto& x : init) {
-				this->_vector.emplace_back(x);
-			}
-		}
 		SymbolicSum(std::initializer_list<SumIndex> init) : mrock::utility::VectorWrapper<SumIndex>(std::move(init)) {}
 
 		inline bool is_summed_over(SumIndex what) const {
