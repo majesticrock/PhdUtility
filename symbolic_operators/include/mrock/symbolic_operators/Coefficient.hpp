@@ -38,7 +38,9 @@ namespace mrock::symbolic_operators {
 		static Coefficient RealInversionSymmetric(const std::string& _name, const MomentumList& _momenta, const std::optional<std::function<void(Coefficient&)>>& _custom_symmetry = std::nullopt);
 		static Coefficient RealInteraction(const std::string& _name, const MomentumList& _momenta, const std::optional<std::function<void(Coefficient&)>>& _custom_symmetry = std::nullopt);
 		
-		static Coefficient parse_string(const std::string& expression);
+		static Coefficient parse_string(const std::string& expression, bool _Q_changes_sign = false, bool _inversion_symmetry = true);
+		// Calls parse_string and sets the symmetries to conform with a standard interaction
+		static Coefficient parse_interaction_string(const std::string& expression);
 
 		inline bool uses_index(const Index index) const noexcept {
 			for (const auto& idx : indizes) {

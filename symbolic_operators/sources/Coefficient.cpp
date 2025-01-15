@@ -44,14 +44,14 @@ namespace mrock::symbolic_operators {
 		}
     }
 
-    Coefficient Coefficient::parse_string(const std::string &expression)
+    Coefficient Coefficient::parse_string(const std::string &expression, bool _Q_changes_sign /* = false */, bool _inversion_symmetry /* = true */)
     {
 		// Syntax:   name{Momentum_expression1,Momentum_expression1;index1,index2,...}
-
 		Coefficient ret;
-		ret.name = expression.substr(0U, expression.find('{'));
+		ret.name = expression.substr(0U, mrock::utility::find_skip_escaped(expression, '{'));
+		mrock::utility::remove_escape_characters(ret.name);
 		std::vector<std::string> momentum_strings = mrock::utility::extract_elements(expression, '{', ';');
-		std::vector<std::string> index_strings = mrock::utility::extract_elements(expression, ';', '}');
+		std::vector<std::string> index_strings    = mrock::utility::extract_elements(expression, ';', '}');
 
 		ret.momenta.reserve(momentum_strings.size());
 		for (const auto& arg : momentum_strings) {
@@ -62,6 +62,14 @@ namespace mrock::symbolic_operators {
 			ret.indizes.push_back(string_to_index.at(arg));
 		}
 
+		ret.Q_changes_sign = _Q_changes_sign;
+		ret.inversion_symmetry = _inversion_symmetry;
+		return ret;
+	}
+
+	Coefficient Coefficient::parse_interaction_string(const std::string& expression) {
+		Coefficient ret = parse_string(expression, false, false);
+		ret.is_symmetrized_interaction = true;
 		return ret;
 	}
 
