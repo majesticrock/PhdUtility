@@ -4,11 +4,13 @@
 #include <vector>
 #include <sstream>
 #include <cassert>
+#include <type_traits>
+#include <algorithm>
 
 namespace mrock::utility {
     // Splits the string at delimiter
 	template<class StringType, class InputStringStreamType = std::basic_istringstream<typename StringType::value_type, typename StringType::traits_type, typename StringType::allocator_type>>
-	std::vector<StringType> split(const StringType &str, const char delimiter) {
+	std::vector<StringType> split(const StringType &str, std::add_const_t<typename StringType::value_type> delimiter) {
 		std::vector<StringType> tokens;
 		StringType token;
 		InputStringStreamType tokenStream(str);
@@ -19,7 +21,7 @@ namespace mrock::utility {
 	}
 	
 	template<class StringType, class ForwardIt = typename StringType::iterator>
-	size_t remove_escape_characters(StringType& input, const char escape = '\\') {
+	size_t remove_escape_characters(StringType& input, std::add_const_t<typename StringType::value_type> escape = '\\') {
 		assert(!(input.size() == 1U && input.back() == escape) && "The last character of the string must not be an escape character!");
 		assert(!(input.size() > 1U && input.back() == escape && *(input.end() - 2) != escape) && "The last character of the string must not be an escape character!");
 		
@@ -42,7 +44,9 @@ namespace mrock::utility {
 
 	// Works just as std::string::find but skips the found character, if it is preceeded by an escape character (e.g. \ )
 	template<class StringType>
-	size_t find_skip_escaped(const StringType& input, const char symbol, size_t start = 0U, const char escape = '\\') {
+	size_t find_skip_escaped(const StringType& input, std::add_const_t<typename StringType::value_type> symbol, size_t start = 0U, 
+		std::add_const_t<typename StringType::value_type> escape = '\\') 
+	{
 		while (start < input.size()) {
 			size_t pos = input.find(symbol, start);
 			if(pos == StringType::npos) return StringType::npos;
@@ -60,7 +64,9 @@ namespace mrock::utility {
 
 	// Extracts elements from a list {x1,x2,x3...} within some string
 	template<class StringType>
-	std::vector<StringType> extract_elements(const StringType& input, const char left_delimiter = '{', const char right_delimiter = '}', const char escape = '\\') {
+	std::vector<StringType> extract_elements(const StringType& input, std::add_const_t<typename StringType::value_type> left_delimiter = '{', 
+		std::add_const_t<typename StringType::value_type> right_delimiter = '}', std::add_const_t<typename StringType::value_type> escape = '\\') 
+	{
 		std::vector<StringType> elements;
 	
 		// Find the positions of the braces
@@ -71,7 +77,7 @@ namespace mrock::utility {
 		if (startPos != StringType::npos && endPos != StringType::npos && startPos < endPos) {
 			// Extract the substring within the braces
 			StringType substring = input.substr(startPos + 1, endPos - startPos - 1);
-			elements = split(substring, ',');
+			elements = split(substring, typename StringType::value_type(','));
 		}
 	
 		return elements;
