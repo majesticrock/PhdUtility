@@ -76,8 +76,11 @@ class ContinuedFraction:
         data = ccf.ContinuedFractionData(self.a_infinity, self.b_infinity**2, self.roots, A, B, termination_index)
         return ccf.continued_fraction(w_param, data, withTerminator)
     
-    def spectral_density(self, w_param, name, index=0, withTerminator = True):
+    def spectral_density(self, w_param, name, index=0, withTerminator=True):
         return NORM_FACTOR * self.continued_fraction(w_param, name, index, withTerminator).imag
+    
+    def real_part(self, w_param, name, index=0, withTerminator=True):
+        return self.continued_fraction(w_param, name, index, withTerminator).real
     
     def denominator(self, w_param, name, index=0, withTerminator=True):
         self.__termination_depth_if_required__(name, index)
