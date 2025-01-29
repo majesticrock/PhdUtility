@@ -5,15 +5,15 @@
 #include <map>
 
 namespace mrock::symbolic_operators {
-	enum class Index { SpinUp = 0, SpinDown, Sigma, SigmaPrime, GeneralSpin_S, GeneralSpin_SPrime, UndefinedIndex, NoIndex = 256 };
+	enum class Index { SpinUp = 0, SpinDown, Sigma, SigmaPrime, GeneralSpin_S, GeneralSpin_SPrime, BosonA, BosonB, UndefinedIndex, NoIndex = 256 };
 	inline const std::map<std::string, Index> string_to_index = {
 		{"up", Index::SpinUp}, {"down", Index::SpinDown}, {"sigma", Index::Sigma}, {"sigma'", Index::SigmaPrime}, 
-		{"S", Index::GeneralSpin_S}, {"S'", Index::GeneralSpin_SPrime}
+		{"S", Index::GeneralSpin_S}, {"S'", Index::GeneralSpin_SPrime}, {"A", Index::BosonA}, {"B", Index::BosonB}
 	};
 	// Returns true if the index represents a variable and false otherwise
 	// Example: If the index is SpinUp it is fixed, i.e., non-mutable
 	constexpr bool is_mutable(const Index idx) {
-		return (static_cast<int>(idx) > 1);
+		return (static_cast<int>(idx) > 1 && static_cast<int>(idx) < 6);
 	}
 
 	std::ostream& operator<<(std::ostream& os, const Index index);

@@ -622,7 +622,7 @@ namespace mrock::symbolic_operators {
 			os << "\\delta_{" << delta.first << ", " << delta.second << "} ";
 		}
 		if (term.is_identity()) {
-			os << " \\mathbb{1} ";
+			os << " \\hat{1} ";
 			return os;
 		}
 		for (const auto& op : term.operators) {

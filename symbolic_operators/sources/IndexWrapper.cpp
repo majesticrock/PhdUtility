@@ -23,6 +23,12 @@ namespace mrock::symbolic_operators {
 		case Index::GeneralSpin_SPrime:
 			os << "S'";
 			break;
+		case Index::BosonA:
+			os << "A";
+			break;
+		case Index::BosonB:
+			os << "B";
+			break;
 		case Index::NoIndex:
 			break;
 		default:

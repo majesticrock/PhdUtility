@@ -31,6 +31,14 @@ namespace mrock::symbolic_operators {
 	{
 		IF_IS_TERM_TRACKED( std::cout << "setDeltas() 1:&" << (*this) << "\\\\" << std::endl; );
 
+		for (auto& delta : delta_indizes) {
+			if (!is_mutable(delta.first) && !is_mutable(delta.second)) {
+				if (delta.first != delta.second) {
+					return false;
+				}
+			}
+		}
+
 		for (auto& delta : delta_momenta)
 		{
 			remove_double_occurances(delta);
@@ -466,7 +474,7 @@ namespace mrock::symbolic_operators {
 		}
 
 		if (this->is_identity()) {
-			os << " \\mathbb{1} ";
+			os << " \\hat{1} ";
 			return os.str();
 		}
 		for (const auto& op : this->operators) {
@@ -706,7 +714,7 @@ namespace mrock::symbolic_operators {
 			os << delta;
 		}
 		if (term.is_identity()) {
-			os << " \\mathbb{1} ";
+			os << " \\hat{1} ";
 			return os;
 		}
 		for (const auto& op : term.operators) {

@@ -35,9 +35,13 @@ namespace mrock::symbolic_operators {
 		Coefficient(const std::string& _name, const Momentum& _momentum, bool _Q_changes_sign = false, bool _inversion_symmetry = true, bool _is_daggered = false);
 		Coefficient(const std::string& _name, const MomentumList& _momenta, const IndexWrapper& _indizes = IndexWrapper{}, bool _Q_changes_sign = false, bool _inversion_symmetry = true, bool _is_daggered = false);
 
+		// Generates a real and inversion symmetric coefficient
 		static Coefficient RealInversionSymmetric(const std::string& _name, const MomentumList& _momenta, const std::optional<std::function<void(Coefficient&)>>& _custom_symmetry = std::nullopt);
+		// Generates a real Coefficient with V(k, k', q) = V(k', k, -q)
 		static Coefficient RealInteraction(const std::string& _name, const MomentumList& _momenta, const std::optional<std::function<void(Coefficient&)>>& _custom_symmetry = std::nullopt);
-		
+		// Generates a Coefficient as they occur on a honeycomb lattice, that means, it is not inversion symmetric and it can be complex
+		static Coefficient HoneyComb(const std::string& _name, const Momentum& _momentum, bool daggered, const std::optional<std::function<void(Coefficient&)>>& _custom_symmetry = std::nullopt);
+
 		static Coefficient parse_string(const std::string& expression, bool _Q_changes_sign = false, bool _inversion_symmetry = true);
 		// Calls parse_string and sets the symmetries to conform with a standard interaction
 		static Coefficient parse_interaction_string(const std::string& expression);

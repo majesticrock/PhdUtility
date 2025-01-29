@@ -118,4 +118,12 @@ namespace mrock::symbolic_operators {
 		ret.custom_symmetry = _custom_symmetry;
 		return ret;
 	}
+
+	Coefficient Coefficient::HoneyComb(const std::string& _name, const Momentum& _momentum, bool daggered, 
+		const std::optional<std::function<void(Coefficient&)>>& _custom_symmetry /* = std::nullopt */)
+	{
+		Coefficient ret(_name, _momentum, {}, false, false, daggered);
+		ret.custom_symmetry = _custom_symmetry;
+		return ret;
+	}
 }
