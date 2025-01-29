@@ -10,23 +10,30 @@ def linear_function(x, a, b):
     return a * x + b
 
 class Peak:
-    def __init__(self, f_real, f_imag, peak_position, lower_continuum_edge, imaginary_offset=1e-6):
+    def __init__(self, f_real, f_imag, peak_position, lower_continuum_edge, imaginary_offset=1e-6, scaling=1):
         self.f_real = f_real
         self.f_imag = f_imag
         self.peak_position = peak_position
         self.lower_continuum_edge = lower_continuum_edge
         self.imaginary_offset = imaginary_offset
+        self.scaling = scaling
     
     def improved_peak_position(self, xtol=2e-12):
-        offset_peak = 0.2
+        offset_peak = 0.2 * self.scaling
         search_bounds = (0 if self.peak_position - offset_peak < 0 else self.peak_position - offset_peak, 
                         self.lower_continuum_edge if self.peak_position + offset_peak > self.lower_continuum_edge else self.peak_position + offset_peak)
         
         result = bounded_minimize(self.f_imag, bounds=search_bounds, xtol=xtol)
         self.peak_position = result["x"]
+        
+        offset_peak = 0.02 * self.scaling
+        search_bounds = (0 if self.peak_position - offset_peak < 0 else self.peak_position - offset_peak, 
+                        self.lower_continuum_edge if self.peak_position + offset_peak > self.lower_continuum_edge else self.peak_position + offset_peak)
+        real_part_result = bounded_minimize(self.f_real, bounds=search_bounds, xtol=xtol)
+        self.peak_shift = abs(self.peak_position - real_part_result["x"]) # the realpart is 1/(x - x0) < 0 below the peak ( for a delta peak )
         return result
     
-    def fit_real_part(self, range=0.01, begin_offset=1e-10, reversed=False, func=linear_function):
+    def fit_real_part(self, range=0.001, begin_offset=1e-10, reversed=False, func=linear_function):
         """ If we fit
         ln(Re[G(z - z0)]) = a * ln(z - z0) + b
         
@@ -36,9 +43,11 @@ class Peak:
         If the result is a=-2, then the peak is the derivative of a delta function.
         Such a peak does not have any weight, but a prefactor of e^b
         """
+        begin_offset *= self.scaling
+        begin_offset += self.peak_shift
         lower_range = np.log(begin_offset)
 
-        w_log = np.linspace(lower_range, np.log(begin_offset + range), 2000, dtype=complex)
+        w_log = np.linspace(lower_range, np.log(begin_offset + range * self.scaling), 2000, dtype=complex)
         w_log += (self.imaginary_offset * 1j)
         if reversed:
             w_usage = self.peak_position - np.exp(w_log)
@@ -58,8 +67,9 @@ class PeakData:
         self.weight = weight
         self.weight_error = weight_error
 
-def analyze_peak(f_real, f_imag, peak_position, lower_continuum_edge, imaginary_offset=1e-6, peak_position_tol=1e-12, range=0.001, begin_offset=1e-10, 
-                 reversed=False, expected_slope=-1, plotter=None):
+def analyze_peak(f_real, f_imag, peak_position, lower_continuum_edge, 
+                 imaginary_offset=1e-6, peak_position_tol=1e-12, range=0.001, begin_offset=1e-10, 
+                 reversed=False, expected_slope=-1, plotter=None, scaling=1):
     """ Returns a PeakData object (peak position, peak weight, peak weight error)
     imaginary_offset is used to avoid the singularity at the peak position: z = omega + i * imaginary_offset
     peak_position_tol is the tolerance for the peak position search
@@ -68,8 +78,11 @@ def analyze_peak(f_real, f_imag, peak_position, lower_continuum_edge, imaginary_
     reversed is True if the fit should be done on the left side of the peak
     expected_slope is the expected slope of the fit. If the slope is not as expected, a warning is printed.
     A slope of -1 indicates a delta peak with weight e^b
+    If plotter is set, the fitted data and the fit are plotted using plotter.plot
+    Setting scaling scales certain properties like the fit range, e.g., 1e-3 for conversion from meV to eV 
     """
-    peak = Peak(f_real, f_imag, peak_position, lower_continuum_edge, imaginary_offset=imaginary_offset)
+    peak_position = peak_position.real # Assure that the peak position is a real number
+    peak = Peak(f_real, f_imag, peak_position, lower_continuum_edge, imaginary_offset=imaginary_offset, scaling=scaling)
     peak_pos_value = np.copy(peak.peak_position)
     peak_result = peak.improved_peak_position(xtol=peak_position_tol)
     # only an issue if the difference is too large;
@@ -82,7 +95,7 @@ def analyze_peak(f_real, f_imag, peak_position, lower_continuum_edge, imaginary_
     
     if plotter is not None:
         plotter.plot(w_log, y_data, label="Data")
-        plotter.plot(w_log, linear_function(w_log, *popt), label="Fit")
+        plotter.plot(w_log, linear_function(w_log, *popt), label="Fit", linestyle="--")
         plotter.legend()
     
     return PeakData(peak_result["x"], u_weight.nominal_value, u_weight.std_dev)
