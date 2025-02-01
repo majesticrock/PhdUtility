@@ -1,4 +1,5 @@
 #include <mrock/symbolic_operators/IndexWrapper.hpp>
+#include <cassert>
 
 namespace mrock::symbolic_operators {
 	std::ostream& operator<<(std::ostream& os, const Index index)
@@ -23,16 +24,22 @@ namespace mrock::symbolic_operators {
 		case Index::GeneralSpin_SPrime:
 			os << "S'";
 			break;
-		case Index::BosonA:
+		case Index::TypeA:
 			os << "A";
 			break;
-		case Index::BosonB:
+		case Index::TypeB:
 			os << "B";
+			break;
+		case Index::TypeC:
+			os << "C";
+			break;
+		case Index::UndefinedIndex:
+			os << "UNDEFINED INDEX";
 			break;
 		case Index::NoIndex:
 			break;
 		default:
-			os << "ERROR_INDEX";
+			os << static_cast<char>(index);
 			break;
 		}
 		return os;
