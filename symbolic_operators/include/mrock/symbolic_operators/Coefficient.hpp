@@ -26,6 +26,7 @@ namespace mrock::symbolic_operators {
 		bool inversion_symmetry{ true }; ///< Indicates if V(k) = V(-k).
 		bool is_symmetrized_interaction{ }; ///< Indicates if the interaction is symmetrized, i.e., V(k, k', q) = V(k', k, -q)
 		bool Q_changes_sign{}; ///< Indicates if V(k+Q) = -V(k).
+		bool is_real{ true }; ///< Indicates if V^* = V. Default is true.
 		bool is_daggered{}; ///< Indicates if the coefficient is daggered.
 
 		/**
@@ -96,26 +97,37 @@ namespace mrock::symbolic_operators {
 		 * @param _custom_symmetry Optional custom symmetry function.
 		 * @return A real and inversion symmetric Coefficient.
 		 */
-		static Coefficient RealInversionSymmetric(const std::string& _name, const MomentumList& _momenta, const std::optional<std::function<void(Coefficient&)>>& _custom_symmetry = std::nullopt);
+		static Coefficient RealInversionSymmetric(const std::string& name, const MomentumList& momenta, const std::optional<std::function<void(Coefficient&)>>& custom_symmetry = std::nullopt);
 
 		/**
 		 * @brief Generates a real Coefficient with V(k, k', q) = V(k', k, -q).
-		 * @param _name The name of the coefficient.
-		 * @param _momenta The list of momenta.
-		 * @param _custom_symmetry Optional custom symmetry function.
+		 * @param name The name of the coefficient.
+		 * @param momenta The list of momenta.
+		 * @param custom_symmetry Optional custom symmetry function.
 		 * @return A real interaction Coefficient.
 		 */
-		static Coefficient RealInteraction(const std::string& _name, const MomentumList& _momenta, const std::optional<std::function<void(Coefficient&)>>& _custom_symmetry = std::nullopt);
+		static Coefficient RealInteraction(const std::string& name, const MomentumList& momenta, const std::optional<std::function<void(Coefficient&)>>& custom_symmetry = std::nullopt);
 
 		/**
 		 * @brief Generates a Coefficient as they occur on a honeycomb lattice.
-		 * @param _name The name of the coefficient.
-		 * @param _momentum The momentum.
+		 * @param name The name of the coefficient.
+		 * @param momentum The momentum.
 		 * @param daggered Indicates if the coefficient is daggered.
-		 * @param _custom_symmetry Optional custom symmetry function.
+		 * @param is_real Indicates if the coefficient is real. Default is true.
+		 * @param custom_symmetry Optional custom symmetry function.
 		 * @return A Coefficient with the symmetries of a honeycomb lattice.
 		 */
-		static Coefficient HoneyComb(const std::string& _name, const Momentum& _momentum, bool daggered, const std::optional<std::function<void(Coefficient&)>>& _custom_symmetry = std::nullopt);
+		static Coefficient HoneyComb(const std::string& name, const Momentum& momentum, bool daggered, bool is_real = true, const std::optional<std::function<void(Coefficient&)>>& custom_symmetry = std::nullopt);
+
+		/**
+		 * @brief Generates a Coefficient that does not depend on any momentum
+		 * @param name The name of the coefficient.
+		 * @param indizes The indizes of the coefficient. Default is no index.
+		 * @param daggered Indicates if the coefficient is daggered. Default is false.
+		 * @param is_real Indicates if the coefficient is real. Default is true.
+		 * @return A Coefficient with the symmetries of a honeycomb lattice.
+		 */
+		static Coefficient Constant(const std::string& name, const IndexWrapper& indizes = IndexWrapper{}, bool is_real = true, bool daggered = false);
 
 		/**
 		 * @brief Parses a string to create a Coefficient.
@@ -159,6 +171,18 @@ namespace mrock::symbolic_operators {
 		 * @return True if it depends on two momenta, false otherwise.
 		 */
 		inline bool depends_on_two_momenta() const noexcept;
+
+		/**
+		 * @brief Toggles the daggered state of the operator.
+		 * @return A reference to *this
+		 */
+		inline Coefficient& hermitian_conjugate_inplace();
+
+		/**
+		 * @brief Creates hermitian conjugate of this as a new object.
+		 * @return Returns the new object.
+		 */
+		inline Coefficient hermitian_conjugate() const;
 
 		/**
 		 * @brief Inverts the momentum of the coefficient.
@@ -221,7 +245,7 @@ namespace mrock::symbolic_operators {
 		return std::any_of(this->momenta.begin(), this->momenta.end(), [](const Momentum& momentum) {
 			return !momentum.momentum_list.empty();
 			});
-	};
+	}
 	bool Coefficient::depends_on(const MomentumSymbol::name_type momentum) const noexcept {
 		if (this->momenta.empty()) return false;
 		return std::any_of(this->momenta.begin(), this->momenta.end(), [momentum](const Momentum& mom) {
@@ -233,5 +257,15 @@ namespace mrock::symbolic_operators {
 	bool Coefficient::depends_on_two_momenta() const noexcept {
 		assert(momenta.size() == 1U);
 		return this->momenta.front().momentum_list.size() == 2U;
-	};
+	}
+	Coefficient& Coefficient::hermitian_conjugate_inplace() {
+		if (is_real) return *this;
+		is_daggered = !is_daggered;
+		return *this;
+	}
+	Coefficient Coefficient::hermitian_conjugate() const {
+		Coefficient copy(*this);
+		copy.hermitian_conjugate_inplace();
+		return copy;
+	}
 } // namespace mrock::symbolic_operators

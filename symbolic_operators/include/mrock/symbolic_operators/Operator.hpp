@@ -101,11 +101,13 @@ namespace mrock::symbolic_operators {
 
 		/**
 		 * @brief Toggles the daggered state of the operator.
+		 * @return A reference to *this
 		 */
-		inline Operator& hermitian_conjugate();
+		inline Operator& hermitian_conjugate_inplace();
 
 		/**
-		 * @brief Returns the hermitian conjugate of this as a new object.
+		 * @brief Creates hermitian conjugate of this as a new object.
+		 * @return Returns the new object.
 		 */
 		inline Operator hermitian_conjugate() const;
 
@@ -197,13 +199,13 @@ namespace mrock::symbolic_operators {
 
 
 	// Inline definitions
-	Operator& Operator::hermitian_conjugate() {
+	Operator& Operator::hermitian_conjugate_inplace() {
 		this->is_daggered = !(this->is_daggered);
 		return *this;
 	}
 	Operator Operator::hermitian_conjugate()  const {
 		Operator copy(*this);
-		copy.hermitian_conjugate();
+		copy.hermitian_conjugate_inplace();
 		return copy;
 	}
 	Operator Operator::with_momentum(Momentum const& new_momentum) const {

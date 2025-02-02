@@ -71,8 +71,7 @@ namespace sym_op_test {
             *   Computing and testing of [H, B]
             * 
             */
-            std::vector<Term> first_commutation;
-            commutator(first_commutation, H, base_term);
+            std::vector<Term> first_commutation = commutator(H, base_term);
             clean_up(first_commutation);
             // This means the test has been passed. We generate a new comparison file
             if (is_baseline) save_as_comparison(file_names[0], first_commutation);
@@ -83,11 +82,10 @@ namespace sym_op_test {
             *   Computing and testing of [B^+, [H, B]]
             * 
             */
-            std::vector<Term> second_commutation;
             std::vector<Term> base_dagger = base_term;
             rename_momenta(base_dagger, 'k', 'l');
             hermitian_conjugate(base_dagger);
-            commutator(second_commutation, base_dagger, first_commutation);
+            std::vector<Term> second_commutation = commutator(base_dagger, first_commutation);
             clean_up(second_commutation);
             // This means the test has been passed. We generate a new comparison file
             if (is_baseline) save_as_comparison(file_names[1], second_commutation);

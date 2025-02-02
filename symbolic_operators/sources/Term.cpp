@@ -486,17 +486,20 @@ namespace mrock::symbolic_operators {
 		return os.str();
 	}
 
-	Term& Term::hermitian_conjugate() {
+	Term& Term::hermitian_conjugate_inplace() {
 		std::reverse(this->operators.begin(), this->operators.end());
 		for (auto& op : this->operators) {
-			op.hermitian_conjugate();
+			op.hermitian_conjugate_inplace();
+		}
+		for (auto& coeff : this->coefficients) {
+			coeff.hermitian_conjugate_inplace();
 		}
 		return *this;
 	}
 
 	Term Term::hermitian_conjugate() const {
 		Term copy(*this);
-		copy.hermitian_conjugate();
+		copy.hermitian_conjugate_inplace();
 		return copy;
 	}
 
@@ -688,9 +691,9 @@ namespace mrock::symbolic_operators {
 	}
 
 #define fill_reciever(x) reciever[0].x = left.x; mrock::utility::append_vector(reciever[0].x, right.x); reciever[1].x = left.x; mrock::utility::append_vector(reciever[1].x, right.x);
-	void commutator(std::vector<Term>& reciever, const Term& left, const Term& right)
+	std::vector<Term> commutator(const Term& left, const Term& right)
 	{
-		reciever.resize(2);
+		std::vector<Term> reciever(2);
 		reciever[0] = left;
 		reciever[0].multiplicity *= right.multiplicity;
 		mrock::utility::append_vector(reciever[0].operators, right.operators);
@@ -706,20 +709,23 @@ namespace mrock::symbolic_operators {
 		fill_reciever(delta_indizes);
 
 		normal_order(reciever);
+		return reciever;
 	}
-	void commutator(std::vector<Term>& reciever, const std::vector<Term>& left, const std::vector<Term>& right)
+
+	std::vector<Term> commutator(const std::vector<Term>& left, const std::vector<Term>& right)
 	{
+		std::vector<Term> reciever;
 		reciever.reserve(2 * left.size() * right.size());
 		
 		for (const auto& left_term : left)
 		{
 			for (const auto& right_term : right)
 			{
-				std::vector<Term> reciever_buffer(2);
-				commutator(reciever_buffer, left_term, right_term);
+				std::vector<Term> reciever_buffer = commutator(left_term, right_term);
 				mrock::utility::append_vector(reciever, std::move(reciever_buffer));
 			}
 		}
+		return reciever;
 	}
 
 	std::ostream& operator<<(std::ostream& os, const Term& term)
@@ -873,7 +879,7 @@ namespace mrock::symbolic_operators {
 
 	std::string to_string_without_prefactor(const std::vector<Term>& terms) {
 		std::string ret = "";
-		for (size_t i = 0; i < terms.size(); i++)
+		for (size_t i = 0U; i < terms.size(); i++)
 		{
 			if (terms[i].multiplicity < 0) {
 				ret += "-";

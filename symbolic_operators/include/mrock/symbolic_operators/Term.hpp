@@ -257,11 +257,11 @@ namespace mrock::symbolic_operators {
 		 * @brief Applies the Hermitian conjugate to the term.
 		 * @return A reference to *this
 		 */
-		Term& hermitian_conjugate();
+		Term& hermitian_conjugate_inplace();
 
 		/**
-		 * @brief Applies the Hermitian conjugate to a copy of the term.
-		 * @return Returns the Hermitian conjugate as a copy.
+		 * @brief Creates hermitian conjugate of this as a new object.
+		 * @return Returns the new object.
 		 */
 		Term hermitian_conjugate() const;
 
@@ -313,33 +313,33 @@ namespace mrock::symbolic_operators {
 		void remove_momentum_contribution(const MomentumSymbol::name_type value);
 
 		friend void normal_order(std::vector<Term>& terms);
-		friend void commutator(std::vector<Term>& reciever, const Term& left, const Term& right);
+		friend std::vector<Term> commutator(const Term& left, const Term& right);
 		friend std::ostream& operator<<(std::ostream& os, const Term& term);
 	};
 
 	/**
 	 * @brief Computes the commutator of two sets of terms.
-	 * @param reciever The vector to store the result.
 	 * @param left The left-hand side terms.
 	 * @param right The right-hand side terms.
+	 * @return The result of [left, right]
 	 */
-	void commutator(std::vector<Term>& reciever, const std::vector<Term>& left, const std::vector<Term>& right);
+	std::vector<Term> commutator(const std::vector<Term>& left, const std::vector<Term>& right);
 
 	/**
 	 * @brief Computes the commutator of a term and a set of terms.
-	 * @param reciever The vector to store the result.
 	 * @param left The left-hand side term.
 	 * @param right The right-hand side terms.
+	 * @return The result of [left, right]
 	 */
-	inline void commutator(std::vector<Term>& reciever, const Term& left, const std::vector<Term>& right);
+	inline std::vector<Term> commutator(const Term& left, const std::vector<Term>& right);
 
 	/**
 	 * @brief Computes the commutator of a set of terms and a term.
-	 * @param reciever The vector to store the result.
 	 * @param left The left-hand side terms.
 	 * @param right The right-hand side term.
+	 * @return The result of [left, right]
 	 */
-	inline void commutator(std::vector<Term>& reciever, const std::vector<Term>& left, const Term& right);
+	inline std::vector<Term> commutator(const std::vector<Term>& left, const Term& right);
 
 	/**
 	 * @brief Checks if two terms are equal.
@@ -444,17 +444,17 @@ namespace mrock::symbolic_operators {
 	}
 
 	// Non-member inlines
-	void commutator(std::vector<Term>& reciever, const Term& left, const std::vector<Term>& right) {
+	std::vector<Term> commutator(const Term& left, const std::vector<Term>& right) {
 		const std::vector<Term> buffer = { left };
-		commutator(reciever, buffer, right);
+		return commutator(buffer, right);
 	}
-	void commutator(std::vector<Term>& reciever, const std::vector<Term>& left, const Term& right) {
+	std::vector<Term> commutator(const std::vector<Term>& left, const Term& right) {
 		const std::vector<Term> buffer = { right };
-		commutator(reciever, left, buffer);
+		return commutator(left, buffer);
 	}
 	void hermitian_conjugate(std::vector<Term>& terms) {
 		for (auto& t : terms) {
-			t.hermitian_conjugate();
+			t.hermitian_conjugate_inplace();
 		}
 	}
 	void rename_momenta(std::vector<Term>& terms, const MomentumSymbol::name_type what, const MomentumSymbol::name_type to) {

@@ -86,44 +86,74 @@ namespace mrock::symbolic_operators {
 		return os;
 	}
 	std::ostream& operator<<(std::ostream& os, const std::vector<Coefficient>& coeffs) {
-		for (std::vector<Coefficient>::const_iterator it = coeffs.begin(); it != coeffs.end(); ++it)
+		for (auto& coeff : coeffs)
 		{
-			os << (*it) << " ";
+			os << coeff << " ";
 		}
 		return os;
 	}
 
 	Coefficient::Coefficient(const std::string& _name)
-		: name(_name), momenta(), indizes(), Q_changes_sign(false), is_daggered(false) {}
+		: name(_name), 
+			momenta(), 
+			indizes(), 
+			Q_changes_sign(false), 
+			is_daggered(false) {}
+
 	Coefficient::Coefficient(const std::string& _name, const Momentum& _momentum, const IndexWrapper& _indizes, bool _Q_changes_sign, bool _inversion_symmetry, bool _is_daggered)
-		: name(_name), momenta(_momentum), indizes(_indizes), inversion_symmetry{_inversion_symmetry}, Q_changes_sign(_Q_changes_sign), is_daggered(_is_daggered) {}
+		: name(_name), 
+			momenta(_momentum), 
+			indizes(_indizes), 
+			inversion_symmetry{_inversion_symmetry}, 
+			Q_changes_sign(_Q_changes_sign), 
+			is_daggered(_is_daggered) {}
+
 	Coefficient::Coefficient(const std::string& _name, const Momentum& _momentum, bool _Q_changes_sign, bool _inversion_symmetry, bool _is_daggered)
-		: name(_name), momenta(_momentum), indizes(), inversion_symmetry{_inversion_symmetry}, Q_changes_sign(_Q_changes_sign), is_daggered(_is_daggered) {}
+		: name(_name), 
+			momenta(_momentum), 
+			indizes(), 
+			inversion_symmetry{_inversion_symmetry}, 
+			Q_changes_sign(_Q_changes_sign), 
+			is_daggered(_is_daggered) {}
+
 	Coefficient::Coefficient(const std::string& _name, const MomentumList& _momenta, const IndexWrapper& _indizes, bool _Q_changes_sign, bool _inversion_symmetry, bool _is_daggered)
-		: name(_name), momenta(_momenta), indizes(), inversion_symmetry{_inversion_symmetry}, Q_changes_sign(_Q_changes_sign), is_daggered(_is_daggered) { }
+		: name(_name), 
+			momenta(_momenta), 
+			indizes(_indizes), 
+			inversion_symmetry{_inversion_symmetry}, 
+			Q_changes_sign(_Q_changes_sign), 
+			is_daggered(_is_daggered) { }
 
-	Coefficient Coefficient::RealInversionSymmetric(const std::string& _name, const MomentumList& _momenta, 
-		const std::optional<std::function<void(Coefficient&)>>& _custom_symmetry /* = std::nullopt */)
+	Coefficient Coefficient::RealInversionSymmetric(const std::string& name, const MomentumList& momenta, 
+		const std::optional<std::function<void(Coefficient&)>>& custom_symmetry /* = std::nullopt */)
 	{
-		Coefficient ret(_name, _momenta, {}, true, false);
-		ret.custom_symmetry = _custom_symmetry;
+		Coefficient ret(name, momenta, {}, true, false);
+		ret.custom_symmetry = custom_symmetry;
 		return ret;
 	}
-	Coefficient Coefficient::RealInteraction(const std::string& _name, const MomentumList& _momenta, 
-		const std::optional<std::function<void(Coefficient&)>>& _custom_symmetry /* = std::nullopt */)
+	Coefficient Coefficient::RealInteraction(const std::string& name, const MomentumList& momenta, 
+		const std::optional<std::function<void(Coefficient&)>>& custom_symmetry /* = std::nullopt */)
 	{
-		assert(_momenta.size() == 3U);
-		Coefficient ret(_name, _momenta, {}, false, false);
+		assert(momenta.size() == 3U);
+		Coefficient ret(name, momenta, {}, false, false);
 		ret.is_symmetrized_interaction = true;
-		ret.custom_symmetry = _custom_symmetry;
+		ret.custom_symmetry = custom_symmetry;
 		return ret;
 	}
 
-	Coefficient Coefficient::HoneyComb(const std::string& _name, const Momentum& _momentum, bool daggered, 
-		const std::optional<std::function<void(Coefficient&)>>& _custom_symmetry /* = std::nullopt */)
+	Coefficient Coefficient::HoneyComb(const std::string& name, const Momentum& momentum, bool daggered, bool is_real /* = true */, 
+		const std::optional<std::function<void(Coefficient&)>>& custom_symmetry /* = std::nullopt */)
 	{
-		Coefficient ret(_name, _momentum, {}, false, false, daggered);
-		ret.custom_symmetry = _custom_symmetry;
+		Coefficient ret(name, momentum, {}, false, false, daggered);
+		ret.custom_symmetry = custom_symmetry;
+		ret.is_real = is_real;
+		return ret;
+	}
+
+	Coefficient Coefficient::Constant(const std::string &name, const IndexWrapper& indizes /* = {} */, bool daggered /* = false */, bool is_real /* = true */)
+	{
+	    Coefficient ret(name, MomentumList{}, indizes, false, true, daggered);
+		ret.is_real = is_real;
 		return ret;
 	}
 }

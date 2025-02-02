@@ -23,6 +23,13 @@ target_link_libraries(continuum_test PRIVATE mrock_symbolic_operators)
 target_include_directories(continuum_test PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../symbolic_operators/include)
 target_include_directories(continuum_test PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../utility/include)
 
+add_executable(bosons_test bosons.cpp)
+SET_COMPILER_FLAGS(bosons_test)
+target_link_libraries(bosons_test PRIVATE mrock_symbolic_operators)
+target_include_directories(bosons_test PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../symbolic_operators/include)
+target_include_directories(bosons_test PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../utility/include)
+
 enable_testing()
 
 add_test(NAME continuum_test COMMAND continuum_test)
+add_test(NAME bosons_test COMMAND bosons_test)
