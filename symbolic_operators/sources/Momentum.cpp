@@ -4,6 +4,7 @@
 #include <string>
 
 namespace mrock::symbolic_operators {
+	// Private function used in string expression constructor
 	inline momentum_symbols::value_type identify_subexpression(const std::string& sub) {
 		if (sub.front() == '+')
 			return identify_subexpression(std::string(sub.begin() + 1, sub.end()));
@@ -20,19 +21,6 @@ namespace mrock::symbolic_operators {
 			});
 
 		return MomentumSymbol(std::stoi(std::string(sub.begin(), it)), sub.back());
-	}
-
-	Momentum::Momentum(const std::string& expression, bool Q/* = false*/) : add_Q(Q)
-	{
-		if(expression != "0") {
-			size_t last = 0U;
-			size_t current = expression.find_first_of("+-", expression.front() == '+' || expression.front() == '-' ? 1U : 0U);
-			do {
-				current = expression.find_first_of("+-", last + 1U);
-				this->momentum_list.push_back(identify_subexpression(expression.substr(last, current - last)));
-				last = current;
-			} while (current != std::string::npos);
-		}
 	}
 
 	void Momentum::sort()
@@ -52,9 +40,85 @@ namespace mrock::symbolic_operators {
 
 	void Momentum::remove_contribution(const MomentumSymbol::name_type momentum) 
 	{
-		const int idx = this->isUsed(momentum);
+		const int idx = this->is_used_at(momentum);
 		if (idx < 0) return;
 		this->momentum_list.erase(this->momentum_list.begin() + idx);
+	}
+
+	void Momentum::add_in_place(const Momentum& rhs)
+	{
+		(*this) += rhs;
+	}
+
+	void Momentum::replace_occurances(const MomentumSymbol::name_type replaceWhat, const Momentum& replaceWith)
+	{
+		for (const auto& x : replaceWith.momentum_list) {
+			if (x.name == replaceWhat) {
+				throw std::invalid_argument("You are trying to replace a momentum with itself. This has undefined behaviour!");
+			}
+		}
+		for (size_t i = 0U; i < momentum_list.size(); ++i) {
+			if (momentum_list[i].name == replaceWhat) {
+				auto buffer = replaceWith;
+				buffer.multiply_by(momentum_list[i].factor);
+				this->momentum_list.erase(momentum_list.begin() + i);
+
+				(*this) += buffer;
+			}
+		}
+	}
+
+	void Momentum::remove_zeros()
+	{
+		for (auto it = momentum_list.begin(); it != momentum_list.end();) {
+			if (it->factor == 0) {
+				it = momentum_list.erase(it);
+			}
+			else {
+				++it;
+			}
+		}
+	}
+
+	void Momentum::flip_single(const MomentumSymbol::name_type momentum)
+	{
+		for (auto& momentum_symbol : momentum_list) {
+			if (momentum_symbol.name == momentum) {
+				momentum_symbol.factor *= -1;
+			}
+		}
+	}
+
+	int Momentum::is_used_at(const MomentumSymbol::name_type value) const noexcept {
+		for (int i = 0; i < momentum_list.size(); ++i) {
+			if (momentum_list[i].name == value) return i;
+		}
+		return -1;
+	}
+
+	std::string Momentum::to_string() const {
+		std::ostringstream oss;
+        oss << *this;
+        return oss.str();
+	}
+
+	bool Momentum::operator==(const Momentum& rhs) const {
+		if (this->add_Q != rhs.add_Q) return false;
+		if (this->momentum_list.size() != rhs.momentum_list.size()) return false;
+		bool foundOne = true;
+		for (size_t i = 0U; i < this->momentum_list.size(); ++i)
+		{
+			foundOne = false;
+			for (size_t j = 0U; j < rhs.momentum_list.size(); ++j)
+			{
+				if (this->momentum_list[i] == rhs.momentum_list[j]) {
+					foundOne = true;
+					break;
+				}
+			}
+			if (!foundOne) return false;
+		}
+		return true;
 	}
 
 	Momentum& Momentum::operator+=(const Momentum& rhs)
@@ -108,73 +172,19 @@ namespace mrock::symbolic_operators {
 		this->sort();
 		return *this;
 	}
-	void Momentum::add_in_place(const Momentum& rhs)
+
+	bool momentum_order(const Momentum& lhs, const Momentum& rhs)
 	{
-		(*this) += rhs;
-	}
-
-	void Momentum::replace_occurances(const MomentumSymbol::name_type replaceWhat, const Momentum& replaceWith)
-	{
-		for (const auto& x : replaceWith.momentum_list) {
-			if (x.name == replaceWhat) {
-				throw std::invalid_argument("You are trying to replace a momentum with itself. This has undefined behaviour!");
-			}
+		if(rhs.momentum_list.empty()) {
+			if(lhs.momentum_list.empty() && !lhs.add_Q && rhs.add_Q) return true;
+			return false; 
 		}
-		for (size_t i = 0U; i < momentum_list.size(); ++i) {
-			if (momentum_list[i].name == replaceWhat) {
-				auto buffer = replaceWith;
-				buffer.multiply_by(momentum_list[i].factor);
-				this->momentum_list.erase(momentum_list.begin() + i);
-
-				(*this) += buffer;
-			}
+		if(lhs.momentum_list.empty()) return true;
+		if(lhs.momentum_list[0].name < rhs.momentum_list[0].name) return true;
+		if(lhs.momentum_list[0].name == rhs.momentum_list[0].name) {
+			if(!lhs.add_Q && rhs.add_Q) return true;
 		}
-	}
-
-	void Momentum::remove_zeros()
-	{
-		for (auto it = momentum_list.begin(); it != momentum_list.end();) {
-			if (it->factor == 0) {
-				it = momentum_list.erase(it);
-			}
-			else {
-				++it;
-			}
-		}
-	}
-
-	void Momentum::flip_single(const MomentumSymbol::name_type momentum)
-	{
-		for (auto& momentum_symbol : momentum_list) {
-			if (momentum_symbol.name == momentum) {
-				momentum_symbol.factor *= -1;
-			}
-		}
-	}
-
-	bool Momentum::operator==(const Momentum& rhs) const {
-		if (this->add_Q != rhs.add_Q) return false;
-		if (this->momentum_list.size() != rhs.momentum_list.size()) return false;
-		bool foundOne = true;
-		for (size_t i = 0U; i < this->momentum_list.size(); ++i)
-		{
-			foundOne = false;
-			for (size_t j = 0U; j < rhs.momentum_list.size(); ++j)
-			{
-				if (this->momentum_list[i] == rhs.momentum_list[j]) {
-					foundOne = true;
-					break;
-				}
-			}
-			if (!foundOne) return false;
-		}
-		return true;
-	}
-
-	std::string Momentum::to_string() const {
-		std::ostringstream oss;
-        oss << *this;
-        return oss.str();
+		return false;
 	}
 
 	std::ostream& operator<<(std::ostream& os, const Momentum& momentum)
@@ -214,6 +224,7 @@ namespace mrock::symbolic_operators {
 		if (lhs.momentum_list.empty()) return false;
 		return lhs.momentum_list.front() > rhs.momentum_list.front();
 	}
+	
 	bool operator<(const Momentum& lhs, const Momentum& rhs)
 	{
 		if (lhs.momentum_list == rhs.momentum_list) return false;
@@ -222,17 +233,28 @@ namespace mrock::symbolic_operators {
 		return lhs.momentum_list.front() < rhs.momentum_list.front();
 	}
 
-	bool momentum_order(const Momentum& lhs, const Momentum& rhs)
+	Momentum::Momentum(const char value, int plus_minus /* = 1 */, bool Q /* = false */)
+		: momentum_list(1, MomentumSymbol(plus_minus, value)), add_Q(Q) {}
+
+	Momentum::Momentum(const MomentumSymbol::name_type value, int plus_minus /* = 1 */, bool Q /* = false */)
+		: momentum_list(1, {plus_minus, value}), add_Q(Q) {}
+	
+	Momentum::Momentum(const momentum_symbols& _momenta, bool Q /* = false */)
+		: momentum_list(_momenta), add_Q(Q) {}
+
+	Momentum::Momentum(MomentumSymbol const& momentum_symbol, bool Q /* = false */)
+		: momentum_list{momentum_symbol}, add_Q(Q) {}
+
+	Momentum::Momentum(const std::string& expression, bool Q /* = false*/) : add_Q(Q)
 	{
-		if(rhs.momentum_list.empty()) {
-			if(lhs.momentum_list.empty() && !lhs.add_Q && rhs.add_Q) return true;
-			return false; 
+		if(expression != "0") {
+			size_t last = 0U;
+			size_t current = expression.find_first_of("+-", expression.front() == '+' || expression.front() == '-' ? 1U : 0U);
+			do {
+				current = expression.find_first_of("+-", last + 1U);
+				this->momentum_list.push_back(identify_subexpression(expression.substr(last, current - last)));
+				last = current;
+			} while (current != std::string::npos);
 		}
-		if(lhs.momentum_list.empty()) return true;
-		if(lhs.momentum_list[0].name < rhs.momentum_list[0].name) return true;
-		if(lhs.momentum_list[0].name == rhs.momentum_list[0].name) {
-			if(!lhs.add_Q && rhs.add_Q) return true;
-		}
-		return false;
 	}
 }

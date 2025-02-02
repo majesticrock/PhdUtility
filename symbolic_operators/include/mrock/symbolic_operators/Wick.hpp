@@ -16,5 +16,5 @@ namespace mrock::symbolic_operators
 	void clear_etas(WickTermCollector& terms);
     
 	void clean_wicks(WickTermCollector& terms, const std::vector<std::unique_ptr<WickSymmetry>>& symmetries = std::vector<std::unique_ptr<WickSymmetry>>{});
-}
+} // namespace mrock::symbolic_operators
 #endif

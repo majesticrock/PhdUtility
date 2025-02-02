@@ -193,7 +193,7 @@ namespace mrock::symbolic_operators {
 				// See, whether we can find a sum index within our delta
 				for (auto m : sums.momenta)
 				{
-					index = delta.second.isUsed(m);
+					index = delta.second.is_used_at(m);
 					if (index >= 0) {
 						foundCandidate = true;
 						if (abs(delta.second.momentum_list[index].factor) == 1) {
@@ -374,7 +374,7 @@ namespace mrock::symbolic_operators {
 					break;
 				}
 				else {
-					int index = delta_momenta[j].second.isUsed(sums.momenta[i]);
+					int index = delta_momenta[j].second.is_used_at(sums.momenta[i]);
 					if (index < 0) continue;
 
 					Momentum buffer(delta_momenta[j].second.momentum_list[index].name, delta_momenta[j].second.momentum_list[index].factor);
@@ -441,7 +441,7 @@ namespace mrock::symbolic_operators {
 		for (const auto& sum : sums.momenta)
 		{
 			for (auto& op : operators) {
-				int index = op.momentum.isUsed(sum);
+				int index = op.momentum.is_used_at(sum);
 				if (index < 0) continue;
 				if (op.momentum.momentum_list.size() == 1) break;
 
@@ -573,7 +573,7 @@ namespace mrock::symbolic_operators {
 				}
 
 				for (const auto& sum : sums.momenta) {
-					int idx = momentum.isUsed(sum);
+					int idx = momentum.is_used_at(sum);
 					if (idx < 0) continue;
 
 					if (momentum.momentum_list[idx].factor < 0) {

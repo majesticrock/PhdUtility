@@ -1,11 +1,12 @@
 #pragma once
 #include "KroneckerDelta.hpp"
 #include "Coefficient.hpp"
-#include "SymbolicSum.hpp"
+#include "SumContainer.hpp"
 #include <mrock/utility/Fractional.hpp>
 #include <algorithm>
 #include <vector>
 
+// Debug option, allows to track an individual term across the entire algorithm
 //#define _TRACK_TERM
 #ifdef _TRACK_TERM
 #define _TERM_TRACKER_PARAMETER bool is_tracked = false
@@ -192,4 +193,4 @@ namespace mrock::symbolic_operators {
 		}
 		return ret;
 	}
-}
+} // namespace mrock::symbolic_operators

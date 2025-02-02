@@ -32,4 +32,24 @@ namespace mrock::symbolic_operators {
 		os << " )";
 		return os;
 	}
+
+	MomentumList::MomentumList() : _parent() {}
+
+	MomentumList::MomentumList(const Momentum& momentum)
+		: _parent{ momentum } {}
+
+	MomentumList::MomentumList(const Momentum& first, const Momentum& second)
+		: _parent{ first, second } {}
+
+	MomentumList::MomentumList(std::initializer_list<Momentum> init)
+		: _parent(init) {}
+
+	MomentumList::MomentumList(std::initializer_list<char> init)
+		: _parent{ std::vector<Momentum>(init.size()) }
+	{
+		for (size_t i = 0U; i < init.size(); i++)
+		{
+			this->_vector[i] = Momentum(init.begin()[i]);
+		}
+	}
 }

@@ -116,7 +116,7 @@ namespace mrock::symbolic_operators {
 				delta.first.remove_contribution(value);
 				delta.second.remove_contribution(value);
 			}
-			std::erase_if(sums.momenta._vector, [&](const MomentumSymbol::name_type sum_idx) { return sum_idx == value; });
+			std::erase_if(sums.momenta.summations, [&](const MomentumSymbol::name_type sum_idx) { return sum_idx == value; });
 		}
 	};
 
@@ -171,4 +171,4 @@ namespace mrock::symbolic_operators {
 
 		const WickTerm& which_term() const noexcept { return this->_term; };
 	};
-}
+} // namespace mrock::symbolic_operators

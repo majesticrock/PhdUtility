@@ -1,36 +1,108 @@
-#pragma once
+/**
+ * @file SymbolicSum.hpp
+ * @brief Defines the SymbolicSum template struct for symbolic summation operations.
+ * 
+ * This file contains the definition of the SymbolicSum template struct, which is used
+ * to represent and manipulate symbolic summation operations. It provides various
+ * constructors, serialization support, and comparison operators.
+ */
 
+#pragma once
 #include <mrock/utility/VectorWrapper.hpp>
-#include <mrock/utility/RangeUtility.hpp>
-#include "IndexWrapper.hpp"
-#include "MomentumSymbol.hpp"
+#include <ostream>
 
 namespace mrock::symbolic_operators {
+
+	/**
+	 * @brief A struct representing a symbolic summation operation.
+	 * 
+	 * @tparam SumIndex The type of the summation index.
+	 */
 	template<class SumIndex>
-	struct SymbolicSum : public mrock::utility::VectorWrapper<SumIndex>
-	{
-	public:
+	struct SymbolicSum {
+		std::vector<SumIndex> summations; ///< The vector of summation indices.
+
+		/**
+		 * @brief Serializes the SymbolicSum object.
+		 * 
+		 * @tparam Archive The type of the archive.
+		 * @param ar The archive to serialize to.
+		 * @param version The version of the serialization format.
+		 */
 		template<class Archive>
 		void serialize(Archive& ar, const unsigned int version) {
-			ar& this->_vector;
+			ar& this->summations;
 		}
 
+		/**
+		 * @brief Default constructor.
+		 */
 		SymbolicSum() = default;
-		SymbolicSum(SumIndex sum_index) : mrock::utility::VectorWrapper<SumIndex>(1U, sum_index) {}
-		SymbolicSum(const std::vector<SumIndex>& _indizes)
-			: mrock::utility::VectorWrapper<SumIndex>(_indizes) {}
-		SymbolicSum(std::vector<SumIndex>&& _indizes)
-			: mrock::utility::VectorWrapper<SumIndex>(std::move(_indizes)) {}
-		SymbolicSum(std::initializer_list<SumIndex> init) : mrock::utility::VectorWrapper<SumIndex>(std::move(init)) {}
 
+		/**
+		 * @brief Constructs a SymbolicSum with a single summation index.
+		 * 
+		 * @param sum_index The summation index.
+		 */
+		SymbolicSum(SumIndex sum_index) 
+			: summations(1U, sum_index) {}
+
+		/**
+		 * @brief Constructs a SymbolicSum with a vector of summation indices.
+		 * 
+		 * @param _indizes The vector of summation indices.
+		 */
+		SymbolicSum(const std::vector<SumIndex>& _indizes)
+			: summations(_indizes) {}
+
+		/**
+		 * @brief Constructs a SymbolicSum with a moved vector of summation indices.
+		 * 
+		 * @param _indizes The vector of summation indices to move.
+		 */
+		SymbolicSum(std::vector<SumIndex>&& _indizes)
+			: summations(std::move(_indizes)) {}
+
+		/**
+		 * @brief Constructs a SymbolicSum with an initializer list of summation indices.
+		 * 
+		 * @param init The initializer list of summation indices.
+		 */
+		SymbolicSum(std::initializer_list<SumIndex> init)
+			 : summations(std::move(init)) {}
+
+		/**
+		 * @brief Checks if a given index is part of the summation indices.
+		 * 
+		 * @param what The index to check.
+		 * @return True if the index is part of the summation indices, false otherwise.
+		 */
 		inline bool is_summed_over(SumIndex what) const {
-			for (const auto& _s : this->_vector) {
+			for (const auto& _s : this->summations) {
 				if (_s == what) return true;
 			}
 			return false;
 		}
+
+		VECTOR_WRAPPER_FILL_MEMBERS(SumIndex, summations);
+
+		/**
+		 * @brief Compares two SymbolicSum objects.
+		 * 
+		 * @param rhs The other SymbolicSum to compare with.
+		 * @return The result of the comparison.
+		 */
+		inline auto operator<=>(const SymbolicSum<SumIndex>& rhs) const = default;
 	};
 
+	/**
+	 * @brief Outputs the SymbolicSum object to an output stream.
+	 * 
+	 * @tparam SumIndex The type of the summation index.
+	 * @param os The output stream.
+	 * @param sum The SymbolicSum object to output.
+	 * @return The output stream.
+	 */
 	template<class SumIndex>
 	std::ostream& operator<<(std::ostream& os, SymbolicSum<SumIndex> const& sum) {
 		if (sum.empty()) return os;
@@ -41,57 +113,4 @@ namespace mrock::symbolic_operators {
 		os << "} ";
 		return os;
 	}
-
-	typedef SymbolicSum<Index> IndexSum;
-	typedef SymbolicSum<MomentumSymbol::name_type> MomentumSum;
-
-	struct SumContainer {
-		MomentumSum momenta;
-		IndexSum spins;
-
-		template<class Archive>
-		void serialize(Archive& ar, const unsigned int version) {
-			ar& this->momenta;
-			ar& this->spins;
-		};
-
-		inline SumContainer& append(const SumContainer& other) {
-			mrock::utility::append_vector(this->momenta, other.momenta);
-			mrock::utility::append_vector(this->spins, other.spins);
-			return *this;
-		}
-		inline SumContainer& append(const MomentumSum& other) {
-			mrock::utility::append_vector(this->momenta, other);
-			return *this;
-		}
-		inline SumContainer& append(const IndexSum& other) {
-			mrock::utility::append_vector(this->spins, other);
-			return *this;
-		}
-		inline void push_back(const MomentumSymbol::name_type momentum) {
-			this->momenta.push_back(momentum);
-		}
-		inline void push_back(const Index spin) {
-			this->spins.push_back(spin);
-		}
-
-		inline bool has_momentum() const noexcept {
-			return !momenta.empty();
-		}
-		inline bool has_spins() const noexcept {
-			return !spins.empty();
-		}
-	};
-
-	inline bool operator==(const SumContainer& lhs, const SumContainer& rhs) {
-		return (lhs.momenta == rhs.momenta && lhs.spins == rhs.spins);
-	}
-	inline bool operator!=(const SumContainer& lhs, const SumContainer& rhs) {
-		return !(lhs == rhs);
-	}
-
-	inline std::ostream& operator<<(std::ostream& os, const SumContainer& sums) {
-		os << sums.momenta << sums.spins;
-		return os;
-	}
-}
+} // namespace mrock::symbolic_operators

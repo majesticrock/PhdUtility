@@ -190,10 +190,10 @@ namespace mrock::symbolic_operators {
 		for (auto& term : terms) {
 			for (auto& delta : term.delta_momenta) {
 				assert(delta.first.momentum_list.size() == 1U);
-				int l_is = delta.first.isUsed('l');
+				int l_is = delta.first.is_used_at('l');
 				if(l_is == 0) continue;
 
-				l_is = delta.second.isUsed('l');
+				l_is = delta.second.is_used_at('l');
 				if(l_is == -1) {
 					std::cout << term << std::endl;
 					throw std::runtime_error("l_is -1, but we need an l!");

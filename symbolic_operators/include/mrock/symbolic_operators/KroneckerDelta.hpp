@@ -68,4 +68,4 @@ namespace mrock::symbolic_operators {
 		os << "\\delta_{" << delta.first << ", " << delta.second << "} ";
 		return os;
 	};
-}
+} // namespace mrock::symbolic_operators

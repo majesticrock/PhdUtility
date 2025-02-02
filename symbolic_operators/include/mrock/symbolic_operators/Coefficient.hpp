@@ -61,7 +61,7 @@ namespace mrock::symbolic_operators {
 		inline bool depends_on(const MomentumSymbol::name_type momentum) const noexcept {
 			if (this->momenta.empty()) return false;
 			return std::any_of(this->momenta.begin(), this->momenta.end(), [momentum](const Momentum& mom) {
-				return mom.isUsed(momentum) != -1;
+				return mom.is_used_at(momentum) != -1;
 				});
 		}
 		// This function determines whether the coefficient depends on something like k-l
@@ -93,4 +93,4 @@ namespace mrock::symbolic_operators {
 	inline bool operator!=(const Coefficient& lhs, const Coefficient& rhs) {
 		return !(lhs == rhs);
 	}
-}
+} // namespace mrock::symbolic_operators

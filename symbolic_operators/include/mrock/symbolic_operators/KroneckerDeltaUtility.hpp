@@ -42,7 +42,7 @@ namespace mrock::symbolic_operators {
 			delta.second.add_Q = !(delta.second.add_Q);
 		}
 		for (auto it = delta.first.momentum_list.begin(); it != delta.first.momentum_list.end();) {
-			const int idx = delta.second.isUsed(it->name);
+			const int idx = delta.second.is_used_at(it->name);
 			if(idx < 0) {
 				++it;
 				continue;
@@ -55,4 +55,4 @@ namespace mrock::symbolic_operators {
 			}
 		}
 	}
-}
+} // namespace mrock::symbolic_operators

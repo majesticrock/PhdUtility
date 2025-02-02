@@ -8,4 +8,4 @@ namespace mrock::symbolic_operators {
 		std::vector<WickTermCollector> M, N;
 		void load(std::string const& folder, bool use_XP, int n_terms, int start_at = 0);
 	};
-}
+} // namespace mrock::symbolic_operators

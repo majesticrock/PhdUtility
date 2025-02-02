@@ -31,7 +31,7 @@ namespace mrock::symbolic_operators {
 			return false;
 		};
 		inline bool depends_on(const MomentumSymbol::name_type momentum) const noexcept {
-			return this->momentum.isUsed(momentum) != -1;
+			return this->momentum.is_used_at(momentum) != -1;
 		}
 		inline void remove_momentum_contribution(const MomentumSymbol::name_type value) {
 			momentum.remove_contribution(value);
@@ -40,4 +40,4 @@ namespace mrock::symbolic_operators {
 
 	std::ostream& operator<<(std::ostream& os, const WickOperator& op);
 	std::ostream& operator<<(std::ostream& os, const std::vector<WickOperator>& ops);
-}
+} // namespace mrock::symbolic_operators

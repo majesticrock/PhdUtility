@@ -1,3 +1,8 @@
+/**
+ * @file IndexWrapper.hpp
+ * @brief Defines the Index enum and the IndexWrapper class for handling indizes.
+ */
+
 #pragma once
 #include <iostream>
 #include <mrock/utility/VectorWrapper.hpp>
@@ -137,8 +142,7 @@ namespace mrock::symbolic_operators {
 		std::vector<Index> indizes; ///< The vector of Index values.
 
 		/**
-		 * @brief Serializes the IndexWrapper.
-		 * 
+		 * @brief Serializes the IndexWrapper, required for boost support.
 		 * @tparam Archive The type of the archive.
 		 * @param ar The archive to serialize to.
 		 * @param version The version of the serialization.
@@ -176,9 +180,6 @@ namespace mrock::symbolic_operators {
 		IndexWrapper(std::vector<Index>&& _indizes)
 			: indizes(std::move(_indizes)) {};
 
-		/**
-		 * @brief Fills the members of the IndexWrapper.
-		 */
 		VECTOR_WRAPPER_FILL_MEMBERS(Index, indizes);
 
 		/**
@@ -198,4 +199,4 @@ namespace mrock::symbolic_operators {
 	 * @return The output stream.
 	 */
 	std::ostream& operator<<(std::ostream& os, const IndexWrapper& indizes);
-}
+} // namespace mrock::symbolic_operators

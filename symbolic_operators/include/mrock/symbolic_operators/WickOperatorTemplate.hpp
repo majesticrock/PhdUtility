@@ -100,4 +100,4 @@ namespace mrock::symbolic_operators {
 		TemplateResult _handle_sc_type(const Operator& left, const Operator& right) const;
 		TemplateResult _handle_num_type(const Operator& left, const Operator& right) const;
 	};
-}
+} // namespace mrock::symbolic_operators

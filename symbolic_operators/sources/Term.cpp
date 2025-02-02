@@ -116,7 +116,7 @@ namespace mrock::symbolic_operators {
 				// See, whether we can find a sum index within our delta
 				for (auto m : sums.momenta)
 				{
-					index = delta.second.isUsed(m);
+					index = delta.second.is_used_at(m);
 					if (index > -1) {
 						foundCandidate = true;
 						if (abs(delta.second.momentum_list[index].factor) == 1) {
@@ -247,12 +247,12 @@ namespace mrock::symbolic_operators {
 		{
 			for (auto delta_it = delta_momenta.begin(); delta_it != delta_momenta.end(); ++delta_it)
 			{
-				int idx = delta_it->second.isUsed(sums.momenta[i]);
+				int idx = delta_it->second.is_used_at(sums.momenta[i]);
 				if(idx > -1) {
 					std::swap(delta_it->first, delta_it->second);
 				}
 				else {
-					idx = delta_it->first.isUsed(sums.momenta[i]);
+					idx = delta_it->first.is_used_at(sums.momenta[i]);
 				}
 				if(idx > -1) {
 					assert(abs(delta_it->first.momentum_list[idx].factor) == 1);
@@ -374,7 +374,7 @@ namespace mrock::symbolic_operators {
 		for (const auto& sum_mom : sums.momenta) {
 			bool first_occurance = true;
 			for (auto& op : operators) {
-				int i = op.momentum.isUsed(sum_mom);
+				int i = op.momentum.is_used_at(sum_mom);
 				if (i > -1) {
 					if (first_occurance) {
 						if (op.momentum.momentum_list[i].factor < 0) {
@@ -574,7 +574,7 @@ namespace mrock::symbolic_operators {
 			delta.first.remove_contribution(value);
 			delta.second.remove_contribution(value);
 		}
-		std::erase_if(sums.momenta._vector, [&](const MomentumSymbol::name_type sum_idx) { return sum_idx == value; });
+		std::erase_if(sums.momenta.summations, [&](const MomentumSymbol::name_type sum_idx) { return sum_idx == value; });
 	}
 
 	void normal_order(std::vector<Term>& terms) {
@@ -766,10 +766,10 @@ namespace mrock::symbolic_operators {
 		for (auto& term : terms) {
 			for (auto& delta : term.delta_momenta) {
 				assert(delta.first.momentum_list.size() == 1U);
-				int l_is = delta.first.isUsed('l');
+				int l_is = delta.first.is_used_at('l');
 				if(l_is == 0) continue;
 
-				l_is = delta.second.isUsed('l');
+				l_is = delta.second.is_used_at('l');
 				if(l_is == -1) {
 					std::cout << term << std::endl;
 					throw;

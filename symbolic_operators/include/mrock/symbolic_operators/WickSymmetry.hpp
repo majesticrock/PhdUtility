@@ -34,4 +34,4 @@ namespace mrock::symbolic_operators
             }
         };
     };
-}
+} // namespace mrock::symbolic_operators

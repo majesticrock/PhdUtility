@@ -17,6 +17,7 @@ add_library(mrock_symbolic_operators STATIC
     sources/MomentumList.cpp
     sources/Operator.cpp
     sources/OperatorType.cpp
+    sources/SumContainer.cpp
     sources/Term.cpp
     sources/TermLoader.cpp
     sources/Wick.cpp
