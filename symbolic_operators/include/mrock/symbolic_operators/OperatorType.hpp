@@ -1,3 +1,8 @@
+/**
+ * @file OperatorType.hpp
+ * @brief Defines the OperatorType enum and related functions for symbolic operators.
+ */
+
 #pragma once
 #include <iostream>
 #include <map>

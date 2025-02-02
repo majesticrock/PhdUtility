@@ -17,6 +17,25 @@ namespace mrock::symbolic_operators {
 		}
 	}
 
+	size_t TemplateResult::create_branch() {
+		const size_t current_size{ results.size() };
+		results.reserve(2 * current_size);
+		std::copy_n(results.begin(), current_size, std::back_inserter(results));
+		return current_size;
+	}
+	void TemplateResult::clear_impossible() {
+		auto new_end = std::remove_if(this->results.begin(), this->results.end(), [](const SingleResult& result) {
+			return result.contains_impossible_delta();
+			});
+		this->results.erase(new_end, this->results.end());
+	}
+	void TemplateResult::clean_up() {
+		for (auto& result : results) {
+			result.clear_delta_equals_one();
+		}
+		this->clear_impossible();
+	}
+
 	TemplateResult WickOperatorTemplate::_handle_sc_type(const Operator& left, const Operator& right) const {
 		// c_{-k-q} c_{k} or c_{k}^+ c_{-k-q}^+
 		const Operator& base{ left.is_daggered ? right : left };

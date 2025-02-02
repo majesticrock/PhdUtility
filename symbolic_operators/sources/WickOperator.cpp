@@ -7,8 +7,6 @@ namespace mrock::symbolic_operators {
 		: type(_type), is_daggered(_is_daggered), momentum(_momentum), indizes(_indizes) {}
 	WickOperator::WickOperator(const OperatorType& _type, const bool _is_daggered, const Momentum& _momentum, const Index _index)
 		: type(_type), is_daggered(_is_daggered), momentum(_momentum), indizes(_index) {}
-	WickOperator::WickOperator()
-		: type(Undefined_Type), is_daggered(false), momentum(), indizes() {}
 
 	WickOperator::WickOperator(const std::string& expression)
 	{

@@ -114,7 +114,7 @@ namespace mrock::symbolic_operators {
 		}
 	}
 
-	bool WickTerm::setDeltas()
+	bool WickTerm::set_deltas()
 	{
 		// Erase delta_k,k etc
 		remove_delta_is_one(this->delta_indizes);
@@ -295,7 +295,7 @@ namespace mrock::symbolic_operators {
 		return !(is_always_zero(this->delta_indizes) || is_always_zero(this->delta_momenta));
 	}
 
-	bool WickTerm::computeSums()
+	bool WickTerm::compute_sums()
 	{
 		auto changeAllIndizes = [&](const Index replaceWhat, const Index replaceWith) {
 			for (auto& op : operators) {
@@ -370,7 +370,7 @@ namespace mrock::symbolic_operators {
 					sums.momenta.erase(sums.momenta.begin() + i);
 					delta_momenta.erase(delta_momenta.begin() + j);
 					--i;
-					if (!(setDeltas())) return false;
+					if (!(set_deltas())) return false;
 					break;
 				}
 				else {
@@ -390,7 +390,7 @@ namespace mrock::symbolic_operators {
 					sums.momenta.erase(sums.momenta.begin() + i);
 					delta_momenta.erase(delta_momenta.begin() + j);
 					--i;
-					if (!(setDeltas())) return false;
+					if (!(set_deltas())) return false;
 					break;
 				}
 			}
@@ -408,7 +408,7 @@ namespace mrock::symbolic_operators {
 		}
 	}
 
-	void WickTerm::renameSums()
+	void WickTerm::rename_sums()
 	{
 		constexpr MomentumSymbol::name_type name_list[3] = { 'q', 'p', 'r' };
 		constexpr MomentumSymbol::name_type buffer_list[3] = { ':', ';', '|' };

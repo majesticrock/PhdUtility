@@ -27,17 +27,11 @@ namespace mrock::symbolic_operators {
 		std::cout << *this << std::endl;
 	}
 
-	bool Term::setDeltas()
+	bool Term::set_deltas()
 	{
-		IF_IS_TERM_TRACKED( std::cout << "setDeltas() 1:&" << (*this) << "\\\\" << std::endl; );
+		IF_IS_TERM_TRACKED( std::cout << "set_deltas() 1:&" << (*this) << "\\\\" << std::endl; );
 
-		for (auto& delta : delta_indizes) {
-			if (!is_mutable(delta.first) && !is_mutable(delta.second)) {
-				if (delta.first != delta.second) {
-					return false;
-				}
-			}
-		}
+		if (is_always_zero(delta_indizes)) return false;
 
 		for (auto& delta : delta_momenta)
 		{
@@ -61,7 +55,7 @@ namespace mrock::symbolic_operators {
 			}
 		}
 
-		IF_IS_TERM_TRACKED( std::cout << "setDeltas() 2:&" << (*this) << "\\\\" << std::endl; );
+		IF_IS_TERM_TRACKED( std::cout << "set_deltas() 2:&" << (*this) << "\\\\" << std::endl; );
 		// Removes delta_{0,Q} and delta_{0,0}
 		for (auto it = delta_momenta.begin(); it != delta_momenta.end(); )
 		{
@@ -77,11 +71,11 @@ namespace mrock::symbolic_operators {
 
 		// Set all deltas up to the same notation
 		for (auto& delta : delta_momenta) {
-			IF_IS_TERM_TRACKED( std::cout << "setDeltas() 3a:&" << (*this) << "\\\\" << std::endl; );
+			IF_IS_TERM_TRACKED( std::cout << "set_deltas() 3a:&" << (*this) << "\\\\" << std::endl; );
 			for (auto& delta2 : delta_momenta) {
 				remove_double_occurances(delta2);
 			}
-			IF_IS_TERM_TRACKED( std::cout << "setDeltas() 3b:&" << (*this) << "\\\\" << std::endl; );
+			IF_IS_TERM_TRACKED( std::cout << "set_deltas() 3b:&" << (*this) << "\\\\" << std::endl; );
 			// Make sure that the first entry of each delta is not empty
 			if (delta.first.momentum_list.empty()) {
 				if (delta.second.momentum_list.empty()) continue;
@@ -99,7 +93,7 @@ namespace mrock::symbolic_operators {
 					delta.second.momentum_list.pop_back();
 				}
 			}
-			IF_IS_TERM_TRACKED( std::cout << "setDeltas() 3c:&" << (*this) << "\\\\" << std::endl; );
+			IF_IS_TERM_TRACKED( std::cout << "set_deltas() 3c:&" << (*this) << "\\\\" << std::endl; );
 
 			// Make sure that the first entry of each delta is of size 1
 			if (delta.second.momentum_list.size() == 1 && delta.first.momentum_list.size() > 1) {
@@ -144,7 +138,7 @@ namespace mrock::symbolic_operators {
 				delta.first.flip_momentum();
 				delta.second.flip_momentum();
 			}
-			IF_IS_TERM_TRACKED( std::cout << "setDeltas() 3d:&" << (*this) << "\\\\" << std::endl; );
+			IF_IS_TERM_TRACKED( std::cout << "set_deltas() 3d:&" << (*this) << "\\\\" << std::endl; );
 			if (abs(delta.first.momentum_list[0].factor) != 1) std::cerr << "Not yet implemented! " << delta.first << std::endl;
 			for (auto& op : operators) {
 				op.momentum.replace_occurances(delta.first.momentum_list[0].name, delta.second);
@@ -157,10 +151,10 @@ namespace mrock::symbolic_operators {
 				delta2.first.replace_occurances(delta.first.momentum_list[0].name, delta.second);
 				delta2.second.replace_occurances(delta.first.momentum_list[0].name, delta.second);
 			}
-			IF_IS_TERM_TRACKED( std::cout << "setDeltas() 3e:&" << (*this) << "\\\\" << std::endl; );
+			IF_IS_TERM_TRACKED( std::cout << "set_deltas() 3e:&" << (*this) << "\\\\" << std::endl; );
 		}
 
-		IF_IS_TERM_TRACKED( std::cout << "setDeltas() 4:&" << (*this) << "\\\\" << std::endl; );
+		IF_IS_TERM_TRACKED( std::cout << "set_deltas() 4:&" << (*this) << "\\\\" << std::endl; );
 		for (auto& delta : delta_indizes) {
 			for (auto& op : operators) {
 				for (auto it = op.indizes.begin(); it != op.indizes.end(); ++it)
@@ -189,7 +183,7 @@ namespace mrock::symbolic_operators {
 		return true;
 	}
 
-	bool Term::computeSums() {
+	bool Term::compute_sums() {
 		auto changeAllIndizes = [&](const Index replaceWhat, const Index replaceWith) {
 			for (auto& op : operators) {
 				for (auto it = op.indizes.begin(); it != op.indizes.end(); ++it)
@@ -268,7 +262,7 @@ namespace mrock::symbolic_operators {
 					sums.momenta.erase(sums.momenta.begin() + i);
 					delta_momenta.erase(delta_it);
 					--i;
-					if (!(setDeltas())) return false;
+					if (!(set_deltas())) return false;
 					break;
 				}
 			}
@@ -298,7 +292,7 @@ namespace mrock::symbolic_operators {
 				}
 				if (coeff.Q_changes_sign && momentum.add_Q) {
 					momentum.add_Q = false;
-					flipSign();
+					flip_sign();
 				}
 			}
 		}
@@ -390,7 +384,7 @@ namespace mrock::symbolic_operators {
 		}
 	}
 
-	void Term::renameSums()
+	void Term::rename_sums()
 	{
 		constexpr int N_BUFFER = 11;
 		constexpr MomentumSymbol::name_type name_list[N_BUFFER]   = { 'q', 'p', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
@@ -435,6 +429,15 @@ namespace mrock::symbolic_operators {
 				}
 			}
 		}
+	}
+
+	bool Term::is_equal(const Term& other) const {
+		if (this->coefficients != other.coefficients) return false;
+		if (this->sums != other.sums) return false;
+		if (this->delta_indizes != other.delta_indizes) return false;
+		if (this->delta_momenta != other.delta_momenta) return false;
+		if (this->operators != other.operators) return false;
+		return true;
 	}
 
 	bool Term::is_normal_ordered() const {
@@ -483,6 +486,20 @@ namespace mrock::symbolic_operators {
 		return os.str();
 	}
 
+	Term& Term::hermitian_conjugate() {
+		std::reverse(this->operators.begin(), this->operators.end());
+		for (auto& op : this->operators) {
+			op.hermitian_conjugate();
+		}
+		return *this;
+	}
+
+	Term Term::hermitian_conjugate() const {
+		Term copy(*this);
+		copy.hermitian_conjugate();
+		return copy;
+	}
+
 	void Term::rename_indizes(Index what, Index to) {
 		if (what == to) return;
 		for (auto& index_sum : sums.spins) {
@@ -527,6 +544,12 @@ namespace mrock::symbolic_operators {
 		for (auto& op : operators) {
 			op.momentum.replace_occurances(what, Momentum(to));
 		}
+	}
+
+	void Term::swap_momenta(const MomentumSymbol::name_type a, const MomentumSymbol::name_type b) {
+		this->rename_momenta(a, '_');
+		this->rename_momenta(b, a);
+		this->rename_momenta('_', b);
 	}
 
 	void Term::transform_momentum_sum(const MomentumSymbol::name_type what, const Momentum to, const MomentumSymbol::name_type new_sum_index) {
@@ -613,7 +636,7 @@ namespace mrock::symbolic_operators {
 						Term new_term(terms[t]);
 						// flip the signs if we have fermions
 						if (terms[t].operators[i - 1].is_fermion && terms[t].operators[i].is_fermion) {
-							terms[t].flipSign();
+							terms[t].flip_sign();
 						}			
 						if (new_term.operators[i - 1].indizes.size() != new_term.operators[i].indizes.size()) {
 							throw std::invalid_argument("Operators do not have the same index count.");
@@ -674,7 +697,7 @@ namespace mrock::symbolic_operators {
 		reciever[1] = right;
 		reciever[1].multiplicity *= left.multiplicity;
 		mrock::utility::append_vector(reciever[1].operators, left.operators);
-		reciever[1].flipSign();
+		reciever[1].flip_sign();
 
 		fill_reciever(coefficients);
 		fill_reciever(sums.momenta);
@@ -742,22 +765,22 @@ namespace mrock::symbolic_operators {
 		terms.back().is_tracked = true;
 #endif
 		for (std::vector<Term>::iterator it = terms.begin(); it != terms.end();) {
-			if (!(it->setDeltas())) {
+			if (!(it->set_deltas())) {
 				it = terms.erase(it);
 				continue;
 			}
 			it->discard_zero_momenta();
-			if (!(it->computeSums())) {
+			if (!(it->compute_sums())) {
 				it = terms.erase(it);
 				continue;
 			}
 
-			if (!(it->setDeltas())) {
+			if (!(it->set_deltas())) {
 				it = terms.erase(it);
 				continue;
 			}
 			it->discard_zero_momenta();
-			it->renameSums();
+			it->rename_sums();
 			it->sort();
 			++it;
 		}
@@ -846,5 +869,20 @@ namespace mrock::symbolic_operators {
 				++it;
 			}
 		}
+	}
+
+	std::string to_string_without_prefactor(const std::vector<Term>& terms) {
+		std::string ret = "";
+		for (size_t i = 0; i < terms.size(); i++)
+		{
+			if (terms[i].multiplicity < 0) {
+				ret += "-";
+			}
+			else if (i > 0) {
+				ret += "+";
+			}
+			ret += terms[i].to_string_without_prefactor();
+		}
+		return ret;
 	}
 }

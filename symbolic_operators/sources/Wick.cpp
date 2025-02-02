@@ -45,7 +45,7 @@ namespace mrock::symbolic_operators {
 	{
 		WickTermCollector prepared_wick;
 		const size_t estimated_size = std::accumulate(terms.begin(), terms.end(), size_t{}, [](size_t current, const Term& term) {
-			return current + mrock::utility::Numerics::double_factorial(term.getOperators().size());
+			return current + mrock::utility::Numerics::double_factorial(term.get_operators().size());
 			});
 
 		prepared_wick.reserve(estimated_size);
@@ -54,14 +54,14 @@ namespace mrock::symbolic_operators {
 				prepared_wick.push_back(WickTerm(term));
 			}
 			else {
-				wick_processor(term.getOperators(), prepared_wick, term);
+				wick_processor(term.get_operators(), prepared_wick, term);
 			}
 		}
 
 		return prepared_wick;
 	}
 
-	WickTermCollector identifyWickOperators(const WickTerm& source, const std::vector<WickOperatorTemplate>& operator_templates)
+	WickTermCollector identify_wick_operators(const WickTerm& source, const std::vector<WickOperatorTemplate>& operator_templates)
 	{
 		WickTermCollector ret;
 		ret.push_back(source);
@@ -109,7 +109,7 @@ namespace mrock::symbolic_operators {
 		WickTermCollector prepared_wick = prepare_wick(terms);
 
 		for (auto& w_term : prepared_wick) {
-			mrock::utility::append_if(reciever, identifyWickOperators(w_term, operator_templates), [](const WickTerm& wick) {
+			mrock::utility::append_if(reciever, identify_wick_operators(w_term, operator_templates), [](const WickTerm& wick) {
 				return !(is_always_zero(wick.delta_indizes) || is_always_zero(wick.delta_momenta));
 				});
 		}
@@ -147,21 +147,21 @@ namespace mrock::symbolic_operators {
 			}
 		}
 		for (WickTermCollector::iterator it = terms.begin(); it != terms.end();) {
-			if (!(it->setDeltas())) {
+			if (!(it->set_deltas())) {
 				it = terms.erase(it);
 				continue;
 			}
 			it->discard_zero_momenta();
-			if (!(it->computeSums())) {
+			if (!(it->compute_sums())) {
 				it = terms.erase(it);
 				continue;
 			}
-			if (!(it->setDeltas())) {
+			if (!(it->set_deltas())) {
 				it = terms.erase(it);
 				continue;
 			}
 			it->discard_zero_momenta();
-			it->renameSums();
+			it->rename_sums();
 			it->sort();
 
 			for (const auto& symmetry : symmetries) {
