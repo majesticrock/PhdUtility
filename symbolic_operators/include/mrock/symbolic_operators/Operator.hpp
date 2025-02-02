@@ -13,6 +13,12 @@ namespace mrock::symbolic_operators {
 	/**
 	 * @struct Operator
 	 * @brief Represents a symbolic operator with momentum, indices, and properties.
+	 * 
+	 * This class represents the standard fermionic or bosonic creation and annihilation operators. 
+	 * You can specify its momentum, its indizes and whether it is supposed to be daggered (a creation operator) 
+	 * or not (an annihilation operator).
+	 * 
+	 * @sa Momentum, IndexWrapper
 	 */
 	struct Operator {
 		Momentum momentum; ///< The momentum associated with the operator.

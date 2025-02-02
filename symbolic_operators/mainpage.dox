@@ -1,0 +1,103 @@
+/**
+ * @mainpage symbolic_operators Library Documentation
+ *
+ * @section intro Introduction
+ *
+ * The `symbolic_operators` library provides tools for symbolic manipulation of creation and annihilation operators.
+ * It includes classes for defining Hamiltonians, performing commutation operations, and applying symmetries.
+ *
+ * @section example Example Usage
+ *
+ * The following example demonstrates how to define a Hamiltonian using bosonic operators and perform commutation operations.
+ * We will use the Hamiltonian 
+ * \f{eqnarray*}
+ *  H =	&+1 \cdot \sum_{ k } \gamma( k )   b_{ k, A }^\dagger  b_{ k, B }  \\
+ *  &+1 \cdot \sum_{ k } \gamma^*( k )   b_{ k, B }^\dagger  b_{ k, A }  \\
+ *  &+(1/2) \cdot \sum_{ k } \gamma'( k )   b_{ k, A }^\dagger  b_{ -k, B }^\dagger   \\
+ *  &+(1/2) \cdot \sum_{ k } \gamma'^*( k )   b_{ -k, B } b_{ k, A }  \\
+ *  &-1 \cdot \sum_{ k } \sum_{ \sigma } \mu_{ \sigma }^*   b_{ k, \sigma }^\dagger  b_{ k, \sigma }.
+ * \f}
+ * We start by the defining some abbreviations and setting the necessary includes:
+ * \code
+ * #include <mrock/symbolic_operators/Term.hpp>
+ * #include <vector>
+ * #include <string>
+ * #include <iostream>
+ *
+ * using namespace mrock::symbolic_operators;
+ * const std::string begin_align = "\\begin{align*}\n\t";
+ * const std::string end_align = "\\end{align*}\n";
+ * \endcode
+ * Now, beginning in our main function, we define our Hamiltonian by first defining its comprising terms and setting putting them together:
+ * \code
+ * int main(int argc, char** argv) {
+ *     // Define the Hamiltonian
+ *     const Term hopping(1, Coefficient::HoneyComb("\\gamma", Momentum('k'), false, false),
+ *         MomentumSum{'k'},
+ *         std::vector<Operator>({
+ *             Operator::Boson(Momentum('k'), Index::TypeA, true),
+ *             Operator::Boson(Momentum('k'), Index::TypeB, false)
+ *         }));
+ *
+ *     const Term bogo(IntFractional(1, 2), Coefficient::HoneyComb("\\gamma'", Momentum('k'), false, false),
+ *         MomentumSum{'k'},
+ *         std::vector<Operator>({
+ *             Operator::Boson(Momentum('k'), Index::TypeA, true),
+ *             Operator::Boson(Momentum('k', -1), Index::TypeB, true)
+ *         }));
+ *
+ *     const Term chemical_potential(-1, Coefficient::Constant("\\mu", Index::Sigma), 
+ *         SumContainer{ MomentumSum{'k'}, IndexSum{Index::Sigma} },
+ *         std::vector<Operator>({
+ *             Operator::Boson(Momentum('k'), Index::Sigma, true),
+ *             Operator::Boson(Momentum('k'), Index::Sigma, false)
+ *         }));
+ *
+ *     const std::vector<Term> hamiltonian { hopping, hopping.hermitian_conjugate(), bogo, bogo.hermitian_conjugate(), chemical_potential };
+ *     
+ *     std::cout << begin_align << "H =" << hamiltonian << end_align << std::endl;
+ * \endcode
+ * After printing the Hamiltonian and confirming it is, what we want it to be, we define some terms to commute with:
+ * \code
+ *     // Define the commutation targets
+ *     const Term to_commute_1(1, std::vector<Operator>({
+ *             Operator::Boson(Momentum('l'), Index::TypeA, true),
+ *             Operator::Boson(Momentum('l', -1), Index::TypeB, true)
+ *         }));
+ *
+ *     const std::vector<Term> to_commute_2{ 
+ *         Term(1, SumContainer{ MomentumSum{'q'} },
+ *             std::vector<Operator>({
+ *                 Operator::Boson(Momentum("l+q"), Index::TypeA, true),
+ *                 Operator::Boson(Momentum("l"), Index::TypeA, false)
+ *             })),
+ *         Term(1, SumContainer{ MomentumSum{'q'} },
+ *             std::vector<Operator>({
+ *                 Operator::Boson(Momentum("l-q"), Index::TypeB, true),
+ *                 Operator::Boson(Momentum("l"), Index::TypeB, false)
+ *             }))
+ *         };
+ * \endcode
+ * And finially, we perform the commutation, clean up, and print the results to the console within a LaTeX-align environment:
+ * \code
+ *     // Compute the commutators
+ *     std::vector<Term> result_1 = commutator(hamiltonian, to_commute_1);
+ *     clean_up(result_1);
+ *     std::vector<Term> result_2 = commutator(hamiltonian, to_commute_2);
+ *     clean_up(result_2);
+ *
+ *     std::cout << begin_align << "[H, " << to_commute_1.to_string_without_prefactor() << "] = " << result_1 << end_align << std::endl;
+ *     std::cout << begin_align << "[H, " << to_string_without_prefactor(to_commute_2) << "]  = " << result_2 << end_align << std::endl;
+ *
+ *     return 0;
+ * }
+ * \endcode
+ *
+ * @section classes Class Explanations
+ *
+ * - @ref mrock::symbolic_operators::Coefficient "Coefficient": Represents a coefficient that can have various symmetries.
+ * - @ref mrock::symbolic_operators::Momentum "Momentum": Represents a momentum.
+ * - @ref mrock::symbolic_operators::Term "Term": Represents a term in symbolic operator expressions.
+ * - @ref mrock::symbolic_operators::WickSymmetry "WickSymmetry": Abstract base class for symmetries of the expectation values occurring in Wick's theorem.
+ * - @ref mrock::symbolic_operators::WickTerm "WickTerm": Represents a term consisting of expectation values after applying Wick's theorem. Currently only implemented for Fermions.
+ */

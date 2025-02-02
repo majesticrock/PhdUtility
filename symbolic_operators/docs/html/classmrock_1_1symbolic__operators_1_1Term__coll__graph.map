@@ -1,0 +1,6 @@
+<map id="mrock::symbolic_operators::Term" name="mrock::symbolic_operators::Term">
+<area shape="rect" id="node1" title="Represents a term in symbolic operator expressions." alt="" coords="667,43,865,84"/>
+<area shape="rect" id="node2" href="$structmrock_1_1symbolic__operators_1_1SumContainer.html" title="A container for holding symbolic sums of momenta and spins." alt="" coords="380,43,579,84"/>
+<area shape="rect" id="node3" href="$structmrock_1_1symbolic__operators_1_1SymbolicSum.html" title=" " alt="" coords="35,5,234,47"/>
+<area shape="rect" id="node4" href="$structmrock_1_1symbolic__operators_1_1SymbolicSum.html" title=" " alt="" coords="5,71,264,127"/>
+</map>

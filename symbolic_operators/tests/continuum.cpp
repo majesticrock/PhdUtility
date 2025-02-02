@@ -1,4 +1,15 @@
+/**
+ * @file continuum.cpp
+ * @brief Example code for defining and using continuum operators.
+ *
+ * This file demonstrates how to define a Hamiltonian using an interacting electron gas.
+ * The commutations are performed, Wick's theorem applied and then the terms are reduced using symmetries.
+ */
+
 #include "compare_test.hpp"
+#include <string>
+#include <iostream>
+#include <filesystem>
 
 using namespace mrock::symbolic_operators;
 

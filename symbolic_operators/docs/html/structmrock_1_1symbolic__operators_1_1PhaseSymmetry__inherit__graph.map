@@ -1,0 +1,4 @@
+<map id="mrock::symbolic_operators::PhaseSymmetry&lt; operators&gt;" name="mrock::symbolic_operators::PhaseSymmetry&lt; operators&gt;">
+<area shape="rect" id="node1" title="A symmetry where &lt;operator^+&gt; = &lt;operator&gt;." alt="" coords="5,95,231,136"/>
+<area shape="rect" id="node2" href="$structmrock_1_1symbolic__operators_1_1WickSymmetry.html" title="An abstract base class for Wick symmetries." alt="" coords="19,5,217,47"/>
+</map>

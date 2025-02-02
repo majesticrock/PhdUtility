@@ -1,6 +1,15 @@
+/**
+ * @file bosons.cpp
+ * @brief Example code for defining and using bosonic operators.
+ *
+ * This file demonstrates how to define a Hamiltonian using bosonic operators
+ * and how to perform commutation operations on them.
+ */
+
 #include "compare_test.hpp"
 #include <string>
 #include <iostream>
+#include <filesystem>
 
 using namespace mrock::symbolic_operators;
 

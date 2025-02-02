@@ -26,6 +26,12 @@ namespace mrock::symbolic_operators {
 	/**
 	 * @struct SumContainer
 	 * @brief A container for holding symbolic sums of momenta and spins.
+	 * 
+	 * Sums are contained within the \c SumContainer class. 
+	 * It hosts both sums of momenta and sums of spins, each one is accessible via the appropriate class member
+	 * and its \c operator[], e.g., \c container.momenta[i].
+	 * 
+	 * @sa Index, MomentumSymbol, MomentumSymbol::name_type
 	 */
 	struct SumContainer {
 		MomentumSum momenta; ///< Container for momentum sums.

@@ -15,6 +15,67 @@ namespace mrock::symbolic_operators {
 	/**
 	 * @class WickTerm
 	 * @brief A structure representing a Wick term.
+	 * 
+	 * Prerequisite: The terms you want to apply Wick's theorem on are saved in an \c std::vector<Term>.
+	 * 
+	 * Applying Wick's theorem often involves omiting certain expecation values because you know them to be 0 for symmtry reasons. 
+	 * Therefore the class \c WickOperatorTemplate exists. Here, you specify, which kind of expectation values will be finite.
+	 * In the following, the meaning of the different attributes is listed:
+	 * 
+	 * \b std::vector< \b IndexComparison \b > \b indexComparison} \n
+	 * If \c any_identical is \c true, any two identical indizes are considered valid. 
+	 * An example would be in the number operator \f$c_{k, \sigma}^\dagger c_{k, \sigma'}*\f$: 
+	 * No matter what \f$ \sigma\f$ is, as long as \f$sigma = sigma'\f$ the expectation value will be finite.
+	 * If \c any_identical is \c false, the members \c base and \c other become relevant: 
+	 * They define what the indizes need to be, e.g., for a pair annihlation operator \f$c_{-k down} c_{k up}\f$
+	 * one would set \c base to \f$ \downarrow \f$ and \c other to \f$ \uparrow\f$.
+	 * 
+	 * Note, once one operator is set as a template, it is not necessary to set its Hermitian conjugate.
+	 * 
+	 * \b Momentum \b momentum_difference \n
+	 * Defines the allowed difference in momentum, e.g., for a number operator, this would be 0.
+	 * Note, this also applies to a standard pair creation/annihilation operator, because in total, 
+	 * these operators create/annihilate a particle with \f$ -k \f$ and one with \f$ k \f$, resulting in 0 net momentum.
+	 * 
+	 * \b OperatorType \b type \n
+	 * Specifies what kind of WickOperator will be the result, see \c enum \c OperatorType in WickOperator.hpp.
+	 * 
+	 * \b bool \b is_sc_type \n
+	 * Specifies whether the operator is a pair creation/annihilation operator or a standard \f$c^\dagger c\f$ type term.
+	 * 
+	 * \b Apply \b Wick's \b theorem
+	 * Create an instance of \c WickTermCollector. Then simply call 
+	 * \code
+	 * WickTermCollector wicks;
+	 * wicks_theorem(terms, templates, wicks);
+	 * clean_wicks(wicks);
+	 * \endcode
+	 * Similar to how we worked with the Term class and commutators, it is strongly recommended to call clean_wicks() after applying Wick's theorem.
+	 * 
+	 * clean_wicks() will also make use of polymorphism to apply symmetries to the term, e.g., inversion symmetry.
+	 * For details, see \c WickSymmetry.
+	 * 
+	 * You can print the the result to the console or utilize boost's serialization to load it later (or within another program).
+	 * Serialization can be achieved via this code
+	 * \code
+	 * std::ofstream ofs("path/to/file.txt");
+	 * boost::archive::text_oarchive oa(ofs);
+	 * oa << wicks;
+	 * ofs.close();
+	 * \endcode
+	 * To later on load the output use
+	 * \code
+	 * std::ifstream ifs("path/to/file.txt");
+	 * boost::archive::text_iarchive ia(ifs);
+	 * target.clear();
+	 * ia >> target;
+	 * ifs.close();
+	 * \endcode
+	 * 
+	 * or if you want to use this code of the iEoM, there is the class \c TermLoader for easy use.
+	 * It loads the terms for the matrices M and N and saves same as class members.
+	 * 
+	 * @sa WickTermCollector, Coefficient, SumContainer, WickOperator, KroneckerDelta, Momentum, Index, clean_wicks(), wicks_theorem(), TermLoader
 	 */
 	struct WickTerm {
 	private:

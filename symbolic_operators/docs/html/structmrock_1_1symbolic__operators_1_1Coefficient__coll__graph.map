@@ -1,0 +1,6 @@
+<map id="mrock::symbolic_operators::Coefficient" name="mrock::symbolic_operators::Coefficient">
+<area shape="rect" id="node1" title="Represents a coefficient. Various symmetries are pre defined (e.g. inversion symmetry) and can be tog..." alt="" coords="124,200,323,241"/>
+<area shape="rect" id="node2" href="$structmrock_1_1symbolic__operators_1_1MomentumList.html" title="A wrapper class for a vector of Momentum objects with additional functionalities." alt="" coords="12,96,211,137"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,5,217,47"/>
+<area shape="rect" id="node4" href="$structmrock_1_1symbolic__operators_1_1IndexWrapper.html" title="A wrapper for a vector of Index values." alt="" coords="235,96,433,137"/>
+</map>

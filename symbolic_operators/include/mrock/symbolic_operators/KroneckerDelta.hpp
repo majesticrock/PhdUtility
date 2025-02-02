@@ -15,6 +15,10 @@ namespace mrock::symbolic_operators {
 	 * @brief A structure representing the Kronecker Delta.
 	 * 
 	 * @tparam T The type of the elements.
+	 * 
+	 * Deltas are represented via the \c KroneckerDelta class template.
+	 * The template argument specifies what kind of delta is to be used, e.g., \c Momentum.
+	 * Similar to how \c std::pair<T1,T2> implements \c std::make_pair(T1,T2) a function \c make_delta(T,T) is provided.
 	 */
 	template<typename T>
 	struct KroneckerDelta {

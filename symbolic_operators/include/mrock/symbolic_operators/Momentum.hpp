@@ -27,10 +27,16 @@ namespace mrock::symbolic_operators {
 	/**
 	 * @struct Momentum
 	 * @brief Represents a collection of momentum symbols with associated operations.
+	 * 
+	 * This class represents momenta. It includes addition and substraction operators as well as a \c bool \c add_Q. 
+	 * \f$Q\f$ is defined as \f$(\pi, \pi, \cdots)\f$, i.e., \f$n Q = 0\f$ for all even \f$n\f$.
+	 * Besides the normal operators in which you specify the class members, 
+	 * you can also pass a string like "3k+l-p" to the constructor to create that specific momentum. 
+	 * If you want to add \f$Q\f$ here, you can do so by passing \c true to the same constructor as a second argument.
 	 */
 	struct Momentum {
 		momentum_symbols momentum_list; ///< List of momentum symbols.
-		bool add_Q{}; ///< Flag indicating additional property Q. Q is a special momentum with the property 2Q = 0 (remeber that momenta are only defined in the first Brillouin zone)
+		bool add_Q{}; ///< Flag indicating additional property \f$Q\f$. \f$Q\f$ is a special momentum with the property \f$2Q = 0\f$. Remeber that momenta are only defined in the first Brillouin zone.
 
 		/**
 		 * @brief Serialization function for Boost.

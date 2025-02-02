@@ -1,0 +1,4 @@
+<map id="mrock::symbolic_operators::MomentumSymbol" name="mrock::symbolic_operators::MomentumSymbol">
+<area shape="rect" id="node1" title="Represents a symbolic momentum with a factor and a name." alt="" coords="23,109,222,151"/>
+<area shape="rect" id="node2" href="$structmrock_1_1symbolic__operators_1_1MomentumSymbol_1_1name__type.html" title="Represents a name as a single character with comparison and serialization capabilities,..." alt="" coords="5,5,240,47"/>
+</map>

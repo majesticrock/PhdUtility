@@ -13,6 +13,28 @@ namespace mrock::symbolic_operators {
 	/**
 	 * @class WickSymmetry
 	 * @brief An abstract base class for Wick symmetries.
+	 * 
+	 * There may be some symmetries that simplify your results, e.g., \f$ \langle O^\dagger \rangle = \langle O \rangle \f$.
+	 * These symmetries can be implemented by inheriting from the \c WickSymmetry class 
+	 * and defining the member function \c virtual \c void \c apply_to(WickTerm& \c term) \c const.
+	 * Then create a \c std::vector<std::unique_ptr<WickSymmetry>> \c symmetries
+	 * and make use of polymorphism by calling \c clean_wicks(wicks,symmetries).
+	 * There are the following predefined symmetry operations:
+	 * 
+	 * \b SpinSymmetry \n
+	 * Changes all spins of the operators in \c term to \f$ \uparrow \f$.
+	 * 
+	 * \b InversionSymmetry \n
+	 * Flips the momenta in such a way, that the first momentum in a term is always positive, i.e., 
+	 * \f$ -k+l \f$ is changed to \f$ k-l\f$ while \f$ k-l\f$ would stay unmodified.
+	 * 
+	 * \b PhaseSymmetry \n
+	 * Takes a list of \c OperatorType as template arguments.
+	 * Removes any dagger from all operators with a type from the list.
+	 * Example:
+	 * \c PhaseSymmetry<SC_Type,CDW_Type removes the dagger from \c SC_Type and \c CDW_Type operators.
+	 * 
+	 * @sa SpinSymmetry, InversionSymmetry, PhaseSymmetry
 	 */
 	struct WickSymmetry {
 		/**

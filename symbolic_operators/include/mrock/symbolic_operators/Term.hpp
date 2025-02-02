@@ -33,6 +33,38 @@ namespace mrock::symbolic_operators {
 	/**
 	 * @class Term
 	 * @brief Represents a term in symbolic operator expressions.
+	 * 
+	 * This class represents a Term. It has various kind of constructors that allow setting coefficient(s), sums, operators and deltas.
+	 * Using IntFractional, the term can have rational prefactors, e.g., 1/2.
+	 * 
+	 * A Hamiltonian (or any other summation of operators) is characterized as \c std::vector<Term>.
+	 * It can consist of any number of individual terms. 
+	 * For a few practical examples, see the files in the tests folder.
+	 * See bosons.cpp, continuum.cpp, and compare_test.hpp.
+	 * My own projects using this library are, e.g., 
+	 * https://github.com/majesticrock/FermionCommute and https://github.com/majesticrock/FlowCommutators.
+	 * 
+	 * After creating atleast two \c Terms (or \c std::vector<Term>), you may commute them by calling
+	 * \code
+	 * std::vector<Term> result = commutator(A, B);
+	 * clean_up(result);
+	 * \endcode
+	 * After calling the commutator, you should pretty much always call mrock::symbolic_operators::clean_up(std::vector<Term>)
+	 * because commutator performs the normal ordering procedure, however, does not attempt to beautify the result.
+	 * clean_up then sorts the terms, adds identical ones together and removes those that are equal to 0.
+	 * 
+	 * Similarly, a double commutator \f$ [C, [A, B]] \f$ can be evaluated by
+	 * \code
+	 * std::vector<Term> inner_result = commutator(A, B);
+	 * clean_up(inner_result);
+	 * std::vector<Term> result = commutator(C, inner_result);
+	 * clean_up(result);
+	 * \endcode
+	 * 
+	 * To output the results, an overload of \c operator<< is provided for both \c Term and \c std::vector<Term>.
+	 * The out put is formatted so that it can be used within an align-environment within LaTeX.
+	 * 
+	 * @sa Coefficient, SumContainer, Operator, KroneckerDelta
 	 */
 	class Term {
 	public:
@@ -312,13 +344,35 @@ namespace mrock::symbolic_operators {
 		 */
 		void remove_momentum_contribution(const MomentumSymbol::name_type value);
 
+		/**
+		 * @brief Normal orders the terms by using the canoncical (anti-)commutation relations
+		 * The result is stored in the input vector.
+		 * A simple example is
+		 * \f$ b b^\dagger = 1 \pm b^\dagger b \f$, where the + applies to bosons and the minus to fermions.
+		 * @param terms The terms to normal order.
+		 */
 		friend void normal_order(std::vector<Term>& terms);
+
+		/**
+		 * @brief Computes the commutator of two terms: \f$ [A, B] = AB - BA \f$.
+		 * @param left The left term.
+		 * @param right The right term.
+		 * @return The commutation result.
+		 */
 		friend std::vector<Term> commutator(const Term& left, const Term& right);
+
+		/**
+	 	 * @brief Overloads the stream insertion operator for the Term class.
+	 	 * 
+	 	 * @param os The output stream.
+	 	 * @param term The Term object to insert into the stream.
+	 	 * @return The output stream.
+	 	 */
 		friend std::ostream& operator<<(std::ostream& os, const Term& term);
 	};
 
 	/**
-	 * @brief Computes the commutator of two sets of terms.
+	 * @brief Computes the commutator of two sets of terms: \f$ [A, B] = AB - BA \f$.
 	 * @param left The left-hand side terms.
 	 * @param right The right-hand side terms.
 	 * @return The result of [left, right]
@@ -326,7 +380,7 @@ namespace mrock::symbolic_operators {
 	std::vector<Term> commutator(const std::vector<Term>& left, const std::vector<Term>& right);
 
 	/**
-	 * @brief Computes the commutator of a term and a set of terms.
+	 * @brief Computes the commutator of a term and a set of terms: \f$ [A, B] = AB - BA \f$.
 	 * @param left The left-hand side term.
 	 * @param right The right-hand side terms.
 	 * @return The result of [left, right]
@@ -334,7 +388,7 @@ namespace mrock::symbolic_operators {
 	inline std::vector<Term> commutator(const Term& left, const std::vector<Term>& right);
 
 	/**
-	 * @brief Computes the commutator of a set of terms and a term.
+	 * @brief Computes the commutator of a set of terms and a term: \f$ [A, B] = AB - BA \f$.
 	 * @param left The left-hand side terms.
 	 * @param right The right-hand side term.
 	 * @return The result of [left, right]
@@ -388,7 +442,7 @@ namespace mrock::symbolic_operators {
 	void clear_duplicates(std::vector<Term>& terms);
 
 	/**
-	 * @brief Cleans up a vector of terms.
+	 * @brief Sorts the terms, adds identical ones together and removes those that are equal to 0.
 	 * @param terms The vector of terms.
 	 */
 	void clean_up(std::vector<Term>& terms);
