@@ -1,4 +1,0 @@
-<map id="mrock::symbolic_operators::SpinSymmetry" name="mrock::symbolic_operators::SpinSymmetry">
-<area shape="rect" id="node1" title="A symmetry where expectation values for spin up and down are the same." alt="" coords="5,95,204,136"/>
-<area shape="rect" id="node2" href="$structmrock_1_1symbolic__operators_1_1WickSymmetry.html" title="An abstract base class for Wick symmetries." alt="" coords="5,5,204,47"/>
-</map>

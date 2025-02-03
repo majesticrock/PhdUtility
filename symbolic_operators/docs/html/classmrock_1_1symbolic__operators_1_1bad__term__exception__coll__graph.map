@@ -1,8 +1,0 @@
-<map id="mrock::symbolic_operators::bad_term_exception" name="mrock::symbolic_operators::bad_term_exception">
-<area shape="rect" id="node1" title="An exception class for bad terms." alt="" coords="956,27,1155,69"/>
-<area shape="rect" id="node2" title=" " alt="" coords="697,5,835,32"/>
-<area shape="rect" id="node3" href="$structmrock_1_1symbolic__operators_1_1WickTerm.html" title="A structure representing a Wick term." alt="" coords="667,57,865,98"/>
-<area shape="rect" id="node4" href="$structmrock_1_1symbolic__operators_1_1SumContainer.html" title="A container for holding symbolic sums of momenta and spins." alt="" coords="380,57,579,98"/>
-<area shape="rect" id="node5" href="$structmrock_1_1symbolic__operators_1_1SymbolicSum.html" title=" " alt="" coords="35,19,234,61"/>
-<area shape="rect" id="node6" href="$structmrock_1_1symbolic__operators_1_1SymbolicSum.html" title=" " alt="" coords="5,85,264,141"/>
-</map>

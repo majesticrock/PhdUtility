@@ -1,5 +1,0 @@
-<map id="mrock::symbolic_operators::Operator" name="mrock::symbolic_operators::Operator">
-<area shape="rect" id="node1" title="Represents a symbolic operator with momentum, indices, and properties." alt="" coords="116,109,315,151"/>
-<area shape="rect" id="node2" href="$structmrock_1_1symbolic__operators_1_1Momentum.html" title="Represents a collection of momentum symbols with associated operations." alt="" coords="5,5,204,47"/>
-<area shape="rect" id="node3" href="$structmrock_1_1symbolic__operators_1_1IndexWrapper.html" title="A wrapper for a vector of Index values." alt="" coords="228,5,427,47"/>
-</map>

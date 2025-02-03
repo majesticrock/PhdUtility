@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
             Operator::Boson(Momentum('k'), Index::TypeB, false)
         }));
 
-    const Term bogo(IntFractional(1, 2), Coefficient::HoneyComb("\\gamma'", Momentum('k'), false, false),
+    const Term bogo(IntFractional(1, 2), Coefficient::HoneyComb("\\Gamma", Momentum('k'), false, false),
         MomentumSum{'k'},
         std::vector<Operator>({
             Operator::Boson(Momentum('k'), Index::TypeA, true),

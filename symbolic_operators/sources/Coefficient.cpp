@@ -150,9 +150,9 @@ namespace mrock::symbolic_operators {
 		return ret;
 	}
 
-	Coefficient Coefficient::Constant(const std::string &name, const IndexWrapper& indizes /* = {} */, bool daggered /* = false */, bool is_real /* = true */)
+	Coefficient Coefficient::Constant(const std::string &name, const IndexWrapper& indizes /* = IndexWrapper{} */, bool is_real /* = false */, bool is_daggered /* = true */)
 	{
-	    Coefficient ret(name, MomentumList{}, indizes, false, true, daggered);
+	    Coefficient ret(name, MomentumList{}, indizes, false, true, is_daggered);
 		ret.is_real = is_real;
 		return ret;
 	}

@@ -18,6 +18,7 @@ stderr*
 *.egg-info
 *.pyd
 *.so
+*/docs/*
 
 !CMakeLists.txt
 

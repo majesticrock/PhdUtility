@@ -10,12 +10,12 @@
  *
  * The following example demonstrates how to define a Hamiltonian using bosonic operators and perform commutation operations.
  * We will use the Hamiltonian 
- * \f{eqnarray*}
- *  H =	&+1 \cdot \sum_{ k } \gamma( k )   b_{ k, A }^\dagger  b_{ k, B }  \\
- *  &+1 \cdot \sum_{ k } \gamma^*( k )   b_{ k, B }^\dagger  b_{ k, A }  \\
- *  &+(1/2) \cdot \sum_{ k } \gamma'( k )   b_{ k, A }^\dagger  b_{ -k, B }^\dagger   \\
- *  &+(1/2) \cdot \sum_{ k } \gamma'^*( k )   b_{ -k, B } b_{ k, A }  \\
- *  &-1 \cdot \sum_{ k } \sum_{ \sigma } \mu_{ \sigma }^*   b_{ k, \sigma }^\dagger  b_{ k, \sigma }.
+ * \f{align}
+ *  H &= \sum_{ k } \gamma( k )   b_{ k, A }^\dagger  b_{ k, B } \\
+ *    &+ \sum_{ k } \gamma^*( k ) b_{ k, B }^\dagger  b_{ k, A } \\
+ *    &+ \frac{1}{2} \sum_{ k } \Gamma( k )   b_{ k, A }^\dagger  b_{ -k, B }^\dagger \\
+ *    &+ \frac{1}{2} \sum_{ k } \Gamma^*( k ) b_{ -k, B } b_{ k, A }  \\
+ *    &- \sum_{ k } \sum_{ \sigma } \mu_{ \sigma }  b_{ k, \sigma }^\dagger  b_{ k, \sigma }.
  * \f}
  * We start by the defining some abbreviations and setting the necessary includes:
  * \code
@@ -32,6 +32,7 @@
  * \code
  * int main(int argc, char** argv) {
  *     // Define the Hamiltonian
+ *     // The hopping term (Eq. 1)
  *     const Term hopping(1, Coefficient::HoneyComb("\\gamma", Momentum('k'), false, false),
  *         MomentumSum{'k'},
  *         std::vector<Operator>({
@@ -39,6 +40,7 @@
  *             Operator::Boson(Momentum('k'), Index::TypeB, false)
  *         }));
  *
+ *     // The Bogoliubov term (Eq. 3)
  *     const Term bogo(IntFractional(1, 2), Coefficient::HoneyComb("\\gamma'", Momentum('k'), false, false),
  *         MomentumSum{'k'},
  *         std::vector<Operator>({
@@ -46,6 +48,7 @@
  *             Operator::Boson(Momentum('k', -1), Index::TypeB, true)
  *         }));
  *
+ *     // The chemical potential term (Eq. 5)
  *     const Term chemical_potential(-1, Coefficient::Constant("\\mu", Index::Sigma), 
  *         SumContainer{ MomentumSum{'k'}, IndexSum{Index::Sigma} },
  *         std::vector<Operator>({
@@ -53,10 +56,41 @@
  *             Operator::Boson(Momentum('k'), Index::Sigma, false)
  *         }));
  *
- *     const std::vector<Term> hamiltonian { hopping, hopping.hermitian_conjugate(), bogo, bogo.hermitian_conjugate(), chemical_potential };
+ *     const std::vector<Term> hamiltonian { 
+ *         hopping,                        // Eq. 1 
+ *         hopping.hermitian_conjugate(),  // Eq. 2
+ *         bogo,                           // Eq. 3
+ *         bogo.hermitian_conjugate(),     // Eq. 4
+ *         chemical_potential              // Eq. 5
+ *     };
  *     
  *     std::cout << begin_align << "H =" << hamiltonian << end_align << std::endl;
  * \endcode
+ * Let es explain what is happening here. As an example we consider the hopping terms.
+ * It is created using a constructor of \c Term:
+ * \code
+ * Term(Integer or IntFractional,
+ * \endcode
+ * We used \c 1 \f$ \Rightarrow \f$ the Term has a constant prefactor of 1. Compare the Bogoliubov terms, where we used \c IntFractional(1,2), representing 1/2.
+ * \code
+ *     Coefficient::HoneyComb(name, Momentum('k'), not a complex conjugate, not real) //
+ * \endcode
+ * Creates a coefficient without inversion symmetry that is not real, but also not a complex conjugate. It has the momentum \c k \f$ \Rightarrow \gamma(k) \f$.
+ * \code
+ *     MomentumSum{'k'},
+ * \endcode
+ * Represents \f$ \sum_{k} \f$, i.e., we sum over all momenta \f$ k \f$. 
+ * Compare with the chemical potential term, where we also sum over an arbitrary index called \f$ \sigma \f$.
+ * \code
+ *     std::vector<Operator>({
+ *         Operator::Boson(Momentum('k'), Index::TypeA, true),
+ *         Operator::Boson(Momentum('k'), Index::TypeB, false)
+ *     })
+ * );
+ * \endcode
+ * Pass the operators of the term, i.e., \f$ b_{k, A}^\dagger b_{k, B} \f$. The first operator is \f$ b_{k, A}^\dagger \f$ while
+ * while the second one is \f$ b_{k, B} \f$. See also the other terms for comparison.
+ *
  * After printing the Hamiltonian and confirming it is, what we want it to be, we define some terms to commute with:
  * \code
  *     // Define the commutation targets

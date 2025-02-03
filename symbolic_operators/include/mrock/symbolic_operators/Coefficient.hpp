@@ -123,11 +123,11 @@ namespace mrock::symbolic_operators {
 		 * @brief Generates a Coefficient that does not depend on any momentum
 		 * @param name The name of the coefficient.
 		 * @param indizes The indizes of the coefficient. Default is no index.
-		 * @param daggered Indicates if the coefficient is daggered. Default is false.
+		 * @param is_daggered Indicates if the coefficient is daggered. Default is false.
 		 * @param is_real Indicates if the coefficient is real. Default is true.
 		 * @return A Coefficient with the symmetries of a honeycomb lattice.
 		 */
-		static Coefficient Constant(const std::string& name, const IndexWrapper& indizes = IndexWrapper{}, bool is_real = true, bool daggered = false);
+		static Coefficient Constant(const std::string& name, const IndexWrapper& indizes = IndexWrapper{}, bool is_real = true, bool is_daggered = false);
 
 		/**
 		 * @brief Parses a string to create a Coefficient.
@@ -259,7 +259,10 @@ namespace mrock::symbolic_operators {
 		return this->momenta.front().momentum_list.size() == 2U;
 	}
 	Coefficient& Coefficient::hermitian_conjugate_inplace() {
-		if (is_real) return *this;
+		if (is_real) {
+			is_daggered = false;
+			return *this;
+		}
 		is_daggered = !is_daggered;
 		return *this;
 	}
