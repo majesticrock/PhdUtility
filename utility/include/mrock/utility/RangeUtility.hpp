@@ -1,5 +1,6 @@
 #pragma once
 #include <iterator>
+#include <algorithm>
 
 namespace mrock::utility {
 	template<class Vector>
