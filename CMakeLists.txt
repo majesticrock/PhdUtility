@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(mrock VERSION 2.2.1 LANGUAGES CXX)
+project(mrock VERSION 2.2.2 LANGUAGES CXX)
 
 set(MROCK_VERSION ${PROJECT_VERSION})
 set(CMAKE_CXX_STANDARD 20)
