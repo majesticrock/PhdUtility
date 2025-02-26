@@ -8,6 +8,10 @@
 #include <numeric>
 #include <algorithm>
 #include <iostream>
+#include <functional>
+#include <cassert>
+#include <concepts>
+#include <type_traits>
 
 namespace mrock::utility {
     /**
@@ -21,7 +25,7 @@ namespace mrock::utility {
          * @param elements The vector whose L2 squared norm is to be computed.
          * @return The L2 squared norm of the elements.
          */
-        template<typename vector_type>
+        template<class vector_type>
         auto operator()(const vector_type& elements) const {
             using value_type = typename vector_type::value_type;
             return std::inner_product(elements.begin(), elements.end(), elements.begin(), value_type{});
@@ -51,10 +55,22 @@ namespace mrock::utility {
      * @tparam vector_type The type of the vector.
      * @tparam reduction_type The type of the reduction function. Defaults to L2SquaredNorm.
      */
-    template<class vector_type, class reduction_type = L2SquaredNorm>
+    template<class vector_type>
     struct ElementwiseVector {
+    private:
+        /**
+         * @brief checks if \c reduction holds a valid function
+         * 
+         * @return returns \c true if \c reduction is valid.
+         */
+        bool has_valid_reduction() const {
+            return static_cast<bool>(reduction);
+        }
     public:
         MROCK_VECTOR_WRAPPER_TYPEDEFS(vector_type);
+
+        typedef std::add_lvalue_reference_t<std::add_const_t<vector_type>> const_reference_vector;
+        typedef std::function<value_type(const_reference_vector)> reduction_type;
 
         reduction_type reduction; ///< The reduction function.
         vector_type elements{}; ///< The vector of elements.
@@ -65,18 +81,18 @@ namespace mrock::utility {
         /**
          * @brief Constructs an ElementwiseVector with the given reduction function.
          * 
-         * @param reduction The reduction function. Defaults to reduction_type().
+         * @param reduction The reduction function. Defaults to L2SquaredNorm().
          */
-        ElementwiseVector(reduction_type reduction = reduction_type()) 
+        ElementwiseVector(reduction_type reduction = L2SquaredNorm()) 
             : reduction(reduction), elements(), compare_value(reduction(elements)) {}
 
         /**
          * @brief Constructs an ElementwiseVector with the given allocator and reduction function.
          * 
          * @param alloc The allocator.
-         * @param reduction The reduction function. Defaults to reduction_type().
+         * @param reduction The reduction function. Defaults to L2SquaredNorm().
          */
-        explicit ElementwiseVector(const allocator_type& alloc, reduction_type reduction = reduction_type()) 
+        explicit ElementwiseVector(const allocator_type& alloc, reduction_type reduction = L2SquaredNorm()) 
             : reduction(reduction), elements(alloc), compare_value(reduction(elements)) {}
 
         /**
@@ -85,18 +101,18 @@ namespace mrock::utility {
          * @param count The number of elements.
          * @param value The value to initialize the elements with.
          * @param alloc The allocator. Defaults to allocator_type().
-         * @param reduction The reduction function. Defaults to reduction_type().
+         * @param reduction The reduction function. Defaults to L2SquaredNorm().
          */
-        ElementwiseVector(size_type count, const value_type& value, const allocator_type& alloc = allocator_type(), reduction_type reduction = reduction_type()) 
+        ElementwiseVector(size_type count, const value_type& value, const allocator_type& alloc = allocator_type(), reduction_type reduction = L2SquaredNorm()) 
             : reduction(reduction), elements(count, value, alloc), compare_value(reduction(elements)) {}
 
         /**
          * @brief Constructs an ElementwiseVector with the given count and reduction function.
          * 
          * @param count The number of elements.
-         * @param reduction The reduction function. Defaults to reduction_type().
+         * @param reduction The reduction function - has no default because there would be ambiguity otherwise
          */
-        explicit ElementwiseVector(size_type count, reduction_type reduction = reduction_type()) 
+        explicit ElementwiseVector(size_type count, reduction_type reduction) 
             : reduction(reduction), elements(count), compare_value(reduction(elements)) {}
 
         /**
@@ -106,28 +122,28 @@ namespace mrock::utility {
          * @param first The beginning of the range.
          * @param last The end of the range.
          * @param alloc The allocator. Defaults to allocator_type().
-         * @param reduction The reduction function. Defaults to reduction_type().
+         * @param reduction The reduction function. Defaults to L2SquaredNorm().
          */
         template<class InputIt>
-        ElementwiseVector(InputIt first, InputIt last, const allocator_type& alloc = allocator_type(), reduction_type reduction = reduction_type()) 
+        ElementwiseVector(InputIt first, InputIt last, const allocator_type& alloc = allocator_type(), reduction_type reduction = L2SquaredNorm()) 
             : reduction(reduction), elements(first, last, alloc), compare_value(reduction(elements)) {}
 
         /**
          * @brief Copy constructor with the given reduction function.
          * 
          * @param other The other ElementwiseVector to copy from.
-         * @param reduction The reduction function. Defaults to reduction_type().
+         * @param reduction The reduction function. Defaults to L2SquaredNorm().
          */
-        ElementwiseVector(const ElementwiseVector& other, reduction_type reduction = reduction_type()) 
+        ElementwiseVector(const ElementwiseVector& other, reduction_type reduction = L2SquaredNorm()) 
             : reduction(reduction), elements(other.elements), compare_value(reduction(elements)) {}
 
         /**
          * @brief Move constructor with the given reduction function.
          * 
          * @param other The other ElementwiseVector to move from.
-         * @param reduction The reduction function. Defaults to reduction_type().
+         * @param reduction The reduction function. Defaults to L2SquaredNorm().
          */
-        ElementwiseVector(ElementwiseVector&& other, reduction_type reduction = reduction_type()) noexcept 
+        ElementwiseVector(ElementwiseVector&& other, reduction_type reduction = L2SquaredNorm()) noexcept 
             : reduction(reduction), elements(std::move(other.elements)), compare_value(reduction(elements)) {}
 
         /**
@@ -135,9 +151,9 @@ namespace mrock::utility {
          * 
          * @param init The initializer list.
          * @param alloc The allocator. Defaults to allocator_type().
-         * @param reduction The reduction function. Defaults to reduction_type().
+         * @param reduction The reduction function. Defaults to L2SquaredNorm().
          */
-        ElementwiseVector(std::initializer_list<value_type> init, const allocator_type& alloc = allocator_type(), reduction_type reduction = reduction_type()) 
+        ElementwiseVector(std::initializer_list<value_type> init, const allocator_type& alloc = allocator_type(), reduction_type reduction = L2SquaredNorm()) 
             : reduction(reduction), elements(init, alloc), compare_value(reduction(elements)) {}
 
         /**
@@ -145,9 +161,9 @@ namespace mrock::utility {
          * 
          * @param other The other ElementwiseVector to copy from.
          * @param alloc The allocator.
-         * @param reduction The reduction function. Defaults to reduction_type().
+         * @param reduction The reduction function. Defaults to L2SquaredNorm().
          */
-        ElementwiseVector(const ElementwiseVector& other, const allocator_type& alloc, reduction_type reduction = reduction_type()) 
+        ElementwiseVector(const ElementwiseVector& other, const allocator_type& alloc, reduction_type reduction = L2SquaredNorm()) 
             : reduction(reduction), elements(other.elements, alloc), compare_value(reduction(elements)) {}
 
         /**
@@ -155,12 +171,26 @@ namespace mrock::utility {
          * 
          * @param other The other ElementwiseVector to move from.
          * @param alloc The allocator.
-         * @param reduction The reduction function. Defaults to reduction_type().
+         * @param reduction The reduction function. Defaults to L2SquaredNorm().
          */
-        ElementwiseVector(ElementwiseVector&& other, const allocator_type& alloc, reduction_type reduction = reduction_type()) 
+        ElementwiseVector(ElementwiseVector&& other, const allocator_type& alloc, reduction_type reduction = L2SquaredNorm()) 
             : reduction(reduction), elements(std::move(other.elements), alloc), compare_value(reduction(elements)) {}
 
-        
+        /**
+         * @brief A 0-constructor so that something like vec = 0 will work.
+         * This is required for certain boost functionality
+         */
+        template<class T> requires std::convertible_to<T, value_type>
+        ElementwiseVector(T val)
+            : reduction(nullptr), elements(), compare_value(val) 
+        {
+            assert(compare_value == value_type{});
+        }
+
+        template<class T> requires std::convertible_to<T, value_type>
+        ElementwiseVector& operator=(T val) {
+            return ((*this) = ElementwiseVector(val));
+        }
 
         /**
          * @brief Copy assignment operator.
@@ -185,6 +215,14 @@ namespace mrock::utility {
          * @return Reference to this ElementwiseVector.
          */
         ElementwiseVector& operator+=(const ElementwiseVector& other) {
+            assert(other.has_valid_reduction() || this->has_valid_reduction());
+            if (!this->has_valid_reduction()) { 
+                this->reduction = other.reduction;
+                this->resize(other.size());
+            }
+            if (!other.has_valid_reduction() || other.empty()) {
+                return *this;
+            }
             std::transform(elements.begin(), elements.end(), other.elements.begin(), elements.begin(), std::plus<value_type>());
             compare_value = reduction(elements);
             return *this;
@@ -197,6 +235,14 @@ namespace mrock::utility {
          * @return Reference to this ElementwiseVector.
          */
         ElementwiseVector& operator-=(const ElementwiseVector& other) {
+            assert(other.has_valid_reduction() || this->has_valid_reduction());
+            if (!this->has_valid_reduction()) { 
+                this->reduction = other.reduction;
+                this->resize(other.size());
+            }
+            if (!other.has_valid_reduction() || other.empty()) {
+                return *this;
+            }
             std::transform(elements.begin(), elements.end(), other.elements.begin(), elements.begin(), std::minus<value_type>());
             compare_value = reduction(elements);
             return *this;
@@ -209,6 +255,15 @@ namespace mrock::utility {
          * @return Reference to this ElementwiseVector.
          */
         ElementwiseVector& operator*=(const ElementwiseVector& other) {
+            assert(other.has_valid_reduction() || this->has_valid_reduction());
+            if (!this->has_valid_reduction()) { 
+                this->reduction = other.reduction;
+                this->resize(other.size());
+            }
+            if (!other.has_valid_reduction() || other.empty()) {
+                std::ranges::fill(this->begin(), this->end(), value_type{});
+                return *this;
+            }
             std::transform(elements.begin(), elements.end(), other.elements.begin(), elements.begin(), std::multiplies<value_type>());
             compare_value = reduction(elements);
             return *this;
@@ -221,6 +276,11 @@ namespace mrock::utility {
          * @return Reference to this ElementwiseVector.
          */
         ElementwiseVector& operator/=(const ElementwiseVector& other) {
+            assert((other.has_valid_reduction() && !other.empty()) && "Other is invalid! Are you dividing by 0?");
+            if (!this->has_valid_reduction()) { 
+                this->reduction = other.reduction;
+                this->resize(other.size());
+            }
             std::transform(elements.begin(), elements.end(), other.elements.begin(), elements.begin(), std::divides<value_type>());
             compare_value = reduction(elements);
             return *this;
@@ -478,13 +538,8 @@ namespace mrock::utility {
             return os;
         }
 
-        /**
-         * @brief Implicit conversion from \c ElementwiseVector to \c value_type.
-         * @return Returns \c compare_value
-         */
-        operator value_type() const 
-        {
-            return compare_value;
+        friend value_type abs(const ElementwiseVector& vec) {
+            return std::abs(vec.compare_value);
         }
     };
 }

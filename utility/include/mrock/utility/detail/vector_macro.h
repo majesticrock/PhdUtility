@@ -101,6 +101,9 @@
 		inline void resize(size_type new_size) { \
 			_vector_name.resize(new_size); \
 		} \
+		inline void resize(size_type new_size, value_type new_value) { \
+			_vector_name.resize(new_size, new_value); \
+		} \
 		inline void clear() noexcept { \
 			_vector_name.clear(); \
 		} \
@@ -201,6 +204,9 @@
 		} \
 		inline void resize(size_type new_size) { \
 			_vector_name.resize(new_size); \
+		} \
+		inline void resize(size_type new_size, value_type new_value) { \
+			_vector_name.resize(new_size, new_value); \
 		} \
 		inline void clear() noexcept { \
 			_vector_name.clear(); \
