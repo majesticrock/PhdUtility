@@ -7,6 +7,7 @@
 #include "detail/vector_macro.h"
 #include <numeric>
 #include <algorithm>
+#include <iostream>
 
 namespace mrock::utility {
     /**
@@ -159,6 +160,24 @@ namespace mrock::utility {
         ElementwiseVector(ElementwiseVector&& other, const allocator_type& alloc, reduction_type reduction = reduction_type()) 
             : reduction(reduction), elements(std::move(other.elements), alloc), compare_value(reduction(elements)) {}
 
+        
+
+        /**
+         * @brief Copy assignment operator.
+         * 
+         * @param other The other ElementwiseVector to copy from.
+         * @return Reference to this ElementwiseVector.
+         */
+        ElementwiseVector& operator=(const ElementwiseVector& other) = default;
+
+        /**
+         * @brief Move assignment operator.
+         * 
+         * @param other The other ElementwiseVector to move from.
+         * @return Reference to this ElementwiseVector.
+         */
+        ElementwiseVector& operator=(ElementwiseVector&& other) noexcept = default;
+
         /**
          * @brief Adds the elements of another ElementwiseVector to this one.
          * 
@@ -260,6 +279,18 @@ namespace mrock::utility {
         }
 
         /**
+         * @brief Unary minus operator.
+         * 
+         * @return A new ElementwiseVector with negated elements.
+         */
+        ElementwiseVector operator-() const {
+            ElementwiseVector result(*this);
+            std::transform(result.elements.begin(), result.elements.end(), result.elements.begin(), std::negate<value_type>());
+            result.compare_value = result.reduction(result.elements);
+            return result;
+        }
+
+        /**
          * @brief Adds a number to the elements of an ElementwiseVector.
          * 
          * @param lhs The ElementwiseVector.
@@ -309,6 +340,61 @@ namespace mrock::utility {
         friend ElementwiseVector operator/(ElementwiseVector lhs, const T& rhs) {
             lhs /= rhs;
             return lhs;
+        }
+
+        /**
+         * @brief Adds a number to the elements of an ElementwiseVector.
+         * 
+         * @param rhs The ElementwiseVector.
+         * @param lhs The number.
+         * @return A new ElementwiseVector containing the result.
+         */
+        template<typename T>
+        friend ElementwiseVector operator+(const T& lhs, ElementwiseVector rhs) {
+            rhs += lhs;
+            return lhs;
+        }
+
+        /**
+         * @brief Subtracts a number from the elements of an ElementwiseVector.
+         * 
+         * @param rhs The ElementwiseVector.
+         * @param lhs The number.
+         * @return A new ElementwiseVector containing the result.
+         */
+        template<typename T>
+        friend ElementwiseVector operator-(const T& lhs, ElementwiseVector rhs) {
+            rhs -= lhs;
+            return -rhs;
+        }
+
+        /**
+         * @brief Multiplies the elements of an ElementwiseVector by a number.
+         * 
+         * @param rhs The ElementwiseVector.
+         * @param lhs The number.
+         * @return A new ElementwiseVector containing the result.
+         */
+        template<typename T>
+        friend ElementwiseVector operator*(const T& lhs, ElementwiseVector rhs) {
+            rhs *= lhs;
+            return rhs;
+        }
+
+        /**
+         * @brief Divides the elements of an ElementwiseVector by a number.
+         * 
+         * @param rhs The ElementwiseVector.
+         * @param lhs The number.
+         * @return A new ElementwiseVector containing the result.
+         */
+        template<typename T>
+        friend ElementwiseVector operator/(const T& lhs, ElementwiseVector rhs) {
+            for (auto& element : rhs.elements) {
+                element = lhs / element;
+            }
+            rhs.compare_value = rhs.reduction(rhs.elements);
+            return rhs;
         }
 
         /**
@@ -367,6 +453,38 @@ namespace mrock::utility {
          */
         auto operator<=>(const ElementwiseVector& other) const {
             return compare_value <=> other.compare_value;
+        }
+
+        /**
+         * @brief Output stream operator.
+         * If \c MROCK_ELEMENTWISE_VECTOR_PRINT_ELEMENTS is defined, the entire vector content will be printed.
+         * Otherwise only \c vec.compare_value will be printed.
+         * @param os The output stream.
+         * @param vec The ElementwiseVector to output.
+         * @return The output stream.
+         */
+        friend std::ostream& operator<<(std::ostream& os, const ElementwiseVector& vec) {
+#ifdef MROCK_ELEMENTWISE_VECTOR_PRINT_ELEMENTS
+            os << "[";
+            for (size_t i = 0; i < vec.elements.size(); ++i) {
+                os << vec.elements[i];
+                if (i < vec.elements.size() - 1) {
+                    os << ", ";
+                }
+            }
+            os << "] ";
+#endif
+            os << vec.compare_value;
+            return os;
+        }
+
+        /**
+         * @brief Implicit conversion from \c ElementwiseVector to \c value_type.
+         * @return Returns \c compare_value
+         */
+        operator value_type() const 
+        {
+            return compare_value;
         }
     };
 }
