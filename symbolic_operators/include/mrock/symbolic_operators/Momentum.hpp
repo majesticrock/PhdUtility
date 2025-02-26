@@ -237,7 +237,7 @@ namespace mrock::symbolic_operators {
 		 */
 		inline Momentum& operator*=(const int rhs);
 
-		VECTOR_WRAPPER_FILL_MEMBERS(MomentumSymbol, momentum_list);
+		MROCK_VECTOR_WRAPPER_FILL_MEMBERS(MomentumSymbol, momentum_list);
 	};
 
 	/**

@@ -1,3 +1,8 @@
+/**
+ * @file IterativeSolver.hpp
+ * @brief Provides the IterativeSolver template class and related functions for self-consistency computations.
+ */
+
 #ifndef _ITERATIVE_SOLVER_HPP
 #define _ITERATIVE_SOLVER_HPP
 
@@ -9,10 +14,16 @@
 #include "../UnderlyingFloatingPoint.hpp"
 
 namespace mrock::utility::Selfconsistency {
-	template<class RealType>
-	constexpr RealType PRECISION = 1e2 * std::numeric_limits<RealType>::epsilon();
+
+	/**
+     * @brief Precision constants for different real types.
+     */
+	template<class RealType> constexpr RealType PRECISION = 1e2 * std::numeric_limits<RealType>::epsilon();
 	template<> constexpr float PRECISION<float> = 1e1f * std::numeric_limits<float>::epsilon();
 
+	/**
+     * @brief Struct to define debug policies for the iterative solver.
+     */
 	struct DebugPolicy {
 		bool convergenceWarning{ true };
 		bool printSteps{ false };
@@ -21,6 +32,11 @@ namespace mrock::utility::Selfconsistency {
 	constexpr DebugPolicy NoWarning{ false, false };
 	constexpr DebugPolicy PrintEverything{ true, true };
 
+	/**
+     * @brief Struct to hold convergence information.
+     * 
+     * @tparam RealType The type of the real number.
+     */
 	template<class RealType>
 	struct ConvergenceInfo {
 		RealType error{ 100 };
@@ -30,6 +46,14 @@ namespace mrock::utility::Selfconsistency {
 		};
 	};
 
+	/**
+     * @brief Overload of the stream insertion operator for ConvergenceInfo.
+     * 
+     * @tparam RealType The type of the real number.
+     * @param os The output stream.
+     * @param _info The ConvergenceInfo object.
+     * @return The output stream.
+     */
 	template<class RealType>
 	std::ostream& operator<<(std::ostream& os, const ConvergenceInfo<RealType>& _info)
 	{
@@ -37,6 +61,14 @@ namespace mrock::utility::Selfconsistency {
 		return os;
 	}
 
+	/**
+     * @brief Template class for performing iterative self-consistency computations.
+     * 
+     * @tparam DataType The type of the data.
+     * @tparam Model The type of the model.
+     * @tparam SelfconsistencyAttributes The type of the self-consistency attributes.
+     * @tparam debugPolicy The debug policy to use. Defaults to WarnNoConvergence.
+     */
 	template <class DataType, class Model, class SelfconsistencyAttributes, const DebugPolicy& debugPolicy = WarnNoConvergence>
 	class IterativeSolver {
 	protected:
@@ -48,6 +80,12 @@ namespace mrock::utility::Selfconsistency {
 		const RealType _precision{ PRECISION<RealType> };
 		const unsigned int NUMBER_OF_PARAMETERS{};
 
+		/**
+         * @brief Checks for sign flipping behavior in the parameter vector.
+         * 
+         * @param x0 The parameter vector.
+         * @return True if sign flipping behavior is detected, false otherwise.
+         */
 		inline bool has_sign_flipping_behaviour(const ParameterVector& x0) {
 			for (unsigned int j = 0U; j < this->NUMBER_OF_PARAMETERS; ++j)
 			{
@@ -58,8 +96,14 @@ namespace mrock::utility::Selfconsistency {
 				}
 			}
 			return false;
-		};
+		}
 
+		/**
+         * @brief Performs the iterative procedure for self-consistency.
+         * 
+         * @param MAX_STEPS The maximum number of steps.
+         * @return The convergence information.
+         */
 		ConvergenceInfo<RealType> procedure_iterative(const unsigned int MAX_STEPS)
 		{
 			ConvergenceInfo<RealType> convergence;
@@ -98,8 +142,16 @@ namespace mrock::utility::Selfconsistency {
 			}
 			convergence.converged = true;
 			return convergence;
-		};
+		}
+
 	public:
+		/**
+         * @brief Computes the self-consistency attributes.
+         * 
+         * @param print_time Whether to print the computation time.
+         * @param MAX_STEPS The maximum number of steps.
+         * @return The self-consistency attributes.
+         */
 		virtual const SelfconsistencyAttributes& compute(bool print_time = false, const unsigned int MAX_STEPS = 1500)
 		{
 			std::chrono::time_point begin = std::chrono::steady_clock::now();
@@ -118,26 +170,64 @@ namespace mrock::utility::Selfconsistency {
 			}
 
 			return *this->_attr;
-		};
+		}
 
 		virtual ~IterativeSolver() = default;
 		IterativeSolver() = delete;
+
+		/**
+         * @brief Constructs an IterativeSolver with the given model and attributes.
+         * 
+         * @param model_ptr Pointer to the model.
+         * @param attribute_ptr Pointer to the self-consistency attributes.
+         */
 		IterativeSolver(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr)
-			: _model(model_ptr), _attr(attribute_ptr), NUMBER_OF_PARAMETERS(_attr->size()) {};
+			: _model(model_ptr), _attr(attribute_ptr), NUMBER_OF_PARAMETERS(_attr->size()) {}
+		
+		/**
+         * @brief Constructs an IterativeSolver with the given model, attributes, and precision.
+         * 
+         * @param model_ptr Pointer to the model.
+         * @param attribute_ptr Pointer to the self-consistency attributes.
+         * @param precision The precision for the iterative procedure.
+         */
 		IterativeSolver(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, const RealType& precision)
-			: _model(model_ptr), _attr(attribute_ptr), _precision(precision), NUMBER_OF_PARAMETERS(_attr->size()) {};
+			: _model(model_ptr), _attr(attribute_ptr), _precision(precision), NUMBER_OF_PARAMETERS(_attr->size()) {}
 	};
 
+	/**
+     * @brief Factory function to create an IterativeSolver with a specified debug policy.
+     * 
+     * @tparam debugPolicy The debug policy to use.
+     * @tparam DataType The type of the data.
+     * @tparam Model The type of the model.
+     * @tparam SelfconsistencyAttributes The type of the self-consistency attributes.
+     * @param model_ptr Pointer to the model.
+     * @param attribute_ptr Pointer to the self-consistency attributes.
+     * @param precision The precision for the iterative procedure.
+     * @return An IterativeSolver object.
+     */
 	template <const DebugPolicy& debugPolicy, class DataType, class Model, class SelfconsistencyAttributes>
 	auto make_iterative(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, const UnderlyingFloatingPoint_t<DataType>& precision = PRECISION<UnderlyingFloatingPoint_t<DataType>>)
 	{
 		return IterativeSolver<DataType, Model, SelfconsistencyAttributes, debugPolicy>(model_ptr, attribute_ptr, precision);
 	}
 
+	/**
+     * @brief Factory function to create an IterativeSolver with the default debug policy.
+     * 
+     * @tparam DataType The type of the data.
+     * @tparam Model The type of the model.
+     * @tparam SelfconsistencyAttributes The type of the self-consistency attributes.
+     * @param model_ptr Pointer to the model.
+     * @param attribute_ptr Pointer to the self-consistency attributes.
+     * @param precision The precision for the iterative procedure.
+     * @return An IterativeSolver object.
+     */
 	template <class DataType, class Model, class SelfconsistencyAttributes>
 	auto make_iterative(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, const UnderlyingFloatingPoint_t<DataType>& precision = PRECISION<UnderlyingFloatingPoint_t<DataType>>)
 	{
 		return IterativeSolver<DataType, Model, SelfconsistencyAttributes, WarnNoConvergence>(model_ptr, attribute_ptr, precision);
 	}
 }
-#endif
+#endif // _ITERATIVE_SOLVER_HPP

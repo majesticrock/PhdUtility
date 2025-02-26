@@ -180,7 +180,7 @@ namespace mrock::symbolic_operators {
 		IndexWrapper(std::vector<Index>&& _indizes)
 			: indizes(std::move(_indizes)) {};
 
-		VECTOR_WRAPPER_FILL_MEMBERS(Index, indizes);
+		MROCK_VECTOR_WRAPPER_FILL_MEMBERS(Index, indizes);
 
 		/**
 		 * @brief Compares two IndexWrapper objects.

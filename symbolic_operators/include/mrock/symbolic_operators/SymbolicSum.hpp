@@ -84,7 +84,7 @@ namespace mrock::symbolic_operators {
 			return false;
 		}
 
-		VECTOR_WRAPPER_FILL_MEMBERS(SumIndex, summations);
+		MROCK_VECTOR_WRAPPER_FILL_MEMBERS(SumIndex, summations);
 
 		/**
 		 * @brief Compares two SymbolicSum objects.
