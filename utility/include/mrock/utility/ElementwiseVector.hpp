@@ -28,7 +28,7 @@ namespace mrock::utility {
         template<class vector_type>
         auto operator()(const vector_type& elements) const {
             using value_type = typename vector_type::value_type;
-            return std::inner_product(elements.begin(), elements.end(), elements.begin(), value_type{});
+            return std::transform_reduce(elements.begin(), elements.end(), elements.begin(), value_type{});
         }
     };
 
