@@ -2,8 +2,10 @@
 #include <cmath>
 #include <iomanip>
 #include "../include/mrock/utility/Numerics/Integration/AdaptiveTrapezoidalRule.hpp"
+#include "../include/mrock/utility/Numerics/ErrorFunctors.hpp"
 #include <Eigen/Dense>
 
+using namespace mrock::utility::Numerics;
 using namespace mrock::utility::Numerics::Integration;
 
 int main() {
@@ -22,7 +24,7 @@ int main() {
     double inv_one_plus_cos_func_analytical = std::tan(0.5 * end) - std::tan(0.5 * begin); 
     double x_squared_exp_x_analytical = (end*end - 2*end + 2) * std::exp(end) - (begin*begin - 2*begin + 2) * std::exp(begin);
 
-    adapative_trapezoidal_rule<double, false> adaptive;
+    adapative_trapezoidal_rule<double, adapative_trapezoidal_rule_print_nothing> adaptive;
     num_steps = 10;
     double cos_adaptive = adaptive.integrate(cos_func, begin, end, num_steps, max_error);
     double inv_one_plus_cos_func_adaptive = adaptive.integrate(inv_one_plus_cos_func, begin, end, num_steps, max_error);
@@ -32,7 +34,7 @@ int main() {
     std::cout << "Integral of sin(x)/x from 0 to 1: " << inv_one_plus_cos_func_adaptive << " (Analytical: " << inv_one_plus_cos_func_analytical << ")" << std::endl;
     std::cout << "Integral of x^2 * e^x from 0 to 1: " << x_squared_exp_x_adaptive << " (Analytical: " << x_squared_exp_x_analytical << ")" << std::endl;
 
-    relative_error<double> error_func;
+    scalar_error<double> error_func;
     if (error_func(cos_adaptive, cos_analytical) > max_error) {
         return 1;
     }

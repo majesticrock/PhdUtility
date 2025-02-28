@@ -4,94 +4,23 @@
  */
 
 #pragma once
-#include <utility>
+
+#include "../../ThrowException.hpp"
+#include "../ErrorFunctors.hpp"
+
 #include <cmath>
 #include <type_traits>
 #include <iostream>
-#include <numeric>
+#include <limits>
+#include <stdexcept>
 #include <functional>
 
 namespace mrock::utility::Numerics::Integration {
-	/**
-	 * @struct relative_error
-	 * @brief Computes the relative error between two values.
-	 * 
-	 * @tparam T Type of the values.
-	 */
-	template<class T>
-	struct relative_error {
-		/**
-		 * @brief Computes the relative error between two values.
-		 * 
-		 * @param _new The new value.
-		 * @param _old The old value.
-		 * @return double The relative error.
-		 */
-		double operator()(const T& _new, const T& _old) const {
-			using std::abs;
-			const double abs_new = abs(_new);
-			return (abs_new > 1e-8 ?  abs(_new - _old) / abs_new : abs(_new - _old));
-		};
+	struct adapative_trapezoidal_rule_print_policy {
+		bool print_values;
+		bool print_error;
 	};
-
-	/**
-	 * @struct vector_norm_error
-	 * @brief Computes the error based on the norm of vectors.
-	 * 
-	 * @tparam vector_type Type of the vector.
-	 * @tparam value_type Type of the values in the vector.
-	 */
-	template<class vector_type, class value_type = typename vector_type::value_type>
-	struct vector_norm_error {
-	private:
-		/**
-		 * @brief Computes the norm of a vector.
-		 * 
-		 * @param vec The vector.
-		 * @return value_type The norm of the vector.
-		 */
-		static value_type norm(const vector_type& vec) {
-			return sqrt(std::transform_reduce(vec.begin(), vec.end(), vec.begin(), value_type{}));
-		}
-	public:
-		/**
-		 * @brief Computes the error based on the norm of two vectors.
-		 * 
-		 * @param _new The new vector.
-		 * @param _old The old vector.
-		 * @return value_type The error based on the norm.
-		 */
-		value_type operator()(const vector_type& _new, const vector_type& _old) const {
-			const value_type abs_new = norm(_new);
-			return (abs_new > value_type{1e-8} ?  norm(_new - _old) / abs_new : norm(_new - _old));
-		}
-	};
-
-	/**
-	 * @struct vector_elementwise_error
-	 * @brief Computes the element-wise error between two vectors.
-	 * 
-	 * @tparam vector_type Type of the vector.
-	 * @tparam value_type Type of the values in the vector.
-	 */
-	template<class vector_type, class value_type = typename vector_type::value_type>
-	struct vector_elementwise_error {
-		/**
-		 * @brief Computes the element-wise error between two vectors.
-		 * 
-		 * @param _new The new vector.
-		 * @param _old The old vector.
-		 * @return value_type The element-wise error.
-		 */
-		value_type operator()(const vector_type& _new, const vector_type& _old) const {
-			const value_type abs_new = std::transform_reduce(_new.begin(), _new.end(), value_type{}, 
-										std::plus<value_type>(), [](const value_type& val){ using std::abs; return abs(val); });
-
-			const value_type abs_diff = std::transform_reduce(_new.begin(), _new.end(), _old.begin(), value_type{}, 
-										std::plus<value_type>(), [](const value_type& left, const value_type& right){ using std::abs; return abs(left - right); });
-			return (abs_new > value_type{1e-8} ?  abs_diff / abs_new : abs_diff);
-		}
-	};
+	constexpr adapative_trapezoidal_rule_print_policy adapative_trapezoidal_rule_print_nothing = {false, false};
 
 	/**
 	 * @struct adapative_trapezoidal_rule
@@ -100,9 +29,17 @@ namespace mrock::utility::Numerics::Integration {
 	 * @tparam RealType The type of the real numbers (default is double).
 	 * @tparam print_steps Whether to print the steps of the integration process (default is false).
 	 */
-	template<class RealType = double, bool print_steps = false>
+	template<class RealType = double, adapative_trapezoidal_rule_print_policy print_steps = adapative_trapezoidal_rule_print_nothing>
 	struct adapative_trapezoidal_rule {
 	private:
+		/**
+		 * @brief Type alias for the result of the unary function with const, volatile, and reference removed.
+		 * 
+		 * @tparam UnaryFunction The type of the unary function.
+		 */
+		template<class UnaryFunction>
+		using decayed_result = std::remove_cvref_t< std::invoke_result_t< UnaryFunction, RealType > >;
+
 		/**
 		 * @brief Type alias for the result of the error function.
 		 * 
@@ -110,14 +47,13 @@ namespace mrock::utility::Numerics::Integration {
 		 * @tparam ErrorFunction The type of the error function.
 		 */
 		template<class UnaryFunction, class ErrorFunction>
-		using error_result = std::invoke_result_t<ErrorFunction, std::invoke_result_t<UnaryFunction, RealType>, std::invoke_result_t<UnaryFunction, RealType>>;
-
+		using error_result = std::invoke_result_t< ErrorFunction, decayed_result<UnaryFunction>, decayed_result<UnaryFunction> >;
 	public:
 		/**
 		 * @brief Integrates a function over a given interval using the adaptive trapezoidal rule.
 		 * 
 		 * @tparam UnaryFunction The type of the function to integrate.
-		 * @tparam ErrorFunction The type of the error function (default is relative_error).
+		 * @tparam ErrorFunction The type of the error function (default is scalar_error).
 		 * @param function The function to integrate.
 		 * @param begin The beginning of the interval.
 		 * @param end The end of the interval.
@@ -127,12 +63,18 @@ namespace mrock::utility::Numerics::Integration {
 		 * @param zero The zero value for the result type (default is the default-constructed value).
 		 * @return The integral of the function over the interval.
 		 */
-		template <class UnaryFunction, class ErrorFunction = relative_error<std::invoke_result_t<UnaryFunction, RealType>>>
-		auto integrate(const UnaryFunction& function, const RealType begin, const RealType end, unsigned int num_steps,  
+		template <class UnaryFunction, class ErrorFunction = scalar_error<decayed_result<UnaryFunction>>>
+		decayed_result<UnaryFunction> integrate(const UnaryFunction& function, const RealType begin, const RealType end, unsigned int num_steps,  
 			const error_result<UnaryFunction, ErrorFunction> max_error, const ErrorFunction& error_func = ErrorFunction(),
-			const std::invoke_result_t<UnaryFunction, RealType>& zero = std::invoke_result_t<UnaryFunction, RealType>{}) 
+			const decayed_result<UnaryFunction>& zero = decayed_result<UnaryFunction>{}) 
 		{
-			using result_type = decltype(function(begin));
+			throw_exception<std::domain_error>(MROCK_NDEBUG_CONDITION(!(std::isfinite(begin) && std::isfinite(end))), "The integration domain is not sensible!");
+			using std::abs;
+			if (abs(begin - end) < std::numeric_limits<RealType>::epsilon()) return zero;
+			if (begin < end) {
+				return -integrate(function, end, begin, num_steps, max_error, error_func, zero);
+			}
+			using result_type = decayed_result<UnaryFunction>;
 			RealType step = (end - begin) / num_steps;
 
 			result_type new_value{};
@@ -155,9 +97,11 @@ namespace mrock::utility::Numerics::Integration {
 
 				current_error = error_func(new_value, old_value);
 
-				if constexpr (print_steps) {
-					std::cout << "I_n = " << old_value << "\nI_(n+1) = " << new_value << "\n\t||\terror = " << current_error 
-						<< "\tCurrent step = " << step << std::endl;
+				if constexpr (print_steps.print_values) {
+					std::cout << "I_n = " << old_value << "\nI_(n+1) = " << new_value;
+				}
+				if constexpr (print_steps.print_error) {
+					std::cout << "\n\t||\terror = " << current_error << "\tCurrent step = " << step << "\tCurrent number of steps = " << num_steps << std::endl;
 				}
 
 				old_value = new_value;
