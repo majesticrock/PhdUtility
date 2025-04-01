@@ -114,10 +114,10 @@ namespace mrock::utility::Numerics::iEoM {
 			n_hacek = norm_solver.eigenvectors
 				* norm_solver.eigenvalues.unaryExpr([this](RealType x) { return abs(x) < this->_internal._precision ? 0 : 1. / x; }).asDiagonal()
 				* norm_solver.eigenvectors.adjoint();
-			// Starting here M is the adjusted solver matrix (s s hackem)
+			// Starting here M is the adjusted solver matrix (M s hackem)
 			// n_hacek * M * n_hacek
 			M_blocked = n_hacek * M_blocked * n_hacek; // M_solver.eigenvectors * M_solver.eigenvalues.asDiagonal() * M_solver.eigenvectors.adjoint()
-			// Starting here N is the extra matrix that defines |a> (n s hackem N)
+			// Starting here N is the extra matrix that defines |a> ((N s hackem) * N)
 			N_blocked.applyOnTheLeft(n_hacek);
 
 			// Starting here h_hacek is its own inverse (defining |b>)
