@@ -19,9 +19,10 @@ namespace mrock::utility::Numerics::Integration {
 	struct adapative_trapezoidal_rule_print_policy {
 		bool print_values;
 		bool print_error;
+		bool print_final_state;
 	};
-	constexpr adapative_trapezoidal_rule_print_policy adapative_trapezoidal_rule_print_nothing = {false, false};
-
+	constexpr adapative_trapezoidal_rule_print_policy adapative_trapezoidal_rule_print_nothing = {false, false, false};
+	constexpr adapative_trapezoidal_rule_print_policy adapative_trapezoidal_rule_print_final = {false, false, true};
 	/**
 	 * @struct adapative_trapezoidal_rule
 	 * @brief Performs numerical integration using the adaptive trapezoidal rule.
@@ -66,12 +67,12 @@ namespace mrock::utility::Numerics::Integration {
 		template <class UnaryFunction, class ErrorFunction = scalar_error<decayed_result<UnaryFunction>>>
 		decayed_result<UnaryFunction> integrate(const UnaryFunction& function, const RealType begin, const RealType end, unsigned int num_steps,  
 			const error_result<UnaryFunction, ErrorFunction> max_error, const ErrorFunction& error_func = ErrorFunction(),
-			const decayed_result<UnaryFunction>& zero = decayed_result<UnaryFunction>{}) 
+			const decayed_result<UnaryFunction>& zero = decayed_result<UnaryFunction>{}) const
 		{
 			throw_exception<std::domain_error>(MROCK_NDEBUG_CONDITION(!(std::isfinite(begin) && std::isfinite(end))), "The integration domain is not sensible!");
 			using std::abs;
 			if (abs(begin - end) < std::numeric_limits<RealType>::epsilon()) return zero;
-			if (begin < end) {
+			if (end < begin) {
 				return -integrate(function, end, begin, num_steps, max_error, error_func, zero);
 			}
 			using result_type = decayed_result<UnaryFunction>;
@@ -106,7 +107,49 @@ namespace mrock::utility::Numerics::Integration {
 
 				old_value = new_value;
 			} while (current_error > max_error);
+			if constexpr (print_steps.print_final_state) {
+				std::cout << "Final state: Error = " << current_error << "\tCurrent step = " << step << "\tCurrent number of steps = " << num_steps << std::endl;
+			}
 			return new_value;
+		}
+
+		/**
+		 * @brief Integrates a function over a given interval using the adaptive trapezoidal rule.
+		 * 
+		 * @tparam N The number of intervals (integer)
+		 * @tparam UnaryFunction The type of the function to integrate.
+		 * @tparam ErrorFunction The type of the error function (default is scalar_error).
+		 * @param function The function to integrate.
+		 * @param begin The beginning of the whole interval.
+		 * @param end The end of the whole interval.
+		 * @param num_steps_per_interval The initial number of steps in each interval.
+		 * @param max_error_per_interval The maximum allowable error in each interval.
+		 * @param error_func The error function (default is ErrorFunction()).
+		 * @param zero The zero value for the result type (default is the default-constructed value).
+		 * @return The integral of the function over the whole interval.
+		 */
+		template <int N, class UnaryFunction, class ErrorFunction = scalar_error<decayed_result<UnaryFunction>>>
+		decayed_result<UnaryFunction> split_integrate(const UnaryFunction& function, const RealType begin, const RealType end, 
+			unsigned int num_steps_per_interval, const error_result<UnaryFunction, ErrorFunction> max_error_per_interval,
+			const ErrorFunction& error_func = ErrorFunction(), const decayed_result<UnaryFunction>& zero = decayed_result<UnaryFunction>{}) const
+		{
+			throw_exception<std::domain_error>(MROCK_NDEBUG_CONDITION(!(std::isfinite(begin) && std::isfinite(end))), "The integration domain is not sensible!");
+			using std::abs;
+			if (abs(begin - end) < std::numeric_limits<RealType>::epsilon()) return zero;
+			if (end < begin) {
+				return -split_integrate<N>(function, end, begin, num_steps_per_interval, max_error_per_interval, error_func, zero);
+			}
+
+			decayed_result<UnaryFunction> result = zero;
+			const RealType interval_size = (end - begin) / N;
+			for (int i = 0; i < N; ++i) {
+				if constexpr (print_steps.print_final_state) {
+					std::cout << "Interval #" << i << " = [" << begin + i * interval_size << ", " << begin + (i + 1) * interval_size << "]: ";
+				}
+				result += integrate(function, begin + i * interval_size, begin + (i + 1) * interval_size, 
+					num_steps_per_interval, max_error_per_interval, error_func, zero);
+			}
+			return result;
 		}
 	};
 }
