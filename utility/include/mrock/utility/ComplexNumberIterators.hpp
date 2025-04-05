@@ -14,6 +14,15 @@ namespace mrock::utility {
 
         RealPartIterator(std::complex<T> const * ptr) : ptr(ptr) {}
 
+        template <class Vector>
+        static RealPartIterator Begin(const Vector& vec) {
+            return RealPartIterator(vec.data());
+        }
+        template <class Vector>
+        static RealPartIterator End(const Vector& vec) {
+            return RealPartIterator(vec.data() + vec.size());
+        }
+
         T operator*() const { return ptr->real(); }
         T operator[](difference_type n) const {
             return (ptr + n)->real();
@@ -47,6 +56,15 @@ namespace mrock::utility {
         using reference = T&;
 
         ImagPartIterator(std::complex<T> const * ptr) : ptr(ptr) {}
+
+        template <class Vector>
+        static ImagPartIterator Begin(const Vector& vec) {
+            return ImagPartIterator(vec.data());
+        }
+        template <class Vector>
+        static ImagPartIterator End(const Vector& vec) {
+            return ImagPartIterator(vec.data() + vec.size());
+        }
 
         T operator*() const { return ptr->imag(); }
         T operator[](difference_type n) const {
@@ -86,5 +104,22 @@ namespace mrock::utility {
     template<typename T>
     ImagPartIterator<T> make_imag_part_iterator_end(std::complex<T> const * ptr, std::size_t length) {
         return ImagPartIterator<T>(ptr + length);
+    }
+
+    template<typename Vector>
+    RealPartIterator<typename Vector::value_type::value_type> make_real_part_iterator(Vector const& vec) {
+        return RealPartIterator<typename Vector::value_type::value_type>::Begin(vec);
+    }
+    template<typename Vector>
+    RealPartIterator<typename Vector::value_type::value_type> make_real_part_iterator_end(Vector const& vec) {
+        return RealPartIterator<typename Vector::value_type::value_type>::End(vec);
+    }
+    template<typename Vector>
+    ImagPartIterator<typename Vector::value_type::value_type> make_imag_part_iterator(Vector const& vec) {
+        return ImagPartIterator<typename Vector::value_type::value_type>::Begin(vec);
+    }
+    template<typename Vector>
+    ImagPartIterator<typename Vector::value_type::value_type> make_imag_part_iterator_end(Vector const& vec) {
+        return ImagPartIterator<typename Vector::value_type::value_type>::End(vec);
     }
 }
