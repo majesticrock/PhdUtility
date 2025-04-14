@@ -10,6 +10,8 @@ Debug/
 Release/
 */build/
 build/
+*/build*/
+build*/
 *.csv
 stdout*
 stderr*

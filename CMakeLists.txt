@@ -24,7 +24,7 @@ add_subdirectory(utility)
 add_subdirectory(symbolic_operators)
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/mrock-information.cmake)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/info.h" DESTINATION include/mrock)
+install(FILES ${MROCK_INFO_HEADER} DESTINATION include/mrock)
 
 if(BUILD_TESTS)
     include(CTest)

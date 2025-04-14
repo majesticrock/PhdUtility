@@ -15,7 +15,8 @@ function(run_command RESULT_VAR)
     set(${RESULT_VAR} "${${RESULT_VAR}}" PARENT_SCOPE)
 endfunction()
 
-set(INFO_HEADER ${CMAKE_CURRENT_BINARY_DIR}/info.h)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../build_header)
+set(MROCK_INFO_HEADER ${CMAKE_CURRENT_BINARY_DIR}/../build_header/info.h)
 
 run_command(MROCK_GIT_COMMIT_VERSION git describe --always --dirty)
 run_command(MROCK_GIT_COMMIT_NAME git log -1 --format=%s)
@@ -31,7 +32,7 @@ unset(_MROCK_COMPILER_VERSION_LINES)
 
 configure_file(
     ${CMAKE_CURRENT_LIST_DIR}/info.h.in
-    ${INFO_HEADER}
+    ${MROCK_INFO_HEADER}
     @ONLY
 )
 

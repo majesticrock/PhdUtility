@@ -21,7 +21,7 @@ test: $(BUILD_DIR)/Makefile
 	cd build && ctest --output-on-failure
 
 clean:
-	@rm -rf $(BUILD_DIR) $(CLUSTER_BUILD_DIR)
+	@rm -rf $(BUILD_DIR) $(CLUSTER_BUILD_DIR) build_header
 
 install: all
 	@$(MAKE) -C $(BUILD_DIR) install
