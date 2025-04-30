@@ -356,6 +356,14 @@ namespace mrock::symbolic_operators {
 			n = new_n;
 		}
 
+		// Sort the occurring coefficients in alphabetical order
+		std::sort(coefficients.begin(), coefficients.end(), [](const Coefficient& a, const Coefficient& b) {
+			if (a.name == b.name) {
+				return (a.is_daggered && (!b.is_daggered));
+			}
+			return a.name < b.name;
+		});
+
 		// check whether we can swap the sign of each momentum in the coefficients
 		// 26.04.2024, I have no idea what I did here, nor do I know why I did what I did
 		for (const auto& coeff : coefficients) {
