@@ -14,11 +14,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # --- Dependencies ---
 include(CMakeFindDependencyMacro)
 find_dependency(ZLIB REQUIRED)
-if(CLUSTER_BUILD) # Force boost 1.78 on the cluster - there are conflicts on that system specifically
-    find_dependency(Boost 1.78 EXACT REQUIRED COMPONENTS serialization iostreams)
-else()
-    find_dependency(Boost REQUIRED COMPONENTS serialization iostreams)
-endif()
+find_dependency(Boost REQUIRED COMPONENTS serialization iostreams)
 
 # --- Library Definition ---
 add_library(mrock_utility INTERFACE)
