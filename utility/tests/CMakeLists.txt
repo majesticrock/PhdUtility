@@ -32,6 +32,8 @@ add_executable(string_utility_test string_utility.cpp)
 SET_COMPILER_FLAGS(string_utility_test)
 add_executable(trapezoidal_test trapezoidal_test.cpp)
 SET_COMPILER_FLAGS(trapezoidal_test)
+add_executable(hypergeometric_test hypergeometric.cpp)
+SET_COMPILER_FLAGS(hypergeometric_test)
 
 target_link_libraries(block_matrix_test PRIVATE OpenMP::OpenMP_CXX)
 
@@ -45,3 +47,4 @@ add_test(NAME block_matrix_test COMMAND block_matrix_test)
 add_test(NAME cauchy_principal_value_test COMMAND cauchy_principal_value_test)
 add_test(NAME string_utility_test COMMAND string_utility_test)
 add_test(NAME trapezoidal_test COMMAND trapezoidal_test)
+add_test(NAME hypergeometric_test COMMAND hypergeometric_test)

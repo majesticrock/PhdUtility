@@ -13,4 +13,10 @@ namespace mrock::utility {
 	constexpr bool is_complex() {
 		return IsComplex_t<T>::value;
 	};
+
+	template <class T>
+	concept Complex = IsComplex_t<T>::value;
+
+	template <class T>
+	concept Real = !IsComplex_t<T>::value;
 };
