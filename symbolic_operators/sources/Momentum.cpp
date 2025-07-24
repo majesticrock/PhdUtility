@@ -191,7 +191,7 @@ namespace mrock::symbolic_operators {
 	{
 		if (momentum.momentum_list.empty()) {
 			if (momentum.add_Q) {
-				os << "Q";
+				os << _vector_wrap("Q");
 			}
 			else {
 				os << "0";
@@ -209,10 +209,10 @@ namespace mrock::symbolic_operators {
 			else if (it->factor == -1) {
 				os << "-";
 			}
-			os << it->name;
+			os << _vector_wrap(it->name);
 		}
 		if (momentum.add_Q) {
-			os << " + Q";
+			os << " + " + _vector_wrap("Q");
 		}
 		return os;
 	}

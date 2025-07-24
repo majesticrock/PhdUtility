@@ -741,7 +741,7 @@ namespace mrock::symbolic_operators {
 		if (term.multiplicity > 0) {
 			os << "+";
 		}
-		os << term.multiplicity << " \\cdot ";
+		os << term.multiplicity << " ";
 		os << term.sums;
 		os << term.coefficients << " ";
 		for (const auto& delta : term.delta_momenta) {

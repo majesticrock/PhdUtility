@@ -5,16 +5,16 @@ namespace mrock::symbolic_operators {
 	{
 		switch (op) {
 		case SC_Type:
-			os << "f";
+			os << "\\hat{f}";
 			break;
 		case Eta_Type:
-			os << "\\eta";
+			os << "\\hat{\\eta}";
 			break;
 		case CDW_Type:
-			os << "g";
+			os << "\\hat{g}";
 			break;
 		case Number_Type:
-			os << "n";
+			os << "\\hat{n}";
 			break;
 		default:
 			os << "ERROR_OPERATOR";

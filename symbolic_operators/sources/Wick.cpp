@@ -232,36 +232,54 @@ namespace mrock::symbolic_operators {
 			}
 		}
 
+		auto predicate = [](const WickTerm& left, const WickTerm& right) -> bool {
+			if (left.delta_momenta.empty() && right.delta_momenta.size() > 0) {
+				return true;
+			}
+			if (left.delta_momenta.size() > 0 && right.delta_momenta.size() > 0) {
+				if (left.delta_momenta.size() < right.delta_momenta.size()) {
+					return true;
+				}
+				else if (left.delta_momenta.size() == right.delta_momenta.size()) {
+					if (left.delta_momenta[0].second.add_Q && !(right.delta_momenta[0].second.add_Q)) {
+						return true;
+					}
+					else if (!left.coefficients.empty() && right.coefficients[0].name < left.coefficients[0].name) {
+						return true;
+					}
+					else if ((!left.coefficients.empty() && right.coefficients[0].name == left.coefficients[0].name) || left.coefficients.empty()) {
+						if (!left.operators.empty() && right.operators.empty()) {
+							return true;
+						}
+						else if ((!left.operators.empty() && !right.operators.empty()) && left.operators.front().type < right.operators.front().type) {
+							return true;
+						}
+					}
+				}
+			}
+			else if (left.delta_momenta.empty() && right.delta_momenta.empty()) {
+				if (!left.coefficients.empty() && right.coefficients[0].name < left.coefficients[0].name) {
+					return true;
+				}
+				else if ((!left.coefficients.empty() && right.coefficients[0].name == left.coefficients[0].name) || left.coefficients.empty()) {
+					if (!left.operators.empty() && right.operators.empty()) {
+						return true;
+					}
+					else if ((!left.operators.empty() && !right.operators.empty()) && left.operators.front().type < right.operators.front().type) {
+						return true;
+					}
+				}
+			}
+			return false;
+		};
+
 		// Sort terms
 		for (size_t i = 0; i < terms.size(); i++)
 		{
 			for (size_t j = i + 1; j < terms.size(); j++)
 			{
-				if (terms[i].delta_momenta.empty() && terms[j].delta_momenta.size() > 0) {
+				if(predicate(terms[i], terms[j]))
 					std::swap(terms[i], terms[j]);
-				}
-				if (terms[i].delta_momenta.size() > 0 && terms[j].delta_momenta.size() > 0) {
-					if (terms[i].delta_momenta.size() < terms[j].delta_momenta.size()) {
-						std::swap(terms[i], terms[j]);
-					}
-					else if (terms[i].delta_momenta.size() == terms[j].delta_momenta.size()) {
-						if (terms[i].delta_momenta[0].second.add_Q && !(terms[j].delta_momenta[0].second.add_Q)) {
-							std::swap(terms[i], terms[j]);
-						}
-						else if (terms[i].coefficients.size() > 0) {
-							if (terms[j].coefficients[0].name < terms[i].coefficients[0].name) {
-								std::swap(terms[i], terms[j]);
-							}
-						}
-					}
-				}
-				else if (terms[i].delta_momenta.empty() && terms[j].delta_momenta.empty()) {
-					if (terms[i].coefficients.size() > 0) {
-						if (terms[j].coefficients[0].name < terms[i].coefficients[0].name) {
-							std::swap(terms[i], terms[j]);
-						}
-					}
-				}
 			}
 		}
 	}

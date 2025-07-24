@@ -4,13 +4,16 @@ namespace mrock::symbolic_operators {
 	std::ostream& operator<<(std::ostream& os, const Operator& op)
 	{
 		if (op.is_fermion) {
-			os << "c";
+			os << "\\hat{c}";
 		} else {
-			os << "b";
+			os << "\\hat{b}";
 		}
 		os << "_{ " << op.momentum << ", " << op.indizes << "}";
 		if (op.is_daggered) {
 			os << "^\\dagger ";
+		}
+		else {
+			os << "^{\\phantom{\\dagger}}"; // For alignment purposes
 		}
 		return os;
 	}
