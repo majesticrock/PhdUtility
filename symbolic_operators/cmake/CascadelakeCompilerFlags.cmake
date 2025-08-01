@@ -1,6 +1,7 @@
 # ClusterCompilerFlags.cmake
 
 function(SET_COMPILER_FLAGS TARGET)
+    mrock_message("Building for casecadelake!")
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
         if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 11.0)
             message(FATAL_ERROR "GCC version ${CMAKE_CXX_COMPILER_VERSION} is not supported. GCC 12.1 or newer is required for C++20 support.")
