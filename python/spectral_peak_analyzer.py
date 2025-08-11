@@ -15,8 +15,8 @@ class Peak:
         self.lower_continuum_edge = lower_continuum_edge
         self.scaling = scaling
     
-    def improved_peak_position(self, xtol=2e-12):
-        offset_peak = 0.2 * self.scaling
+    def improved_peak_position(self, xtol=2e-12, offset = 0.2):
+        offset_peak = offset * self.scaling
         search_bounds = (max(0, self.peak_position - offset_peak), min(self.peak_position + offset_peak, self.lower_continuum_edge))
         
         result = bounded_minimize(self.f_imag, bounds=search_bounds, xtol=xtol)
@@ -81,7 +81,7 @@ def analyze_peak(f_real, f_imag, peak_position, lower_continuum_edge,
     peak = Peak(f_real, f_imag, peak_position, lower_continuum_edge, scaling=scaling)
     peak_pos_value = np.copy(peak.peak_position)
     if improve_peak_position:
-        peak_result = peak.improved_peak_position(xtol=peak_position_tol)
+        peak_result = peak.improved_peak_position(xtol=peak_position_tol, offset=range)
         # only an issue if the difference is too large;
         if not peak_result["success"]:
             print("We might not have found the peak for data_folder!\nWe found ", peak_pos_value, " and\n", peak_result)
