@@ -20,7 +20,7 @@ class Peak:
         search_bounds = (max(0, self.peak_position - offset_peak), min(self.peak_position + offset_peak, self.lower_continuum_edge))
         
         result = bounded_minimize(self.f_imag, bounds=search_bounds, xtol=xtol)
-        self.peak_position = result["x"]
+        #self.peak_position = result["x"]
         return result
     
     def fit_real_part(self, range=0.001, begin_offset=1e-10, reversed=False, func=linear_function):
@@ -62,7 +62,7 @@ class PeakData:
 
 def analyze_peak(f_real, f_imag, peak_position, lower_continuum_edge, 
                  peak_position_tol=1e-12, range=0.001, begin_offset=1e-10, 
-                 reversed=False, improve_peak_position=True, plotter=None, scaling=1):
+                 reversed=False, improve_peak_position=True, peak_pos_range=0.01, plotter=None, scaling=1):
     """ Returns a PeakData object (peak position, peak weight, peak weight error)
     f_real                  Re[G(omega)]             We achieve better results if there is not imaginary shift here!
     f_imag                  Im[G(omega + i epsilon)] with some small positive constant epsilon
@@ -81,11 +81,24 @@ def analyze_peak(f_real, f_imag, peak_position, lower_continuum_edge,
     peak = Peak(f_real, f_imag, peak_position, lower_continuum_edge, scaling=scaling)
     peak_pos_value = np.copy(peak.peak_position)
     if improve_peak_position:
-        peak_result = peak.improved_peak_position(xtol=peak_position_tol, offset=range)
+        peak_result = peak.improved_peak_position(xtol=peak_position_tol, offset=peak_pos_range)
         # only an issue if the difference is too large;
         if not peak_result["success"]:
             print("We might not have found the peak for data_folder!\nWe found ", peak_pos_value, " and\n", peak_result)
-        omega_0 = peak_result["x"]
+        # I am not quite sure, why this happens:
+        # If the search range is too large, the algorithm might find a different mininum (that's logical)
+        # However, if it find's such a "bad" minimum the return value seems to be always np.float(....)
+        # If it finds the true mininum, the return value is np.array[...] of size 1 with the proper position
+        # In both cases, the algorithm claims success....
+        # So, since it seems to be good whenever we get an array as a result, we plainly use it.
+        # The program dies if it only finds bad minima.
+        if hasattr(peak_result["x"], "__len__"):
+            omega_0 = peak_result["x"][0]
+            peak.peak_position = omega_0
+        else:
+            peak_result = peak.improved_peak_position(xtol=peak_position_tol, offset=0.1 * peak_pos_range)
+            omega_0 = peak_result["x"][0]
+            peak.peak_position = omega_0
     else:
         omega_0 = peak_position
     
