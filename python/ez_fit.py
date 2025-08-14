@@ -16,15 +16,15 @@ def ez_linear_fit(x_data, y_data, plotter=plt, x_space=None, x_bounds=None, **pl
     
     if not hasattr(x_space, "__len__"):
         x_space = ez_lin_space(x_data, x_bounds)
-    plotter.plot(x_space, func(x_space, *popt), **plotter_kwargs)
+    line = plotter.plot(x_space, func(x_space, *popt), **plotter_kwargs)
     
-    return popt, pcov
+    return popt, pcov, line
 
 def ez_general_fit(x_data, y_data, func, plotter=plt, x_space=None, x_bounds=None, **plotter_kwargs):
     popt, pcov = curve_fit(func, x_data, y_data)
     
     if not hasattr(x_space, "__len__"):
         x_space = ez_lin_space(x_data, x_bounds)
-    plotter.plot(x_space, func(x_space, *popt), **plotter_kwargs)
+    line = plotter.plot(x_space, func(x_space, *popt), **plotter_kwargs)
     
-    return popt, pcov
+    return popt, pcov, line
