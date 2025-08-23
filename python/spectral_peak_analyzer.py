@@ -17,7 +17,7 @@ class Peak:
     
     def improved_peak_position(self, xtol=2e-12, offset = 0.2):
         offset_peak = offset * self.scaling
-        search_bounds = (max(0, self.peak_position - offset_peak), min(self.peak_position + offset_peak, self.lower_continuum_edge))
+        search_bounds = (max(0, self.peak_position - offset_peak), min(self.peak_position + offset_peak, self.lower_continuum_edge - 0.01 * (self.lower_continuum_edge - self.peak_position)))
         
         result = bounded_minimize(self.f_imag, bounds=search_bounds, xtol=xtol)
         #self.peak_position = result["x"]
