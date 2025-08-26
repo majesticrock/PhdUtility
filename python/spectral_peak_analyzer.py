@@ -103,11 +103,13 @@ def analyze_peak(f_real, f_imag, peak_position, lower_continuum_edge,
         omega_0 = peak_position
     
     popt, pcov, w_log, y_data = peak.fit_real_part(range, begin_offset, reversed)
-    u_weight = unp.exp(ufloat(popt[1], np.sqrt(pcov[1][1])))
+    if popt[1] > 36.8413614879:
+        u_weight = ufloat(1e16, 1e16) # This is e^36.8413614879
+    else:
+        u_weight = unp.exp(ufloat(popt[1], np.sqrt(pcov[1][1])))
     
     if plotter is not None:
         plotter.plot(w_log, y_data, label="Data")
         plotter.plot(w_log, linear_function(w_log, *popt), label="Fit", linestyle="--")
         plotter.legend()
-    
     return PeakData(omega_0, u_weight.nominal_value, u_weight.std_dev, ufloat(popt[0], np.sqrt(pcov[0][0])))
