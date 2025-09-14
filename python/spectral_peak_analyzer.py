@@ -1,6 +1,7 @@
 import numpy as np
 from bounded_minimize import bounded_minimize
 from scipy.optimize import curve_fit
+from scipy.stats import linregress
 from uncertainties import ufloat
 import uncertainties.umath as unp
 
@@ -47,8 +48,7 @@ class Peak:
         # This can be the case, depending on which side of the peak we are on
         # usually, if z>0 and if we are on the right side of the peak, real(data) > 0 and if we are left of the peaj real(data) < 0
         y_data = np.log(np.abs(self.f_real(w_usage)))
-        self.popt, self.pcov = curve_fit(func, w_log, y_data)
-        return self.popt, self.pcov, w_log, y_data
+        return (linregress(w_log, y_data), w_log, y_data)
 
 class PeakData:
     def __init__(self, position, weight, weight_error, slope):
@@ -102,14 +102,14 @@ def analyze_peak(f_real, f_imag, peak_position, lower_continuum_edge,
     else:
         omega_0 = peak_position
     
-    popt, pcov, w_log, y_data = peak.fit_real_part(range, begin_offset, reversed)
-    if popt[1] > 36.8413614879:
+    result, w_log, y_data = peak.fit_real_part(range, begin_offset, reversed)
+    if result.intercept > 36.8413614879:
         u_weight = ufloat(1e16, 1e16) # This is e^36.8413614879
     else:
-        u_weight = unp.exp(ufloat(popt[1], np.sqrt(pcov[1][1])))
+        u_weight = unp.exp(ufloat(result.intercept, result.intercept_stderr))
     
     if plotter is not None:
         plotter.plot(w_log, y_data, label="Data")
-        plotter.plot(w_log, linear_function(w_log, *popt), label="Fit", linestyle="--")
+        plotter.plot(w_log, linear_function(w_log, result.slope, result.intercept), label="Fit", linestyle="--")
         plotter.legend()
-    return PeakData(omega_0, u_weight.nominal_value, u_weight.std_dev, ufloat(popt[0], np.sqrt(pcov[0][0])))
+    return PeakData(omega_0, u_weight.nominal_value, u_weight.std_dev, ufloat(result.slope, result.stderr))
