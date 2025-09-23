@@ -107,7 +107,9 @@ namespace mrock::utility::Numerics::iEoM {
 
 #ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 #pragma omp parallel sections
+#endif
 			{
+#ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 #pragma omp section
 #endif
 				{
