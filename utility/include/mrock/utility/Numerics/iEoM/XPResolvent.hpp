@@ -105,9 +105,11 @@ namespace mrock::utility::Numerics::iEoM {
 			omp_set_nested(2);
 			Eigen::initParallel();
 
+#ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 #pragma omp parallel sections
 			{
 #pragma omp section
+#endif
 				{
 					std::chrono::time_point begin_in = std::chrono::steady_clock::now();
 					if (_pivot) {
@@ -124,7 +126,9 @@ namespace mrock::utility::Numerics::iEoM {
 					// free the allocated memory
 					K_plus.conservativeResize(0, 0);
 				}
+#ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 #pragma omp section
+#endif
 				{
 					std::chrono::time_point begin_in = std::chrono::steady_clock::now();
 					if (_pivot) {
@@ -207,7 +211,9 @@ namespace mrock::utility::Numerics::iEoM {
 					save_data(coeffs, full_diag_file_name + it->name + "-weights.dat.gz");
 				}
 			}
+#ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 #pragma omp parallel for
+#endif
 			for (int i = 0; i < phase_size(starting_states); ++i) {
 				resolvents[i].compute_with_reorthogonalization(solver_matrix, LANCZOS_ITERATION_NUMBER);
 			}
@@ -227,7 +233,9 @@ namespace mrock::utility::Numerics::iEoM {
 					save_data(coeffs, full_diag_file_name + it->name + "+weights.dat.gz");
 				}
 			}
+#ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 #pragma omp parallel for
+#endif
 			for (int i = phase_size(starting_states); i < phase_size(starting_states) + amplitude_size(starting_states); ++i) {
 				resolvents[i].compute_with_reorthogonalization(solver_matrix, LANCZOS_ITERATION_NUMBER);
 			}

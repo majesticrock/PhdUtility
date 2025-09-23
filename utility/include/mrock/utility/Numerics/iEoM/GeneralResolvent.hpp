@@ -138,8 +138,9 @@ namespace mrock::utility::Numerics::iEoM {
 					resolvents[3 * i + 2].data.name = resolvent_names[i] + "_a+ib";
 				}
 			}
-
+#ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 #pragma omp parallel for
+#endif
 			for (int i = 0; i < N_RESOLVENT_TYPES; i++)
 			{
 				Vector a = N * (pivot.transpose() * starting_states[i]).eval();
@@ -150,7 +151,9 @@ namespace mrock::utility::Numerics::iEoM {
 				resolvents[3 * i + 2].set_starting_state(0.5 * (a + std::complex<RealType>{ 0, 1 } *b));
 			}
 			//M = M_blocked.construct_matrix();
+#ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 #pragma omp parallel for
+#endif
 			for (int i = 0; i < 3 * N_RESOLVENT_TYPES; i++)
 			{
 				resolvents[i].compute(M_blocked, LANCZOS_ITERATION_NUMBER);
