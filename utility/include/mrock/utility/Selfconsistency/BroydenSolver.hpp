@@ -41,14 +41,13 @@ namespace mrock::utility::Selfconsistency {
             std::chrono::time_point begin = std::chrono::steady_clock::now();
 			this->_parent::procedure_iterative(_MaxPreBroydenIterations);
 
+			ParameterVector x0{ ParameterVector::Zero(this->NUMBER_OF_PARAMETERS) };
+			std::copy(this->_attr->begin(), this->_attr->end(), x0.begin());
+
 			std::function<void(const ParameterVector&, ParameterVector&)> func = [&](const ParameterVector& x, ParameterVector& F) {
                 this->_model->iteration_step(x, F);
 			};
-
-			ParameterVector x0{ ParameterVector::Zero(this->NUMBER_OF_PARAMETERS) };
-			std::copy(this->_attr->begin(), this->_attr->end(), x0.begin());
 			mrock::utility::Numerics::Roots::BroydensMethodEigen<DataType, -1> broyden_solver;
-
 			if (!broyden_solver.compute(func, x0, MAX_STEPS)) {
 				if (debugPolicy.convergenceWarning) {
 					std::cerr << std::fixed << std::setprecision(8) << "No convergence for " << this->_model->info() << std::endl;
