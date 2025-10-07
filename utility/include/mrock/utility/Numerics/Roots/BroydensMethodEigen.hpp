@@ -14,19 +14,18 @@ namespace mrock::utility::Numerics::Roots {
 
 		using error_type = std::conditional_t< sizeof(RealType) >= sizeof(double), double, RealType >;
 
-		static void estimate_jacobian(MatrixType& J_new, const MatrixType& J_old,
-			const VectorType& delta_x, const VectorType& delta_F)
-		{
-			J_new = (delta_x - J_old * delta_F) * (delta_x.transpose() * J_old);
-			J_new /= (delta_x.dot(J_old * delta_F));
-			J_new += J_old;
-		};
+		VectorType F_old, F_new, delta_x, delta_F;
+		MatrixType jacobian;
+
+		VectorType tmp_vec;
+		MatrixType tmp_mat;
+
 	public:
 		// the function must have the following signature void func(const VectorType& input, VectorType& output)
 		template<class FunctionType>
-		static bool compute(const FunctionType& func, VectorType& x0, const unsigned int MAX_ITER = 200)
+		bool compute(const FunctionType& func, VectorType& x0, const unsigned int MAX_ITER = 200)
 		{
-			size_t DIM = x0.rows();
+			const size_t DIM = x0.rows();
 			// You may play around with EPS_X and EPS_F to your desire
 			// EPS_X is the minimum distance between x_i and x_i+1
 			// EPS_F is the minimum f(x)
@@ -37,28 +36,41 @@ namespace mrock::utility::Numerics::Roots {
 			RealType diff_F{ 100 };
 			int iter_num{};
 
-			VectorType F_old{ VectorType::Zero(DIM) },
-				F_new{ VectorType::Zero(DIM) },
-				delta_x{ VectorType::Zero(DIM) },
-				delta_F{ VectorType::Zero(DIM) };
-			MatrixType J_old{ MatrixType::Zero(DIM, DIM) },
-				J_new{ MatrixType::Identity(DIM, DIM) };
+			F_old.setZero(DIM);
+			F_new.setZero(DIM);
+			delta_x.setZero(DIM);
+			delta_F.setZero(DIM);
+			tmp_vec.setZero(DIM);
+			tmp_mat.setZero(DIM, DIM);
+			jacobian.setIdentity(DIM, DIM);
 			func(x0, F_new);
 
 			while (diff_x > EPS_X && diff_F > EPS_F && iter_num++ <= MAX_ITER && F_new.norm() > EPS_F) {
-				delta_x = -J_new * F_new;
+				delta_x.noalias() = -jacobian * F_new;
 				x0 += delta_x;
 				diff_x = delta_x.norm();
 				F_old = F_new;
 				func(x0, F_new);
-				delta_F = F_new - F_old;
+				delta_F.noalias() = F_new - F_old;
 				diff_F = delta_F.norm();
 
-				J_old = J_new;
-				estimate_jacobian(J_new, J_old, delta_x, delta_F);
+				tmp_vec.noalias() = jacobian * delta_F;
+				tmp_mat.noalias() = (delta_x - tmp_vec) * (delta_x.transpose() * jacobian) / (delta_x.dot(tmp_vec));
+				// new estimate for the jacobian
+				jacobian += tmp_mat;
 			}
 			// This method returns true if convergence is achieved, in this case if |F(x_final)| < 1e-10
 			return (F_new.norm() < 1e-10);
+		}
+
+		void free_memory() {
+			F_old.setZero(1);
+			F_new.setZero(1);
+			delta_x.setZero(1);
+			delta_F.setZero(1);
+			tmp_vec.setZero(1);
+			tmp_mat.setZero(1,1);
+			jacobian.setZero(1,1);
 		}
 	};
 
@@ -69,10 +81,12 @@ namespace mrock::utility::Numerics::Roots {
 		using RealVector = Eigen::Vector<RealType, double_size>;
 
 		using RealSolver = BroydensMethodEigen<RealType, t_vector_size>;
+
+		RealSolver _solver;
 	public:
 	template<class FunctionType>
 		// the function must have the following signature void func(const VectorType& input, VectorType& output)
-		static bool compute(const FunctionType& func, VectorType& x_complex, const int MAX_ITER = 200)
+		bool compute(const FunctionType& func, VectorType& x_complex, const int MAX_ITER = 200)
 		{
 			VectorType f_complex = x_complex;
 			RealVector x0;
@@ -92,7 +106,11 @@ namespace mrock::utility::Numerics::Roots {
 
 			std::memcpy(x0.data(), x_complex.data(), 2 * sizeof(RealType) * x_complex.size());
 #pragma GCC diagnostic pop
-			return RealSolver::compute(call_f_from_real, x0, MAX_ITER);
+			return _solver.compute(call_f_from_real, x0, MAX_ITER);
+		}
+
+		void free_memory() {
+			_solver.free_memory();
 		}
 	};
 }

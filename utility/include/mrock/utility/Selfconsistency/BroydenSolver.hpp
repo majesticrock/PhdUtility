@@ -28,6 +28,7 @@ namespace mrock::utility::Selfconsistency {
         using ParameterVector = typename _parent::ParameterVector;
         using RealType = typename _parent::RealType;
 
+		mrock::utility::Numerics::Roots::BroydensMethodEigen<DataType, -1> broyden_solver;
 	public:
 		/**
          * @brief Computes the self-consistency attributes using Broyden's method.
@@ -41,14 +42,13 @@ namespace mrock::utility::Selfconsistency {
             std::chrono::time_point begin = std::chrono::steady_clock::now();
 			this->_parent::procedure_iterative(_MaxPreBroydenIterations);
 
-			ParameterVector x0{ ParameterVector::Zero(this->NUMBER_OF_PARAMETERS) };
-			std::copy(this->_attr->begin(), this->_attr->end(), x0.begin());
+			this->x0.setZero(this->NUMBER_OF_PARAMETERS);
+			std::copy(this->_attr->begin(), this->_attr->end(), this->x0.begin());
 
 			std::function<void(const ParameterVector&, ParameterVector&)> func = [&](const ParameterVector& x, ParameterVector& F) {
                 this->_model->iteration_step(x, F);
 			};
-			mrock::utility::Numerics::Roots::BroydensMethodEigen<DataType, -1> broyden_solver;
-			if (!broyden_solver.compute(func, x0, MAX_STEPS)) {
+			if (!broyden_solver.compute(func, this->x0, MAX_STEPS)) {
 				if (debugPolicy.convergenceWarning) {
 					std::cerr << std::fixed << std::setprecision(8) << "No convergence for " << this->_model->info() << std::endl;
 				}
@@ -58,32 +58,37 @@ namespace mrock::utility::Selfconsistency {
 			}
 
 			if (debugPolicy.printSteps) {
-				ParameterVector f0{ ParameterVector::Zero(this->NUMBER_OF_PARAMETERS) };
-				this->_model->iteration_step(x0, f0);
+				this->f0.setZero(this->NUMBER_OF_PARAMETERS);
+				this->_model->iteration_step(this->x0, this->f0);
 				std::cout << this->_model->info() << "\n";
 				std::cout << "x0 = (";
-				for (const auto& x : x0)
+				for (const auto& x : this->x0)
 				{
 					std::cout << " " << x << " ";
 				}
 				std::cout << ")\nf0 = (";
-				for (const auto& f : f0)
+				for (const auto& f : this->f0)
 				{
 					std::cout << " " << f << " ";
 				}
-				std::cout << ")\n -> |f0| = " << std::scientific << std::setprecision(8) << f0.norm() << std::endl;
+				std::cout << ")\n -> |f0| = " << std::scientific << std::setprecision(8) << this->f0.norm() << std::endl;
 			}
 
             if (print_time) {
 				std::chrono::time_point end = std::chrono::steady_clock::now();
 				std::cout << "Time for self-consistency computations: "
 					<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
-                ParameterVector f0{ ParameterVector::Zero(this->NUMBER_OF_PARAMETERS) };
-				this->_model->iteration_step(x0, f0);
-				std::cout << "Convergence achieved up to |f0| = " << std::scientific << std::setprecision(8) << f0.norm() << std::endl;
+                this->f0.setZero(this->NUMBER_OF_PARAMETERS);
+				this->_model->iteration_step(this->x0, this->f0);
+				std::cout << "Convergence achieved up to |f0| = " << std::scientific << std::setprecision(8) << this->f0.norm() << std::endl;
 			}
 
 			return *this->_attr;
+		}
+
+		virtual void free_memory() override {
+			_parent::free_memory();
+			broyden_solver.free_memory();
 		}
 
 		BroydenSolver() = delete;

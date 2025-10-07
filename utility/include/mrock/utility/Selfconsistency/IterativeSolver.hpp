@@ -77,6 +77,9 @@ namespace mrock::utility::Selfconsistency {
 
 		Model* _model{};
 		SelfconsistencyAttributes* _attr{};
+
+		ParameterVector x0, f0;
+
 		const RealType _precision{ PRECISION<RealType> };
 		const unsigned int NUMBER_OF_PARAMETERS{};
 
@@ -86,11 +89,11 @@ namespace mrock::utility::Selfconsistency {
          * @param x0 The parameter vector.
          * @return True if sign flipping behavior is detected, false otherwise.
          */
-		inline bool has_sign_flipping_behaviour(const ParameterVector& x0) {
+		inline bool has_sign_flipping_behaviour(const ParameterVector& _x0) {
 			for (unsigned int j = 0U; j < this->NUMBER_OF_PARAMETERS; ++j)
 			{
-				if (abs(x0[j]) > 1e1 * _precision) {
-					if (abs((x0[j] + (*this->_attr)[j]) / x0[j]) < _precision) {
+				if (abs(_x0[j]) > 1e1 * _precision) {
+					if (abs((_x0[j] + (*this->_attr)[j]) / _x0[j]) < _precision) {
 						return true;
 					}
 				}
@@ -108,9 +111,9 @@ namespace mrock::utility::Selfconsistency {
 		{
 			ConvergenceInfo<RealType> convergence;
 
-			ParameterVector f0{ ParameterVector::Zero(this->NUMBER_OF_PARAMETERS) };
+			f0.setZero(this->NUMBER_OF_PARAMETERS);
 			std::copy(this->_attr->begin(), this->_attr->end(), f0.begin());
-			ParameterVector x0{ f0 };
+			x0 = f0;
 
 			if (debugPolicy.printSteps) {
 				std::cout << "-1:\t" << std::scientific << std::setprecision(4) << "\n" << x0.transpose() << std::endl;
@@ -170,6 +173,11 @@ namespace mrock::utility::Selfconsistency {
 			}
 
 			return *this->_attr;
+		}
+
+		virtual void free_memory() {
+			x0.setZero(1);
+			f0.setZero(1);
 		}
 
 		virtual ~IterativeSolver() = default;
