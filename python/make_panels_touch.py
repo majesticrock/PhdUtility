@@ -33,6 +33,9 @@ def make_panels_touch(fig, axes, touch_x=True, touch_y=True, x_for_constrained=0
     if not hasattr(axes, '__len__'):
         return
     
+    if isinstance(axes, list):
+        axes = np.array(axes)
+    
     tick_state = {}
     for ax in axes.flat:
         tick_state[ax] = {
