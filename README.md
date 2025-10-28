@@ -21,9 +21,9 @@ Contains various C++ functionality, ranging from meta-programming to numerics an
 Its heart is the iEoM implementation in Numerics/iEoM.
 
 ### Prerequisites
-- Eigen (for some of the code)
-- Boost (for some of the code)
-- Cmake (for installation)
+- Eigen (for some of the code) https://eigen.tuxfamily.org/index.php?title=Main_Page or https://libeigen.gitlab.io/eigen/docs-nightly/GettingStarted.html
+- Boost (for some of the code) https://www.boost.org/
+- Cmake (for installation) https://cmake.org/
 
 ### Installation
 Go to the root folder of PhdUtility and type `make install`. This builds and installs the entire library (including symbolic_operators) and installs it to `~/usr/local/`.
