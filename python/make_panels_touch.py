@@ -52,7 +52,7 @@ def make_panels_touch(fig, axes, touch_x=True, touch_y=True, x_for_constrained=0
                     ax.tick_params(labelleft=False)
                      
             ax0 = axes[y_for_constrained, 0]
-            sharey = all(ax0.get_shared_y_axes().joined(ax0, ax) for ax in axes[y_for_constrained, 1:])
+            sharey = all(ax0.get_shared_y_axes().joined(ax0, ax) for ax in axes.flat)
             if sharey:
                 ax = ax0
                 ystate = {
@@ -298,5 +298,36 @@ if __name__ == '__main__':
 
     make_panels_touch(fig3, axes3, touch_x=True, touch_y=True)
     #fig3.savefig("test3.pdf")
+    
+    # =========================================================
+    # 3×2 grid of different functions with sharey=False
+    # =========================================================
+    Z_funcs = [
+        lambda X, Y: np.sin(X + Y),
+        lambda X, Y: np.cos(X * Y),
+        lambda X, Y: np.sin(X) * np.cos(Y),
+        lambda X, Y: np.sin(X * Y**2),
+        lambda X, Y: np.exp(-X**2 - Y**2),
+        lambda X, Y: np.sin(3*X) * np.sin(3*Y)
+    ]
+
+    fig4, axes4 = plt.subplots(3, 2, sharex=True, sharey="row", figsize=(8, 6))
+    for i, (ax, Z) in enumerate(zip(axes4.flat, Z_funcs)):
+        X, Y = np.meshgrid(np.linspace(0, 2 * np.pi, 80, endpoint=False),
+                           np.linspace(0, 1.5 + 2 * (i // 2), 80, endpoint=False))
+        pc = ax.pcolormesh(X, Y, Z(X, Y), cmap="seismic", shading="auto")
+
+    cbar = fig4.colorbar(pc, ax=axes4, shrink=0.8)
+    cbar.set_label("$f(X, Y)$")
+
+    axes4[-1, 0].set_xlabel("X")
+    axes4[-1, 1].set_xlabel("X")
+    axes4[0, 0].set_ylabel("Y")
+    axes4[1, 0].set_ylabel("Y")
+    axes4[2, 0].set_ylabel("Y")
+
+    axes4[0, -1].set_xticks([0, 2, 3.2, 5.1])
+
+    make_panels_touch(fig4, axes4, touch_x=True, touch_y=True)
     
     plt.show()
