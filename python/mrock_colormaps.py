@@ -48,8 +48,8 @@ mrock_blue = perceptual_colormap(
 # ------------------------------
 # Reverse versions
 # ------------------------------
-mrock_red_r = ListedColormap(mrock_red.colors[::-1], name="mrock_red_r")
-mrock_blue_r = ListedColormap(mrock_blue.colors[::-1], name="mrock_blue_r")
+mrock_red_r = mrock_red.reversed()
+mrock_blue_r = mrock_blue.reversed()
 
 # ------------------------------
 # Diverging colormap: Red -> White -> Blue
@@ -60,7 +60,10 @@ def create_diverging_from_existing(red_cmap, blue_cmap, n=256, name="mrock_diver
     return ListedColormap(np.vstack([red_colors, blue_colors]), name=name)
 
 mrock_diverging = create_diverging_from_existing(mrock_red_r, mrock_blue)
-mrock_diverging_r = ListedColormap(mrock_diverging.colors[::-1], name="mrock_diverging_r")
+mrock_diverging_r = mrock_diverging.reversed()
+
+mrock_dark_diverging = create_diverging_from_existing(mrock_red, mrock_blue_r)
+mrock_dark_diverging_r = mrock_dark_diverging.reversed()
 
 # ------------------------------
 # Quick test plot
@@ -70,7 +73,7 @@ if __name__ == "__main__":
     gradient = np.linspace(0, 1, 256)
     gradient = np.vstack([gradient, gradient])
     
-    fig, axes = plt.subplots(5, 1, figsize=(8,5))
+    fig, axes = plt.subplots(8, 1, figsize=(8,8))
     
     axes[0].imshow(gradient, aspect='auto', cmap=mrock_red)
     axes[0].set_title("mrock_red")
@@ -91,6 +94,18 @@ if __name__ == "__main__":
     axes[4].imshow(gradient, aspect='auto', cmap=mrock_diverging)
     axes[4].set_title("mrock_diverging")
     axes[4].axis("off")
+    
+    axes[5].imshow(gradient, aspect='auto', cmap=mrock_diverging_r)
+    axes[5].set_title("mrock_diverging_r")
+    axes[5].axis("off")
+    
+    axes[6].imshow(gradient, aspect='auto', cmap=mrock_dark_diverging)
+    axes[6].set_title("mrock_dark_diverging")
+    axes[6].axis("off")
+    
+    axes[7].imshow(gradient, aspect='auto', cmap=mrock_dark_diverging_r)
+    axes[7].set_title("mrock_dark_diverging_r")
+    axes[7].axis("off")
     
     plt.tight_layout()
     plt.show()
