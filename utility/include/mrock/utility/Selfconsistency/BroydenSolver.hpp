@@ -37,7 +37,7 @@ namespace mrock::utility::Selfconsistency {
          * @param MAX_STEPS The maximum number of steps.
          * @return The self-consistency attributes.
          */
-		virtual const SelfconsistencyAttributes& compute(bool print_time=false, const unsigned int MAX_STEPS = 400)
+		virtual const SelfconsistencyAttributes& compute(bool print_time=false, const unsigned int MAX_STEPS = 400, const RealType grace = 1e-10)
 		{
             std::chrono::time_point begin = std::chrono::steady_clock::now();
 			this->_parent::procedure_iterative(_MaxPreBroydenIterations);
@@ -48,9 +48,14 @@ namespace mrock::utility::Selfconsistency {
 			std::function<void(const ParameterVector&, ParameterVector&)> func = [&](const ParameterVector& x, ParameterVector& F) {
                 this->_model->iteration_step(x, F);
 			};
-			if (!broyden_solver.compute(func, this->x0, MAX_STEPS)) {
+			RealType broyden_convergence = broyden_solver.compute(func, this->x0, MAX_STEPS);
+			if (broyden_convergence > grace) {
+				this->f0.setZero(this->NUMBER_OF_PARAMETERS);
+				this->_model->iteration_step(this->x0, this->f0);
+
 				if (debugPolicy.convergenceWarning) {
 					std::cerr << std::fixed << std::setprecision(8) << "No convergence for " << this->_model->info() << std::endl;
+					std::cerr << std::scientific << "Final |F(x)| = " << this->f0.norm() << " > " << grace << std::endl;
 				}
 			}
 			else {

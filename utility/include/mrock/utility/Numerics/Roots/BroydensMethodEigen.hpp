@@ -23,7 +23,7 @@ namespace mrock::utility::Numerics::Roots {
 	public:
 		// the function must have the following signature void func(const VectorType& input, VectorType& output)
 		template<class FunctionType>
-		bool compute(const FunctionType& func, VectorType& x0, const unsigned int MAX_ITER = 200)
+		RealType compute(const FunctionType& func, VectorType& x0, const unsigned int MAX_ITER = 200)
 		{
 			const size_t DIM = x0.rows();
 			// You may play around with EPS_X and EPS_F to your desire
@@ -59,8 +59,8 @@ namespace mrock::utility::Numerics::Roots {
 				// new estimate for the jacobian
 				jacobian += tmp_mat;
 			}
-			// This method returns true if convergence is achieved, in this case if |F(x_final)| < 1e-10
-			return (F_new.norm() < 1e-10);
+			// This method returns |F(x_final)|
+			return F_new.norm();
 		}
 
 		void free_memory() {
@@ -86,7 +86,7 @@ namespace mrock::utility::Numerics::Roots {
 	public:
 	template<class FunctionType>
 		// the function must have the following signature void func(const VectorType& input, VectorType& output)
-		bool compute(const FunctionType& func, VectorType& x_complex, const int MAX_ITER = 200)
+		RealType compute(const FunctionType& func, VectorType& x_complex, const int MAX_ITER = 200)
 		{
 			VectorType f_complex = x_complex;
 			RealVector x0;
