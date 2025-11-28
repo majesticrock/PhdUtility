@@ -29,7 +29,6 @@ def find_all_roots(g, a=-1.0, b=1.0,
     min_search_width : float
         Minimum width to use when creating local bracket for minimization.
     """
-    # g(x) = f(x) - E
     xs = np.linspace(a, b, n_grid)
     gs = np.asarray(g(xs))
 
