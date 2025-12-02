@@ -1,6 +1,40 @@
 import numpy as np
 from scipy.optimize import brentq, newton, minimize_scalar
 
+def find_all_roots_alt(g, x_arr, zero_tol=1e-12):
+    gs = np.asarray(g(x_arr))
+    
+    asign = np.sign(gs)
+    signchange = ((np.roll(asign, 1) - asign) != 0).astype(int)
+    signchange[0] = 0
+    
+    x_lows = x_arr[np.argwhere(signchange != 0) - 1]
+    x_highs = x_arr[np.argwhere(signchange != 0)]
+    
+    roots = []
+    for x1, x2 in zip(x_lows, x_highs):
+        try:
+            r = brentq(lambda x: g(x), x1, x2, xtol=zero_tol, rtol=zero_tol, maxiter=200)
+            roots.append(r)
+        except Exception:
+            # fallback: use bisection manually if brentq fails
+            lo, hi = x1, x2
+            for _ in range(60):
+                mid = 0.5*(lo+hi)
+                gm = g(mid)
+                if abs(gm) < zero_tol:
+                    lo = hi = mid
+                    break
+                if (g(lo)) * gm <= 0:
+                    hi = mid
+                else:
+                    lo = mid
+            roots.append(0.5*(lo+hi))
+    
+    
+    
+    return roots
+
 def find_all_roots(g, a=-1.0, b=1.0,
                    n_grid=201,
                    sign_tol=1e-12,
