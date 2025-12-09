@@ -6,8 +6,6 @@
 
 namespace mrock::utility::Numerics
 {
-	using std::abs;
-
 	template <typename DataType>
 	class GramSchmidt {
 		typedef Eigen::Vector<DataType, Eigen::Dynamic> vector_t;
@@ -18,9 +16,9 @@ namespace mrock::utility::Numerics
 		};
 	public:
 		static vector_t& orthogonalize_single_vector(vector_t& vector, const std::vector<vector_t>& basis) {
-			for (size_t j = 0U; j < basis.size(); ++j)
+			for (const auto& basis_vec : basis)
 			{
-				vector -= projection(vector, basis[j]);
+				vector -= projection(vector, basis_vec);
 			}
 			return vector;
 		};

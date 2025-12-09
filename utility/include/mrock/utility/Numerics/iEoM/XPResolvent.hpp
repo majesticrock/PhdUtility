@@ -77,7 +77,7 @@ namespace mrock::utility::Numerics::iEoM {
 		};
 
 		template<int CheckHermitian = -1>
-		std::vector<ResolventDataWrapper<RealType>> compute_collective_modes(unsigned int LANCZOS_ITERATION_NUMBER, std::string const& full_diag_file_name = "")
+		std::vector<ResolventDataWrapper<RealType>> compute_collective_modes(unsigned int LANCZOS_ITERATION_NUMBER)
 		{
 			std::chrono::time_point begin = std::chrono::steady_clock::now();
 			_derived->fillMatrices();
@@ -124,9 +124,8 @@ namespace mrock::utility::Numerics::iEoM {
 					std::chrono::time_point end_in = std::chrono::steady_clock::now();
 					std::cout << "Time for solving K_+: "
 						<< std::chrono::duration_cast<std::chrono::milliseconds>(end_in - begin_in).count() << "[ms]" << std::endl;
-
 					// free the allocated memory
-					K_plus.conservativeResize(0, 0);
+					K_plus.resize(0, 0);
 				}
 #ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 #pragma omp section
@@ -143,9 +142,8 @@ namespace mrock::utility::Numerics::iEoM {
 					std::chrono::time_point end_in = std::chrono::steady_clock::now();
 					std::cout << "Time for solving K_-: "
 						<< std::chrono::duration_cast<std::chrono::milliseconds>(end_in - begin_in).count() << "[ms]" << std::endl;
-
 					// free the allocated memory
-					K_minus.conservativeResize(0, 0);
+					K_minus.resize(0, 0);
 				}
 			}
 
@@ -157,35 +155,34 @@ namespace mrock::utility::Numerics::iEoM {
 			auto compute_solver_matrix = [&](size_t plus_index, size_t minus_index) {
 				std::chrono::time_point begin_in = std::chrono::steady_clock::now();
 				if (minus_index == 0) L.transposeInPlace();
-				solver_matrix.resize(k_solutions[plus_index].eigenvalues.rows(), k_solutions[plus_index].eigenvalues.rows());
 
 				Vector K_EV = k_solutions[minus_index].eigenvalues;
 				_internal.template apply_matrix_operation<IEOM_INVERSE>(K_EV, plus_index == 1 ? "K_+" : "K_-");
-				Matrix buffer_matrix = L * k_solutions[minus_index].eigenvectors;
+				const auto buffer_matrix = L * k_solutions[minus_index].eigenvectors;
 				Matrix N_new = buffer_matrix * K_EV.asDiagonal() * buffer_matrix.adjoint();
 
 				std::chrono::time_point end_in = std::chrono::steady_clock::now();
 				std::cout << "Time for computing N_new: "
 					<< std::chrono::duration_cast<std::chrono::milliseconds>(end_in - begin_in).count() << "[ms]" << std::endl;
-				begin_in = std::chrono::steady_clock::now();
-
-				auto n_solution = _pivot ? matrix_wrapper<Matrix>::pivot_and_solve(N_new) : matrix_wrapper<Matrix>::only_solve(N_new);
-				_internal.template apply_matrix_operation<IEOM_INVERSE_SQRT>(n_solution.eigenvalues, plus_index == 1 ? "+: N_new" : "-: N_new");
-
-				// Starting here, N_new = 1/sqrt(N_new)
-				// I forego another matrix to save some memory
-				N_new = n_solution.eigenvectors * n_solution.eigenvalues.asDiagonal() * n_solution.eigenvectors.adjoint();
-				for (auto& starting_state : starting_states) {
-					if(starting_state[plus_index].size() > 0) starting_state[plus_index].applyOnTheLeft(N_new * L);
+				begin_in = std::chrono::steady_clock::now();	
+				{
+					auto n_solution = _pivot ? matrix_wrapper<Matrix>::pivot_and_solve(N_new) : matrix_wrapper<Matrix>::only_solve(N_new);
+					_internal.template apply_matrix_operation<IEOM_INVERSE_SQRT>(n_solution.eigenvalues, plus_index == 1 ? "+: N_new" : "-: N_new");
+					// Starting here, N_new = 1/sqrt(N_new)
+					// I forego another matrix to save some memory
+					N_new.noalias() = n_solution.eigenvectors * n_solution.eigenvalues.asDiagonal() * n_solution.eigenvectors.adjoint();
+					for (auto& starting_state : starting_states) {
+						if(starting_state[plus_index].size() > 0) starting_state[plus_index].applyOnTheLeft(N_new * L);
+					}
 				}
-
 				end_in = std::chrono::steady_clock::now();
 				std::cout << "Time for adjusting N_new: "
 					<< std::chrono::duration_cast<std::chrono::milliseconds>(end_in - begin_in).count() << "[ms]" << std::endl;
 
 				begin_in = std::chrono::steady_clock::now();
-				buffer_matrix = N_new * k_solutions[plus_index].eigenvectors;
-				solver_matrix = _internal.remove_noise((buffer_matrix * k_solutions[plus_index].eigenvalues.asDiagonal() * buffer_matrix.adjoint()).eval());
+				N_new *= k_solutions[plus_index].eigenvectors;
+				solver_matrix.noalias() = N_new * k_solutions[plus_index].eigenvalues.asDiagonal() * N_new.adjoint();
+				_internal.remove_noise_inplace(solver_matrix);
 				end_in = std::chrono::steady_clock::now();
 				std::cout << "Time for computing solver_matrix: "
 					<< std::chrono::duration_cast<std::chrono::milliseconds>(end_in - begin_in).count() << "[ms]" << std::endl;
@@ -197,21 +194,10 @@ namespace mrock::utility::Numerics::iEoM {
 			resolvents.resize(N_RESOLVENT_TYPES);
 			auto resolvent_it = resolvents.begin();
 
-			Eigen::SelfAdjointEigenSolver<Matrix> full_solver;
 			compute_solver_matrix(0, 1);
-			if(full_diag_file_name != "") {
-				full_solver.compute(solver_matrix);
-				std::vector<RealType> vec( full_solver.eigenvalues().data(), full_solver.eigenvalues().data() + full_solver.eigenvalues().size() );
-				save_data(vec, full_diag_file_name + "-values.dat.gz");
-			}
 			for (phase_it it = phase_it::begin(starting_states); it != phase_it::end(starting_states); ++resolvent_it, ++it) {
 				resolvent_it->set_starting_state(it->phase_state);
 				if(resolvent_it->data.name.empty()) resolvent_it->data.name = "phase_" + it->name;
-
-				if (full_diag_file_name != "") {
-					Vector coeffs = (full_solver.eigenvectors().adjoint() * it->phase_state).cwiseAbs2();
-					save_data(coeffs, full_diag_file_name + it->name + "-weights.dat.gz");
-				}
 			}
 #ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 #pragma omp parallel for
@@ -221,19 +207,9 @@ namespace mrock::utility::Numerics::iEoM {
 			}
 
 			compute_solver_matrix(1, 0);
-			if(full_diag_file_name != "") {
-				full_solver.compute(solver_matrix);
-				std::vector<RealType> vec( full_solver.eigenvalues().data(), full_solver.eigenvalues().data() + full_solver.eigenvalues().size() );
-				save_data(vec, full_diag_file_name + "+values.dat.gz");
-			}
 			for (amplitude_it it = amplitude_it::begin(starting_states); it != amplitude_it::end(starting_states); ++resolvent_it, ++it) {
 				resolvent_it->set_starting_state(it->amplitude_state);
 				if(resolvent_it->data.name.empty()) resolvent_it->data.name = "amplitude_" + it->name;
-
-				if (full_diag_file_name != "") {
-					Vector coeffs = (full_solver.eigenvectors().adjoint() * it->amplitude_state).cwiseAbs2();
-					save_data(coeffs, full_diag_file_name + it->name + "+weights.dat.gz");
-				}
 			}
 #ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 #pragma omp parallel for
@@ -241,7 +217,6 @@ namespace mrock::utility::Numerics::iEoM {
 			for (int i = phase_size(starting_states); i < phase_size(starting_states) + amplitude_size(starting_states); ++i) {
 				resolvents[i].compute_with_reorthogonalization(solver_matrix, LANCZOS_ITERATION_NUMBER);
 			}
-
 			end = std::chrono::steady_clock::now();
 			std::cout << "Time for resolvents: "
 				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
