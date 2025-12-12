@@ -10,10 +10,10 @@ class ContinuedFraction:
         self.messages = messages
         self.ignore_first = ignore_first
         self.ignore_last = ignore_last
-        self.roots = np.array(data_frame.at["continuum_boundaries"])**2
+        self.continuum_boundaries_squared = np.array(data_frame.at["continuum_boundaries"])**2
 
-        self.a_infinity = (self.roots[1] + self.roots[0]) * 0.5
-        self.b_infinity = (self.roots[1] - self.roots[0]) * 0.25
+        self.a_infinity = (self.continuum_boundaries_squared[1] + self.continuum_boundaries_squared[0]) * 0.5
+        self.b_infinity = (self.continuum_boundaries_squared[1] - self.continuum_boundaries_squared[0]) * 0.25
         
         self.data = data_frame
         self.terminate_at = dict()
@@ -27,12 +27,12 @@ class ContinuedFraction:
         if hasattr(w, '__len__'):
             return_arr = np.zeros(len(w), dtype=complex)
             for i in range(0, len(w)):
-                if w[i].real > self.roots[int(w_param[i].real <= 0)]:
+                if w[i].real > self.continuum_boundaries_squared[int(w_param[i].real <= 0)]:
                     return_arr[i] = (p[i] - root[i]) / (2. * self.b_infinity**2)
                 else:
                     return_arr[i] = (p[i] + root[i]) / (2. * self.b_infinity**2)
         else:
-            if w.real > self.roots[int(w_param.real <= 0)]:
+            if w.real > self.continuum_boundaries_squared[int(w_param.real <= 0)]:
                 return (p - root) / (2. * self.b_infinity**2)
             else:
                 return (p + root) / (2. * self.b_infinity**2)
@@ -43,6 +43,9 @@ class ContinuedFraction:
     
     def __coeffs_B__(self, name, index):
         return self.data[f"resolvents.{name}"][index]["b_i"]
+    
+    def __len_A__(self, name, index):
+        return len(self.data[f"resolvents.{name}"][index]["a_i"])
     
     def find_termination_depth(self, name, index):
         A = self.__coeffs_A__(name, index)
@@ -67,48 +70,51 @@ class ContinuedFraction:
         if self.terminate_at[name][index] == 0:
             self.find_termination_depth(name, index)
     
-    def continued_fraction(self, w_param, name, index=0, withTerminator=True):
+    def __get_cf_data__(self, name, index, withTerminator):
         self.__termination_depth_if_required__(name, index)
-        A = self.__coeffs_A__(name, index)
-        B = self.__coeffs_B__(name, index)
-        termination_index = len(A) - self.terminate_at[name][index]
-        
-        data = ccf.ContinuedFractionData(self.a_infinity, self.b_infinity**2, self.roots, A, B, termination_index)
-        return ccf.continued_fraction(w_param, data, withTerminator)
+        termination_index = self.__len_A__(name, index) - self.terminate_at[name][index]
+        return ccf.ContinuedFractionData(self.a_infinity, self.b_infinity**2, self.continuum_boundaries_squared, 
+                                         self.__coeffs_A__(name, index), self.__coeffs_B__(name, index), 
+                                         termination_index, withTerminator)
+    
+    def continued_fraction(self, w_param, name, index=0, withTerminator=True):
+        return ccf.continued_fraction(w_param, self.__get_cf_data__(name, index, withTerminator))
+    
+    def continued_fraction_varied_depth(self, w_param, name, shift_range, index=0, withTerminator=True):
+        return ccf.continued_fraction_varied_depth(w_param, self.__get_cf_data__(name, index, withTerminator), shift_range)
     
     def spectral_density(self, w_param, name, index=0, withTerminator=True):
         return NORM_FACTOR * self.continued_fraction(w_param, name, index, withTerminator).imag
+    
+    def spectral_density_varied_depth(self, w_param, name, shift_range, index=0, withTerminator=True):
+        return NORM_FACTOR * self.continued_fraction_varied_depth(w_param, name, shift_range, index, withTerminator).imag
     
     def real_part(self, w_param, name, index=0, withTerminator=True):
         return self.continued_fraction(w_param, name, index, withTerminator).real
     
     def denominator(self, w_param, name, index=0, withTerminator=True):
-        self.__termination_depth_if_required__(name, index)
-        A = self.__coeffs_A__(name, index)
-        B = self.__coeffs_B__(name, index)
-        w = w_param**2
-        
-        termination_index = len(A) - self.terminate_at[name][index]
-        if withTerminator:
-            G = w - A[termination_index] - B[len(B) - self.terminate_at[name][index]] * self.terminator(w_param.real)
-        else:
-            G = w - A[termination_index]
-        for j in range(termination_index - 1, -1, -1):
-            G = w - A[j] - B[j + 1] / G
-        return G / B[0]
+        return ccf.denominator(w_param, self.__get_cf_data__(name, index, withTerminator))
     
-    def mark_continuum(self, axes=None, scale_factor=1., label="Continuum"):
+    # Does not really work for Goldstone peaks
+    def classify_bound_states(self, name, index=0, n_scan=20000, weight_domega=1e-8, tolerance_bits=48, max_iter=200, is_phase_peak=None):
+        result = ccf.classify_bound_states(self.__get_cf_data__(name, index, withTerminator=True), n_scan, weight_domega, tolerance_bits, max_iter)
+        if is_phase_peak is not None:
+            result = [ item for item in result if not is_phase_peak(item[0]) ]
+        return result
+                
+    
+    def mark_continuum(self, ax=None, scale_factor=1., label="Continuum"):
         if label is not None:
             args = {"alpha" : 0.333, "color": "grey", "label" : label}
         else:
             args = {"alpha" : 0.333, "color": "grey"}
             
-        if axes is None:
+        if ax is None:
             plotter = plt.axvspan
         else:
-            plotter = axes.axvspan
+            plotter = ax.axvspan
             
-        plotter(scale_factor * np.sqrt(self.roots[0]), scale_factor * np.sqrt(self.roots[1]), **args)
+        plotter(scale_factor * np.sqrt(self.continuum_boundaries_squared[0]), scale_factor * np.sqrt(self.continuum_boundaries_squared[1]), **args)
     
     def continuum_edges(self):
-        return np.sqrt(self.roots)
+        return np.sqrt(self.continuum_boundaries_squared)
