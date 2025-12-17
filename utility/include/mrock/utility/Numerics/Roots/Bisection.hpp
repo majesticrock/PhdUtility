@@ -23,7 +23,7 @@ namespace mrock::utility::Numerics::Roots {
         const RealType f_lower{ function(begin) };
         if(is_zero(f_lower)) return begin;
 
-        if(f_lower * f_upper > 0) {
+        if(std::signbit(f_lower) == std::signbit(f_upper)) {
             throw NoRootException("mrock::utility::Numerics::Roots::bisection", std::string(typeid(Function).name()));
         }
         if(f_lower > 0) {
@@ -45,6 +45,8 @@ namespace mrock::utility::Numerics::Roots {
         if (maxiter < 0) {
 			std::cerr << "Bisection terminated by maxiter-constraint! Function type:" << typeid(Function).name() << std::endl;
 		}
-        return middle;
+        if (std::abs(f_lower - f_upper) <= 4 * std::numeric_limits<RealType>::epsilon())
+            return middle;
+        return (begin * f_upper - end * f_lower) / (f_upper - f_lower);
     }
 }
