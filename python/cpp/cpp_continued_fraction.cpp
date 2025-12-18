@@ -50,11 +50,11 @@ struct ContinuedFractionData {
         with_terminator(_with_terminator)
     {
         auto cbbuf = continuum_boundaries_squared.request();
-        auto Abuf = A.request();
-        auto Bbuf = B.request();
-        cb_ptr = static_cast<const double*>(cbbuf.ptr);
-        A_ptr    = static_cast<const double*>(Abuf.ptr);
-        B_ptr    = static_cast<const double*>(Bbuf.ptr);
+        auto Abuf  = A.request();
+        auto Bbuf  = B.request();
+        cb_ptr     = static_cast<const double*>(cbbuf.ptr);
+        A_ptr      = static_cast<const double*>(Abuf.ptr);
+        B_ptr      = static_cast<const double*>(Bbuf.ptr);
     }
 
     inline double getRoot(int idx) const {
@@ -63,13 +63,11 @@ struct ContinuedFractionData {
 };
 
 namespace detail {
-    inline std::complex<double> terminator(const double x, ContinuedFractionData const& data) {
+    std::complex<double> terminator_impl(const double& x, ContinuedFractionData const& data) {
         const double x_squared{ x * x };
         const double p{ x_squared - data.a_infinity };
-
         const double radicant{p * p - 4. * data.b_infinity_squared};
         const std::complex<double> root = radicant >= 0.0 ? std::complex<double>{sqrt(radicant), 0.0} : std::complex<double>{0.0, sqrt(abs(radicant))};
-
         if (x_squared > data.getRoot(static_cast<int>(x <= 0))) {
             return (p - root) / (2. * data.b_infinity_squared);
         }
@@ -83,18 +81,7 @@ namespace detail {
     {
         std::vector<std::complex<double>> ret(n_x);
         for (size_t i = 0U; i < n_x; ++i) {
-            const double x_squared{ ptr_x[i].real() * ptr_x[i].real() };
-            const double p{ x_squared - data.a_infinity };
-
-            const double radicant{p * p - 4. * data.b_infinity_squared};
-            const std::complex<double> root = radicant >= 0.0 ? std::complex<double>{sqrt(radicant), 0.0} : std::complex<double>{0.0, sqrt(abs(radicant))};
-
-            if (x_squared > data.getRoot(static_cast<int>(ptr_x[i].real() <= 0))) {
-                ret[i] = (p - root) / (2. * data.b_infinity_squared);
-            }
-            else {
-                ret[i] = (p + root) / (2. * data.b_infinity_squared);
-            }
+            ret[i] = terminator_impl(ptr_x[i].real(), data);
         }
         return ret;
     }
@@ -106,7 +93,7 @@ namespace detail {
     inline double subgap_real_denominator(ContinuedFractionData const& data, const double x_squared)
     {
         const double p{ x_squared - data.a_infinity };
-        const double terminator_value = (p + sqrt(p * p - 4. * data.b_infinity_squared)) / (2. * data.b_infinity_squared);
+        const double terminator_value = data.with_terminator ? (p + sqrt(p * p - 4. * data.b_infinity_squared)) / (2. * data.b_infinity_squared) : double{};
 
         double ret = x_squared - data.A_ptr[data.termination_index] - data.B_ptr[data.termination_index + 1] * terminator_value;
         for (int k = data.termination_index - 1; k >= 0; --k) {
@@ -127,6 +114,23 @@ namespace detail {
             }
         }
     }
+}
+
+py_array_cmplx terminator(const py_array_double& x, ContinuedFractionData const& data) {
+    auto xbuf = x.request();
+    const auto n = xbuf.size;
+
+    py_array_cmplx result(n);
+    auto rbuf = result.request();
+
+    const double* xptr = static_cast<const double*>(xbuf.ptr);
+    auto* rptr = static_cast<std::complex<double>*>(rbuf.ptr);
+
+    for (ssize_t i = 0; i < n; ++i) {
+        rptr[i] = detail::terminator_impl(xptr[i], data);
+    }
+
+    return result;
 }
 
 py_array_cmplx denominator(const py_array_cmplx& x, ContinuedFractionData const& data)
@@ -179,7 +183,8 @@ py_array_cmplx continued_fraction_varied_depth(const py_array_cmplx& x,
     return result;
 }
 
-std::list<std::pair<double, double>> classify_bound_states(ContinuedFractionData const& data, size_t n_scan, double weight_domega, int root_tol_bits, int maxiter)
+std::list<std::pair<double, double>> classify_bound_states(ContinuedFractionData const& data, const size_t n_scan, 
+    const double weight_domega, const int root_tol_bits, std::uintmax_t max_iter)
 {
     const double root_tol = std::max(ldexp(1.0, 1-root_tol_bits), 4 * std::numeric_limits<double>::epsilon());
     const double dz = (data.getRoot(0) - root_tol) / n_scan;
@@ -195,37 +200,43 @@ std::list<std::pair<double, double>> classify_bound_states(ContinuedFractionData
     // saves the pairs {peak position, weight}
     std::list<std::pair<double, double>> results;
 
+    auto set_coefficient_of_pole = [&]() {
+        // The spectral weight of the bound state is its residue
+        // Besides the Goldstone bosons, all peaks (thus far) are delta peaks
+        // i.e., the real part is a simple pole.
+        // Thus, the residue is given by the below expression
+        if (results.back().first > (1e-10 + root_tol)) {
+            results.back().second = 2 * weight_domega * data.B_ptr[0] / (
+                      denom((results.back().first + weight_domega) * (results.back().first + weight_domega)) 
+                    - denom((results.back().first - weight_domega) * (results.back().first - weight_domega)) 
+                );
+        }
+        else {
+            // The residue of 1/omega^2 is 0, thus we revert to l'Hopital:
+            // lim_w->0 w^2 / denom(w^2) = Z
+            //     = 2 / (d^2 denom(w^2) / dw^2)
+            results.back().second = weight_domega * weight_domega * data.B_ptr[0] / (2. * 
+                2. * denom(weight_domega * weight_domega) // denom((z_0 + dz)^2) + denom((z_0 - dz)^2) with z_0 = 0
+                // - 2 * denom(0) = 0
+            );
+        }
+    };
+    
     for (size_t i = 0U; i < n_scan; ++i) {
         z_sqr = (i + 1U) * dz;
         b = denom(z_sqr);
 
-        if (std::signbit(a) != std::signbit(b)) {
+        if (std::abs(a) < 1e-14) {
+            results.emplace_back(std::pair<double, double>{a, 0.});
+            set_coefficient_of_pole();
+        }
+        else if (std::signbit(a) != std::signbit(b) && std::abs(b) >= 1e-14) {
             // Root in interval [z_sqr - dz, z_sqr]
             results.emplace_back(std::pair<double, double>{0., 0.});
 
-            std::uintmax_t boost_max_it{100U};
-            const auto sol = boost::math::tools::toms748_solve(denom, z_sqr - dz, z_sqr, boost::math::tools::eps_tolerance<double>(root_tol_bits), boost_max_it);
+            const auto sol = boost::math::tools::toms748_solve(denom, z_sqr - dz, z_sqr, boost::math::tools::eps_tolerance<double>(root_tol_bits), max_iter);
             results.back().first = sqrt(0.5 * (sol.first + sol.second));
-
-            // The spectral weight of the bound state is its residue
-            // Besides the Goldstone bosons, all peaks (thus far) are delta peaks
-            // i.e., the real part is a simple pole.
-            // Thus, the residue is given by the below expression
-            if (results.back().first > (1e-10 + root_tol)) {
-                results.back().second = 2 * weight_domega * data.B_ptr[0] / (
-                          denom((results.back().first + weight_domega) * (results.back().first + weight_domega)) 
-                        - denom((results.back().first - weight_domega) * (results.back().first - weight_domega)) 
-                    );
-            }
-            else {
-                // The residue of 1/omega^2 is 0, thus we revert to l'Hopital:
-                // lim_w->0 w^2 / denom(w^2) = Z
-                //     = 2 / (d^2 denom(w^2) / dw^2)
-                results.back().second = weight_domega * weight_domega * data.B_ptr[0] / (2. * 
-                    2. * denom(weight_domega * weight_domega) // denom((z_0 + dz)^2) + denom((z_0 - dz)^2) with z_0 = 0
-                    // - 2 * denom(0) = 0
-                );
-            }
+            set_coefficient_of_pole();
         }
         a = b;
     }
@@ -247,7 +258,13 @@ PYBIND11_MODULE(cpp_continued_fraction, m) {
         .def_readonly("with_terminator", &ContinuedFractionData::with_terminator);
 
     // Binding of functions
-    m.def("denominator", &continued_fraction, 
+    m.def("terminator", &terminator, 
+        "Compute the square root terminator.",
+        py::arg("x"),
+        py::arg("data")
+    );
+
+    m.def("denominator", &denominator, 
         "Compute the denominator of the continued fraction based on input complex numbers and provided data.",
         py::arg("x"),
         py::arg("data")
@@ -273,6 +290,8 @@ PYBIND11_MODULE(cpp_continued_fraction, m) {
         "Assumes that any bound state with finite energy is a delta distribution -> simple pole"
         "and that any bound state with omega_0 = 0 (e.g., the Goldstones) is the derivative of a delta distribution"
         "-> G(omega) ~ 1/omega^2."
+        "As of writing this, the coefficients of double poles is numerically unstable."
+        "I advice to revert back to the real-part fitting for these peaks. Simple poles work great though."
         "\n"
         "Returns a list of pairs. The first element of the pairs is the energy."
         "The second element is the weight (or in case of delta' the prefactor).",
@@ -280,6 +299,6 @@ PYBIND11_MODULE(cpp_continued_fraction, m) {
         py::arg("n_scan"),
         py::arg("weight_domega"),
         py::arg("root_tol_bits"),
-        py::arg("maxiter")
+        py::arg("max_iter")
     );
 }
