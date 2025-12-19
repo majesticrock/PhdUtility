@@ -95,7 +95,7 @@ namespace detail {
         const double p{ x_squared - data.a_infinity };
         const double terminator_value = data.with_terminator ? (p + sqrt(p * p - 4. * data.b_infinity_squared)) / (2. * data.b_infinity_squared) : double{};
 
-        double ret = x_squared - data.A_ptr[data.termination_index] - data.B_ptr[data.termination_index + 1] * terminator_value;
+        double ret = x_squared - data.A_ptr[data.termination_index] - data.b_infinity_squared * terminator_value;
         for (int k = data.termination_index - 1; k >= 0; --k) {
             ret = x_squared - data.A_ptr[k] - data.B_ptr[k+1] / ret;
         }
@@ -108,7 +108,7 @@ namespace detail {
     {
         for (size_t i = 0U; i < n_x; ++i) {
             const std::complex<double> x_squared{ ptr_x[i] * ptr_x[i] };
-            ptr_result[i] = x_squared - data.A_ptr[data.termination_index] - data.B_ptr[data.termination_index + 1] * ptr_terminator[i];
+            ptr_result[i] = x_squared - data.A_ptr[data.termination_index] - data.b_infinity_squared * ptr_terminator[i];
             for (int k = data.termination_index - 1; k >= 0; --k) {
                 ptr_result[i] = x_squared - data.A_ptr[k] - data.B_ptr[k+1] / ptr_result[i];
             }
@@ -172,7 +172,7 @@ py_array_cmplx continued_fraction_varied_depth(const py_array_cmplx& x,
     for (size_t r = 0U; r < n_shift_range; ++r) {
         const int current_termination_index = data.termination_index + ptr_shift_range[r];
         for (size_t i = 0U; i < n_x; ++i) {
-            ptr_result[r * n_x + i] = (ptr_x[i] * ptr_x[i]) - data.A_ptr[current_termination_index] - data.B_ptr[current_termination_index + 1] * terminator_data[i];
+            ptr_result[r * n_x + i] = (ptr_x[i] * ptr_x[i]) - data.A_ptr[current_termination_index] -  data.b_infinity_squared * terminator_data[i];
             for (int k = current_termination_index - 1; k >= 0; --k) {
                 ptr_result[r * n_x + i] = x_squared_data[i] - data.A_ptr[k] - data.B_ptr[k+1] / ptr_result[r * n_x + i];
             }
@@ -194,8 +194,8 @@ std::list<std::pair<double, double>> classify_bound_states(ContinuedFractionData
         return detail::subgap_real_denominator(data, z);
     };
 
-    double a = denom(z_sqr);
-    double b;
+    double fa = denom(z_sqr);
+    double fb;
 
     // saves the pairs {peak position, weight}
     std::list<std::pair<double, double>> results;
@@ -224,21 +224,24 @@ std::list<std::pair<double, double>> classify_bound_states(ContinuedFractionData
     
     for (size_t i = 0U; i < n_scan; ++i) {
         z_sqr = (i + 1U) * dz;
-        b = denom(z_sqr);
+        fb = denom(z_sqr);
 
-        if (std::abs(a) < 1e-14) {
-            results.emplace_back(std::pair<double, double>{a, 0.});
+        if (std::abs(fa) < 4 * std::numeric_limits<double>::epsilon()) {
+            // No need for root finding, we are exactly at a root
+            results.emplace_back(std::pair<double, double>{z_sqr - dz, 0.});
             set_coefficient_of_pole();
         }
-        else if (std::signbit(a) != std::signbit(b) && std::abs(b) >= 1e-14) {
+        else if (std::signbit(fa) != std::signbit(fb) && std::abs(fb) >= 4 * std::numeric_limits<double>::epsilon()) {
             // Root in interval [z_sqr - dz, z_sqr]
-            results.emplace_back(std::pair<double, double>{0., 0.});
-
             const auto sol = boost::math::tools::toms748_solve(denom, z_sqr - dz, z_sqr, boost::math::tools::eps_tolerance<double>(root_tol_bits), max_iter);
-            results.back().first = sqrt(0.5 * (sol.first + sol.second));
-            set_coefficient_of_pole();
+            const double test_x0 = 0.5 * (sol.first + sol.second);
+            if (std::abs(denom(test_x0)) < 1e-10) {
+                // The denominator has poles as well at which sign changes may occur
+                results.emplace_back(std::pair<double, double>{sqrt(test_x0), 0.});
+                set_coefficient_of_pole();
+            }
         }
-        a = b;
+        fa = fb;
     }
 
     return results;
