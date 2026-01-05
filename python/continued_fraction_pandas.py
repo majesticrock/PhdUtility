@@ -95,16 +95,16 @@ class ContinuedFraction:
     def denominator(self, w_param, name, index=0, withTerminator=True):
         return ccf.denominator(w_param, self.__get_cf_data__(name, index, withTerminator))
     
-    def mark_continuum(self, axes=None, scale_factor=1., label="Continuum"):
+    def mark_continuum(self, ax=None, scale_factor=1., label="Continuum"):
         if label is not None:
             args = {"alpha" : 0.333, "color": "grey", "label" : label}
         else:
             args = {"alpha" : 0.333, "color": "grey"}
             
-        if axes is None:
+        if ax is None:
             plotter = plt.axvspan
         else:
-            plotter = axes.axvspan
+            plotter = ax.axvspan
             
         plotter(scale_factor * np.sqrt(self.continuum_boundaries_squared[0]), scale_factor * np.sqrt(self.continuum_boundaries_squared[1]), **args)
     
