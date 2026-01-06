@@ -104,4 +104,15 @@ namespace mrock::utility::Numerics::resolvent_details {
 		std::array<RealType, n_residuals> residuals{};
 		std::array<bool, n_residuals> converged{};
 	};
+
+	template<class RealType, int n_residuals>
+	void to_json(nlohmann::json& j, const ResidualInformation<RealType, n_residuals>& res_data) {
+		j = nlohmann::json{
+			{"eigenvalues", res_data.eigenvalues},
+			{"eigenvectors", res_data.eigenvectors},
+			{"weights", res_data.weights},
+			{"residuals", res_data.residuals},
+			{"converged", res_data.converged}
+		};
+	}
 }

@@ -13,21 +13,20 @@
 #include "ResolventDataTypes.hpp"
 
 namespace mrock::utility::Numerics {
+	using std::abs;
+
 	template <class EigenMatrixType, class EigenVectorType>
 	class Resolvent
 	{
 	private:
-		using namespace resolvent_details;
-		using std::abs;
-
 		using RealType = UnderlyingFloatingPoint_t<typename EigenMatrixType::Scalar>;
 		using ComputationType = typename EigenMatrixType::Scalar;
-		using resolvent_data = ResolventData<RealType>;
+		using resolvent_data = resolvent_details::ResolventData<RealType>;
 		static constexpr bool isComplex = is_complex<typename EigenVectorType::Scalar>();
 
 	public:
 		EigenVectorType startingState;
-		ResolventDataWrapper<RealType> data;
+		resolvent_details::ResolventDataWrapper<RealType> data;
 		// Sets the starting state
 		inline void set_starting_state(const EigenVectorType& state) {
 			this->startingState = state;
@@ -312,7 +311,7 @@ namespace mrock::utility::Numerics {
 		// This function additionally computes the residuals for the lowest n eigenvalues
 		// Additionally, this function orthogonalizes the Krylov basis each step
 		template <int n_residuals>
-		ResidualInformation<RealType, n_residuals> compute_with_residuals(const EigenMatrixType& toSolve, int maxIter)
+		resolvent_details::ResidualInformation<RealType, n_residuals> compute_with_residuals(const EigenMatrixType& toSolve, int maxIter)
 		{
 			static_assert(isComplex == false, "Residual computation not implemented for complex types yet!");
 			const size_t matrix_size = toSolve.rows();
@@ -346,7 +345,7 @@ namespace mrock::utility::Numerics {
 			typedef Eigen::Vector<RealType, Eigen::Dynamic> TVector;
 			typedef Eigen::Map<const TVector> TMap;
 
-			ResidualInformation<RealType, n_residuals> residual_info;
+			resolvent_details::ResidualInformation<RealType, n_residuals> residual_info;
 
 			while (goOn) {
 				// algorithm
@@ -371,24 +370,41 @@ namespace mrock::utility::Numerics {
 				++iterNum;
 
 				if (iterNum > n_residuals + 1) {
-					eigen_solver.computeFromTridiagonal(TMap(alphas.data(), iterNum + 1), TMap(betas.data() + 1, iterNum));
-					// see https://epubs.siam.org/doi/book/10.1137/1.9780898719581, chapter 4.4, eq. 4.13
-					for (int i = 0; i < n_residuals; ++i) {
-						//if (residual_info.converged[i]) continue;
-						residual_info.residuals[i] = betas.back() * abs(eigen_solver.eigenvectors().col(i)(iterNum));
-						std::cout << "Residual for eigenvalue " << i << " at iteration " << iterNum 
-									<< " is " << residual_info.residuals[i] << std::endl;
+					if (!std::all_of(residual_info.converged.begin(), residual_info.converged.end(), [](bool v) { return v; })) {
+						eigen_solver.computeFromTridiagonal(TMap(alphas.data(), iterNum + 1), TMap(betas.data() + 1, iterNum));
+						int skip{};
+						int i_skip{};
+						// see https://epubs.siam.org/doi/book/10.1137/1.9780898719581, chapter 4.4, eq. 4.13
+						for (int i = 0; i < n_residuals; ++i) {
+							if (residual_info.converged[i]) continue;
 
-						if (residual_info.residuals[i] < 1e-9) {
-							residual_info.converged[i] = true;
-							residual_info.eigenvalues[i] = eigen_solver.eigenvalues()(i);
-							// Computing the eigenvector in the original space
-							EigenVectorType eigvec = EigenVectorType::Zero(matrix_size);
-							for (int j = 0; j < iterNum + 1; ++j) {
-								eigvec += eigen_solver.eigenvectors().col(i)(j) * basis_vectors[j];
+							redo_if_ghost:
+							i_skip = i + skip; // To avoid Lanczos ghosts
+							if (i_skip >= iterNum) break; 
+							residual_info.residuals[i] = betas.back() * abs(eigen_solver.eigenvectors().col(i_skip)(iterNum - 1));
+
+							if (residual_info.residuals[i] < 1e-10) {
+								// Eigen sorts the eigenvalues in ascending order
+								for (size_t c = 0U; c < n_residuals && residual_info.converged[c]; ++c) {
+									if (abs(residual_info.eigenvalues[c] - eigen_solver.eigenvalues()(i_skip)) < 1e-12) {
+										// Found a Lanczos ghost
+										++skip;
+										goto redo_if_ghost;
+									}
+								}
+
+
+								residual_info.converged[i] = true;
+								residual_info.eigenvalues[i] = eigen_solver.eigenvalues()(i_skip);
+								// Computing the eigenvector in the original space
+								EigenVectorType eigvec = EigenVectorType::Zero(matrix_size);
+								for (int j = 0; j < iterNum; ++j) {
+									eigvec += eigen_solver.eigenvectors().col(i_skip)(j) * basis_vectors[j];
+								}
+								residual_info.eigenvectors[i] = std::vector<RealType>(eigvec.data(), eigvec.data() + eigvec.size());
+								residual_info.weights[i] = eigvec.dot(this->startingState);
 							}
-							residual_info.eigenvectors[i] = eigvec;
-							residual_info.weights[i] = eigvec.dot(this->startingState);
+							if (!residual_info.converged[i]) break; // Fill list form the bottom up
 						}
 					}
 				}
@@ -410,7 +426,7 @@ namespace mrock::utility::Numerics {
 			return residual_info;
 		};
 
-		const ResolventDataWrapper<RealType>& get_data() const {
+		const resolvent_details::ResolventDataWrapper<RealType>& get_data() const {
 			return data;
 		};
 

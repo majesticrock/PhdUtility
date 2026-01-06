@@ -13,6 +13,17 @@
 namespace mrock::utility::Numerics::iEoM {
 	template<class Derived, class RealType, int n_residuals = 0>
 	struct XPResolvent {
+	public:
+		using Matrix = Eigen::Matrix<RealType, Eigen::Dynamic, Eigen::Dynamic>;
+		using Vector = Eigen::Vector<RealType, Eigen::Dynamic>;
+
+		using phase_it = PhaseIterator<RealType>;
+		using amplitude_it = AmplitudeIterator<RealType>;
+
+		Matrix K_plus, K_minus, L;
+		std::vector<StartingState<RealType>> starting_states;
+		std::vector<Resolvent<Matrix, Vector>> resolvents;
+
 	private:
 		template<int CheckHermitian = -1>
 		std::array<matrix_wrapper<Matrix>, 2> diagonalize_K_matrices() {
@@ -86,12 +97,6 @@ namespace mrock::utility::Numerics::iEoM {
 		}
 
 	public:
-		using Matrix = Eigen::Matrix<RealType, Eigen::Dynamic, Eigen::Dynamic>;
-		using Vector = Eigen::Vector<RealType, Eigen::Dynamic>;
-
-		using phase_it = PhaseIterator<RealType>;
-		using amplitude_it = AmplitudeIterator<RealType>;
-
 		// Returns a starting state object with an empty phase part and a zero-initialized amplitude part of size /size/
 		static StartingState<RealType> OnlyAmplitude(Eigen::Index size, std::string const& name="") {
             return StartingState<RealType>{ Vector{}, Vector::Zero(size), name };
@@ -100,10 +105,6 @@ namespace mrock::utility::Numerics::iEoM {
         static StartingState<RealType> OnlyPhase(Eigen::Index size, std::string const& name="") {
             return StartingState<RealType>{ Vector::Zero(size), Vector{}, name };
         }
-
-		Matrix K_plus, K_minus, L;
-		std::vector<StartingState<RealType>> starting_states;
-		std::vector<Resolvent<Matrix, Vector>> resolvents;
 
 		// Matrix accessors. Boundary checking is handled by Eigen
 		inline const RealType& M(int row, int col) const {
@@ -151,9 +152,9 @@ namespace mrock::utility::Numerics::iEoM {
 		};
 
 		template<int CheckHermitian = -1>
-		std::vector<ResolventDataWrapper<RealType>> compute_collective_modes(unsigned int LANCZOS_ITERATION_NUMBER)
+		std::vector<resolvent_details::ResolventDataWrapper<RealType>> compute_collective_modes(unsigned int LANCZOS_ITERATION_NUMBER)
 		{
-			auto k_solutions = diagonalize_K_matrices<CheckHermitian>();
+			auto k_solutions = this->diagonalize_K_matrices<CheckHermitian>();
 			Matrix solver_matrix;
 
 			/* plus(minus)_index indicates whether the upper left block is for the
@@ -197,8 +198,7 @@ namespace mrock::utility::Numerics::iEoM {
 					<< std::chrono::duration_cast<std::chrono::milliseconds>(end_in - begin_in).count() << "[ms]" << std::endl;
 				}; // end lambda
 
-			std::chrono::time_point begin, end;
-			begin = std::chrono::steady_clock::now();
+			std::chrono::time_point begin = std::chrono::steady_clock::now();
 
 			const int N_RESOLVENT_TYPES = total_size(starting_states);
 			resolvents.resize(N_RESOLVENT_TYPES);
@@ -227,11 +227,11 @@ namespace mrock::utility::Numerics::iEoM {
 			for (int i = phase_size(starting_states); i < phase_size(starting_states) + amplitude_size(starting_states); ++i) {
 				resolvents[i].compute_with_reorthogonalization(solver_matrix, LANCZOS_ITERATION_NUMBER);
 			}
-			end = std::chrono::steady_clock::now();
+			std::chrono::time_point end = std::chrono::steady_clock::now();
 			std::cout << "Time for resolvents: "
 				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
 
-			std::vector<ResolventDataWrapper<RealType>> ret;
+			std::vector<resolvent_details::ResolventDataWrapper<RealType>> ret;
 			ret.reserve(resolvents.size());
 			for (const auto& re : resolvents)
 			{
@@ -241,12 +241,11 @@ namespace mrock::utility::Numerics::iEoM {
 		};
 
 		template<int CheckHermitian = -1>
-		std::pair<std::vector<ResolventDataWrapper<RealType>>, std::list<ResidualInformation<RealType, n_residuals>>> compute_collective_modes_with_residuals(unsigned int LANCZOS_ITERATION_NUMBER)
+		std::pair<std::vector<resolvent_details::ResolventDataWrapper<RealType>>, std::list<resolvent_details::ResidualInformation<RealType, n_residuals>>> compute_collective_modes_with_residuals(unsigned int LANCZOS_ITERATION_NUMBER)
 		{
-			auto k_solutions = diagonalize_K_matrices<CheckHermitian>();
+			auto k_solutions = this->diagonalize_K_matrices<CheckHermitian>();
 			Matrix solver_matrix, state_transform;
-			std::list<ResidualInformation<RealType, n_residuals>> residual_infos;
-
+			std::list<resolvent_details::ResidualInformation<RealType, n_residuals>> residual_infos;
 			/* plus(minus)_index indicates whether the upper left block is for the
 			* Hermitian or the anti-Hermitian operators.
 			* The default is that the upper left block contains the Hermtian operators,
@@ -291,8 +290,7 @@ namespace mrock::utility::Numerics::iEoM {
 					<< std::chrono::duration_cast<std::chrono::milliseconds>(end_in - begin_in).count() << "[ms]" << std::endl;
 				}; // end lambda
 
-			std::chrono::time_point begin, end;
-			begin = std::chrono::steady_clock::now();
+			std::chrono::time_point begin = std::chrono::steady_clock::now();
 
 			const int N_RESOLVENT_TYPES = total_size(starting_states);
 			resolvents.resize(N_RESOLVENT_TYPES);
@@ -309,11 +307,17 @@ namespace mrock::utility::Numerics::iEoM {
 			for (int i = 0; i < phase_size(starting_states); ++i) {
 				auto residual_info = resolvents[i].template compute_with_residuals<n_residuals>(solver_matrix, LANCZOS_ITERATION_NUMBER);
 				for (auto& vj : residual_info.eigenvectors) {
+					if (vj.empty()) continue;
 					Vector buffer = Vector::Zero(vj.size());
 					for (size_t idx = 0U; idx < vj.size(); ++idx) {
-						buffer(idx) = vj[idx]; // A copy is necessary here
+						buffer(idx) = vj[idx];
 					}
 					buffer.applyOnTheLeft(state_transform.adjoint());
+					vj = std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
+				}
+				for (auto& ev :residual_info.eigenvalues) {
+					// The eigenvalue is in z^2
+					ev = sqrt(ev);
 				}
 				residual_infos.emplace_back(std::move(residual_info));
 			}
@@ -329,19 +333,25 @@ namespace mrock::utility::Numerics::iEoM {
 			for (int i = phase_size(starting_states); i < phase_size(starting_states) + amplitude_size(starting_states); ++i) {
 				auto residual_info = resolvents[i].template compute_with_residuals<n_residuals>(solver_matrix, LANCZOS_ITERATION_NUMBER);
 				for (auto& vj : residual_info.eigenvectors) {
+					if (vj.empty()) continue;
 					Vector buffer = Vector::Zero(vj.size());
 					for (size_t idx = 0U; idx < vj.size(); ++idx) {
-						buffer(idx) = vj[idx]; // A copy is necessary here
+						buffer(idx) = vj[idx];
 					}
 					buffer.applyOnTheLeft(state_transform.adjoint());
+					vj = std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
+				}
+				for (auto& ev :residual_info.eigenvalues) {
+					// The eigenvalue is in z^2
+					ev = sqrt(ev);
 				}
 				residual_infos.emplace_back(std::move(residual_info));
 			}
-			end = std::chrono::steady_clock::now();
+			std::chrono::time_point end = std::chrono::steady_clock::now();
 			std::cout << "Time for resolvents: "
 				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
 
-			std::vector<ResolventDataWrapper<RealType>> ret;
+			std::vector<resolvent_details::ResolventDataWrapper<RealType>> ret;
 			ret.reserve(resolvents.size());
 			for (const auto& re : resolvents)
 			{
