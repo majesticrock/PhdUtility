@@ -31,8 +31,8 @@ namespace mrock::utility::Numerics::iEoM {
 			_derived->fillMatrices();
 			_derived->createStartingStates();
 
-			K_minus = this->_internal.remove_noise(K_minus);
-			K_plus = this->_internal.remove_noise(K_plus);
+			//K_minus = this->_internal.remove_noise(K_minus);
+			//K_plus = this->_internal.remove_noise(K_plus);
 
 			if constexpr (CheckHermitian > 0) {
 				if ((K_plus - K_plus.adjoint()).norm() > constexprPower<-CheckHermitian, RealType, RealType>(10.)) {
@@ -192,7 +192,7 @@ namespace mrock::utility::Numerics::iEoM {
 				begin_in = std::chrono::steady_clock::now();
 				N_new *= k_solutions[plus_index].eigenvectors;
 				solver_matrix.noalias() = N_new * k_solutions[plus_index].eigenvalues.asDiagonal() * N_new.adjoint();
-				_internal.remove_noise_inplace(solver_matrix);
+				//_internal.remove_noise_inplace(solver_matrix);
 				end_in = std::chrono::steady_clock::now();
 				std::cout << "Time for computing solver_matrix: "
 					<< std::chrono::duration_cast<std::chrono::milliseconds>(end_in - begin_in).count() << "[ms]" << std::endl;
@@ -284,7 +284,7 @@ namespace mrock::utility::Numerics::iEoM {
 				begin_in = std::chrono::steady_clock::now();
 				N_new *= k_solutions[plus_index].eigenvectors;
 				solver_matrix.noalias() = N_new * k_solutions[plus_index].eigenvalues.asDiagonal() * N_new.adjoint();
-				_internal.remove_noise_inplace(solver_matrix);
+				//_internal.remove_noise_inplace(solver_matrix);
 				end_in = std::chrono::steady_clock::now();
 				std::cout << "Time for computing solver_matrix: "
 					<< std::chrono::duration_cast<std::chrono::milliseconds>(end_in - begin_in).count() << "[ms]" << std::endl;

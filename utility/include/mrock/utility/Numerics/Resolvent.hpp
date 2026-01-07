@@ -369,9 +369,9 @@ namespace mrock::utility::Numerics {
 				basis_vectors.push_back(currentSolution / betas.back());
 				++iterNum;
 
-				if (iterNum > n_residuals + 1) {
+				if (iterNum > n_residuals + 1 && iterNum % 10 == 0) {
 					if (!std::all_of(residual_info.converged.begin(), residual_info.converged.end(), [](bool v) { return v; })) {
-						eigen_solver.computeFromTridiagonal(TMap(alphas.data(), iterNum + 1), TMap(betas.data() + 1, iterNum));
+						eigen_solver.computeFromTridiagonal(TMap(alphas.data(), iterNum), TMap(betas.data() + 1, iterNum - 1));
 						int skip{};
 						int i_skip{};
 						// see https://epubs.siam.org/doi/book/10.1137/1.9780898719581, chapter 4.4, eq. 4.13
@@ -383,9 +383,9 @@ namespace mrock::utility::Numerics {
 							if (i_skip >= iterNum) break; 
 							residual_info.residuals[i] = betas.back() * abs(eigen_solver.eigenvectors().col(i_skip)(iterNum - 1));
 
-							if (residual_info.residuals[i] < 1e-10) {
+							if (residual_info.residuals[i] < 1e-8 || iterNum >= maxIter) {
 								// Eigen sorts the eigenvalues in ascending order
-								for (size_t c = 0U; c < n_residuals && residual_info.converged[c]; ++c) {
+								for (int c = 0; c < n_residuals; ++c) { //&& residual_info.converged[c]
 									if (abs(residual_info.eigenvalues[c] - eigen_solver.eigenvalues()(i_skip)) < 1e-12) {
 										// Found a Lanczos ghost
 										++skip;
@@ -393,18 +393,23 @@ namespace mrock::utility::Numerics {
 									}
 								}
 
-
-								residual_info.converged[i] = true;
+								residual_info.converged[i] = residual_info.residuals[i] < 1e-8;
 								residual_info.eigenvalues[i] = eigen_solver.eigenvalues()(i_skip);
+								residual_info.n_ghosts[i] = skip;
+
 								// Computing the eigenvector in the original space
 								EigenVectorType eigvec = EigenVectorType::Zero(matrix_size);
 								for (int j = 0; j < iterNum; ++j) {
 									eigvec += eigen_solver.eigenvectors().col(i_skip)(j) * basis_vectors[j];
 								}
-								residual_info.eigenvectors[i] = std::vector<RealType>(eigvec.data(), eigvec.data() + eigvec.size());
-								residual_info.weights[i] = eigvec.dot(this->startingState);
+								// The eigenvector is useless, if the residual is not small
+								// However, the eigenvalue is bounded by lambda_true = lambda_approx +/- residual
+								if (residual_info.converged[i]) { 
+									residual_info.eigenvectors[i] = std::vector<RealType>(eigvec.data(), eigvec.data() + eigvec.size());
+									residual_info.weights[i] = eigvec.dot(this->startingState);
+								}
 							}
-							if (!residual_info.converged[i]) break; // Fill list form the bottom up
+							if (!residual_info.converged[i] && iterNum < maxIter) break; // Fill list form the bottom up
 						}
 					}
 				}

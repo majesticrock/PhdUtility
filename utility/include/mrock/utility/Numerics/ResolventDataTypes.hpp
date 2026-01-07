@@ -102,6 +102,7 @@ namespace mrock::utility::Numerics::resolvent_details {
 		std::array<std::vector<RealType>, n_residuals> eigenvectors{};
 		std::array<RealType, n_residuals> weights{};
 		std::array<RealType, n_residuals> residuals{};
+		std::array<int, n_residuals> n_ghosts{};
 		std::array<bool, n_residuals> converged{};
 	};
 
@@ -112,7 +113,8 @@ namespace mrock::utility::Numerics::resolvent_details {
 			{"eigenvectors", res_data.eigenvectors},
 			{"weights", res_data.weights},
 			{"residuals", res_data.residuals},
-			{"converged", res_data.converged}
+			{"converged", res_data.converged},
+			{"n_ghosts", res_data.n_ghosts},
 		};
 	}
 }
