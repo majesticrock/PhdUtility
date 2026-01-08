@@ -126,7 +126,7 @@ py_array_cmplx terminator(const py_array_double& x, ContinuedFractionData const&
     const double* xptr = static_cast<const double*>(xbuf.ptr);
     auto* rptr = static_cast<std::complex<double>*>(rbuf.ptr);
 
-    for (ssize_t i = 0; i < n; ++i) {
+    for (size_t i = 0; i < n; ++i) {
         rptr[i] = detail::terminator_impl(xptr[i], data);
     }
 

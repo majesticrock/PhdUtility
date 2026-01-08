@@ -117,4 +117,21 @@ namespace mrock::utility::Numerics::resolvent_details {
 			{"n_ghosts", res_data.n_ghosts},
 		};
 	}
+
+
+	template<class RealType, int n>
+	struct FullDiagonalizationData {
+		std::vector<RealType> eigenvalues;
+		std::array<std::vector<RealType>, n> first_eigenvectors;
+		std::list<std::vector<RealType>> weights;
+	};
+
+	template<class RealType, int n>
+	void to_json(nlohmann::json& j, const FullDiagonalizationData<RealType, n>& res_data) {
+		j = nlohmann::json{
+			{"eigenvalues",  res_data.eigenvalues},
+			{"first_eigenvectors", res_data.first_eigenvectors},
+			{"weights", res_data.weights},
+		};
+	}
 }
