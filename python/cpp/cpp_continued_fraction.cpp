@@ -7,6 +7,7 @@
 #include <list>
 #include <limits>
 #include <boost/math/tools/roots.hpp>
+#include <iostream>
 
 #define MROCK_CF_INIT(result_dims) py::buffer_info buf_x = x.request(); \
     std::complex<double>* __restrict ptr_x = static_cast<std::complex<double>*>(buf_x.ptr); \
@@ -183,11 +184,18 @@ py_array_cmplx continued_fraction_varied_depth(const py_array_cmplx& x,
     return result;
 }
 
+// Does not really work for Goldstone peaks
 std::list<std::pair<double, double>> classify_bound_states(ContinuedFractionData const& data, const size_t n_scan, 
-    const double weight_domega, const int root_tol_bits, std::uintmax_t max_iter)
+    const double weight_domega, const int root_tol_bits, const std::uintmax_t max_iter)
 {
     const double root_tol = std::max(ldexp(1.0, 1-root_tol_bits), 4 * std::numeric_limits<double>::epsilon());
-    const double dz = (data.getRoot(0) - root_tol) / n_scan;
+    const double dz = (data.getRoot(0) - weight_domega - root_tol) / n_scan;
+    // saves the pairs {peak position, weight}
+    std::list<std::pair<double, double>> results;
+    if (dz <= double{}) {
+        return results;
+    }
+
     double z_sqr{};
 
     auto denom = [&data](double z) -> double {
@@ -196,9 +204,6 @@ std::list<std::pair<double, double>> classify_bound_states(ContinuedFractionData
 
     double fa = denom(z_sqr);
     double fb;
-
-    // saves the pairs {peak position, weight}
-    std::list<std::pair<double, double>> results;
 
     auto set_coefficient_of_pole = [&]() {
         // The spectral weight of the bound state is its residue
@@ -233,7 +238,8 @@ std::list<std::pair<double, double>> classify_bound_states(ContinuedFractionData
         }
         else if (std::signbit(fa) != std::signbit(fb) && std::abs(fb) >= 4 * std::numeric_limits<double>::epsilon()) {
             // Root in interval [z_sqr - dz, z_sqr]
-            const auto sol = boost::math::tools::toms748_solve(denom, z_sqr - dz, z_sqr, boost::math::tools::eps_tolerance<double>(root_tol_bits), max_iter);
+            std::uintmax_t iter = max_iter;
+            const auto sol = boost::math::tools::toms748_solve(denom, z_sqr - dz, z_sqr, boost::math::tools::eps_tolerance<double>(root_tol_bits), iter);
             const double test_x0 = 0.5 * (sol.first + sol.second);
             if (std::abs(denom(test_x0)) < 1e-10) {
                 // The denominator has poles as well at which sign changes may occur

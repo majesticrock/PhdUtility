@@ -9,6 +9,7 @@ if platform.system() == "Windows":
     extra_include_dirs = [r'Z:\req\include']
 else:
     extra_compile_args = ['-O3']
+    extra_include_dirs = []
 
 ext_modules = [
     Extension(
