@@ -382,8 +382,8 @@ namespace mrock::utility::Numerics {
 							i_skip = i + skip; // To avoid Lanczos ghosts
 							if (i_skip >= iterNum) break; 
 							residual_info.residuals[i] = betas.back() * abs(eigen_solver.eigenvectors().col(i_skip)(iterNum - 1));
-
-							if (residual_info.residuals[i] < 1e-8 || iterNum >= maxIter) {
+							constexpr double CONVERGE_EPS = 1.49011612e-8; // ~ sqrt(machine epsilon) ~ 2^{-26}
+							if (residual_info.residuals[i] < CONVERGE_EPS || iterNum >= maxIter) {
 								// Eigen sorts the eigenvalues in ascending order
 								for (int c = 0; c < n_residuals; ++c) { //&& residual_info.converged[c]
 									if (abs(residual_info.eigenvalues[c] - eigen_solver.eigenvalues()(i_skip)) < 1e-12) {
@@ -393,7 +393,7 @@ namespace mrock::utility::Numerics {
 									}
 								}
 
-								residual_info.converged[i] = residual_info.residuals[i] < 1e-8;
+								residual_info.converged[i] = residual_info.residuals[i] < CONVERGE_EPS;
 								residual_info.eigenvalues[i] = eigen_solver.eigenvalues()(i_skip);
 								residual_info.n_ghosts[i] = skip;
 

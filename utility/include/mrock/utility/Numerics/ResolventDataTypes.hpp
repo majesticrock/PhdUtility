@@ -104,6 +104,13 @@ namespace mrock::utility::Numerics::resolvent_details {
 		std::array<RealType, n_residuals> residuals{};
 		std::array<int, n_residuals> n_ghosts{};
 		std::array<bool, n_residuals> converged{};
+
+		ResidualInformation() {
+			// Placeholder filling
+			// Filling with 0 may produces errors if an actual eigenvalue is 0 and one asks whether
+			// The eigenvalue is already contained within ResidualInformation
+			eigenvalues.fill(std::numeric_limits<RealType>::max());
+		}
 	};
 
 	template<class RealType, int n_residuals>
