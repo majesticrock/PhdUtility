@@ -11,7 +11,7 @@
 #include <chrono>
 
 namespace mrock::utility::Numerics::iEoM {
-	template<class Derived, class RealType, int n_residuals = 0>
+	template<class Derived, class RealType, int n_residuals = 0, bool check_qr = false>
 	struct XPResolvent {
 	public:
 		using Matrix = Eigen::Matrix<RealType, Eigen::Dynamic, Eigen::Dynamic>;
@@ -20,14 +20,34 @@ namespace mrock::utility::Numerics::iEoM {
 		using phase_it = PhaseIterator<RealType>;
 		using amplitude_it = AmplitudeIterator<RealType>;
 
+		using TransformQR = std::conditional_t<!check_qr,
+								Eigen::CompleteOrthogonalDecomposition<Eigen::Ref<Matrix>>,
+								Eigen::CompleteOrthogonalDecomposition<Matrix>>;
+
+		using FullDiagData = resolvent_details::FullDiagonalizationData<RealType, n_residuals>;
+		using ResidualData = resolvent_details::ResidualInformation<RealType, n_residuals>;
+		using ResolventReturnData = resolvent_details::ResolventDataWrapper<RealType>;
+
 		Matrix K_plus, K_minus, L;
 		std::vector<StartingState<RealType>> starting_states;
 		std::vector<Resolvent<Matrix, Vector>> resolvents;
 
 	private:
+		std::chrono::time_point<std::chrono::steady_clock> begin;
+		std::chrono::time_point<std::chrono::steady_clock> end;
+
+		void set_begin() {
+			begin = std::chrono::steady_clock::now();
+		}
+		void print_duration(const char* message, bool reset=true) {
+			end = std::chrono::steady_clock::now();
+			std::cout << message << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+			if (reset) set_begin();
+		}
+
 		template<int CheckHermitian = -1>
 		std::array<matrix_wrapper<Matrix>, 2> diagonalize_K_matrices() {
-			std::chrono::time_point begin = std::chrono::steady_clock::now();
+			set_begin();
 			_derived->fillMatrices();
 			_derived->createStartingStates();
 
@@ -43,10 +63,7 @@ namespace mrock::utility::Numerics::iEoM {
 				}
 			}
 
-			std::chrono::time_point end = std::chrono::steady_clock::now();
-			std::cout << "Time for filling of M and N: "
-				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
-
+			print_duration("Time for filling of M and N: ");
 			std::array<matrix_wrapper<Matrix>, 2> k_solutions;
 
 			omp_set_nested(2);
@@ -60,7 +77,7 @@ namespace mrock::utility::Numerics::iEoM {
 #pragma omp section
 #endif
 				{
-					std::chrono::time_point begin_in = std::chrono::steady_clock::now();
+					set_begin();
 					if (_pivot) {
 						k_solutions[0] = matrix_wrapper<Matrix>::pivot_and_solve(K_plus);
 					}
@@ -68,9 +85,7 @@ namespace mrock::utility::Numerics::iEoM {
 						k_solutions[0] = matrix_wrapper<Matrix>::only_solve(K_plus);
 					}
 					this->_internal.template apply_matrix_operation<IEOM_NONE>(k_solutions[0].eigenvalues, "K_+");
-					std::chrono::time_point end_in = std::chrono::steady_clock::now();
-					std::cout << "Time for solving K_+: "
-						<< std::chrono::duration_cast<std::chrono::milliseconds>(end_in - begin_in).count() << "[ms]" << std::endl;
+					print_duration("Time for solving K_+: ", false);
 					// free the allocated memory
 					K_plus.resize(0, 0);
 				}
@@ -78,7 +93,7 @@ namespace mrock::utility::Numerics::iEoM {
 #pragma omp section
 #endif
 				{
-					std::chrono::time_point begin_in = std::chrono::steady_clock::now();
+					set_begin();
 					if (_pivot) {
 						k_solutions[1] = matrix_wrapper<Matrix>::pivot_and_solve(K_minus);
 					}
@@ -86,9 +101,7 @@ namespace mrock::utility::Numerics::iEoM {
 						k_solutions[1] = matrix_wrapper<Matrix>::only_solve(K_minus);
 					}
 					this->_internal.template apply_matrix_operation<IEOM_NONE>(k_solutions[1].eigenvalues, "K_-");
-					std::chrono::time_point end_in = std::chrono::steady_clock::now();
-					std::cout << "Time for solving K_-: "
-						<< std::chrono::duration_cast<std::chrono::milliseconds>(end_in - begin_in).count() << "[ms]" << std::endl;
+					print_duration("Time for solving K_-: ", false);
 					// free the allocated memory
 					K_minus.resize(0, 0);
 				}
@@ -98,13 +111,13 @@ namespace mrock::utility::Numerics::iEoM {
 
 		/* plus(minus)_index indicates whether the upper left block is for the
 		* Hermitian or the anti-Hermitian operators.
-		* The default is that the upper left block contains the Hermtian operators,
+		* The default is that the upper left block contains the Hermitian operators,
 		* then plus_index = 0 and minus_index = 1
 		*/
 		template <size_t plus_index, size_t minus_index, class StateTransformPolicy>
 		void compute_solver_matrix_impl(const std::array<matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix, StateTransformPolicy&& transform) 
 		{
-			std::chrono::time_point begin = std::chrono::steady_clock::now();
+			set_begin();
 			Vector K_EV = k_solutions[minus_index].eigenvalues;
 			_internal.template apply_matrix_operation<IEOM_INVERSE>(K_EV, plus_index == 1 ? "K_+" : "K_-");
 			decltype(auto) L_view = [this]() -> decltype(auto) {
@@ -117,10 +130,7 @@ namespace mrock::utility::Numerics::iEoM {
 			const auto buffer_matrix = L_view * k_solutions[minus_index].eigenvectors;
 			Matrix N_new = buffer_matrix * K_EV.asDiagonal() * buffer_matrix.adjoint();
 
-			std::chrono::time_point end = std::chrono::steady_clock::now();
-			std::cout << "Time for computing N_new: "
-				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
-			begin = std::chrono::steady_clock::now();	
+			print_duration("Time for computing N_new: ");
 			{
 				auto n_solution = _pivot ? matrix_wrapper<Matrix>::pivot_and_solve(N_new) : matrix_wrapper<Matrix>::only_solve(N_new);
 				_internal.template apply_matrix_operation<IEOM_INVERSE_SQRT>(n_solution.eigenvalues, plus_index == 1 ? "+: N_new" : "-: N_new");
@@ -133,22 +143,16 @@ namespace mrock::utility::Numerics::iEoM {
 					}
 				}
 			}
-			end = std::chrono::steady_clock::now();
-			std::cout << "Time for adjusting N_new: "
-				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
-
-			begin = std::chrono::steady_clock::now();
+			print_duration("Time for adjusting N_new: ");
 			N_new *= k_solutions[plus_index].eigenvectors;
 			solver_matrix.noalias() = N_new * k_solutions[plus_index].eigenvalues.asDiagonal() * N_new.adjoint();
 			//_internal.remove_noise_inplace(solver_matrix);
-			end = std::chrono::steady_clock::now();
-			std::cout << "Time for computing solver_matrix: "
-				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+			print_duration("Time for computing solver_matrix: ");
 		}
 
 		/* plus(minus)_index indicates whether the upper left block is for the
 		* Hermitian or the anti-Hermitian operators.
-		* The default is that the upper left block contains the Hermtian operators,
+		* The default is that the upper left block contains the Hermitian operators,
 		* then plus_index = 0 and minus_index = 1
 		*/
 		template <size_t plus_index, size_t minus_index>
@@ -168,21 +172,21 @@ namespace mrock::utility::Numerics::iEoM {
 
 		/* plus(minus)_index indicates whether the upper left block is for the
 		* Hermitian or the anti-Hermitian operators.
-		* The default is that the upper left block contains the Hermtian operators,
+		* The default is that the upper left block contains the Hermitian operators,
 		* then plus_index = 0 and minus_index = 1
 		*/
 		template <size_t plus_index, size_t minus_index>
-		void compute_solver_matrix(const std::array<matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix, Matrix& state_transform) 
+		void compute_solver_matrix(const std::array<matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix, Matrix& transform_matrix) 
 		{
 			compute_solver_matrix_impl<plus_index, minus_index>(k_solutions, solver_matrix,
-				[this, &state_transform](Vector& state, const Matrix& N_new) {
+				[this, &transform_matrix](Vector& state, const Matrix& N_new) {
 					if constexpr (minus_index == 0) {
-						state_transform.noalias() = N_new * L.transpose();
+						transform_matrix.noalias() = N_new * L.transpose();
 					}
 					else {
-						state_transform.noalias() = N_new * L;
+						transform_matrix.noalias() = N_new * L;
 					}
-					state.applyOnTheLeft(state_transform);
+					state.applyOnTheLeft(transform_matrix);
 				});
 		}
 
@@ -242,12 +246,12 @@ namespace mrock::utility::Numerics::iEoM {
 		};
 
 		template<int CheckHermitian = -1>
-		std::vector<resolvent_details::ResolventDataWrapper<RealType>> compute_collective_modes(unsigned int LANCZOS_ITERATION_NUMBER)
+		std::vector<ResolventReturnData> compute_collective_modes(unsigned int LANCZOS_ITERATION_NUMBER)
 		{
 			auto k_solutions = this->diagonalize_K_matrices<CheckHermitian>();
 			Matrix solver_matrix;
 
-			std::chrono::time_point begin = std::chrono::steady_clock::now();
+			set_begin();
 			const int N_RESOLVENT_TYPES = total_size(starting_states);
 			resolvents.resize(N_RESOLVENT_TYPES);
 			auto resolvent_it = resolvents.begin();
@@ -275,11 +279,9 @@ namespace mrock::utility::Numerics::iEoM {
 			for (int i = phase_size(starting_states); i < phase_size(starting_states) + amplitude_size(starting_states); ++i) {
 				resolvents[i].compute_with_reorthogonalization(solver_matrix, LANCZOS_ITERATION_NUMBER);
 			}
-			std::chrono::time_point end = std::chrono::steady_clock::now();
-			std::cout << "Time for resolvents: "
-				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+			print_duration("Time for resolvents: ");
 
-			std::vector<resolvent_details::ResolventDataWrapper<RealType>> ret;
+			std::vector<ResolventReturnData> ret;
 			ret.reserve(resolvents.size());
 			for (const auto& re : resolvents)
 			{
@@ -289,18 +291,21 @@ namespace mrock::utility::Numerics::iEoM {
 		};
 
 		template<int CheckHermitian = -1>
-		std::pair<std::vector<resolvent_details::ResolventDataWrapper<RealType>>, std::list<resolvent_details::ResidualInformation<RealType, n_residuals>>> compute_collective_modes_with_residuals(unsigned int LANCZOS_ITERATION_NUMBER)
+		std::pair<std::vector<ResolventReturnData>, std::list<ResidualData>> compute_collective_modes_with_residuals(unsigned int LANCZOS_ITERATION_NUMBER)
 		{
 			auto k_solutions = this->diagonalize_K_matrices<CheckHermitian>();
-			Matrix solver_matrix, state_transform;
-			std::list<resolvent_details::ResidualInformation<RealType, n_residuals>> residual_infos;
+			Matrix solver_matrix, transform_matrix;
 
-			std::chrono::time_point begin = std::chrono::steady_clock::now();
+			std::pair<std::vector<ResolventReturnData>, std::list<ResidualData>> return_data;
+			std::list<ResidualData>& residual_infos = return_data.second;
+
+			set_begin();
 			const int N_RESOLVENT_TYPES = total_size(starting_states);
 			resolvents.resize(N_RESOLVENT_TYPES);
 			auto resolvent_it = resolvents.begin();
 
-			compute_solver_matrix<0, 1>(k_solutions, solver_matrix, state_transform);
+			compute_solver_matrix<0, 1>(k_solutions, solver_matrix, transform_matrix);
+			{ TransformQR qr(transform_matrix); // Curly braces to free memory after usage
 			for (phase_it it = phase_it::begin(starting_states); it != phase_it::end(starting_states); ++resolvent_it, ++it) {
 				resolvent_it->set_starting_state(it->phase_state);
 				if(resolvent_it->data.name.empty()) resolvent_it->data.name = "phase_" + it->name;
@@ -312,11 +317,11 @@ namespace mrock::utility::Numerics::iEoM {
 				auto residual_info = resolvents[i].template compute_with_residuals<n_residuals>(solver_matrix, LANCZOS_ITERATION_NUMBER);
 				for (auto& vj : residual_info.eigenvectors) {
 					if (vj.empty()) continue;
-					Vector buffer = Vector::Zero(vj.size());
-					for (size_t idx = 0U; idx < vj.size(); ++idx) {
-						buffer(idx) = vj[idx];
+					Eigen::Map<Vector> vj_eigen(vj.data(), vj.size());
+					Vector buffer = qr.solve(vj_eigen);
+					if constexpr (check_qr) {
+						std::cout << "Error of QR result ||AX - B||=" << (transform_matrix * buffer - vj_eigen).norm() << std::endl;
 					}
-					buffer.applyOnTheLeft(state_transform.adjoint());
 					vj = std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
 				}
 				for (auto& ev :residual_info.eigenvalues) {
@@ -324,9 +329,10 @@ namespace mrock::utility::Numerics::iEoM {
 					ev = sqrt(ev);
 				}
 				residual_infos.emplace_back(std::move(residual_info));
-			}
+			} }
 
-			compute_solver_matrix<1, 0>(k_solutions, solver_matrix, state_transform);
+			compute_solver_matrix<1, 0>(k_solutions, solver_matrix, transform_matrix);
+			{ TransformQR qr(transform_matrix); // Curly braces to free memory after usage
 			for (amplitude_it it = amplitude_it::begin(starting_states); it != amplitude_it::end(starting_states); ++resolvent_it, ++it) {
 				resolvent_it->set_starting_state(it->amplitude_state);
 				if(resolvent_it->data.name.empty()) resolvent_it->data.name = "amplitude_" + it->name;
@@ -338,11 +344,11 @@ namespace mrock::utility::Numerics::iEoM {
 				auto residual_info = resolvents[i].template compute_with_residuals<n_residuals>(solver_matrix, LANCZOS_ITERATION_NUMBER);
 				for (auto& vj : residual_info.eigenvectors) {
 					if (vj.empty()) continue;
-					Vector buffer = Vector::Zero(vj.size());
-					for (size_t idx = 0U; idx < vj.size(); ++idx) {
-						buffer(idx) = vj[idx];
+					Eigen::Map<Vector> vj_eigen(vj.data(), vj.size());
+					Vector buffer = qr.solve(vj_eigen);
+					if constexpr (check_qr) {
+						std::cout << "Error of QR result ||AX - B||=" << (transform_matrix * buffer - vj_eigen).norm() << std::endl;
 					}
-					buffer.applyOnTheLeft(state_transform.adjoint());
 					vj = std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
 				}
 				for (auto& ev :residual_info.eigenvalues) {
@@ -350,64 +356,80 @@ namespace mrock::utility::Numerics::iEoM {
 					ev = sqrt(ev);
 				}
 				residual_infos.emplace_back(std::move(residual_info));
-			}
-			std::chrono::time_point end = std::chrono::steady_clock::now();
-			std::cout << "Time for resolvents: "
-				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
+			} }
 
-			std::vector<resolvent_details::ResolventDataWrapper<RealType>> ret;
-			ret.reserve(resolvents.size());
+			print_duration("Time for resolvents: ");
+
+			return_data.first.reserve(resolvents.size());
 			for (const auto& re : resolvents)
 			{
-				ret.push_back(re.get_data());
+				return_data.first.push_back(re.get_data());
 			}
-			return {std::move(ret), std::move(residual_infos)};
+			return return_data;
 		};
 
 		template<int CheckHermitian = -1>
-		std::pair<resolvent_details::FullDiagonalizationData<RealType, n_residuals>, resolvent_details::FullDiagonalizationData<RealType, n_residuals>> full_diagonalization() {
+		std::pair<FullDiagData, FullDiagData> full_diagonalization() {
 			auto k_solutions = this->diagonalize_K_matrices<CheckHermitian>();
-			Matrix solver_matrix, state_transform;
+			Matrix solver_matrix, transform_matrix;
 
-			std::chrono::time_point begin = std::chrono::steady_clock::now();
 			Eigen::SelfAdjointEigenSolver<Matrix> solver;
-			
-			resolvent_details::FullDiagonalizationData<RealType, n_residuals> phase_data;
-			compute_solver_matrix<0, 1>(k_solutions, solver_matrix, state_transform);
-			for (phase_it it = phase_it::begin(starting_states); it != phase_it::end(starting_states); ++it) {
-				solver.compute(solver_matrix);
+			std::pair<FullDiagData, FullDiagData> return_data;
 
+			FullDiagData& phase_data = return_data.first;
+			compute_solver_matrix<0, 1>(k_solutions, solver_matrix, transform_matrix);
+
+			set_begin();
+			solver.compute(solver_matrix);
+			print_duration("Time for first ED: ");
+
+			{ TransformQR qr(transform_matrix); // Curly braces to free memory after usage
+			print_duration("Time for first QR decomp: ");
+			for (phase_it it = phase_it::begin(starting_states); it != phase_it::end(starting_states); ++it) {
 				for (size_t i = 0U; i < n_residuals; ++i){
-					Vector buffer = solver.eigenvectors().col(i);
-					buffer.applyOnTheLeft(state_transform.adjoint());
+					Vector buffer = qr.solve(solver.eigenvectors().col(i));
+					if constexpr (check_qr) {
+						std::cout << "Error of QR result ||AX - B||=" << (transform_matrix * buffer - solver.eigenvectors().col(i)).norm() << std::endl;
+					}
 					phase_data.first_eigenvectors[i] = std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
 				}
 				phase_data.eigenvalues = std::vector<RealType>(solver.eigenvalues().data(), solver.eigenvalues().data() + solver.eigenvalues().size());
+				for (auto& ev : phase_data.eigenvalues) {
+					ev = sqrt(ev);
+				}
 				phase_data.weights.emplace_back(std::vector<RealType>(solver.eigenvalues().size(), RealType{}));
 				Eigen::Map<Vector> weight_map(phase_data.weights.back().data(), solver.eigenvalues().size());
 				weight_map = solver.eigenvectors().adjoint() * it->phase_state;
 				weight_map = weight_map.array().square();
-			}
+			} }
 
+			FullDiagData& amplitude_data = return_data.second;
+			compute_solver_matrix<1, 0>(k_solutions, solver_matrix, transform_matrix);
 
-			resolvent_details::FullDiagonalizationData<RealType, n_residuals> amplitude_data;
-			compute_solver_matrix<1, 0>(k_solutions, solver_matrix, state_transform);
+			set_begin();
+			solver.compute(solver_matrix);
+			print_duration("Time for second ED: ");
+			{ TransformQR qr(transform_matrix); // Curly braces to free memory after usage
+			print_duration("Time for second QR decomp: ");
 			for (amplitude_it it = amplitude_it::begin(starting_states); it != amplitude_it::end(starting_states); ++it) {
-				solver.compute(solver_matrix);
-
 				for (size_t i = 0U; i < n_residuals; ++i){
-					Vector buffer = solver.eigenvectors().col(i);
-					buffer.applyOnTheLeft(state_transform.adjoint());
+					Vector buffer = qr.solve(solver.eigenvectors().col(i));
+					if constexpr (check_qr) {
+						std::cout << "Error of QR result ||AX - B||=" << (transform_matrix * buffer - solver.eigenvectors().col(i)).norm() << std::endl;
+					}
 					amplitude_data.first_eigenvectors[i] = std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
 				}
 				amplitude_data.eigenvalues = std::vector<RealType>(solver.eigenvalues().data(), solver.eigenvalues().data() + solver.eigenvalues().size());
+				for (auto& ev : amplitude_data.eigenvalues) {
+					ev = sqrt(ev);
+				}
 				amplitude_data.weights.emplace_back(std::vector<RealType>(solver.eigenvalues().size(), RealType{}));
 				Eigen::Map<Vector> weight_map(amplitude_data.weights.back().data(), solver.eigenvalues().size());
 				weight_map = solver.eigenvectors().adjoint() * it->amplitude_state;
 				weight_map = weight_map.array().square();
-			}
+			} }
 
-			return {std::move(phase_data), std::move(amplitude_data)};
+			return return_data;
 		}
 
 	private:
