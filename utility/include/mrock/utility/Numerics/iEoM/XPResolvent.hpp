@@ -306,6 +306,7 @@ namespace mrock::utility::Numerics::iEoM {
 
 			compute_solver_matrix<0, 1>(k_solutions, solver_matrix, transform_matrix);
 			{ TransformQR qr(transform_matrix); // Curly braces to free memory after usage
+			print_duration("Time for second QR decomp: ");
 			for (phase_it it = phase_it::begin(starting_states); it != phase_it::end(starting_states); ++resolvent_it, ++it) {
 				resolvent_it->set_starting_state(it->phase_state);
 				if(resolvent_it->data.name.empty()) resolvent_it->data.name = "phase_" + it->name;
@@ -333,6 +334,7 @@ namespace mrock::utility::Numerics::iEoM {
 
 			compute_solver_matrix<1, 0>(k_solutions, solver_matrix, transform_matrix);
 			{ TransformQR qr(transform_matrix); // Curly braces to free memory after usage
+			print_duration("Time for second QR decomp: ");
 			for (amplitude_it it = amplitude_it::begin(starting_states); it != amplitude_it::end(starting_states); ++resolvent_it, ++it) {
 				resolvent_it->set_starting_state(it->amplitude_state);
 				if(resolvent_it->data.name.empty()) resolvent_it->data.name = "amplitude_" + it->name;
@@ -385,21 +387,29 @@ namespace mrock::utility::Numerics::iEoM {
 
 			{ TransformQR qr(transform_matrix); // Curly braces to free memory after usage
 			print_duration("Time for first QR decomp: ");
+			size_t n_zero = 0;
+			while (n_zero < solver.eigenvalues().size() && std::abs(solver.eigenvalues()(n_zero)) < _internal._precision) {
+				++n_zero;
+			}
+			const size_t n_non_zero = solver.eigenvalues().size() - n_zero;
+
 			for (phase_it it = phase_it::begin(starting_states); it != phase_it::end(starting_states); ++it) {
-				for (size_t i = 0U; i < n_residuals; ++i){
-					Vector buffer = qr.solve(solver.eigenvectors().col(i));
+				for (size_t i = 0; i < n_residuals; ++i){
+					Vector buffer = qr.solve(solver.eigenvectors().col(i + n_zero));
 					if constexpr (check_qr) {
-						std::cout << "Error of QR result ||AX - B||=" << (transform_matrix * buffer - solver.eigenvectors().col(i)).norm() << std::endl;
+						std::cout << "Error of QR result ||AX - B||=" << (transform_matrix * buffer - solver.eigenvectors().col(i + n_zero)).norm() << std::endl;
 					}
 					phase_data.first_eigenvectors[i] = std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
 				}
-				phase_data.eigenvalues = std::vector<RealType>(solver.eigenvalues().data(), solver.eigenvalues().data() + solver.eigenvalues().size());
+				phase_data.eigenvalues = std::vector<RealType>(solver.eigenvalues().data() + n_zero, solver.eigenvalues().data() + solver.eigenvalues().size());
 				for (auto& ev : phase_data.eigenvalues) {
 					ev = sqrt(ev);
 				}
-				phase_data.weights.emplace_back(std::vector<RealType>(solver.eigenvalues().size(), RealType{}));
-				Eigen::Map<Vector> weight_map(phase_data.weights.back().data(), solver.eigenvalues().size());
-				weight_map = solver.eigenvectors().adjoint() * it->phase_state;
+				phase_data.weights.emplace_back(std::vector<RealType>(n_non_zero, RealType{}));
+				Eigen::Map<Vector> weight_map(phase_data.weights.back().data(), n_non_zero);
+				// phase_state is already transformed; this line computes 
+				// sum_j <u_j| transform_matrix | original_phase_state> = sum_j <u_j | N^{-1/2} L | original_phase_state>
+				weight_map = solver.eigenvectors().rightCols(n_non_zero).adjoint() * it->phase_state;
 				weight_map = weight_map.array().square();
 			} }
 
@@ -409,23 +419,32 @@ namespace mrock::utility::Numerics::iEoM {
 			set_begin();
 			solver.compute(solver_matrix);
 			print_duration("Time for second ED: ");
+
 			{ TransformQR qr(transform_matrix); // Curly braces to free memory after usage
+			size_t n_zero = 0;
+			while (n_zero < solver.eigenvalues().size() && std::abs(solver.eigenvalues()(n_zero)) < _internal._precision) {
+				++n_zero;
+			}
+			const size_t n_non_zero = solver.eigenvalues().size() - n_zero;
+
 			print_duration("Time for second QR decomp: ");
 			for (amplitude_it it = amplitude_it::begin(starting_states); it != amplitude_it::end(starting_states); ++it) {
 				for (size_t i = 0U; i < n_residuals; ++i){
-					Vector buffer = qr.solve(solver.eigenvectors().col(i));
+					Vector buffer = qr.solve(solver.eigenvectors().col(i + n_zero));
 					if constexpr (check_qr) {
-						std::cout << "Error of QR result ||AX - B||=" << (transform_matrix * buffer - solver.eigenvectors().col(i)).norm() << std::endl;
+						std::cout << "Error of QR result ||AX - B||=" << (transform_matrix * buffer - solver.eigenvectors().col(i + n_zero)).norm() << std::endl;
 					}
 					amplitude_data.first_eigenvectors[i] = std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
 				}
-				amplitude_data.eigenvalues = std::vector<RealType>(solver.eigenvalues().data(), solver.eigenvalues().data() + solver.eigenvalues().size());
+				amplitude_data.eigenvalues = std::vector<RealType>(solver.eigenvalues().data() + n_zero, solver.eigenvalues().data() + solver.eigenvalues().size());
 				for (auto& ev : amplitude_data.eigenvalues) {
 					ev = sqrt(ev);
 				}
-				amplitude_data.weights.emplace_back(std::vector<RealType>(solver.eigenvalues().size(), RealType{}));
-				Eigen::Map<Vector> weight_map(amplitude_data.weights.back().data(), solver.eigenvalues().size());
-				weight_map = solver.eigenvectors().adjoint() * it->amplitude_state;
+				amplitude_data.weights.emplace_back(std::vector<RealType>(n_non_zero, RealType{}));
+				Eigen::Map<Vector> weight_map(amplitude_data.weights.back().data(), n_non_zero);
+				// amplitude_state is already transformed; this line computes 
+				// sum_j <u_j| transform_matrix | original_amplitude_state> = sum_j <u_j | N^{-1/2} L | original_amplitude_state>
+				weight_map = solver.eigenvectors().rightCols(n_non_zero).adjoint() * it->amplitude_state;
 				weight_map = weight_map.array().square();
 			} }
 
