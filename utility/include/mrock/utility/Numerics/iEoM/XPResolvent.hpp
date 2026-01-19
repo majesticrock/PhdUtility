@@ -109,10 +109,9 @@ namespace mrock::utility::Numerics::iEoM {
 			return k_solutions;
 		}
 
-		/* plus(minus)_index indicates whether the upper left block is for the
-		* Hermitian or the anti-Hermitian operators.
-		* The default is that the upper left block contains the Hermitian operators,
-		* then plus_index = 0 and minus_index = 1
+		/* plus(minus)_index indicates whether the upper left block is for the Hermitian or the anti-Hermitian operators.
+		* To compute the Hermitian part set plus_index = 0 and minus_index = 1
+		* To compute the anti-Hermitian part set plus_index = 1 and minus_index = 0
 		*/
 		template <size_t plus_index, size_t minus_index, class StateTransformPolicy>
 		void compute_solver_matrix_impl(const std::array<matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix, StateTransformPolicy&& transform) 
@@ -150,10 +149,9 @@ namespace mrock::utility::Numerics::iEoM {
 			print_duration("Time for computing solver_matrix: ");
 		}
 
-		/* plus(minus)_index indicates whether the upper left block is for the
-		* Hermitian or the anti-Hermitian operators.
-		* The default is that the upper left block contains the Hermitian operators,
-		* then plus_index = 0 and minus_index = 1
+		/* plus(minus)_index indicates whether the upper left block is for the Hermitian or the anti-Hermitian operators.
+		* To compute the Hermitian part set plus_index = 0 and minus_index = 1
+		* To compute the anti-Hermitian part set plus_index = 1 and minus_index = 0
 		*/
 		template <size_t plus_index, size_t minus_index>
 		void compute_solver_matrix(const std::array<matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix) 
@@ -170,10 +168,9 @@ namespace mrock::utility::Numerics::iEoM {
 				});
 		}
 
-		/* plus(minus)_index indicates whether the upper left block is for the
-		* Hermitian or the anti-Hermitian operators.
-		* The default is that the upper left block contains the Hermitian operators,
-		* then plus_index = 0 and minus_index = 1
+		/* plus(minus)_index indicates whether the upper left block is for the Hermitian or the anti-Hermitian operators.
+		* To compute the Hermitian part set plus_index = 0 and minus_index = 1
+		* To compute the anti-Hermitian part set plus_index = 1 and minus_index = 0
 		*/
 		template <size_t plus_index, size_t minus_index>
 		void compute_solver_matrix(const std::array<matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix, Matrix& transform_matrix) 
@@ -203,19 +200,19 @@ namespace mrock::utility::Numerics::iEoM {
 		// Matrix accessors. Boundary checking is handled by Eigen
 		inline const RealType& M(int row, int col) const {
 			if(row < _hermitian_size)
-				return K_plus(row, col);
-			return K_minus(row - _hermitian_size, col - _hermitian_size);
+				return K_plus.coeffRef(row, col);
+			return K_minus.coeffRef(row - _hermitian_size, col - _hermitian_size);
 		}
 		inline RealType& M(int row, int col) {
 			if(row < _hermitian_size)
-				return K_plus(row, col);
-			return K_minus(row -_hermitian_size, col - _hermitian_size);
+				return K_plus.coeffRef(row, col);
+			return K_minus.coeffRef(row -_hermitian_size, col - _hermitian_size);
 		}
 		inline const RealType& N(int row, int col) const {
-			return L(row, col - _hermitian_size);
+			return L.coeffRef(row, col - _hermitian_size);
 		}
 		inline RealType& N(int row, int col) {
-			return L(row, col - _hermitian_size);
+			return L.coeffRef(row, col - _hermitian_size);
 		}
 
 		XPResolvent(Derived* derived_ptr, RealType const& sqrt_precision, bool pivot = true, bool negative_matrix_is_error = true)
