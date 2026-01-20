@@ -11,6 +11,37 @@
 #include <chrono>
 
 namespace mrock::utility::Numerics::iEoM {
+	/**
+	 * @struct XPResolvent
+	 * @brief Computes resolvent and eigenvalue data for Hermitian and anti-Hermitian dynamic matrices.
+	 * 
+	 * This struct performs eigenvalue decomposition and resolvent calculations on K_plus and K_minus
+	 * matrices, computing collective modes via Lanczos iteration. It supports both standard resolvent
+	 * computation and full diagonalization with residual analysis.
+	 * See https://doi.org/10.1103/PhysRevB.109.205153 for the derivation and use of the algorithm.
+	 * 
+	 * @tparam RealType The floating-point type (e.g., double, float)
+	 * @tparam Derived The CRTP-derived class providing matrix filling and starting state creation
+	 * @tparam n_residuals Number of residual eigenvectors to retain in full diagonalization
+	 * @tparam check_qr If true, validates QR decomposition accuracy via error norms
+	 * 
+	 * @note Uses OpenMP for parallel eigenvalue solving of K_plus and K_minus when not disabled
+	 * @note Maintains timing information for performance profiling via set_begin() and print_duration()
+	 * @note Supports optional Hermiticity checking for K_plus and K_minus matrices
+	 * 
+	 * Public Methods:
+	 * - compute_collective_modes(): Computes resolvent functions via Lanczos iteration
+	 * - compute_collective_modes_with_residuals(): Extends computation with residual eigenvector information
+	 * - full_diagonalization(): Performs complete eigenvalue decomposition retaining first n_residuals eigenvectors
+	 * - dynamic_matrix_is_negative(): Checks for negative eigenvalues in diagonal matrices
+	 * 
+	 * Member Variables:
+	 * - K_plus: Hermitian matrix block
+	 * - K_minus: Anti-Hermitian matrix block  
+	 * - L: Coupling matrix between blocks
+	 * - starting_states: Initial phase and amplitude states for resolvent computation
+	 * - resolvents: Computed resolvent objects
+	 */
 	template<class Derived, class RealType, int n_residuals = 0, bool check_qr = false>
 	struct XPResolvent {
 	public:
@@ -19,6 +50,9 @@ namespace mrock::utility::Numerics::iEoM {
 
 		using phase_it = PhaseIterator<RealType>;
 		using amplitude_it = AmplitudeIterator<RealType>;
+
+		using const_phase_it = ConstPhaseIterator<RealType>;
+		using const_amplitude_it = ConstAmplitudeIterator<RealType>;
 
 		using TransformQR = std::conditional_t<!check_qr,
 								Eigen::CompleteOrthogonalDecomposition<Eigen::Ref<Matrix>>,
@@ -187,6 +221,128 @@ namespace mrock::utility::Numerics::iEoM {
 				});
 		}
 
+		/**
+		 * @brief Determines the number of zero eigenvalues to exclude from a self-adjoint eigen solver.
+		 * 
+		 * Counts eigenvalues that fall below the internal precision threshold, treating them as
+		 * numerically zero. However, at least one eigenvector from the nullspace is preserved by
+		 * decrementing the count if any zero eigenvalues were found.
+		 * 
+		 * @param solver The Eigen::SelfAdjointEigenSolver containing the computed eigenvalues and eigenvectors.
+		 * 
+		 * @return The number of zero eigenvalues to exclude, with a minimum of zero ensuring
+		 *         at least one nullspace vector is retained when zero eigenvalues exist.
+		 * 
+		 * @note This function assumes eigenvalues are sorted in ascending order, which Eigen does by default.
+		 * @note The precision threshold is obtained from _internal._precision.
+		 */
+		size_t get_number_of_zero_eigenvalues(const Eigen::SelfAdjointEigenSolver<Matrix>& solver) const noexcept {
+			size_t n_zero = 0;
+			while (n_zero < solver.eigenvalues().size() && solver.eigenvalues()(n_zero) < _internal._precision) {
+				++n_zero;
+			}
+			if (n_zero > 0U) --n_zero; // Keep one vector from the nullspace
+			return n_zero;
+		}
+
+		
+		/**
+		 * @brief Sets full diagonal data for the resolvent calculation.
+		 * 
+		 * This function prepares and organizes eigenvalue decomposition data along with computed weights for a given state. 
+		 * It performs QR-based transformations on eigenvectors and computes weights as squared projections of the state onto
+		 * the eigenvector subspace.
+		 * TODO: The transformation of the eigenvectors is yet to be published.
+		 * 
+		 * @param solver A SelfAdjointEigenSolver containing the eigendecomposition of the system matrix.
+		 * @param qr A QR decomposition object used to solve linear systems for eigenvector transformation.
+		 * @param n_zero The index offset indicating the number of zero/excluded eigenvalues.
+		 * @param n_non_zero The number of non-zero eigenvalues and corresponding eigenvectors to process.
+		 * @param transform_matrix The transformation matrix used for QR error checking (if enabled).
+		 * 
+		 * @tparam iterator_type The type of state iterator (const_phase_it or const_amplitude_it) used to traverse starting states.
+		 * 
+		 * @return FullDiagData A structure containing:
+		 *         - first_eigenvectors: Transformed eigenvectors obtained via QR solve
+		 *         - eigenvalues: Square root (because the algorithm works in omega^2) of the non-zero eigenvalues 
+		 * 								(from index n_zero onward)
+		 *         - weights: Squared projections of the state onto the eigenvector subspace,
+		 *                    computed as |<u_j | N^{-1/2} L | state>|^2
+		 * 
+		 * @details If check_qr is true (compile-time constant), the residual error of each
+		 *          QR solution is printed for debugging purposes.
+		 * 
+		 * @note The state vector is assumed to be pre-transformed. The weights represent
+		 *       probabilities (squared amplitudes) in the eigenvector basis.
+		 */
+		template<ConstStateIterator iterator_type>
+		FullDiagData set_full_diag_data(const Eigen::SelfAdjointEigenSolver<Matrix>& solver, const TransformQR& qr, 
+			const size_t& n_zero, const size_t& n_non_zero, const Matrix& transform_matrix) const
+		{
+			FullDiagData data;
+			for (size_t i = 0U; i < n_residuals; ++i){
+				Vector buffer = qr.solve(solver.eigenvectors().col(i + n_zero));
+				if constexpr (check_qr) {
+					std::cout << "Error of QR result ||AX - B||=" << (transform_matrix * buffer - solver.eigenvectors().col(i + n_zero)).norm() << std::endl;
+				}
+				data.first_eigenvectors[i] = std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
+			}
+			data.eigenvalues = std::vector<RealType>(solver.eigenvalues().data() + n_zero, solver.eigenvalues().data() + solver.eigenvalues().size());
+			for (auto& ev : data.eigenvalues) {
+				ev = sqrt(ev);
+			}
+			for (iterator_type it = iterator_type::begin(starting_states); it != iterator_type::end(starting_states); ++it) {
+				data.weights.emplace_back(std::vector<RealType>(n_non_zero, RealType{}));
+				Eigen::Map<Vector> weight_map(data.weights.back().data(), n_non_zero);
+				// state is already transformed; this line computes
+				// sum_j <u_j| transform_matrix | original_amplitude_state> = sum_j <u_j | N^{-1/2} L | original_amplitude_state>
+				// The analogue also applies to phase states:  sum_j <u_j | N^{-1/2} L^+ | original_phase_state>
+				weight_map = solver.eigenvectors().rightCols(n_non_zero).adjoint() * it.state();
+				weight_map = weight_map.array().square();
+			}
+			return data;
+		}
+
+		/**
+		 * @brief Sets residual data by computing eigenvalues and eigenvectors with the residuals of the Lanczos algorithm.
+		 * 			This part is handled by the Resolvent class.
+		 * 
+		 * This function computes the eigenvalues and eigenvectors of the solver matrix using
+		 * Lanczos iteration with residual information. It then transforms the eigenvectors
+		 * using QR decomposition and takes the square root of the eigenvalues.
+		 * 
+		 * @param resolvent Reference to the Resolvent object used to compute eigendecomposition.
+		 * @param n_lanczos_iterations Number of Lanczos iterations to perform.
+		 * @param qr The QR transformation used to solve for the transformed eigenvectors.
+		 * @param transform_matrix The transformation matrix used for QR error checking (if enabled).
+		 * 
+		 * @return ResidualData Structure containing the transformed eigenvectors and computed eigenvalues.
+		 *         - eigenvectors: QR-transformed eigenvectors (empty vectors are skipped)
+		 *         - eigenvalues: Square roots of the computed eigenvalues
+		 * 
+		 * @note If check_qr is true at compile-time, outputs the residual error ||AX - B|| for each eigenvector.
+		 * @note Eigenvalues are assumed to be in z^2 form and are converted to z via sqrt().
+		 */
+		ResidualData set_residual_data(Resolvent<Matrix, Vector>& resolvent, int n_lanczos_iterations, 
+			const Matrix& solver_matrix, const TransformQR& qr, const Matrix& transform_matrix) const 
+		{
+			ResidualData residual_info = resolvent.template compute_with_residuals<n_residuals>(solver_matrix, n_lanczos_iterations);
+			for (auto& vj : residual_info.eigenvectors) {
+				if (vj.empty()) continue;
+				Eigen::Map<Vector> vj_eigen(vj.data(), vj.size());
+				Vector buffer = qr.solve(vj_eigen);
+				if constexpr (check_qr) {
+					std::cout << "Error of QR result ||AX - B||=" << (transform_matrix * buffer - vj_eigen).norm() << std::endl;
+				}
+				vj = std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
+			}
+			for (auto& ev :residual_info.eigenvalues) {
+				// The eigenvalue is in z^2
+				ev = sqrt(ev);
+			}
+			return residual_info;
+		}
+
 	public:
 		// Returns a starting state object with an empty phase part and a zero-initialized amplitude part of size /size/
 		static StartingState<RealType> OnlyAmplitude(Eigen::Index size, std::string const& name="") {
@@ -197,7 +353,7 @@ namespace mrock::utility::Numerics::iEoM {
             return StartingState<RealType>{ Vector::Zero(size), Vector{}, name };
         }
 
-		// Matrix accessors. Boundary checking is handled by Eigen
+		// Matrix accessors. Boundary checking is handled by Eigen - if NBEDUG is not defined.
 		inline const RealType& M(int row, int col) const {
 			if(row < _hermitian_size)
 				return K_plus.coeffRef(row, col);
@@ -243,7 +399,7 @@ namespace mrock::utility::Numerics::iEoM {
 		};
 
 		template<int CheckHermitian = -1>
-		std::vector<ResolventReturnData> compute_collective_modes(unsigned int LANCZOS_ITERATION_NUMBER)
+		std::vector<ResolventReturnData> compute_collective_modes(unsigned int n_lanczos_iterations)
 		{
 			auto k_solutions = this->diagonalize_K_matrices<CheckHermitian>();
 			Matrix solver_matrix;
@@ -262,7 +418,7 @@ namespace mrock::utility::Numerics::iEoM {
 #pragma omp parallel for
 #endif
 			for (int i = 0; i < phase_size(starting_states); ++i) {
-				resolvents[i].compute_with_reorthogonalization(solver_matrix, LANCZOS_ITERATION_NUMBER);
+				resolvents[i].compute_with_reorthogonalization(solver_matrix, n_lanczos_iterations);
 			}
 
 			compute_solver_matrix<1, 0>(k_solutions, solver_matrix);
@@ -274,7 +430,7 @@ namespace mrock::utility::Numerics::iEoM {
 #pragma omp parallel for
 #endif
 			for (int i = phase_size(starting_states); i < phase_size(starting_states) + amplitude_size(starting_states); ++i) {
-				resolvents[i].compute_with_reorthogonalization(solver_matrix, LANCZOS_ITERATION_NUMBER);
+				resolvents[i].compute_with_reorthogonalization(solver_matrix, n_lanczos_iterations);
 			}
 			print_duration("Time for resolvents: ");
 
@@ -288,7 +444,7 @@ namespace mrock::utility::Numerics::iEoM {
 		};
 
 		template<int CheckHermitian = -1>
-		std::pair<std::vector<ResolventReturnData>, std::list<ResidualData>> compute_collective_modes_with_residuals(unsigned int LANCZOS_ITERATION_NUMBER)
+		std::pair<std::vector<ResolventReturnData>, std::list<ResidualData>> compute_collective_modes_with_residuals(unsigned int n_lanczos_iterations)
 		{
 			auto k_solutions = this->diagonalize_K_matrices<CheckHermitian>();
 			Matrix solver_matrix, transform_matrix;
@@ -302,61 +458,36 @@ namespace mrock::utility::Numerics::iEoM {
 			auto resolvent_it = resolvents.begin();
 
 			compute_solver_matrix<0, 1>(k_solutions, solver_matrix, transform_matrix);
-			{ TransformQR qr(transform_matrix); // Curly braces to free memory after usage
-			print_duration("Time for second QR decomp: ");
-			for (phase_it it = phase_it::begin(starting_states); it != phase_it::end(starting_states); ++resolvent_it, ++it) {
-				resolvent_it->set_starting_state(it->phase_state);
-				if(resolvent_it->data.name.empty()) resolvent_it->data.name = "phase_" + it->name;
-			}
+			{ 
+				TransformQR qr(transform_matrix); // Curly braces to free memory after usage
+				print_duration("Time for second QR decomp: ");
+				for (phase_it it = phase_it::begin(starting_states); it != phase_it::end(starting_states); ++resolvent_it, ++it) {
+					resolvent_it->set_starting_state(it->phase_state);
+					if(resolvent_it->data.name.empty()) resolvent_it->data.name = "phase_" + it->name;
+				}
 #ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 #pragma omp parallel for
 #endif
-			for (int i = 0; i < phase_size(starting_states); ++i) {
-				auto residual_info = resolvents[i].template compute_with_residuals<n_residuals>(solver_matrix, LANCZOS_ITERATION_NUMBER);
-				for (auto& vj : residual_info.eigenvectors) {
-					if (vj.empty()) continue;
-					Eigen::Map<Vector> vj_eigen(vj.data(), vj.size());
-					Vector buffer = qr.solve(vj_eigen);
-					if constexpr (check_qr) {
-						std::cout << "Error of QR result ||AX - B||=" << (transform_matrix * buffer - vj_eigen).norm() << std::endl;
-					}
-					vj = std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
-				}
-				for (auto& ev :residual_info.eigenvalues) {
-					// The eigenvalue is in z^2
-					ev = sqrt(ev);
-				}
-				residual_infos.emplace_back(std::move(residual_info));
-			} }
+				for (int i = 0; i < phase_size(starting_states); ++i) {
+					residual_infos.emplace_back(set_residual_data(resolvents[i], n_lanczos_iterations, solver_matrix, qr, transform_matrix));
+				} 
+			}
 
 			compute_solver_matrix<1, 0>(k_solutions, solver_matrix, transform_matrix);
-			{ TransformQR qr(transform_matrix); // Curly braces to free memory after usage
-			print_duration("Time for second QR decomp: ");
-			for (amplitude_it it = amplitude_it::begin(starting_states); it != amplitude_it::end(starting_states); ++resolvent_it, ++it) {
-				resolvent_it->set_starting_state(it->amplitude_state);
-				if(resolvent_it->data.name.empty()) resolvent_it->data.name = "amplitude_" + it->name;
-			}
+			{ 
+				TransformQR qr(transform_matrix); // Curly braces to free memory after usage
+				print_duration("Time for second QR decomp: ");
+				for (amplitude_it it = amplitude_it::begin(starting_states); it != amplitude_it::end(starting_states); ++resolvent_it, ++it) {
+					resolvent_it->set_starting_state(it->amplitude_state);
+					if(resolvent_it->data.name.empty()) resolvent_it->data.name = "amplitude_" + it->name;
+				}
 #ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 #pragma omp parallel for
 #endif
-			for (int i = phase_size(starting_states); i < phase_size(starting_states) + amplitude_size(starting_states); ++i) {
-				auto residual_info = resolvents[i].template compute_with_residuals<n_residuals>(solver_matrix, LANCZOS_ITERATION_NUMBER);
-				for (auto& vj : residual_info.eigenvectors) {
-					if (vj.empty()) continue;
-					Eigen::Map<Vector> vj_eigen(vj.data(), vj.size());
-					Vector buffer = qr.solve(vj_eigen);
-					if constexpr (check_qr) {
-						std::cout << "Error of QR result ||AX - B||=" << (transform_matrix * buffer - vj_eigen).norm() << std::endl;
-					}
-					vj = std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
-				}
-				for (auto& ev :residual_info.eigenvalues) {
-					// The eigenvalue is in z^2
-					ev = sqrt(ev);
-				}
-				residual_infos.emplace_back(std::move(residual_info));
-			} }
-
+				for (int i = phase_size(starting_states); i < phase_size(starting_states) + amplitude_size(starting_states); ++i) {
+					residual_infos.emplace_back(set_residual_data(resolvents[i], n_lanczos_iterations, solver_matrix, qr, transform_matrix));
+				} 
+			}
 			print_duration("Time for resolvents: ");
 
 			return_data.first.reserve(resolvents.size());
@@ -367,6 +498,11 @@ namespace mrock::utility::Numerics::iEoM {
 			return return_data;
 		};
 
+		/*
+		* Performs a full diagonalization of the dynamic matrices.
+		* Saves the first <n_residuals> eigenvectors, all eigenvalues and the weights for each starting state.
+		* Returns a pair of FullDiagData objects, the first for the phase states, the second for the amplitude states.
+		*/
 		template<int CheckHermitian = -1>
 		std::pair<FullDiagData, FullDiagData> full_diagonalization() {
 			auto k_solutions = this->diagonalize_K_matrices<CheckHermitian>();
@@ -375,75 +511,30 @@ namespace mrock::utility::Numerics::iEoM {
 			Eigen::SelfAdjointEigenSolver<Matrix> solver;
 			std::pair<FullDiagData, FullDiagData> return_data;
 
-			FullDiagData& phase_data = return_data.first;
 			compute_solver_matrix<0, 1>(k_solutions, solver_matrix, transform_matrix);
-
 			set_begin();
 			solver.compute(solver_matrix);
 			print_duration("Time for first ED: ");
-
-			{ TransformQR qr(transform_matrix); // Curly braces to free memory after usage
-			print_duration("Time for first QR decomp: ");
-			size_t n_zero = 0;
-			while (n_zero < solver.eigenvalues().size() && std::abs(solver.eigenvalues()(n_zero)) < _internal._precision) {
-				++n_zero;
+			{ // Curly braces to free memory after usage
+				TransformQR qr(transform_matrix); 
+				print_duration("Time for first QR decomp: ");
+				const size_t n_zero = get_number_of_zero_eigenvalues(solver);
+				const size_t n_non_zero = solver.eigenvalues().size() - n_zero;
+				return_data.first = set_full_diag_data<const_phase_it>(solver, qr, n_zero, n_non_zero, transform_matrix); 
 			}
-			const size_t n_non_zero = solver.eigenvalues().size() - n_zero;
 
-			for (phase_it it = phase_it::begin(starting_states); it != phase_it::end(starting_states); ++it) {
-				for (size_t i = 0; i < n_residuals; ++i){
-					Vector buffer = qr.solve(solver.eigenvectors().col(i + n_zero));
-					if constexpr (check_qr) {
-						std::cout << "Error of QR result ||AX - B||=" << (transform_matrix * buffer - solver.eigenvectors().col(i + n_zero)).norm() << std::endl;
-					}
-					phase_data.first_eigenvectors[i] = std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
-				}
-				phase_data.eigenvalues = std::vector<RealType>(solver.eigenvalues().data() + n_zero, solver.eigenvalues().data() + solver.eigenvalues().size());
-				for (auto& ev : phase_data.eigenvalues) {
-					ev = sqrt(ev);
-				}
-				phase_data.weights.emplace_back(std::vector<RealType>(n_non_zero, RealType{}));
-				Eigen::Map<Vector> weight_map(phase_data.weights.back().data(), n_non_zero);
-				// phase_state is already transformed; this line computes 
-				// sum_j <u_j| transform_matrix | original_phase_state> = sum_j <u_j | N^{-1/2} L | original_phase_state>
-				weight_map = solver.eigenvectors().rightCols(n_non_zero).adjoint() * it->phase_state;
-				weight_map = weight_map.array().square();
-			} }
-
-			FullDiagData& amplitude_data = return_data.second;
 			compute_solver_matrix<1, 0>(k_solutions, solver_matrix, transform_matrix);
-
 			set_begin();
 			solver.compute(solver_matrix);
 			print_duration("Time for second ED: ");
+			{ // Curly braces to free memory after usage
+				TransformQR qr(transform_matrix); 
+				const size_t n_zero = get_number_of_zero_eigenvalues(solver);
+				const size_t n_non_zero = solver.eigenvalues().size() - n_zero;
 
-			{ TransformQR qr(transform_matrix); // Curly braces to free memory after usage
-			size_t n_zero = 0;
-			while (n_zero < solver.eigenvalues().size() && std::abs(solver.eigenvalues()(n_zero)) < _internal._precision) {
-				++n_zero;
+				print_duration("Time for second QR decomp: ");
+				return_data.second = set_full_diag_data<const_amplitude_it>(solver, qr, n_zero, n_non_zero, transform_matrix);
 			}
-			const size_t n_non_zero = solver.eigenvalues().size() - n_zero;
-
-			print_duration("Time for second QR decomp: ");
-			for (amplitude_it it = amplitude_it::begin(starting_states); it != amplitude_it::end(starting_states); ++it) {
-				for (size_t i = 0U; i < n_residuals; ++i){
-					Vector buffer = qr.solve(solver.eigenvectors().col(i + n_zero));
-					if constexpr (check_qr) {
-						std::cout << "Error of QR result ||AX - B||=" << (transform_matrix * buffer - solver.eigenvectors().col(i + n_zero)).norm() << std::endl;
-					}
-					amplitude_data.first_eigenvectors[i] = std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
-				}
-				amplitude_data.eigenvalues = std::vector<RealType>(solver.eigenvalues().data() + n_zero, solver.eigenvalues().data() + solver.eigenvalues().size());
-				for (auto& ev : amplitude_data.eigenvalues) {
-					ev = sqrt(ev);
-				}
-				amplitude_data.weights.emplace_back(std::vector<RealType>(n_non_zero, RealType{}));
-				Eigen::Map<Vector> weight_map(amplitude_data.weights.back().data(), n_non_zero);
-				// amplitude_state is already transformed; this line computes 
-				// sum_j <u_j| transform_matrix | original_amplitude_state> = sum_j <u_j | N^{-1/2} L | original_amplitude_state>
-				weight_map = solver.eigenvectors().rightCols(n_non_zero).adjoint() * it->amplitude_state;
-				weight_map = weight_map.array().square();
-			} }
 
 			return return_data;
 		}
