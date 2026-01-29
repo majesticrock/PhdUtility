@@ -520,7 +520,15 @@ namespace mrock::utility::Numerics::iEoM {
 				print_duration("Time for first QR decomp: ");
 				const size_t n_zero = get_number_of_zero_eigenvalues(solver);
 				const size_t n_non_zero = solver.eigenvalues().size() - n_zero;
-				return_data.first = set_full_diag_data<const_phase_it>(solver, qr, n_zero, n_non_zero, transform_matrix); 
+				return_data.first = set_full_diag_data<const_phase_it>(solver, qr, n_zero, n_non_zero, transform_matrix);
+				if constexpr (check_qr) {
+					for (size_t i = 0U; i < n_residuals; ++i) {
+						Eigen::Map<Vector> _eigen(return_data.first.first_eigenvectors[i].data(), return_data.first.first_eigenvectors[i].size());
+						const auto reconstructed = transform_matrix * _eigen;
+						std::cout << "|solve_matrix * reconstructed eigenvector - eigenvalue * reconstructed eigenvector| = " 
+							<< (solver_matrix * reconstructed - return_data.first.eigenvalues[i] * return_data.first.eigenvalues[i] * reconstructed).norm() << std::endl;
+					}
+				}
 			}
 
 			compute_solver_matrix<1, 0>(k_solutions, solver_matrix, transform_matrix);
@@ -534,6 +542,14 @@ namespace mrock::utility::Numerics::iEoM {
 
 				print_duration("Time for second QR decomp: ");
 				return_data.second = set_full_diag_data<const_amplitude_it>(solver, qr, n_zero, n_non_zero, transform_matrix);
+				if constexpr (check_qr) {
+					for (size_t i = 0U; i < n_residuals; ++i) {
+						Eigen::Map<Vector> _eigen(return_data.second.first_eigenvectors[i].data(), return_data.second.first_eigenvectors[i].size());
+						const auto reconstructed = transform_matrix * _eigen;
+						std::cout << "|solve_matrix * reconstructed eigenvector - eigenvalue * reconstructed eigenvector| = " 
+							<< (solver_matrix * reconstructed - return_data.second.eigenvalues[i] * return_data.second.eigenvalues[i] * reconstructed).norm() << std::endl;
+					}
+				}
 			}
 
 			return return_data;
