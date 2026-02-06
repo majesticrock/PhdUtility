@@ -7,6 +7,8 @@
 #include <list>
 #include <limits>
 #include <boost/math/tools/roots.hpp>
+#include <boost/math/tools/minima.hpp>
+#include <boost/math/constants/constants.hpp>
 #include <iostream>
 
 #define MROCK_CF_INIT(result_dims) py::buffer_info buf_x = x.request(); \
@@ -103,6 +105,18 @@ namespace detail {
         return ret;
     }
 
+    inline double single_imaginary_part(ContinuedFractionData const& data, const std::complex<double>& x_squared)
+    {
+        const double p{ x_squared.real() - data.a_infinity };
+        const double terminator_value = data.with_terminator ? (p + sqrt(p * p - 4. * data.b_infinity_squared)) / (2. * data.b_infinity_squared) : double{};
+
+        std::complex<double> ret = x_squared - data.A_ptr[data.termination_index] - data.b_infinity_squared * terminator_value;
+        for (int k = data.termination_index - 1; k >= 0; --k) {
+            ret = x_squared - data.A_ptr[k] - data.B_ptr[k+1] / ret;
+        }
+        return (1. / ret).imag();
+    }
+
     inline void raw_denominator(ContinuedFractionData const& data, 
         const std::complex<double>* __restrict ptr_x, const std::complex<double>* __restrict ptr_terminator, 
         std::complex<double>* __restrict ptr_result, const size_t n_x)
@@ -127,7 +141,7 @@ py_array_cmplx terminator(const py_array_double& x, ContinuedFractionData const&
     const double* xptr = static_cast<const double*>(xbuf.ptr);
     auto* rptr = static_cast<std::complex<double>*>(rbuf.ptr);
 
-    for (size_t i = 0; i < n; ++i) {
+    for (int i = 0; i < n; ++i) {
         rptr[i] = detail::terminator_impl(xptr[i], data);
     }
 
@@ -186,24 +200,32 @@ py_array_cmplx continued_fraction_varied_depth(const py_array_cmplx& x,
 
 // Does not really work for Goldstone peaks
 std::list<std::pair<double, double>> classify_bound_states(ContinuedFractionData const& data, const size_t n_scan, 
-    const double weight_domega, const int root_tol_bits, const std::uintmax_t max_iter)
+    const double weight_domega, int root_tol_bits, const std::uintmax_t max_iter)
 {
+    if (root_tol_bits > 26) root_tol_bits = 26;
+    // Yields better results. I guess because boost ignores root_tol_bits > 26 for doubles...
+    // They say it cannot be done better than that, but apparently it can
+    constexpr double BOOST_SHIFT = 1;
+    constexpr double EPS = 1e-6;
+
     const double root_tol = std::max(ldexp(1.0, 1-root_tol_bits), 4 * std::numeric_limits<double>::epsilon());
-    const double dz = (data.getRoot(0) - weight_domega - root_tol) / n_scan;
+    const double dz = BOOST_SHIFT * (data.getRoot(0) - weight_domega - root_tol) / n_scan;
     // saves the pairs {peak position, weight}
     std::list<std::pair<double, double>> results;
     if (dz <= double{}) {
         return results;
     }
 
-    double z_sqr{};
-
     auto denom = [&data](double z) -> double {
         return detail::subgap_real_denominator(data, z);
     };
 
-    double fa = denom(z_sqr);
-    double fb;
+    std::complex<double> z_sqr = {double{}, EPS};
+    auto minimize_function = [&data, &z_sqr, EPS](double z) -> double {
+        z_sqr.real(z);
+        double f = detail::single_imaginary_part(data, z_sqr);
+        return std::atan(f);
+    };
 
     auto set_coefficient_of_pole = [&]() {
         // The spectral weight of the bound state is its residue
@@ -227,27 +249,44 @@ std::list<std::pair<double, double>> classify_bound_states(ContinuedFractionData
         }
     };
     
-    for (size_t i = 0U; i < n_scan; ++i) {
-        z_sqr = (i + 1U) * dz;
-        fb = denom(z_sqr);
+    
+    double f_left{minimize_function(double{})};
+    double f_center{minimize_function(dz)};
+    double f_right;
 
-        if (std::abs(fa) < 4 * std::numeric_limits<double>::epsilon()) {
-            // No need for root finding, we are exactly at a root
-            results.emplace_back(std::pair<double, double>{z_sqr - dz, 0.});
-            set_coefficient_of_pole();
-        }
-        else if (std::signbit(fa) != std::signbit(fb) && std::abs(fb) >= 4 * std::numeric_limits<double>::epsilon()) {
-            // Root in interval [z_sqr - dz, z_sqr]
-            std::uintmax_t iter = max_iter;
-            const auto sol = boost::math::tools::toms748_solve(denom, z_sqr - dz, z_sqr, boost::math::tools::eps_tolerance<double>(root_tol_bits), iter);
-            const double test_x0 = 0.5 * (sol.first + sol.second);
-            if (std::abs(denom(test_x0)) < 1e-10) {
-                // The denominator has poles as well at which sign changes may occur
-                results.emplace_back(std::pair<double, double>{sqrt(test_x0), 0.});
+    for (size_t i = 2U; i < n_scan; ++i) {
+        f_right = minimize_function(i * dz);
+        
+        if (f_left > f_center && f_right > f_center) {
+            // There is a minimum somehwere between a and b
+            const auto minimization_result = boost::math::tools::brent_find_minima(minimize_function, (i - 2U) * dz, i * dz, root_tol_bits);
+            
+            double search_range = root_tol;
+            double a{minimization_result.first - search_range};
+            double b{minimization_result.first + search_range};
+            double fa{denom(a)};
+            double fb{denom(b)};
+            
+            while (std::signbit(fa) == std::signbit(fb) && search_range > 1e-12) {
+                search_range /= 10;
+                a = minimization_result.first - search_range;
+                fa = (denom(a));
+            }
+            search_range = root_tol;
+            while (std::signbit(fa) == std::signbit(fb) && search_range > 1e-12) {
+                search_range /= 10;
+                b = minimization_result.first + search_range;
+                fb = (denom(b));
+            }
+            if (search_range > 1e-12) {
+                std::uintmax_t iter = max_iter;
+                const auto root_result = boost::math::tools::toms748_solve(denom, a, b, boost::math::tools::eps_tolerance<double>(root_tol_bits), iter);
+                results.emplace_back(std::pair<double, double>{sqrt(0.5 * (root_result.first + root_result.second)), double{}});
                 set_coefficient_of_pole();
             }
         }
-        fa = fb;
+        f_left = f_center;
+        f_center = f_right;
     }
 
     return results;

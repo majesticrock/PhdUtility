@@ -49,7 +49,7 @@ namespace mrock::utility::Numerics::iEoM {
 		};
 
 		template<int CheckHermitian = -1>
-		std::vector<ResolventDataWrapper<RealType>> compute_collective_modes(unsigned int LANCZOS_ITERATION_NUMBER)
+		std::vector<resolvent_details::ResolventDataWrapper<RealType>> compute_collective_modes(unsigned int LANCZOS_ITERATION_NUMBER)
 		{
 			using __matrix_wrapper__ = blocked_matrix_wrapper<NumberType>;
 			std::chrono::time_point begin = std::chrono::steady_clock::now();
@@ -163,7 +163,7 @@ namespace mrock::utility::Numerics::iEoM {
 			std::cout << "Time for resolventes: "
 				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
 
-			std::vector<ResolventDataWrapper<RealType>> ret;
+			std::vector<resolvent_details::ResolventDataWrapper<RealType>> ret;
 			ret.reserve(resolvents.size());
 			for (const auto& re : resolvents)
 			{
