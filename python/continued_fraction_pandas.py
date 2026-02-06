@@ -96,7 +96,7 @@ class ContinuedFraction:
         return ccf.denominator(w_param, self.__get_cf_data__(name, index, withTerminator))
     
     # Does not really work for Goldstone peaks
-    def classify_bound_states(self, name, index=0, n_scan=20000, weight_domega=1e-8, tolerance_bits=48, max_iter=200, is_phase_peak=None):
+    def classify_bound_states(self, name, index=0, n_scan=1000, weight_domega=1e-8, tolerance_bits=48, max_iter=200, is_phase_peak=None):
         result = ccf.classify_bound_states(self.__get_cf_data__(name, index, withTerminator=True), n_scan, weight_domega, tolerance_bits, max_iter)
         if is_phase_peak is not None:
             result = [ item for item in result if not is_phase_peak(item[0]) ]
