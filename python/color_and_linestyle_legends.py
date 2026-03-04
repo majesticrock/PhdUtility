@@ -17,7 +17,8 @@ def linestyle_labels_dict(labels, ax):
     return linestyle_labels
 
 def color_and_linestyle_legends(ax, color_legend_loc='upper right', linestyle_legend_loc='lower right', linestyle_legend_color='black', 
-                                color_legend_title='', linestyle_legend_title='', color_labels=None, linestyle_labels=None):
+                                color_legend_title='', linestyle_legend_title='', color_labels=None, linestyle_labels=None,
+                                linestyle_labels_kwargs=dict(), color_labels_kwargs=dict()):
     lines = ax.get_lines()
     # Create dictionaries to store unique colors and linestyles
     unique_colors = OrderedDict()
@@ -37,19 +38,35 @@ def color_and_linestyle_legends(ax, color_legend_loc='upper right', linestyle_le
     # Create legends for colors and linestyles with specified locations and default linestyle color
     if color_labels:
         if isinstance(color_labels, dict):
-            color_legend = ax.legend(unique_colors.values(), [color_labels.get(color, '') for color in unique_colors.keys()], title=color_legend_title, loc=color_legend_loc)
+            color_legend = ax.legend(unique_colors.values(), 
+                                     [color_labels.get(color, '') for color in unique_colors.keys()], 
+                                     title=color_legend_title, loc=color_legend_loc,
+                                     **color_labels_kwargs)
         else:
-            color_legend = ax.legend(unique_colors.values(), [color_labels_dict(color_labels, ax).get(color, '') for color in unique_colors.keys()], title=color_legend_title, loc=color_legend_loc)
+            color_legend = ax.legend(unique_colors.values(), 
+                                     [color_labels_dict(color_labels, ax).get(color, '') for color in unique_colors.keys()], 
+                                     title=color_legend_title, loc=color_legend_loc,
+                                     **color_labels_kwargs)
     else:
-        color_legend = ax.legend(unique_colors.values(), unique_colors.keys(), title=color_legend_title, loc=color_legend_loc)
+        color_legend = ax.legend(unique_colors.values(), unique_colors.keys(), 
+                                 title=color_legend_title, loc=color_legend_loc, 
+                                 **color_labels_kwargs)
     
     if linestyle_labels:
         if isinstance(linestyle_labels, dict):
-            linestyle_legend = ax.legend(unique_linestyles.values(), [linestyle_labels.get(linestyle, '') for linestyle in unique_linestyles.keys()], title=linestyle_legend_title, loc=linestyle_legend_loc)
+            linestyle_legend = ax.legend(unique_linestyles.values(), 
+                                         [linestyle_labels.get(linestyle, '') for linestyle in unique_linestyles.keys()], 
+                                         title=linestyle_legend_title, loc=linestyle_legend_loc,
+                                         **linestyle_labels_kwargs)
         else:
-            linestyle_legend = ax.legend(unique_linestyles.values(), [linestyle_labels_dict(linestyle_labels, ax).get(linestyle, '') for linestyle in unique_linestyles.keys()], title=linestyle_legend_title, loc=linestyle_legend_loc)
+            linestyle_legend = ax.legend(unique_linestyles.values(), 
+                                         [linestyle_labels_dict(linestyle_labels, ax).get(linestyle, '') for linestyle in unique_linestyles.keys()], 
+                                         title=linestyle_legend_title, loc=linestyle_legend_loc,
+                                         **linestyle_labels_kwargs)
     else:
-        linestyle_legend = ax.legend(unique_linestyles.values(), unique_linestyles.keys(), title=linestyle_legend_title, loc=linestyle_legend_loc)
+        linestyle_legend = ax.legend(unique_linestyles.values(), unique_linestyles.keys(), 
+                                     title=linestyle_legend_title, loc=linestyle_legend_loc,
+                                      **linestyle_labels_kwargs)
 
     # Set the line colors in the linestyle legend
     if hasattr(linestyle_legend, 'legend_handles'):
