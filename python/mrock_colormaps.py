@@ -92,9 +92,9 @@ mrock_orange_r = mrock_orange.reversed()
 # ------------------------------
 # Diverging colormap: Red -> White -> Blue
 # ------------------------------
-def create_diverging_from_existing(red_cmap, blue_cmap, n=256, name="mrock_diverging"):
-    red_colors = red_cmap.colors[::2]
-    blue_colors = blue_cmap.colors[::2]
+def create_diverging_from_existing(first_cmap, second_cmap, name="mrock_diverging", skip_first=1):
+    red_colors = first_cmap.colors[::skip_first]
+    blue_colors = second_cmap.colors
     return ListedColormap(np.vstack([red_colors, blue_colors]), name=name)
 
 mrock_diverging = create_diverging_from_existing(mrock_red_r, mrock_blue)
