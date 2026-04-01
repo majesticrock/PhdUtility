@@ -14,6 +14,11 @@ def perceptual_colormap(rgb_colors, name="custom_lab", n=256):
     rgb = np.clip(rgb, 0, 1)
     return ListedColormap(rgb, name=name)
 
+def create_diverging_from_existing(first_cmap, second_cmap, name="mrock_diverging", skip_first=1):
+    red_colors = first_cmap.colors[::skip_first]
+    blue_colors = second_cmap.colors
+    return ListedColormap(np.vstack([red_colors, blue_colors]), name=name)
+
 # ------------------------------
 # Define base colormaps
 # ------------------------------
@@ -89,14 +94,6 @@ mrock_green_r = mrock_green.reversed()
 mrock_purple_r = mrock_purple.reversed()
 mrock_orange_r = mrock_orange.reversed()
 
-# ------------------------------
-# Diverging colormap: Red -> White -> Blue
-# ------------------------------
-def create_diverging_from_existing(first_cmap, second_cmap, name="mrock_diverging", skip_first=1):
-    red_colors = first_cmap.colors[::skip_first]
-    blue_colors = second_cmap.colors
-    return ListedColormap(np.vstack([red_colors, blue_colors]), name=name)
-
 mrock_diverging = create_diverging_from_existing(mrock_red_r, mrock_blue)
 mrock_diverging_r = mrock_diverging.reversed()
 
@@ -108,6 +105,22 @@ mrock_tu_diverging_r = mrock_tu_diverging.reversed()
 
 mrock_tu_dark_diverging = create_diverging_from_existing(mrock_purple, mrock_green_r)
 mrock_tu_dark_diverging_r = mrock_tu_dark_diverging.reversed()
+
+mrock_diverging_low_center = create_diverging_from_existing(
+    perceptual_colormap([
+        (1, 1, 1),
+        (0x00 / 255, 0xb4 / 255, 0xbd / 255),
+        (0x00 / 255, 0x46 / 255, 0xb5 / 255), 
+        (0,0,0)
+    ]), 
+    perceptual_colormap([
+        (0,0,0),
+        (100 / 255, 0 / 255, 55 / 255),
+        (193 / 255, 0 / 255, 0 / 255),
+        (213 / 255, 123 / 255, 0 / 255),
+        (236 / 255, 195 / 255, 0 / 255),
+    ]), skip_first=2)
+mrock_diverging_low_center_r = mrock_diverging_low_center.reversed()
 
 # ------------------------------
 # Quick test plot
