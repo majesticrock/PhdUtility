@@ -23,13 +23,14 @@ def create_diverging_from_existing(first_cmap, second_cmap, name="mrock_divergin
 # Define base colormaps
 # ------------------------------
 
+
 # Red colormap
 mrock_red = perceptual_colormap(
     [
         (1, 1, 1),       # white
-        (1.0, 0.65, 0.1),# slightly warmer orange
-        (1.0, 0.2, 0.0), # scarlet
-        (0.55, 0.0, 0.0),# dark red
+        cs.cspace_convert((75, 100, 80), "CIELCh", "sRGB1"),# slightly warmer orange
+        cs.cspace_convert((50, 100, 45), "CIELCh", "sRGB1"), # scarlet
+        cs.cspace_convert((25, 100, 10), "CIELCh", "sRGB1"),# dark red
         (0, 0, 0)        # black
     ],
     name="mrock_red"
@@ -39,9 +40,9 @@ mrock_red = perceptual_colormap(
 mrock_blue = perceptual_colormap(
     [
         (1, 1, 1),       # white
-        (0.35, 0.75, 1.0), # light cyan
-        (0.15, 0.45, 0.85),  # true blue
-        (0.05, 0.1, 0.7),  # rich dark blue
+        cs.cspace_convert((75, 100, 200), "CIELCh", "sRGB1"), # light cyan
+        cs.cspace_convert((50, 100, 250), "CIELCh", "sRGB1"),   # true blue
+        cs.cspace_convert((25, 100, 300), "CIELCh", "sRGB1"), # rich dark blue
         (0, 0, 0)          # black
     ],
     name="mrock_blue"
@@ -49,39 +50,24 @@ mrock_blue = perceptual_colormap(
 
 mrock_green = perceptual_colormap(
     [
-        (1.0, 1.0, 1.0),         # white
-        (0.9, 0.97, 0.55),       # pale yellow-green
-        (0.70, 0.88, 0.10),      # vivid yellow-green (lighter than #84b819)
-        (0.25, 0.70, 0.15),      # bright true green
-        (0.0, 0.50, 0.35),       # deep turquoise-green (cooler)
-        (0.0, 0.25, 0.2),        # dark teal/forest
-        (0.0, 0.0, 0.0)          # black
+        (1, 1, 1),       # white
+        cs.cspace_convert((75, 100, 110), "CIELCh", "sRGB1"), 
+        cs.cspace_convert((50, 100, 150), "CIELCh", "sRGB1"), 
+        cs.cspace_convert((25, 100, 190), "CIELCh", "sRGB1"), 
+        (0, 0, 0)          # black
     ],
     name="mrock_green"
 )
 
 mrock_purple = perceptual_colormap(
     [
-        (1.0, 1.0, 1.0),        # white
-        (0.95, 0.80, 1.0),      # light lavender
-        (0.75, 0.45, 0.95),     # bright magenta-violet
-        (0.45, 0.15, 0.80),     # vivid purple (#4D19B8 region)
-        (0.25, 0.05, 0.55),     # indigo-purple
-        (0.08, 0.0, 0.25),      # deep blue-violet (almost black)
-        (0.0, 0.0, 0.0)         # black
+        (1, 1, 1),       # white
+        cs.cspace_convert((75, 100, 305), "CIELCh", "sRGB1"),
+        cs.cspace_convert((50, 100, 330), "CIELCh", "sRGB1"), 
+        cs.cspace_convert((25, 100, 355), "CIELCh", "sRGB1"), 
+        (0, 0, 0)          # black
     ],
     name="mrock_purple"
-)
-
-mrock_orange = perceptual_colormap(
-    [
-        (1.0, 1.0, 1.0),       # white
-        (1.0, 0.85, 0.55),     # pale orange-yellow
-        (1.0, 0.5, 0.06),      # #ff7f0e bright orange
-        (0.45, 0.2, 0.0),      # dark burnt orange
-        (0.0, 0.0, 0.0)        # black
-    ],
-    name="mrock_orange"
 )
 
 
@@ -92,7 +78,6 @@ mrock_red_r = mrock_red.reversed()
 mrock_blue_r = mrock_blue.reversed()
 mrock_green_r = mrock_green.reversed()
 mrock_purple_r = mrock_purple.reversed()
-mrock_orange_r = mrock_orange.reversed()
 
 mrock_diverging = create_diverging_from_existing(mrock_red_r, mrock_blue)
 mrock_diverging_r = mrock_diverging.reversed()
@@ -100,25 +85,19 @@ mrock_diverging_r = mrock_diverging.reversed()
 mrock_dark_diverging = create_diverging_from_existing(mrock_red, mrock_blue_r)
 mrock_dark_diverging_r = mrock_dark_diverging.reversed()
 
-mrock_tu_diverging = create_diverging_from_existing(mrock_purple_r, mrock_green)
-mrock_tu_diverging_r = mrock_tu_diverging.reversed()
-
-mrock_tu_dark_diverging = create_diverging_from_existing(mrock_purple, mrock_green_r)
-mrock_tu_dark_diverging_r = mrock_tu_dark_diverging.reversed()
-
 mrock_diverging_low_center = create_diverging_from_existing(
     perceptual_colormap([
         (1, 1, 1),
-        (0x00 / 255, 0xb4 / 255, 0xbd / 255),
-        (0x00 / 255, 0x46 / 255, 0xb5 / 255), 
+        cs.cspace_convert((66.66, 100, 200), "CIELCh", "sRGB1"),
+        cs.cspace_convert((33.33, 100, 260), "CIELCh", "sRGB1"), 
         (0,0,0)
     ]), 
     perceptual_colormap([
         (0,0,0),
-        (100 / 255, 0 / 255, 55 / 255),
-        (193 / 255, 0 / 255, 0 / 255),
-        (213 / 255, 123 / 255, 0 / 255),
-        (236 / 255, 195 / 255, 0 / 255),
+        cs.cspace_convert((22, 100, 350), "CIELCh", "sRGB1"),
+        cs.cspace_convert((44, 100, 22), "CIELCh", "sRGB1"),
+        cs.cspace_convert((66, 100, 54), "CIELCh", "sRGB1"),
+        cs.cspace_convert((88, 100, 86), "CIELCh", "sRGB1"),
     ]), skip_first=2)
 mrock_diverging_low_center_r = mrock_diverging_low_center.reversed()
 
@@ -130,43 +109,22 @@ if __name__ == "__main__":
     gradient = np.linspace(0, 1, 256)
     gradient = np.vstack([gradient, gradient])
     
-    fig, axes = plt.subplots(9, 1, figsize=(8,8))
+    cmaps = [ 
+             ("mrock_red", mrock_red),
+             ("mrock_blue", mrock_blue),
+             ("mrock_diverging", mrock_diverging),
+             ("mrock_dark_diverging", mrock_dark_diverging),
+             ("mrock_green", mrock_green),
+             ("mrock_purple", mrock_purple),
+             ("mrock_diverging_low_center", mrock_diverging_low_center),
+        ]
     
-    axes[0].imshow(gradient, aspect='auto', cmap=mrock_red)
-    axes[0].set_title("mrock_red")
-    axes[0].axis("off")
+    fig, axes = plt.subplots(len(cmaps), 1, figsize=(8,8))
     
-    axes[1].imshow(gradient, aspect='auto', cmap=mrock_blue)
-    axes[1].set_title("mrock_blue")
-    axes[1].axis("off")
-     
-    axes[2].imshow(gradient, aspect='auto', cmap=mrock_diverging)
-    axes[2].set_title("mrock_diverging")
-    axes[2].axis("off")
+    for ax, cmap in zip(axes, cmaps):
+        ax.imshow(gradient, aspect='auto', cmap=cmap[1])
+        ax.set_title(cmap[0])
+        ax.axis("off")
 
-    axes[3].imshow(gradient, aspect='auto', cmap=mrock_dark_diverging)
-    axes[3].set_title("mrock_dark_diverging")
-    axes[3].axis("off")
-    
-    axes[4].imshow(gradient, aspect='auto', cmap=mrock_green)
-    axes[4].set_title("mrock_green")
-    axes[4].axis("off")
-    
-    axes[5].imshow(gradient, aspect='auto', cmap=mrock_purple)
-    axes[5].set_title("mrock_purple")
-    axes[5].axis("off")
-    
-    axes[6].imshow(gradient, aspect='auto', cmap=mrock_orange)
-    axes[6].set_title("mrock_orange")
-    axes[6].axis("off")
-    
-    axes[7].imshow(gradient, aspect='auto', cmap=mrock_tu_diverging)
-    axes[7].set_title("mrock_tu_diverging")
-    axes[7].axis("off")
-
-    axes[8].imshow(gradient, aspect='auto', cmap=mrock_tu_dark_diverging)
-    axes[8].set_title("mrock_tu_dark_diverging")
-    axes[8].axis("off")
-    
     plt.tight_layout()
     plt.show()
