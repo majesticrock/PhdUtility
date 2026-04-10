@@ -14,6 +14,37 @@ def perceptual_colormap(rgb_colors, name="custom_lab", n=256):
     rgb = np.clip(rgb, 0, 1)
     return ListedColormap(rgb, name=name)
 
+def colormap_dL_dh(begin, dL, dh, name="dLdh", n=256, fade_to_white=16, fade_to_black=16, chroma_curve=None):
+    if chroma_curve is None:
+        colors = [ np.array([begin[0] + t * dL, begin[1], begin[2] + t * dh]) 
+                    for t in np.linspace(0, 1, n - fade_to_white - fade_to_black)]
+    else:
+        colors = [ np.array([begin[0] + t * dL, begin[1] * chroma, begin[2] + t * dh]) 
+                    for t, chroma in zip(np.linspace(0, 1, n - fade_to_white - fade_to_black), chroma_curve)]
+    if fade_to_white > 0:
+        lab_white = np.array([100, 0, colors[-1][2] + dh * fade_to_white / n])
+        transition_colors = np.array([np.interp(
+                np.linspace(0, 1, fade_to_white),
+                np.array([0., 1.]),
+                np.array([colors[-1][i], lab_white[i]]))
+            for i in range(3)]).T
+        colors.extend(transition_colors)
+        
+    if fade_to_black > 0:
+        lab_black = np.array([0, 0, colors[0][2] - dh * fade_to_black / n])
+        transition_colors = np.array([np.interp(
+                np.linspace(0, 1, fade_to_black),
+                np.array([0., 1.]),
+                np.array([colors[0][i], lab_black[i]]))
+             for i in range(3)]).T
+        colors.reverse()
+        colors.extend(transition_colors)
+        colors.reverse()
+        
+    rgb = cs.cspace_convert(colors, "CIELCh", "sRGB1")
+    rgb = np.clip(rgb, 0, 1)
+    return ListedColormap(rgb, name=name)
+
 def create_diverging_from_existing(first_cmap, second_cmap, name="mrock_diverging", skip_first=1):
     red_colors = first_cmap.colors[::skip_first]
     blue_colors = second_cmap.colors
