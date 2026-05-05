@@ -45,7 +45,7 @@ def colormap_dL_dh(begin, dL, dh, name="dLdh", n=256, fade_to_white=16, fade_to_
     rgb = np.clip(rgb, 0, 1)
     return ListedColormap(rgb, name=name)
 
-def create_diverging_from_existing(first_cmap, second_cmap, name="mrock_diverging", skip_first=1):
+def create_diverging_from_existing(first_cmap, second_cmap, name="diverging", skip_first=1):
     red_colors = first_cmap.colors[::skip_first]
     blue_colors = second_cmap.colors
     return ListedColormap(np.vstack([red_colors, blue_colors]), name=name)
@@ -56,37 +56,37 @@ def create_diverging_from_existing(first_cmap, second_cmap, name="mrock_divergin
 
 
 # Red colormap
-mrock_red = perceptual_colormap(
+red = perceptual_colormap(
     [
         (1, 1, 1),       # white
-        cs.cspace_convert((75, 80, 80), "CIELCh", "sRGB1"),# slightly warmer orange
-        cs.cspace_convert((50, 100, 45), "CIELCh", "sRGB1"), # scarlet
-        cs.cspace_convert((25, 80, 10), "CIELCh", "sRGB1"),# dark red
+        cs.cspace_convert((75, 78, 80), "CIELCh", "sRGB1"),# slightly warmer orange
+        cs.cspace_convert((50, 89, 45), "CIELCh", "sRGB1"), # scarlet
+        cs.cspace_convert((25, 48, 10), "CIELCh", "sRGB1"),# dark red
         (0, 0, 0)        # black
     ],
-    name="mrock_red"
+    name="red"
 )
 
 # Blue colormap
-mrock_blue = perceptual_colormap(
+blue = perceptual_colormap(
     [
         (1, 1, 1),       # white
-        cs.cspace_convert((75, 70, 200), "CIELCh", "sRGB1"), # light cyan
-        cs.cspace_convert((50, 80, 250), "CIELCh", "sRGB1"),   # true blue
-        cs.cspace_convert((25, 90, 300), "CIELCh", "sRGB1"), # rich dark blue
+        cs.cspace_convert((75, 44, 200), "CIELCh", "sRGB1"), # light cyan
+        cs.cspace_convert((50, 40, 250), "CIELCh", "sRGB1"),   # true blue
+        cs.cspace_convert((25, 108, 300), "CIELCh", "sRGB1"), # rich dark blue
         (0, 0, 0)          # black
     ],
-    name="mrock_blue"
+    name="blue"
 )
 
-mrock_green = perceptual_colormap([
+green = perceptual_colormap([
         (1, 1, 1),
-        cs.cspace_convert((75, 80, 120), "CIELCh", "sRGB1"),
-        cs.cspace_convert((50, 90, 170), "CIELCh", "sRGB1"), 
-        cs.cspace_convert((25, 80, 220), "CIELCh", "sRGB1"), 
+        cs.cspace_convert((75, 83, 120), "CIELCh", "sRGB1"),
+        cs.cspace_convert((50, 38, 170), "CIELCh", "sRGB1"), 
+        cs.cspace_convert((25, 20, 220), "CIELCh", "sRGB1"), 
         (0,0,0)
     ],
-    name="mrock_green"
+    name="green"
 )
 
 
@@ -94,37 +94,48 @@ mrock_green = perceptual_colormap([
 # ------------------------------
 # Reverse versions
 # ------------------------------
-mrock_red_r = mrock_red.reversed()
-mrock_blue_r = mrock_blue.reversed()
-mrock_green_r = mrock_green.reversed()
+red_r = red.reversed()
+blue_r = blue.reversed()
+green_r = green.reversed()
 
-mrock_diverging = create_diverging_from_existing(mrock_red_r, mrock_blue)
-mrock_diverging_r = mrock_diverging.reversed()
+diverging = create_diverging_from_existing(red_r, blue)
+diverging_r = diverging.reversed()
 
-mrock_dark_diverging = create_diverging_from_existing(mrock_red, mrock_blue_r)
-mrock_dark_diverging_r = mrock_dark_diverging.reversed()
+dark_diverging = create_diverging_from_existing(red, blue_r)
+dark_diverging_r = dark_diverging.reversed()
 
-mrock_diverging_low_center = create_diverging_from_existing(
-    mrock_blue, 
+diverging_low_center = create_diverging_from_existing(
+    blue, 
     perceptual_colormap([
         (0,0,0),
-        cs.cspace_convert((22, 100, 350), "CIELCh", "sRGB1"),
-        cs.cspace_convert((44, 100, 22), "CIELCh", "sRGB1"),
-        cs.cspace_convert((66, 100, 54), "CIELCh", "sRGB1"),
-        cs.cspace_convert((88, 100, 86), "CIELCh", "sRGB1"),
+        cs.cspace_convert((22, 45, 350), "CIELCh", "sRGB1"),
+        cs.cspace_convert((44, 74, 22), "CIELCh", "sRGB1"),
+        cs.cspace_convert((66, 85, 54), "CIELCh", "sRGB1"),
+        cs.cspace_convert((88, 63, 86), "CIELCh", "sRGB1"),
     ], n=256), skip_first=2)
-mrock_diverging_low_center_r = mrock_diverging_low_center.reversed()
+diverging_low_center_r = diverging_low_center.reversed()
 
-mrock_diverging_low_center_green = create_diverging_from_existing(
-    mrock_green, 
+diverging_low_center_green = create_diverging_from_existing(
+    green, 
     perceptual_colormap([
         (0,0,0),
-        cs.cspace_convert((25, 80, 350), "CIELCh", "sRGB1"),
-        cs.cspace_convert((50, 75, 22), "CIELCh", "sRGB1"),
-        cs.cspace_convert((75, 75, 54), "CIELCh", "sRGB1"),
-        cs.cspace_convert((100, 60, 86), "CIELCh", "sRGB1"),
+        cs.cspace_convert((25, 49, 350), "CIELCh", "sRGB1"),
+        cs.cspace_convert((50, 82, 22), "CIELCh", "sRGB1"),
+        cs.cspace_convert((75, 55, 54), "CIELCh", "sRGB1"),
+        cs.cspace_convert((100, 40, 86), "CIELCh", "sRGB1"),
     ], n=256), skip_first=2)
-mrock_diverging_low_center_green_r = mrock_diverging_low_center.reversed()
+diverging_low_center_green_r = diverging_low_center.reversed()
+
+blackidis = perceptual_colormap([
+        cs.cspace_convert((100, 40, 60), "CIELCh", "sRGB1"),
+        cs.cspace_convert((80, 89, 120), "CIELCh", "sRGB1"),
+        cs.cspace_convert((60, 40, 180), "CIELCh", "sRGB1"),
+        cs.cspace_convert((40, 31, 240), "CIELCh", "sRGB1"), 
+        cs.cspace_convert((20, 80, 300), "CIELCh", "sRGB1"), 
+        (0,0,0)
+    ], n=256)
+blackidis_r = blackidis.reversed()
+
 
 # ------------------------------
 # Quick test plot
@@ -135,13 +146,14 @@ if __name__ == "__main__":
     gradient = np.vstack([gradient, gradient])
     
     cmaps = [ 
-             ("mrock_red", mrock_red),
-             ("mrock_blue", mrock_blue),
-             ("mrock_green", mrock_green),
-             ("mrock_diverging", mrock_diverging),
-             ("mrock_dark_diverging", mrock_dark_diverging),
-             ("mrock_diverging_low_center", mrock_diverging_low_center),
-             ("mrock_diverging_low_center_green", mrock_diverging_low_center_green)
+             ("red", red),
+             ("blue", blue),
+             ("green", green),
+             ("diverging", diverging),
+             ("dark_diverging", dark_diverging),
+             ("diverging_low_center", diverging_low_center),
+             ("diverging_low_center_green", diverging_low_center_green),
+             ("blackidis", blackidis)
         ]
     
     fig, axes = plt.subplots(len(cmaps), 1, figsize=(8,8))
