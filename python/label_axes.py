@@ -1,3 +1,4 @@
+import numpy as np
 import string
 def label_axes(axes, x=0.05, y=0.95, va='top', ha='left', **kwargs):
     """Label axes in a grid of subplots.
@@ -8,7 +9,7 @@ def label_axes(axes, x=0.05, y=0.95, va='top', ha='left', **kwargs):
     If axes is 1D, the default is
     (a) (b) (c) ...
     """
-    
+    axes = np.asarray(axes)
     if len(axes.shape) == 2:
         nrows, ncols = axes.shape
         for i in range(nrows):
