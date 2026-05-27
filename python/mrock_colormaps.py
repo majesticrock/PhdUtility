@@ -136,7 +136,6 @@ blackidis = perceptual_colormap([
     ], n=256)
 blackidis_r = blackidis.reversed()
 
-
 # ------------------------------
 # Quick test plot
 # ------------------------------
