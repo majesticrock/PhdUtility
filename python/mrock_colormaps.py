@@ -136,6 +136,29 @@ blackidis = perceptual_colormap([
     ], n=256)
 blackidis_r = blackidis.reversed()
 
+alt_jet = perceptual_colormap([
+        cs.cspace_convert((15, 36, 11), "CIELCh", "sRGB1"),
+        cs.cspace_convert((27.5, 55, 24.5), "CIELCh", "sRGB1"),
+            
+        cs.cspace_convert((40, 75, 38), "CIELCh", "sRGB1"),
+        cs.cspace_convert((52.5, 80, 51.5), "CIELCh", "sRGB1"),
+            
+        cs.cspace_convert((65, 78, 65), "CIELCh", "sRGB1"),
+        cs.cspace_convert((77.5, 81, 78.5), "CIELCh", "sRGB1"),
+            
+        cs.cspace_convert((90, 87, 92), "CIELCh", "sRGB1"),
+        
+        cs.cspace_convert((78.5, 90, 126), "CIELCh", "sRGB1"),
+        cs.cspace_convert((67, 52, 160), "CIELCh", "sRGB1"),
+        
+        cs.cspace_convert((56.5, 32, 194), "CIELCh", "sRGB1"),
+        cs.cspace_convert((44, 30, 228), "CIELCh", "sRGB1"),
+        
+        cs.cspace_convert((32.5, 36, 262), "CIELCh", "sRGB1"),
+        cs.cspace_convert((21, 80, 296), "CIELCh", "sRGB1"), 
+    ], n=256)
+alt_jet_r = alt_jet.reversed()
+
 # ------------------------------
 # Quick test plot
 # ------------------------------
@@ -152,7 +175,8 @@ if __name__ == "__main__":
              ("dark_diverging", dark_diverging),
              ("diverging_low_center", diverging_low_center),
              ("diverging_low_center_green", diverging_low_center_green),
-             ("blackidis", blackidis)
+             ("blackidis", blackidis),
+             ("alt_jet", alt_jet)
         ]
     
     fig, axes = plt.subplots(len(cmaps), 1, figsize=(8,8))
