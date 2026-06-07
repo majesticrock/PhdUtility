@@ -159,6 +159,23 @@ alt_jet = perceptual_colormap([
     ], n=256)
 alt_jet_r = alt_jet.reversed()
 
+blackidis_white = perceptual_colormap([
+        #cs.cspace_convert((50, 90, 33), "CIELCh", "sRGB1"),
+        #    
+        #cs.cspace_convert((75, 40, 45), "CIELCh", "sRGB1"),   
+        (1,1,1),
+        cs.cspace_convert((90, 65, 90), "CIELCh", "sRGB1"),
+        cs.cspace_convert((80, 85, 120), "CIELCh", "sRGB1"),
+        cs.cspace_convert((70, 67, 150), "CIELCh", "sRGB1"),
+        cs.cspace_convert((60, 40, 180), "CIELCh", "sRGB1"),
+        cs.cspace_convert((50, 31, 210), "CIELCh", "sRGB1"),
+        cs.cspace_convert((40, 31, 240), "CIELCh", "sRGB1"),
+        cs.cspace_convert((30, 40, 270), "CIELCh", "sRGB1"), 
+        cs.cspace_convert((20, 70, 300), "CIELCh", "sRGB1"),
+        cs.cspace_convert((10, 20, 330), "CIELCh", "sRGB1"), 
+        (0,0,0)
+    ], n=256)
+blackidis_white_r = blackidis_white.reversed()
 # ------------------------------
 # Quick test plot
 # ------------------------------
@@ -176,7 +193,8 @@ if __name__ == "__main__":
              ("diverging_low_center", diverging_low_center),
              ("diverging_low_center_green", diverging_low_center_green),
              ("blackidis", blackidis),
-             ("alt_jet", alt_jet)
+             ("alt_jet", alt_jet),
+             ("blackidis_white", blackidis_white)
         ]
     
     fig, axes = plt.subplots(len(cmaps), 1, figsize=(8,8))
