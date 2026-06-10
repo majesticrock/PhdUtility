@@ -7,7 +7,11 @@ def iter_except(seq, n):
         if i != n:
             yield x
 
-def make_panels_touch(fig, axes, touch_x=True, touch_y=True, x_for_constrained=0, y_for_constrained=-1, w_pad=0, h_pad=0, wspace=0, hspace=0):
+def make_panels_touch(fig, axes, 
+                      touch_x=True, touch_y=True, 
+                      x_for_constrained=0, y_for_constrained=-1, 
+                      w_pad=0, h_pad=0, 
+                      wspace=0, hspace=0):
     """
     Adjusts the spacing between subplots in a matplotlib figure so that panels touch each other
     Parameters
