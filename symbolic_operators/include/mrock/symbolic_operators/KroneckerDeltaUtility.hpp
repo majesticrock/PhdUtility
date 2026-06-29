@@ -19,17 +19,26 @@ namespace mrock::symbolic_operators {
 	 */
 	template <mrock::utility::LinearlyCombinable T>
 	void remove_delta_squared(std::vector<KroneckerDelta<T>>& deltas) {
-		
+		for (int i = 0; i < deltas.size(); i++)
+		{
+			for (int j = i + 1; j < deltas.size(); j++)
+			{
+				if (deltas[i] == deltas[j]) {
+					deltas.erase(deltas.begin() + j);
+					--i;
+					break;
+				}
 
-		auto new_end = std::remove_if(deltas.begin(), deltas.end(), [](KroneckerDelta<T> delta) {
-			delta.first -= delta.second;
-			delta.second = T{};
-			if (delta.first == delta.second) return true;
-			delta.first *= -1;
-			return delta.first == delta.second;
-		});
-
-		deltas.erase(new_end, deltas.end());
+				auto delta_buffer = deltas[j];
+				delta_buffer.first *= -1;
+				delta_buffer.second *= -1;
+				if (deltas[i] == delta_buffer) {
+					deltas.erase(deltas.begin() + j);
+					--i;
+					break;
+				}
+			}
+		}
 	}
 
 	template <class T>

@@ -116,29 +116,18 @@ namespace mrock::symbolic_operators {
 
 	bool WickTerm::resolve_momentum_deltas() 
 	{
-		for (auto& delta : delta_momenta)
-		{
-			delta.first -= delta.second;
-			delta.second = Momentum();
-		}
-
-		// Removes delta_{0,Q} and delta_{0,0}
-		for (auto it = delta_momenta.begin(); it != delta_momenta.end(); )
-		{
-			if (it->first.momentum_list.empty() && it->second.momentum_list.empty()) {
-				// 0 = Q can never be achieved
-				if (it->first.add_Q != it->second.add_Q) return false;
-				it = delta_momenta.erase(it);
-			}
-			else {
-				++it;
-			}
-		}
-
 		for (auto delta_it = delta_momenta.begin(); delta_it != delta_momenta.end(); ) {
 			delta_it->first -= delta_it->second;
 			delta_it->second = Momentum();
-			
+
+			if (delta_it->first.momentum_list.empty() && delta_it->second.momentum_list.empty()) {
+				// 0 = Q can never be achieved
+				if (delta_it->first.add_Q != delta_it->second.add_Q) return false;
+				// delta_(0,0) = 1
+				delta_it = delta_momenta.erase(delta_it);
+				continue;
+			}
+
 			MomentumSymbol resolve_to{ *(delta_it->first.begin()) };
 			bool found_sum{};
 
@@ -206,7 +195,7 @@ namespace mrock::symbolic_operators {
 		}
 
 		// Remove delta^2
-		remove_delta_squared(this->delta_indizes);
+		//remove_delta_squared(this->delta_indizes);
 		// Erase delta_k,k etc
 		remove_delta_is_one(this->delta_indizes);
 
@@ -285,7 +274,7 @@ namespace mrock::symbolic_operators {
 		}
 
 		// Remove delta^2
-		remove_delta_squared(this->delta_indizes);
+		//remove_delta_squared(this->delta_indizes);
 		// Erase delta_k,k etc
 		remove_delta_is_one(this->delta_indizes);
 
@@ -431,8 +420,8 @@ namespace mrock::symbolic_operators {
 			}
 		}
 
-		remove_delta_squared(this->delta_indizes);
-		remove_delta_squared(this->delta_momenta);
+		//remove_delta_squared(this->delta_indizes);
+		//remove_delta_squared(this->delta_momenta);
 		// Remove delta^2
 		//for (int i = 0; i < delta_momenta.size(); i++)
 		//{
