@@ -5,31 +5,10 @@
 
 #pragma once
 
-#include "KroneckerDelta.hpp"
-#include "Coefficient.hpp"
-#include "SumContainer.hpp"
-#include <mrock/utility/Fractional.hpp>
+#include "AbstractTerm.hpp"
 #include <algorithm>
-#include <vector>
-
-// Debug option, allows to track an individual term across the entire algorithm
-//#define _TRACK_TERM
-
-#ifdef _TRACK_TERM
-#define _TERM_TRACKER_PARAMETER bool is_tracked = false
-#define _TERM_TRACKER_ATTRIBUTE bool is_tracked{};
-#define IF_IS_TERM_TRACKED(statement) if ( is_tracked ) { statement ; }
-#define CLEAR_TRACKED(terms) for (auto& __term__ : terms) { __term__.is_tracked = false; }
-#else
-#define _TERM_TRACKER_PARAMETER 
-#define _TERM_TRACKER_ATTRIBUTE 
-#define IF_IS_TERM_TRACKED(statement)
-#define CLEAR_TRACKED(terms)
-#endif
 
 namespace mrock::symbolic_operators {
-	using IntFractional = mrock::utility::Fractional<int>;
-
 	/**
 	 * @class Term
 	 * @brief Represents a term in symbolic operator expressions.
@@ -51,7 +30,7 @@ namespace mrock::symbolic_operators {
 	 * \endcode
 	 * After calling the commutator, you should pretty much always call mrock::symbolic_operators::clean_up(std::vector<Term>)
 	 * because commutator performs the normal ordering procedure, however, does not attempt to beautify the result.
-	 * clean_up then sorts the terms, adds identical ones together and removes those that are equal to 0.
+	 * clean_up then sorts the terms, adds identical ones togeFther and removes those that are equal to 0.
 	 * 
 	 * Similarly, a double commutator \f$ [C, [A, B]] \f$ can be evaluated by
 	 * \code
@@ -66,16 +45,8 @@ namespace mrock::symbolic_operators {
 	 * 
 	 * @sa Coefficient, SumContainer, Operator, KroneckerDelta
 	 */
-	class Term {
+	class Term : public AbstractTerm<Operator> {
 	public:
-		std::vector<Coefficient> coefficients; ///< Coefficients of the term.
-		SumContainer sums; ///< Sum container for the term. Contains e.g. \sum_{k,l} \sum_{sigma}
-		std::vector<Operator> operators; ///< Operators in the term, if empty the term is considered to contain the identiy operator
-		std::vector<KroneckerDelta<Momentum>> delta_momenta; ///< Kronecker delta for momenta.
-		std::vector<KroneckerDelta<Index>> delta_indizes; ///< Kronecker delta for indices.
-		IntFractional multiplicity; ///< Multiplicity of the term.
-		_TERM_TRACKER_ATTRIBUTE; ///< Attribute for tracking terms (if enabled).
-
 		/**
 		 * @brief Serializes the term.
 		 * @tparam Archive The archive type.
@@ -91,8 +62,6 @@ namespace mrock::symbolic_operators {
 			ar& delta_indizes;
 			ar& multiplicity;
 		}
-
-		friend struct WickTerm;
 
 		/**
 		 * @brief Constructs a Term with a summation over momenta and spins and multiple coefficients
@@ -173,7 +142,7 @@ namespace mrock::symbolic_operators {
 		 * @param _operators The operators of the term
 		 */
 		Term(IntFractional _multiplicity, const IndexSum& _sum_spins, const std::vector<Operator>& _operators = std::vector<Operator>());
-
+ 
 		/**
 		 * @brief Constructs a Term with only a multiplicity
 		 * 
@@ -181,16 +150,11 @@ namespace mrock::symbolic_operators {
 		 * @param _operators The operators of the term
 		 */
 		explicit Term(IntFractional _multiplicity, const std::vector<Operator>& _operators = std::vector<Operator>());
+		
 		/**
 		 * @brief Default constructor.
 		 */
 		Term() = default;
-
-		/**
-		 * @brief Checks if the term is an identity.
-		 * @return True if the term is an identity, false otherwise.
-		 */
-		inline bool is_identity() const;
 
 		/**
 		 * @brief Checks if the term contains a boson.
@@ -222,11 +186,6 @@ namespace mrock::symbolic_operators {
 		void print() const;
 
 		/**
-		 * @brief Flips the sign of the term.
-		 */
-		inline void flip_sign();
-
-		/**
 		 * @brief Swaps two operators in the term. Does NOT consider possible additional terms spawned by this operation due to non-commutivity!
 		 * @param lhs The first operator.
 		 * @param rhs The second operator.
@@ -234,22 +193,10 @@ namespace mrock::symbolic_operators {
 		inline void perform_operator_swap(Operator& lhs, Operator& rhs);
 
 		/**
-		 * @brief Gets the operators in the term.
-		 * @return The operators.
-		 */
-		inline const std::vector<Operator>& get_operators() const;
-
-		/**
-		 * @brief Sets the Kronecker deltas in the term.
+		 * @brief Resolves the Kronecker deltas in the term ( calls \c resolve_momentum_deltas() and \c resolve_index_deltas() )
 		 * @return True if successful, false otherwise.
 		 */
-		bool set_deltas();
-
-		/**
-		 * @brief Computes the sums in the term.
-		 * @return True if successful, false otherwise.
-		 */
-		bool compute_sums();
+		bool resolve_deltas();
 
 		/**
 		 * @brief Discards zero momenta in the term.
@@ -260,11 +207,6 @@ namespace mrock::symbolic_operators {
 		 * @brief Sorts the term.
 		 */
 		void sort();
-
-		/**
-		 * @brief Renames the sum indices in the term.
-		 */
-		void rename_sums();
 
 		/**
 		 * @brief Checks if the term is equal to another term (excluding multiplicity).
@@ -325,24 +267,6 @@ namespace mrock::symbolic_operators {
 		 * @param new_sum_index The new sum index.
 		 */
 		void transform_momentum_sum(const MomentumSymbol::name_type what, const Momentum to, const MomentumSymbol::name_type new_sum_index);
-
-		/**
-		 * @brief Inverts a momentum in the term.
-		 * @param what The momentum to invert.
-		 */
-		void invert_momentum(const MomentumSymbol::name_type what);
-
-		/**
-		 * @brief Inverts a momentum sum in the term.
-		 * @param what The momentum to invert.
-		 */
-		void invert_momentum_sum(const MomentumSymbol::name_type what);
-
-		/**
-		 * @brief Removes a momentum contribution from the term.
-		 * @param value The momentum to remove.
-		 */
-		void remove_momentum_contribution(const MomentumSymbol::name_type value);
 
 		/**
 		 * @brief Normal orders the terms by using the canoncical (anti-)commutation relations
@@ -469,9 +393,6 @@ namespace mrock::symbolic_operators {
 	std::string to_string_without_prefactor(const std::vector<Term>& terms);
 
 	// Inline definitions
-	bool Term::is_identity() const {
-		return this->operators.empty();
-	}
 	bool Term::contains_boson() const {
 		return std::any_of(operators.begin(), operators.end(), [](Operator const& op) { return (!op.is_fermion); });
 	}
@@ -484,17 +405,11 @@ namespace mrock::symbolic_operators {
 	int Term::count_fermions() const {
 		return std::count_if(operators.begin(), operators.end(), [](Operator const& op) { return op.is_fermion; });
 	}
-	void Term::flip_sign() {
-		this->multiplicity *= -1;
-	}
 	void Term::perform_operator_swap(Operator& lhs, Operator& rhs) {
 		if (lhs.is_fermion && rhs.is_fermion) {
 			this->multiplicity *= -1;
 		}
 		std::swap(lhs, rhs);
-	}
-	const std::vector<Operator>& Term::get_operators() const {
-		return this->operators;
 	}
 
 	// Non-member inlines

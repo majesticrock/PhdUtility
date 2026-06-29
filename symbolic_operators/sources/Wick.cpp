@@ -110,7 +110,7 @@ namespace mrock::symbolic_operators {
 
 		for (auto& w_term : prepared_wick) {
 			mrock::utility::append_if(reciever, identify_wick_operators(w_term, operator_templates), [](const WickTerm& wick) {
-				return !(is_always_zero(wick.delta_indizes) || is_always_zero(wick.delta_momenta));
+				return !(is_always_zero(wick.delta_indizes) || is_always_zero(wick.delta_momenta)) && !wick.is_pauli_forbidden();
 				});
 		}
 	}
@@ -147,23 +147,14 @@ namespace mrock::symbolic_operators {
 			}
 		}
 		for (WickTermCollector::iterator it = terms.begin(); it != terms.end();) {
-			if (!(it->set_deltas())) {
-				it = terms.erase(it);
-				continue;
-			}
-			it->discard_zero_momenta();
-			if (!(it->compute_sums())) {
-				it = terms.erase(it);
-				continue;
-			}
-			if (!(it->set_deltas())) {
+			if (!(it->resolve_deltas())) {
 				it = terms.erase(it);
 				continue;
 			}
 			it->discard_zero_momenta();
 			it->rename_sums();
 			it->sort();
-
+			
 			for (const auto& symmetry : symmetries) {
 				symmetry->apply_to(*it);
 			}
@@ -195,8 +186,9 @@ namespace mrock::symbolic_operators {
 
 				l_is = delta.second.is_used_at('l');
 				if(l_is == -1) {
+					std::cout << "################\n# Broken term\n";
 					std::cout << term << std::endl;
-					throw std::runtime_error("l_is -1, but we need an l!");
+					throw std::runtime_error("There is no l in the delta, but we need an l!");
 				}
 				const Momentum l_mom('l', delta.second.momentum_list[l_is].factor);
 				const Momentum remainder = delta.second - l_mom;

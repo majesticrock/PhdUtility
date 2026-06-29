@@ -1,6 +1,6 @@
 /**
  * @file WickTerm.hpp
- * @brief Defines the WickTerm structure and related functions.
+ * @brief Defines the WickTerm class and related functions.
  */
 
 #pragma once
@@ -8,13 +8,12 @@
 #include "WickOperator.hpp"
 #include "WickOperatorTemplate.hpp"
 #include <algorithm>
-#include <mrock/utility/Fractional.hpp>
 
 namespace mrock::symbolic_operators {
 
 	/**
 	 * @class WickTerm
-	 * @brief A structure representing a Wick term.
+	 * @brief A class representing a term consisting of expectation values, represented via WickOperator objects.
 	 * 
 	 * Prerequisite: The terms you want to apply Wick's theorem on are saved in an \c std::vector<Term>.
 	 * 
@@ -77,7 +76,7 @@ namespace mrock::symbolic_operators {
 	 * 
 	 * @sa WickTermCollector, Coefficient, SumContainer, WickOperator, KroneckerDelta, Momentum, Index, clean_wicks(), wicks_theorem(), TermLoader
 	 */
-	struct WickTerm {
+	class WickTerm : public AbstractTerm<WickOperator> {
 	private:
 		/**
 		 * @brief Parses a string expression to initialize the WickTerm.
@@ -87,15 +86,6 @@ namespace mrock::symbolic_operators {
 		void string_parser(std::string&& expression);
 
 	public:
-		IntFractional multiplicity{}; ///< The multiplicity of the term.
-		std::vector<Coefficient> coefficients; ///< The coefficients of the term.
-		SumContainer sums; ///< The sums in the term.
-		std::vector<WickOperator> operators; ///< The operators in the term.
-
-		// symbolises the Kronecker delta
-		std::vector<KroneckerDelta<Momentum>> delta_momenta; ///< The momentum deltas.
-		std::vector<KroneckerDelta<Index>> delta_indizes; ///< The index deltas.
-
 		/**
 		 * @brief Serializes the WickTerm object.
 		 * 
@@ -176,14 +166,6 @@ namespace mrock::symbolic_operators {
 		inline bool uses_index(const Index index) const noexcept;
 
 		/**
-		 * @brief Checks if the term is an identity term.
-		 * 
-		 * @return true if the term is an identity term.
-		 * @return false otherwise.
-		 */
-		inline bool is_identity() const noexcept;
-
-		/**
 		 * @brief Checks if the term is bilinear.
 		 * 
 		 * @return true if the term is bilinear.
@@ -230,30 +212,21 @@ namespace mrock::symbolic_operators {
 		inline bool handled() const noexcept;
 
 		/**
-		 * @brief Sets the deltas in the term.
-		 * 
-		 * @return true if the deltas were set successfully.
-		 * @return false otherwise.
+		 * @brief Resolves the Kronecker deltas in the term ( calls \c resolve_momentum_deltas() and \c resolve_index_deltas() )
+		 * @return True if successful, false otherwise.
 		 */
-		bool set_deltas();
+		bool resolve_deltas();
 
 		/**
-		 * @brief Computes the sums in the term.
-		 * 
-		 * @return true if the sums were computed successfully.
-		 * @return false otherwise.
+		 * @brief Renames the sums in the term.
 		 */
-		bool compute_sums();
+		void rename_sums();
 
 		/**
 		 * @brief Discards zero momenta in the term.
 		 */
 		void discard_zero_momenta();
 
-		/**
-		 * @brief Renames the sums in the term.
-		 */
-		void rename_sums();
 
 		/**
 		 * @brief Sorts the elements in the term.
@@ -268,26 +241,16 @@ namespace mrock::symbolic_operators {
 		void include_template_result(const TemplateResult::SingleResult& result);
 
 		/**
-		 * @brief Inverts a momentum in the term.
+		 * @brief Checks if the term can be finite.
+		 * Works under the assumption that the initial term was normal order with respect to the vacuum, e.g., c^+ c^+ c c.
+		 * Then, for instance, <n_k> <n_k> cannot be finite because it must have originated from
+		 * c_k^+ c_k^+ c_k c_k, which must be 0 due to the Pauli principle.
+		 * IMPORTANT: This only works if the original term structure was c^+ c^+ c c, since c_k^+ c_k c_k^+ c_k can be finite!
 		 * 
-		 * @param what The momentum to invert.
+		 * @return true if the term is forbidden and false otherwise.
 		 */
-		void invert_momentum(const MomentumSymbol::name_type what);
-
-		/**
-		 * @brief Inverts a momentum sum in the term.
-		 * 
-		 * @param what The momentum sum to invert.
-		 */
-		void invert_momentum_sum(const MomentumSymbol::name_type what);
-
-		/**
-		 * @brief Removes a momentum contribution from the term.
-		 * 
-		 * @param value The momentum value to remove.
-		 */
-		inline void remove_momentum_contribution(const MomentumSymbol::name_type value);
-	};
+		bool is_pauli_forbidden() const;
+	}; // WickTerm
 
 	/**
 	 * @brief Equality operator for WickOperator.
@@ -505,9 +468,6 @@ namespace mrock::symbolic_operators {
 		}
 		return false;
 	}
-	inline bool WickTerm::is_identity() const noexcept {
-		return this->operators.empty();
-	}
 	inline bool WickTerm::is_bilinear() const noexcept {
 		return this->operators.size() == 1U;
 	}
@@ -531,19 +491,6 @@ namespace mrock::symbolic_operators {
 	inline bool WickTerm::handled() const noexcept {
 		if (this->temporary_operators.empty()) return true;
 		return !(this->operators.empty());
-	}
-	inline void WickTerm::remove_momentum_contribution(const MomentumSymbol::name_type value) {
-		for (auto& coeff : coefficients) {
-			coeff.remove_momentum_contribution(value);
-		}
-		for (auto& op : operators) {
-			op.remove_momentum_contribution(value);
-		}
-		for (auto& delta : delta_momenta) {
-			delta.first.remove_contribution(value);
-			delta.second.remove_contribution(value);
-		}
-		std::erase_if(sums.momenta.summations, [&](const MomentumSymbol::name_type sum_idx) { return sum_idx == value; });
 	}
 	inline bool operator==(const WickOperator& lhs, const WickOperator& rhs) {
 		if (lhs.type != rhs.type) return false;

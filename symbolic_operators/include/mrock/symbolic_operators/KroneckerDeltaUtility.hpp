@@ -8,26 +8,46 @@
 #include "Momentum.hpp"
 #include "IndexWrapper.hpp"
 #include <mrock/utility/defines_arithmetic_operators.hpp>
+#include <concepts>
 
 namespace mrock::symbolic_operators {
 
 	/**
 	 * @brief Removes squared KroneckerDelta objects from the vector. Note that delta_{a,b}^N = delta_{a,b}.
+	 * Specialized for types that define + and - operators, i.e., that are linearly combinable.
 	 * 
-	 * @tparam T The type of the elements.
+	 * @tparam T The LinearlyCombinable (defines + and -) type of the elements.
 	 * @param deltas The vector of KroneckerDelta objects.
 	 */
+	template <mrock::utility::LinearlyCombinable T>
+		requires std::default_initializable<T> 
+	void remove_delta_squared(std::vector<KroneckerDelta<T>>& deltas) {
+		for (int i = 0; i < deltas.size(); i++)
+		{
+			for (int j = i + 1; j < deltas.size(); j++)
+			{
+				const T buffer = (deltas[i].first - deltas[i].second) - (deltas[j].first - deltas[j].second);
+				if (buffer == T()) {
+					deltas.erase(deltas.begin() + j);
+					break;
+				}
+			}
+		}
+	}
+
 	template <class T>
 	void remove_delta_squared(std::vector<KroneckerDelta<T>>& deltas) {
-		using predicate_type = std::conditional_t<mrock::utility::is_linearly_combinable_v<T>(), KroneckerDelta<T>, const KroneckerDelta<T>&>;
-		auto new_end = std::remove_if(deltas.begin(), deltas.end(), [](predicate_type delta) {
-			if constexpr (mrock::utility::is_linearly_combinable_v<T>()) {
-				delta.first -= delta.second;
-				delta.second = T{};
+		for (int i = 0; i < deltas.size(); i++)
+		{
+			for (int j = i + 1; j < deltas.size(); j++)
+			{
+				if (deltas[i] == deltas[j]) {
+					deltas.erase(deltas.begin() + j);
+					--i;
+					break;
+				}
 			}
-			return delta.first == delta.second;
-			});
-		deltas.erase(new_end, deltas.end());
+		}
 	}
 
 	/**

@@ -2,6 +2,14 @@
 #include <cassert>
 
 namespace mrock::symbolic_operators {
+	void IndexWrapper::replace_index(Index target, Index replace_with) {
+		for (auto& index : indizes) {
+			if (index == target) {
+				index = replace_with;
+			}
+		}
+	}
+
 	std::ostream& operator<<(std::ostream& os, const Index index)
 	{
 		switch (index)
