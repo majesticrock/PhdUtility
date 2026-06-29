@@ -17,16 +17,27 @@ namespace mrock::symbolic_operators {
 	 * @tparam T The type of the elements.
 	 * @param deltas The vector of KroneckerDelta objects.
 	 */
+	template <mrock::utility::LinearlyCombinable T>
+	void remove_delta_squared(std::vector<KroneckerDelta<T>>& deltas) {
+		
+
+		auto new_end = std::remove_if(deltas.begin(), deltas.end(), [](KroneckerDelta<T> delta) {
+			delta.first -= delta.second;
+			delta.second = T{};
+			if (delta.first == delta.second) return true;
+			delta.first *= -1;
+			return delta.first == delta.second;
+		});
+
+		deltas.erase(new_end, deltas.end());
+	}
+
 	template <class T>
 	void remove_delta_squared(std::vector<KroneckerDelta<T>>& deltas) {
-		using predicate_type = std::conditional_t<mrock::utility::is_linearly_combinable_v<T>(), KroneckerDelta<T>, const KroneckerDelta<T>&>;
-		auto new_end = std::remove_if(deltas.begin(), deltas.end(), [](predicate_type delta) {
-			if constexpr (mrock::utility::is_linearly_combinable_v<T>()) {
-				delta.first -= delta.second;
-				delta.second = T{};
-			}
+		auto new_end = std::remove_if(deltas.begin(), deltas.end(), [](const KroneckerDelta<T>& delta) {
 			return delta.first == delta.second;
-			});
+		});
+
 		deltas.erase(new_end, deltas.end());
 	}
 

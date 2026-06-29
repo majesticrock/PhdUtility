@@ -114,10 +114,188 @@ namespace mrock::symbolic_operators {
 		}
 	}
 
-	bool WickTerm::set_deltas()
+	bool WickTerm::resolve_momentum_deltas() 
 	{
+		for (auto& delta : delta_momenta)
+		{
+			delta.first -= delta.second;
+			delta.second = Momentum();
+		}
+
+		// Removes delta_{0,Q} and delta_{0,0}
+		for (auto it = delta_momenta.begin(); it != delta_momenta.end(); )
+		{
+			if (it->first.momentum_list.empty() && it->second.momentum_list.empty()) {
+				// 0 = Q can never be achieved
+				if (it->first.add_Q != it->second.add_Q) return false;
+				it = delta_momenta.erase(it);
+			}
+			else {
+				++it;
+			}
+		}
+
+		for (auto delta_it = delta_momenta.begin(); delta_it != delta_momenta.end(); ) {
+			delta_it->first -= delta_it->second;
+			delta_it->second = Momentum();
+			
+			MomentumSymbol resolve_to{ *(delta_it->first.begin()) };
+			bool found_sum{};
+
+			for (auto sum_it = sums.momenta.begin(); sum_it != sums.momenta.end(); ++sum_it) {
+				const auto found_it = std::find_if(delta_it->first.begin(), delta_it->first.end(), [&sum_it](const MomentumSymbol& symbol) {
+					return symbol.name == *sum_it;
+				});
+				if ( found_it != delta_it->first.end()) {
+					resolve_to = *found_it;
+					sums.momenta.erase(sum_it);
+					found_sum = true;
+					break;
+				}
+			}
+
+			if (resolve_to.factor > 0) {
+				delta_it->first.flip_momentum();
+			}
+			else {
+				resolve_to.factor *= -1;
+			}
+			delta_it->second = Momentum(resolve_to);
+			delta_it->first += delta_it->second;
+			
+
+			for (MomentumSymbol& symbol : delta_it->first) {
+				assert(symbol.factor % delta_it->second.front().factor == 0);
+				symbol.factor /= delta_it->second.front().factor;
+			}
+
+			for (auto& coeff : coefficients) {
+				coeff.momenta.replace_occurances(delta_it->second.front().name, delta_it->first);
+			}
+			for (auto& op : operators) {
+				op.momentum.replace_occurances(delta_it->second.front().name, delta_it->first);
+			}
+			for (auto delta_it2 = delta_momenta.begin(); delta_it2 != delta_momenta.end(); ++delta_it2) {
+				if (delta_it2 == delta_it) continue;
+				delta_it2->first.replace_occurances(delta_it->second.front().name, delta_it->first);
+				delta_it2->second.replace_occurances(delta_it->second.front().name, delta_it->first);
+			}
+
+			if (found_sum) {
+				delta_it = delta_momenta.erase(delta_it);
+			}
+			else {
+				++delta_it;
+			}
+		}
+
+		// Make sure that delta.first has always exactly one momentum symbol (or delta_{0,0})
+		for (auto& delta : delta_momenta) {
+			if (delta.first.empty() && !delta.second.empty()) {
+				std::swap(delta.first, delta.second);
+			} 
+			if (delta.first.size() > 1U) {
+				const Momentum shift = delta.first - Momentum(delta.first.front());
+				delta.first -= shift;
+				delta.second -= shift;
+			}
+			if (delta.first.front().factor < 0) {
+				delta.first.flip_momentum();
+				delta.second.flip_momentum();
+			}
+		}
+
+		// Remove delta^2
+		remove_delta_squared(this->delta_indizes);
 		// Erase delta_k,k etc
 		remove_delta_is_one(this->delta_indizes);
+
+		return true;
+	}
+
+
+	bool WickTerm::resolve_index_deltas() 
+	{
+		if (is_always_zero(delta_indizes)) return false;
+
+		for (auto delta_it = delta_indizes.begin(); delta_it != delta_indizes.end(); ) {
+			Index to_resolve { Index::UndefinedIndex };
+			Index change_to { Index::UndefinedIndex };
+			bool found_sum{};
+			auto sum_it = std::find_if( sums.spins.begin(), sums.spins.end(), [&delta_it](const Index& idx) {
+				return idx == delta_it->first;
+			});
+			if (sum_it != sums.spins.end()) {
+				to_resolve = delta_it->first;
+				change_to = delta_it->second;
+				found_sum = true;
+			}
+			else {
+				sum_it = std::find_if( sums.spins.begin(), sums.spins.end(), [&delta_it](const Index& idx) {
+					return idx == delta_it->second;
+				});
+				if (sum_it != sums.spins.end()) {
+					to_resolve = delta_it->second;
+					change_to = delta_it->first;
+					found_sum = true;
+				}
+			}
+
+			if (to_resolve == Index::UndefinedIndex) {
+				if (is_mutable(delta_it->first)) {
+					to_resolve = delta_it->first;
+					change_to = delta_it->second;
+				}
+				else if (is_mutable(delta_it->second)) {
+					to_resolve = delta_it->second;
+					change_to = delta_it->first;
+				}
+				else if(delta_it->first != delta_it->second) {
+					// Two differing, immutable indizes can never be equal
+					return false;
+				}
+			}
+
+			if(delta_it->first == delta_it->second) continue;
+
+			for (auto& op : operators) {
+				op.indizes.replace_index(to_resolve, change_to);
+			}
+			for (auto& coeff : coefficients) {
+				coeff.indizes.replace_index(to_resolve, change_to);
+			}
+
+			for (auto delta_it2 = delta_indizes.begin(); delta_it2 != delta_indizes.end(); ++delta_it2) {
+				if (delta_it2 == delta_it) continue;
+				if (delta_it2->first == to_resolve) {
+					delta_it2->first = change_to;
+				}
+				if (delta_it2->second == to_resolve) {
+					delta_it2->second = change_to;
+				}
+			}
+
+			if (found_sum) {
+				sums.spins.erase(sum_it);
+				delta_it = delta_indizes.erase(delta_it);
+			}
+			else {
+				++delta_it;
+			}
+		}
+
+		// Remove delta^2
+		remove_delta_squared(this->delta_indizes);
+		// Erase delta_k,k etc
+		remove_delta_is_one(this->delta_indizes);
+
+		return true;
+	}
+
+
+	bool WickTerm::resolve_deltas()
+	{
+		// Erase delta_k,k etc
 		remove_delta_is_one(this->delta_momenta);
 
 		for (auto& delta : delta_momenta)
@@ -253,40 +431,40 @@ namespace mrock::symbolic_operators {
 			}
 		}
 
-		//remove_delta_squared(this->delta_indizes);
-		//remove_delta_squared(this->delta_momenta);
+		remove_delta_squared(this->delta_indizes);
+		remove_delta_squared(this->delta_momenta);
 		// Remove delta^2
-		for (int i = 0; i < delta_momenta.size(); i++)
-		{
-			for (int j = i + 1; j < delta_momenta.size(); j++)
-			{
-				if (delta_momenta[i] == delta_momenta[j]) {
-					delta_momenta.erase(delta_momenta.begin() + j);
-					--i;
-					break;
-				}
-
-				auto delta_buffer = delta_momenta[j];
-				delta_buffer.first.flip_momentum();
-				delta_buffer.second.flip_momentum();
-				if (delta_momenta[i] == delta_buffer) {
-					delta_momenta.erase(delta_momenta.begin() + j);
-					--i;
-					break;
-				}
-			}
-		}
-		for (int i = 0; i < delta_indizes.size(); i++)
-		{
-			for (int j = i + 1; j < delta_indizes.size(); j++)
-			{
-				if (delta_indizes[i] == delta_indizes[j]) {
-					delta_indizes.erase(delta_indizes.begin() + j);
-					--i;
-					break;
-				}
-			}
-		}
+		//for (int i = 0; i < delta_momenta.size(); i++)
+		//{
+		//	for (int j = i + 1; j < delta_momenta.size(); j++)
+		//	{
+		//		if (delta_momenta[i] == delta_momenta[j]) {
+		//			delta_momenta.erase(delta_momenta.begin() + j);
+		//			--i;
+		//			break;
+		//		}
+//
+		//		auto delta_buffer = delta_momenta[j];
+		//		delta_buffer.first.flip_momentum();
+		//		delta_buffer.second.flip_momentum();
+		//		if (delta_momenta[i] == delta_buffer) {
+		//			delta_momenta.erase(delta_momenta.begin() + j);
+		//			--i;
+		//			break;
+		//		}
+		//	}
+		//}
+		//for (int i = 0; i < delta_indizes.size(); i++)
+		//{
+		//	for (int j = i + 1; j < delta_indizes.size(); j++)
+		//	{
+		//		if (delta_indizes[i] == delta_indizes[j]) {
+		//			delta_indizes.erase(delta_indizes.begin() + j);
+		//			--i;
+		//			break;
+		//		}
+		//	}
+		//}
 
 		// Erase delta_k,k etc
 		remove_delta_is_one(this->delta_indizes);
@@ -370,7 +548,7 @@ namespace mrock::symbolic_operators {
 					sums.momenta.erase(sums.momenta.begin() + i);
 					delta_momenta.erase(delta_momenta.begin() + j);
 					--i;
-					if (!(set_deltas())) return false;
+					if (!(resolve_deltas())) return false;
 					break;
 				}
 				else {
@@ -390,7 +568,7 @@ namespace mrock::symbolic_operators {
 					sums.momenta.erase(sums.momenta.begin() + i);
 					delta_momenta.erase(delta_momenta.begin() + j);
 					--i;
-					if (!(set_deltas())) return false;
+					if (!(resolve_deltas())) return false;
 					break;
 				}
 			}
@@ -604,6 +782,20 @@ namespace mrock::symbolic_operators {
 			throw std::invalid_argument("You are trying to perform a sum transformation on a momentum that is not being summed over!");
 		}
 		invert_momentum(what);
+	}
+
+	bool WickTerm::is_pauli_forbidden() const {
+		// Cannot be forbidden if there is only one WickOperators 
+		if (this->operators.size() < 2U) return false; 
+
+		for (auto it = this->operators.begin(); it != this->operators.end() - 1; ++it) {
+			for (auto jt = it + 1; jt != this->operators.end(); ++jt) {
+				if (*it == *jt) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	// Operator overloads

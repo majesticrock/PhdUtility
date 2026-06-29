@@ -64,6 +64,9 @@ namespace mrock::utility {
 	// retruns true if T defines both += and -= operations and false otherwise
 	template <class T>
 	constexpr bool is_linearly_combinable_v() { return is_linearly_combinable<T>::value; };
+
+	template<typename T>
+	concept LinearlyCombinable = is_linearly_combinable_v<T>();
 }
 
 //Debug and test area

@@ -12,21 +12,6 @@
 #include <algorithm>
 #include <vector>
 
-// Debug option, allows to track an individual term across the entire algorithm
-//#define _TRACK_TERM
-
-#ifdef _TRACK_TERM
-#define _TERM_TRACKER_PARAMETER bool is_tracked = false
-#define _TERM_TRACKER_ATTRIBUTE bool is_tracked{};
-#define IF_IS_TERM_TRACKED(statement) if ( is_tracked ) { statement ; }
-#define CLEAR_TRACKED(terms) for (auto& __term__ : terms) { __term__.is_tracked = false; }
-#else
-#define _TERM_TRACKER_PARAMETER 
-#define _TERM_TRACKER_ATTRIBUTE 
-#define IF_IS_TERM_TRACKED(statement)
-#define CLEAR_TRACKED(terms)
-#endif
-
 namespace mrock::symbolic_operators {
 	using IntFractional = mrock::utility::Fractional<int>;
 
@@ -51,7 +36,7 @@ namespace mrock::symbolic_operators {
 	 * \endcode
 	 * After calling the commutator, you should pretty much always call mrock::symbolic_operators::clean_up(std::vector<Term>)
 	 * because commutator performs the normal ordering procedure, however, does not attempt to beautify the result.
-	 * clean_up then sorts the terms, adds identical ones together and removes those that are equal to 0.
+	 * clean_up then sorts the terms, adds identical ones togeFther and removes those that are equal to 0.
 	 * 
 	 * Similarly, a double commutator \f$ [C, [A, B]] \f$ can be evaluated by
 	 * \code
@@ -74,7 +59,6 @@ namespace mrock::symbolic_operators {
 		std::vector<KroneckerDelta<Momentum>> delta_momenta; ///< Kronecker delta for momenta.
 		std::vector<KroneckerDelta<Index>> delta_indizes; ///< Kronecker delta for indices.
 		IntFractional multiplicity; ///< Multiplicity of the term.
-		_TERM_TRACKER_ATTRIBUTE; ///< Attribute for tracking terms (if enabled).
 
 		/**
 		 * @brief Serializes the term.
@@ -240,16 +224,22 @@ namespace mrock::symbolic_operators {
 		inline const std::vector<Operator>& get_operators() const;
 
 		/**
-		 * @brief Sets the Kronecker deltas in the term.
+		 * @brief Resolves the Kronecker deltas of the momenta in the term.
 		 * @return True if successful, false otherwise.
 		 */
-		bool set_deltas();
+		bool resolve_momentum_deltas();
 
 		/**
-		 * @brief Computes the sums in the term.
+		 * @brief Resolves the Kronecker deltas of the indizes in the term.
 		 * @return True if successful, false otherwise.
 		 */
-		bool compute_sums();
+		bool resolve_index_deltas();
+
+		/**
+		 * @brief Resolves the Kronecker deltas in the term ( calls \c resolve_momentum_deltas() and \c resolve_index_deltas() )
+		 * @return True if successful, false otherwise.
+		 */
+		bool resolve_deltas();
 
 		/**
 		 * @brief Discards zero momenta in the term.

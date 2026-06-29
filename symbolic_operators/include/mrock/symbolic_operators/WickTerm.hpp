@@ -230,12 +230,22 @@ namespace mrock::symbolic_operators {
 		inline bool handled() const noexcept;
 
 		/**
-		 * @brief Sets the deltas in the term.
-		 * 
-		 * @return true if the deltas were set successfully.
-		 * @return false otherwise.
+		 * @brief Resolves the Kronecker deltas of the momenta in the term.
+		 * @return True if successful, false otherwise.
 		 */
-		bool set_deltas();
+		bool resolve_momentum_deltas();
+
+		/**
+		 * @brief Resolves the Kronecker deltas of the indizes in the term.
+		 * @return True if successful, false otherwise.
+		 */
+		bool resolve_index_deltas();
+
+		/**
+		 * @brief Resolves the Kronecker deltas in the term ( calls \c resolve_momentum_deltas() and \c resolve_index_deltas() )
+		 * @return True if successful, false otherwise.
+		 */
+		bool resolve_deltas();
 
 		/**
 		 * @brief Computes the sums in the term.
@@ -287,7 +297,18 @@ namespace mrock::symbolic_operators {
 		 * @param value The momentum value to remove.
 		 */
 		inline void remove_momentum_contribution(const MomentumSymbol::name_type value);
-	};
+
+		/**
+		 * @brief Checks if the term can be finite.
+		 * Works under the assumption that the initial term was normal order with respect to the vacuum, e.g., c^+ c^+ c c.
+		 * Then, for instance, <n_k> <n_k> cannot be finite because it must have originated from
+		 * c_k^+ c_k^+ c_k c_k, which must be 0 due to the Pauli principle.
+		 * IMPORTANT: This only works if the original term structure was c^+ c^+ c c, since c_k^+ c_k c_k^+ c_k can be finite!
+		 * 
+		 * @return true if the term is forbidden and false otherwise.
+		 */
+		bool is_pauli_forbidden() const;
+	}; // WickTerm
 
 	/**
 	 * @brief Equality operator for WickOperator.

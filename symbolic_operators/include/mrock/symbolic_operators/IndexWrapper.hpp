@@ -189,6 +189,14 @@ namespace mrock::symbolic_operators {
 		 * @return The result of the comparison.
 		 */
 		inline auto operator<=>(const IndexWrapper& rhs) const = default;
+
+		/**
+		 * @brief Replaces all <target> with <replace_with>
+		 * 
+		 * @param target: the Index to be replaced
+		 * @param replace_with: the Index that should be inserted instead of <target>
+		 */
+		void replace_index(Index target, Index replace_with);
 	};
 
 	/**
