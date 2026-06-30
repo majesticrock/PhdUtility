@@ -5,192 +5,43 @@
 
 namespace mrock::symbolic_operators {
 	Term::Term(IntFractional _multiplicity, std::vector<Coefficient> _coefficients, const SumContainer& _sums, const std::vector<Operator>& _operators)
-		: coefficients(_coefficients), sums(_sums), operators(_operators), multiplicity(_multiplicity) {}
+		: AbstractTerm<Operator>(_multiplicity, _coefficients, _sums, _operators)
+	{}
+
 	Term::Term(IntFractional _multiplicity, Coefficient _coefficient, const SumContainer& _sums, const std::vector<Operator>& _operators)
-		: coefficients(1, _coefficient), sums(_sums), operators(_operators), multiplicity(_multiplicity) {}
+		: AbstractTerm<Operator>(_multiplicity, _coefficient, _sums, _operators)
+	{}
+
 	Term::Term(IntFractional _multiplicity, Coefficient _coefficient, const MomentumSum& _sum_momenta, const std::vector<Operator>& _operators)
-		: coefficients(1, _coefficient), sums{ _sum_momenta, {} }, operators(_operators), multiplicity(_multiplicity) {}
+		: AbstractTerm<Operator>(_multiplicity, _coefficient, SumContainer{ _sum_momenta, {} }, _operators)
+	{}
+
 	Term::Term(IntFractional _multiplicity, Coefficient _coefficient, const IndexSum& _sum_indizes, const std::vector<Operator>& _operators)
-		: coefficients(1, _coefficient), sums{ {}, _sum_indizes }, operators(_operators), multiplicity(_multiplicity) {}
+		: AbstractTerm<Operator>(_multiplicity, _coefficient, SumContainer{ {}, _sum_indizes }, _operators)
+	{}
+
 	Term::Term(IntFractional _multiplicity, Coefficient _coefficient, const std::vector<Operator>& _operators)
-		: coefficients(1, _coefficient), operators(_operators), multiplicity(_multiplicity) {}
+		: AbstractTerm<Operator>(_multiplicity, _coefficient, _operators)
+	{}
+
 	Term::Term(IntFractional _multiplicity, const SumContainer& _sums, const std::vector<Operator>& _operators)
-		: coefficients(), sums(_sums), operators(_operators), multiplicity(_multiplicity) {}
+		: AbstractTerm<Operator>(_multiplicity, std::vector<Coefficient>(), _sums, _operators)
+	{}
+
 	Term::Term(IntFractional _multiplicity, const MomentumSum& _sum_momenta, const std::vector<Operator>& _operators)
-		: coefficients(), sums{ _sum_momenta, {} }, operators(_operators), multiplicity(_multiplicity) {}
+		: AbstractTerm<Operator>(_multiplicity, std::vector<Coefficient>(), SumContainer{ _sum_momenta, {} }, _operators)
+	{}
+
 	Term::Term(IntFractional _multiplicity, const IndexSum& _sum_indizes, const std::vector<Operator>& _operators)
-		: coefficients(), sums{ {}, _sum_indizes }, operators(_operators), multiplicity(_multiplicity) {}
+		: AbstractTerm<Operator>(_multiplicity, std::vector<Coefficient>(), SumContainer{ {}, _sum_indizes }, _operators)
+	{}
+
 	Term::Term(IntFractional _multiplicity, const std::vector<Operator>& _operators)
-		: coefficients(), operators(_operators), multiplicity(_multiplicity) {}
+		: AbstractTerm<Operator>(_multiplicity, _operators)
+	{}
 
 	void Term::print() const {
 		std::cout << *this << std::endl;
-	}
-
-	bool Term::resolve_momentum_deltas() 
-	{
-		for (auto delta_it = delta_momenta.begin(); delta_it != delta_momenta.end(); ) {
-			delta_it->first -= delta_it->second;
-			delta_it->second = Momentum();
-
-			if (delta_it->first.momentum_list.empty() && delta_it->second.momentum_list.empty()) {
-				// 0 = Q can never be achieved
-				if (delta_it->first.add_Q != delta_it->second.add_Q) return false;
-				// delta_(0,0) = 1
-				delta_it = delta_momenta.erase(delta_it);
-				continue;
-			}
-			
-			MomentumSymbol resolve_to{ *(delta_it->first.begin()) };
-			bool found_sum{};
-
-			for (auto sum_it = sums.momenta.begin(); sum_it != sums.momenta.end(); ++sum_it) {
-				const auto found_it = std::find_if(delta_it->first.begin(), delta_it->first.end(), [&sum_it](const MomentumSymbol& symbol) {
-					return symbol.name == *sum_it;
-				});
-				if ( found_it != delta_it->first.end()) {
-					resolve_to = *found_it;
-					sums.momenta.erase(sum_it);
-					found_sum = true;
-					break;
-				}
-			}
-
-			if (resolve_to.factor > 0) {
-				delta_it->first.flip_momentum();
-			}
-			else {
-				resolve_to.factor *= -1;
-			}
-			delta_it->second = Momentum(resolve_to);
-			delta_it->first += delta_it->second;
-			
-
-			for (MomentumSymbol& symbol : delta_it->first) {
-				assert(symbol.factor % delta_it->second.front().factor == 0);
-				symbol.factor /= delta_it->second.front().factor;
-			}
-
-			for (auto& coeff : coefficients) {
-				coeff.momenta.replace_occurances(delta_it->second.front().name, delta_it->first);
-			}
-			for (auto& op : operators) {
-				op.momentum.replace_occurances(delta_it->second.front().name, delta_it->first);
-			}
-			for (auto delta_it2 = delta_momenta.begin(); delta_it2 != delta_momenta.end(); ++delta_it2) {
-				if (delta_it2 == delta_it) continue;
-				delta_it2->first.replace_occurances(delta_it->second.front().name, delta_it->first);
-				delta_it2->second.replace_occurances(delta_it->second.front().name, delta_it->first);
-			}
-
-			if (found_sum) {
-				delta_it = delta_momenta.erase(delta_it);
-			}
-			else {
-				++delta_it;
-			}
-		}
-
-		// Make sure that delta.first has always exactly one momentum symbol (or delta_{0,0})
-		for (auto& delta : delta_momenta) {
-			if (delta.first.empty() && !delta.second.empty()) {
-				std::swap(delta.first, delta.second);
-			} 
-			if (delta.first.size() > 1U) {
-				const Momentum shift = delta.first - Momentum(delta.first.front());
-				delta.first -= shift;
-				delta.second -= shift;
-			}
-			if (delta.first.front().factor < 0) {
-				delta.first.flip_momentum();
-				delta.second.flip_momentum();
-			}
-		}
-
-		// Remove delta^2
-		remove_delta_squared(this->delta_indizes);
-		// Erase delta_k,k etc
-		remove_delta_is_one(this->delta_indizes);
-
-		return true;
-	}
-
-	bool Term::resolve_index_deltas() 
-	{
-		if (is_always_zero(delta_indizes)) return false;
-
-		for (auto delta_it = delta_indizes.begin(); delta_it != delta_indizes.end(); ) {
-			Index to_resolve { Index::UndefinedIndex };
-			Index change_to { Index::UndefinedIndex };
-			bool found_sum{};
-			auto sum_it = std::find_if( sums.spins.begin(), sums.spins.end(), [&delta_it](const Index& idx) {
-				return idx == delta_it->first;
-			});
-			if (sum_it != sums.spins.end()) {
-				to_resolve = delta_it->first;
-				change_to = delta_it->second;
-				found_sum = true;
-			}
-			else {
-				sum_it = std::find_if( sums.spins.begin(), sums.spins.end(), [&delta_it](const Index& idx) {
-					return idx == delta_it->second;
-				});
-				if (sum_it != sums.spins.end()) {
-					to_resolve = delta_it->second;
-					change_to = delta_it->first;
-					found_sum = true;
-				}
-			}
-
-			if (to_resolve == Index::UndefinedIndex) {
-				if (is_mutable(delta_it->first)) {
-					to_resolve = delta_it->first;
-					change_to = delta_it->second;
-				}
-				else if (is_mutable(delta_it->second)) {
-					to_resolve = delta_it->second;
-					change_to = delta_it->first;
-				}
-				else if(delta_it->first != delta_it->second) {
-					// Two differing, immutable indizes can never be equal
-					return false;
-				}
-			}
-
-			if(delta_it->first == delta_it->second) continue;
-
-			for (auto& op : operators) {
-				op.indizes.replace_index(to_resolve, change_to);
-			}
-			for (auto& coeff : coefficients) {
-				coeff.indizes.replace_index(to_resolve, change_to);
-			}
-
-			for (auto delta_it2 = delta_indizes.begin(); delta_it2 != delta_indizes.end(); ++delta_it2) {
-				if (delta_it2 == delta_it) continue;
-				if (delta_it2->first == to_resolve) {
-					delta_it2->first = change_to;
-				}
-				if (delta_it2->second == to_resolve) {
-					delta_it2->second = change_to;
-				}
-			}
-
-			if (found_sum) {
-				sums.spins.erase(sum_it);
-				delta_it = delta_indizes.erase(delta_it);
-			}
-			else {
-				++delta_it;
-			}
-		}
-
-		// Remove delta^2
-		remove_delta_squared(this->delta_indizes);
-		// Erase delta_k,k etc
-		remove_delta_is_one(this->delta_indizes);
-
-		return true;
 	}
 
 	bool Term::resolve_deltas()
@@ -326,53 +177,6 @@ namespace mrock::symbolic_operators {
 						}
 					}
 					op.momentum.momentum_list[i].factor *= -1;
-				}
-			}
-		}
-	}
-
-	void Term::rename_sums()
-	{
-		constexpr int N_BUFFER = 11;
-		constexpr MomentumSymbol::name_type name_list[N_BUFFER]   = { 'q', 'p', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
-		constexpr MomentumSymbol::name_type buffer_list[N_BUFFER] = { ':', ';', '|', '?', '!', '.', '-', '_', '+', '/', '=' };
-		for (size_t i = 0U; i < sums.momenta.size(); ++i)
-		{
-			if (i >= N_BUFFER) {
-				std::cerr << "More than " << N_BUFFER << "momenta, time to implement this..." << std::endl;
-				break;
-			}
-			if (sums.momenta[i] == name_list[i]) continue;
-
-			for (auto& op : operators) {
-				op.momentum.replace_occurances(sums.momenta[i], Momentum(buffer_list[i]));
-			}
-			for (auto& coeff : coefficients) {
-				coeff.momenta.replace_occurances(sums.momenta[i], Momentum(buffer_list[i]));
-			}
-			sums.momenta[i] = name_list[i];
-		}
-
-		for (size_t i = 0U; i < sums.momenta.size(); ++i)
-		{
-			for (auto& op : operators) {
-				op.momentum.replace_occurances(buffer_list[i], Momentum(name_list[i]));
-			}
-			for (auto& coeff : coefficients) {
-				coeff.momenta.replace_occurances(buffer_list[i], Momentum(name_list[i]));
-			}
-		}
-
-		if (sums.spins.size() == 1U && sums.spins.front() == Index::SigmaPrime) {
-			sums.spins.front() = Index::Sigma;
-			for (auto& op : operators) {
-				for (auto& index : op.indizes) {
-					if (index == Index::SigmaPrime) index = Index::Sigma;
-				}
-			}
-			for (auto& coeff : coefficients) {
-				for (auto& index : coeff.indizes) {
-					if (index == Index::SigmaPrime) index = Index::Sigma;
 				}
 			}
 		}
@@ -518,36 +322,6 @@ namespace mrock::symbolic_operators {
 		for (auto& op : operators) {
 			op.momentum.replace_occurances(what, to);
 		}
-	}
-
-	void Term::invert_momentum(const MomentumSymbol::name_type what) {
-		for (auto& coeff : coefficients) {
-			coeff.invert_momentum(what);
-		}
-		for (auto& op : operators) {
-			op.momentum.flip_single(what);
-		}
-	}
-
-	void Term::invert_momentum_sum(const MomentumSymbol::name_type what) {
-		if (std::find(sums.momenta.begin(), sums.momenta.end(), what) == sums.momenta.end()) {
-			throw std::invalid_argument("You are trying to perform a sum transformation on a momentum that is not being summed over!");
-		}
-		invert_momentum(what);
-	}
-
-	void Term::remove_momentum_contribution(const MomentumSymbol::name_type value) {
-		for (auto& coeff : coefficients) {
-			coeff.remove_momentum_contribution(value);
-		}
-		for (auto& op : operators) {
-			op.remove_momentum_contribution(value);
-		}
-		for (auto& delta : delta_momenta) {
-			delta.first.remove_contribution(value);
-			delta.second.remove_contribution(value);
-		}
-		std::erase_if(sums.momenta.summations, [&](const MomentumSymbol::name_type sum_idx) { return sum_idx == value; });
 	}
 
 	void normal_order(std::vector<Term>& terms) {

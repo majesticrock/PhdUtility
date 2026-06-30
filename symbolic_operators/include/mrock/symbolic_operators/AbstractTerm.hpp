@@ -27,11 +27,12 @@ namespace mrock::symbolic_operators {
     class AbstractTerm {
     public:
         IntFractional multiplicity; ///< Multiplicity of the term.
+        std::vector<Coefficient> coefficients; ///< Coefficients of the term.
 		SumContainer sums; ///< Sum container for the term. Contains e.g. \sum_{k,l} \sum_{sigma}
         std::vector<KroneckerDelta<Momentum>> delta_momenta; ///< Kronecker delta for momenta.
 		std::vector<KroneckerDelta<Index>> delta_indizes; ///< Kronecker delta for indices.
         std::vector<OperatorType> operators; ///< Operators in the term, if empty the term is considered to contain the identiy operator
-        std::vector<Coefficient> coefficients; ///< Coefficients of the term.
+       
 
         /**
 		 * @brief Default constructor.
@@ -39,15 +40,63 @@ namespace mrock::symbolic_operators {
         AbstractTerm() = default;
 
         /**
+		 * @brief Constructs a Term with a summation over momenta and spins and multiple coefficients and Kronecker deltas
+		 * 
+		 * @param _multiplicity The multiplicity of the term
+		 * @param _sums The sums
+         * @param _coefficients The coefficients
+         * @param _operators The operators
+         * @param _delta_momenta The Kronecker deltas for the momenta
+         * @param _delta_indizes The Kronecker deltas for the indizes
+		 */
+        AbstractTerm(const IntFractional& _multiplicity, const std::vector<Coefficient>& _coefficients, const SumContainer& _sums, const std::vector<KroneckerDelta<Momentum>>& _delta_momenta, const std::vector<KroneckerDelta<Index>>& _delta_indizes, const std::vector<OperatorType>& _operators)
+            : multiplicity{_multiplicity}, coefficients{_coefficients}, sums{_sums}, delta_momenta{_delta_momenta}, delta_indizes{_delta_indizes}, operators{_operators}
+        { };
+
+        /**
 		 * @brief Constructs a Term with a summation over momenta and spins and multiple coefficients
 		 * 
 		 * @param _multiplicity The multiplicity of the term
-		 * 
 		 * @param _sums The sums
          * @param _coefficients The coefficients
+         * @param _operators The operators
 		 */
-        AbstractTerm(const IntFractional& _multiplicity, const SumContainer& _sums, const std::vector<OperatorType>& _operators, const std::vector<Coefficient>& coefficients)
-            : multiplicity{_multiplicity}, sums{_sums}, operators{_operators}, coefficients{_coefficients}
+        AbstractTerm(const IntFractional& _multiplicity, const std::vector<Coefficient>& _coefficients, const SumContainer& _sums, const std::vector<OperatorType>& _operators = std::vector<OperatorType>())
+            : multiplicity{_multiplicity}, coefficients{_coefficients}, sums{_sums}, operators{_operators}
+        { };
+
+        /**
+		 * @brief Constructs a Term with a summation over momenta and spins and one coefficient
+		 * 
+		 * @param _multiplicity The multiplicity of the term
+		 * @param _sums The sums
+         * @param _coefficient The coefficient
+         * @param _operators The operators
+		 */
+        AbstractTerm(const IntFractional& _multiplicity, const Coefficient& _coefficient, const SumContainer& _sums, const std::vector<OperatorType>& _operators = std::vector<OperatorType>())
+            : multiplicity{_multiplicity}, coefficients(1, _coefficient), sums{_sums}, operators{_operators}
+        { };
+
+        /**
+		 * @brief Constructs a Term with no summations
+		 * 
+		 * @param _multiplicity The multiplicity of the term
+         * @param _coefficient The coefficient
+         * @param _operators The operators
+		 */
+        AbstractTerm(const IntFractional& _multiplicity, const Coefficient& _coefficient, const std::vector<OperatorType>& _operators = std::vector<OperatorType>())
+            : multiplicity{_multiplicity}, coefficients(1, _coefficient), operators{_operators}
+        { };
+
+        /**
+		 * @brief Constructs a Term with no summations and no coefficient
+		 * 
+		 * @param _multiplicity The multiplicity of the term
+         * @param _coefficient The coefficient
+         * @param _operators The operators
+		 */
+        explicit AbstractTerm(const IntFractional& _multiplicity, const std::vector<OperatorType>& _operators = std::vector<OperatorType>())
+            : multiplicity{_multiplicity}, operators{_operators}
         { };
 
         /**
@@ -62,12 +111,6 @@ namespace mrock::symbolic_operators {
 		 */
 		bool resolve_index_deltas();
 
-		/**
-		 * @brief Resolves the Kronecker deltas in the term ( calls \c resolve_momentum_deltas() and \c resolve_index_deltas() )
-		 * @return True if successful, false otherwise.
-		 */
-		bool resolve_deltas();
-
         /**
 		 * @brief Renames the sums in the term.
 		 */
@@ -81,6 +124,17 @@ namespace mrock::symbolic_operators {
 		 */
 		bool is_identity() const noexcept;
 
+        /**
+		 * @brief Flips the sign of the term.
+		 */
+		void flip_sign();
+
+		/**
+		 * @brief Gets the operators in the term.
+		 * @return The operators.
+		 */
+		const std::vector<OperatorType>& get_operators() const;
+        
         /**
 		 * @brief Inverts a momentum in the term.
 		 * 
@@ -326,6 +380,16 @@ namespace mrock::symbolic_operators {
     bool AbstractTerm<OperatorType>::is_identity() const noexcept 
     {
 		return this->operators.empty();
+	}
+
+    template<class OperatorType>
+    void AbstractTerm<OperatorType>::flip_sign() {
+		this->multiplicity *= -1;
+	}
+
+    template<class OperatorType>
+    const std::vector<OperatorType>& AbstractTerm<OperatorType>::get_operators() const {
+		return this->operators;
 	}
 
     template<class OperatorType>
