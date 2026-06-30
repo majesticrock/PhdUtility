@@ -420,41 +420,9 @@ namespace mrock::symbolic_operators {
 			}
 		}
 
-		//remove_delta_squared(this->delta_indizes);
-		//remove_delta_squared(this->delta_momenta);
 		// Remove delta^2
-		//for (int i = 0; i < delta_momenta.size(); i++)
-		//{
-		//	for (int j = i + 1; j < delta_momenta.size(); j++)
-		//	{
-		//		if (delta_momenta[i] == delta_momenta[j]) {
-		//			delta_momenta.erase(delta_momenta.begin() + j);
-		//			--i;
-		//			break;
-		//		}
-//
-		//		auto delta_buffer = delta_momenta[j];
-		//		delta_buffer.first.flip_momentum();
-		//		delta_buffer.second.flip_momentum();
-		//		if (delta_momenta[i] == delta_buffer) {
-		//			delta_momenta.erase(delta_momenta.begin() + j);
-		//			--i;
-		//			break;
-		//		}
-		//	}
-		//}
-		//for (int i = 0; i < delta_indizes.size(); i++)
-		//{
-		//	for (int j = i + 1; j < delta_indizes.size(); j++)
-		//	{
-		//		if (delta_indizes[i] == delta_indizes[j]) {
-		//			delta_indizes.erase(delta_indizes.begin() + j);
-		//			--i;
-		//			break;
-		//		}
-		//	}
-		//}
-
+		remove_delta_squared(this->delta_indizes);
+		remove_delta_squared(this->delta_momenta);
 		// Erase delta_k,k etc
 		remove_delta_is_one(this->delta_indizes);
 		remove_delta_is_one(this->delta_momenta);

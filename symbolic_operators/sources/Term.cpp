@@ -109,7 +109,7 @@ namespace mrock::symbolic_operators {
 		}
 
 		// Remove delta^2
-		//remove_delta_squared(this->delta_indizes);
+		remove_delta_squared(this->delta_indizes);
 		// Erase delta_k,k etc
 		remove_delta_is_one(this->delta_indizes);
 
@@ -188,7 +188,7 @@ namespace mrock::symbolic_operators {
 		}
 
 		// Remove delta^2
-		//remove_delta_squared(this->delta_indizes);
+		remove_delta_squared(this->delta_indizes);
 		// Erase delta_k,k etc
 		remove_delta_is_one(this->delta_indizes);
 
@@ -626,9 +626,9 @@ namespace mrock::symbolic_operators {
 
 						new_term.operators.erase(new_term.operators.begin() + i - 1, new_term.operators.begin() + i + 1);
 
-						if (new_term.resolve_deltas()) {
-							if (other_deltas) terms.push_back(new_term);
-						}
+						//if (new_term.resolve_deltas()) {
+						//	if (other_deltas) terms.push_back(new_term);
+						//}
 					}
 					else if (terms[t].operators[i - 1] == terms[t].operators[i]) {
 						if (terms[t].operators[i - 1].is_fermion) {

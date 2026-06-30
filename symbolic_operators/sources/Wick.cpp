@@ -152,15 +152,6 @@ namespace mrock::symbolic_operators {
 				continue;
 			}
 			it->discard_zero_momenta();
-			if (!(it->compute_sums())) {
-				it = terms.erase(it);
-				continue;
-			}
-			if (!(it->resolve_deltas())) {
-				it = terms.erase(it);
-				continue;
-			}
-			it->discard_zero_momenta();
 			it->rename_sums();
 			it->sort();
 
