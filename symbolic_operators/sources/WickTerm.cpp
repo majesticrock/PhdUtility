@@ -138,6 +138,34 @@ namespace mrock::symbolic_operators {
 		return true;
 	}
 
+	void WickTerm::rename_sums() {
+		AbstractTerm<WickOperator>::rename_sums();
+
+		for (const auto& sum : sums.momenta)
+		{
+			for (auto& op : operators) {
+				int index = op.momentum.is_used_at(sum);
+				if (index < 0) continue;
+				if (op.momentum.momentum_list.size() == 1) break;
+
+				Momentum buffer = op.momentum;
+				if (buffer.momentum_list[index].factor > 0) buffer.flip_momentum();
+				buffer.momentum_list[index].factor *= -1;
+				buffer.momentum_list[index].name = buffer_list[0];
+
+				for (auto& op2 : operators) {
+					op2.momentum.replace_occurances(sum, buffer);
+					op2.momentum.replace_occurances(buffer_list[0], Momentum(sum));
+				}
+				for (auto& coeff : coefficients) {
+					coeff.momenta.replace_occurances(sum, buffer);
+					coeff.momenta.replace_occurances(buffer_list[0], Momentum(sum));
+				}
+			}
+		}
+		discard_zero_momenta();
+	}
+
 	void WickTerm::discard_zero_momenta()
 	{
 		for (auto& op : operators) {

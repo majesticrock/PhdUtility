@@ -192,7 +192,6 @@ namespace mrock::symbolic_operators {
 		 */
 		inline void perform_operator_swap(Operator& lhs, Operator& rhs);
 
-
 		/**
 		 * @brief Resolves the Kronecker deltas in the term ( calls \c resolve_momentum_deltas() and \c resolve_index_deltas() )
 		 * @return True if successful, false otherwise.

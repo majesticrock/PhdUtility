@@ -218,6 +218,11 @@ namespace mrock::symbolic_operators {
 		bool resolve_deltas();
 
 		/**
+		 * @brief Renames the sums in the term.
+		 */
+		void rename_sums();
+
+		/**
 		 * @brief Discards zero momenta in the term.
 		 */
 		void discard_zero_momenta();

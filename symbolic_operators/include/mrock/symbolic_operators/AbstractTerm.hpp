@@ -25,6 +25,11 @@ namespace mrock::symbolic_operators {
      */
     template<class OperatorType>
     class AbstractTerm {
+	protected:
+		constexpr static int N_BUFFER = 11;
+		constexpr static MomentumSymbol::name_type name_list[N_BUFFER]   = { 'q', 'p', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+		constexpr static MomentumSymbol::name_type buffer_list[N_BUFFER] = { ':', ';', '|', '?', '!', '.', '-', '_', '+', '/', '=' };
+
     public:
         IntFractional multiplicity; ///< Multiplicity of the term.
         std::vector<Coefficient> coefficients; ///< Coefficients of the term.
@@ -162,6 +167,8 @@ namespace mrock::symbolic_operators {
     template<class OperatorType>
     bool AbstractTerm<OperatorType>::resolve_momentum_deltas() 
 	{
+		if (is_always_zero(delta_momenta)) return false;
+
 		for (auto delta_it = delta_momenta.begin(); delta_it != delta_momenta.end(); ) {
 			delta_it->first -= delta_it->second;
 			delta_it->second = Momentum();
@@ -331,9 +338,6 @@ namespace mrock::symbolic_operators {
     template<class OperatorType>
     void AbstractTerm<OperatorType>::rename_sums()
 	{
-		constexpr int N_BUFFER = 11;
-		constexpr MomentumSymbol::name_type name_list[N_BUFFER]   = { 'q', 'p', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
-		constexpr MomentumSymbol::name_type buffer_list[N_BUFFER] = { ':', ';', '|', '?', '!', '.', '-', '_', '+', '/', '=' };
 		for (size_t i = 0U; i < sums.momenta.size(); ++i)
 		{
 			if (i >= N_BUFFER) {
