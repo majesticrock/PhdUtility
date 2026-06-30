@@ -2,7 +2,6 @@
 #include <mrock/symbolic_operators/KroneckerDeltaUtility.hpp>
 #include <mrock/utility/RangeUtility.hpp>
 #include <sstream>
-#include <set>
 
 namespace mrock::symbolic_operators {
 	Term::Term(IntFractional _multiplicity, std::vector<Coefficient> _coefficients, const SumContainer& _sums, const std::vector<Operator>& _operators)
@@ -115,7 +114,6 @@ namespace mrock::symbolic_operators {
 
 		return true;
 	}
-
 
 	bool Term::resolve_index_deltas() 
 	{
@@ -627,7 +625,7 @@ namespace mrock::symbolic_operators {
 						new_term.operators.erase(new_term.operators.begin() + i - 1, new_term.operators.begin() + i + 1);
 
 						//if (new_term.resolve_deltas()) {
-						//	if (other_deltas) terms.push_back(new_term);
+						if (other_deltas) terms.push_back(new_term);
 						//}
 					}
 					else if (terms[t].operators[i - 1] == terms[t].operators[i]) {

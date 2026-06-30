@@ -154,7 +154,7 @@ namespace mrock::symbolic_operators {
 			it->discard_zero_momenta();
 			it->rename_sums();
 			it->sort();
-
+			
 			for (const auto& symmetry : symmetries) {
 				symmetry->apply_to(*it);
 			}
@@ -186,6 +186,7 @@ namespace mrock::symbolic_operators {
 
 				l_is = delta.second.is_used_at('l');
 				if(l_is == -1) {
+					std::cout << "################\n# Broken term\n";
 					std::cout << term << std::endl;
 					throw std::runtime_error("There is no l in the delta, but we need an l!");
 				}

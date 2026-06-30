@@ -1,6 +1,6 @@
 /**
  * @file WickTerm.hpp
- * @brief Defines the WickTerm structure and related functions.
+ * @brief Defines the WickTerm class and related functions.
  */
 
 #pragma once
@@ -14,7 +14,7 @@ namespace mrock::symbolic_operators {
 
 	/**
 	 * @class WickTerm
-	 * @brief A structure representing a Wick term.
+	 * @brief A class representing a term consisting of expectation values, represented via WickOperator objects.
 	 * 
 	 * Prerequisite: The terms you want to apply Wick's theorem on are saved in an \c std::vector<Term>.
 	 * 
@@ -77,7 +77,7 @@ namespace mrock::symbolic_operators {
 	 * 
 	 * @sa WickTermCollector, Coefficient, SumContainer, WickOperator, KroneckerDelta, Momentum, Index, clean_wicks(), wicks_theorem(), TermLoader
 	 */
-	struct WickTerm {
+	class WickTerm {
 	private:
 		/**
 		 * @brief Parses a string expression to initialize the WickTerm.
@@ -246,14 +246,6 @@ namespace mrock::symbolic_operators {
 		 * @return True if successful, false otherwise.
 		 */
 		bool resolve_deltas();
-
-		/**
-		 * @brief Computes the sums in the term.
-		 * 
-		 * @return true if the sums were computed successfully.
-		 * @return false otherwise.
-		 */
-		bool compute_sums();
 
 		/**
 		 * @brief Discards zero momenta in the term.

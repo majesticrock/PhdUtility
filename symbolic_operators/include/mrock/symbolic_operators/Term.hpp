@@ -76,8 +76,6 @@ namespace mrock::symbolic_operators {
 			ar& multiplicity;
 		}
 
-		friend struct WickTerm;
-
 		/**
 		 * @brief Constructs a Term with a summation over momenta and spins and multiple coefficients
 		 * 
@@ -165,6 +163,7 @@ namespace mrock::symbolic_operators {
 		 * @param _operators The operators of the term
 		 */
 		explicit Term(IntFractional _multiplicity, const std::vector<Operator>& _operators = std::vector<Operator>());
+		
 		/**
 		 * @brief Default constructor.
 		 */
