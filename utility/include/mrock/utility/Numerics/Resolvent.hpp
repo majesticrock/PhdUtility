@@ -6,8 +6,8 @@
 #include <Eigen/Dense>
 #include <cmath>
 
-#include "../IsComplex.hpp"
-#include "../UnderlyingFloatingPoint.hpp"
+#include "../is_complex.hpp"
+#include "../UnderlyingRealType.hpp"
 #include "GramSchmidt.hpp"
 
 #include "ResolventDataTypes.hpp"
@@ -19,10 +19,10 @@ namespace mrock::utility::Numerics {
 	class Resolvent
 	{
 	private:
-		using RealType = UnderlyingFloatingPoint_t<typename EigenMatrixType::Scalar>;
+		using RealType = UnderlyingRealType_t<typename EigenMatrixType::Scalar>;
 		using ComputationType = typename EigenMatrixType::Scalar;
 		using resolvent_data = resolvent_details::ResolventData<RealType>;
-		static constexpr bool isComplex = is_complex<typename EigenVectorType::Scalar>();
+		static constexpr bool isComplex = is_complex_v<typename EigenVectorType::Scalar>;
 
 	public:
 		EigenVectorType startingState;

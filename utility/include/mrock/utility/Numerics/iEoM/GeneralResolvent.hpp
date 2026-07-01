@@ -1,8 +1,8 @@
 #pragma once
 #include "../Resolvent.hpp"
 #include "_internal_functions.hpp"
-#include "../../IsComplex.hpp"
-#include "../../ConstexprPower.hpp"
+#include "../../is_complex.hpp"
+#include "../../constexpr_power.hpp"
 #include "../PivotToBlockStructure.hpp"
 #include <chrono>
 #include <string>
@@ -11,7 +11,7 @@ namespace mrock::utility::Numerics::iEoM {
 	template<class Derived, class NumberType>
 	struct GeneralResolvent {
 	public:
-		using RealType = UnderlyingFloatingPoint_t<NumberType>;
+		using RealType = UnderlyingRealType_t<NumberType>;
 		using Matrix = Eigen::Matrix<NumberType, Eigen::Dynamic, Eigen::Dynamic>;
 		using Vector = Eigen::Vector<NumberType, Eigen::Dynamic>;
 		using BlockedMatrix = BlockDiagonalMatrix<Matrix>;
@@ -30,7 +30,7 @@ namespace mrock::utility::Numerics::iEoM {
 
 		bool dynamic_matrix_is_negative() {
 			_derived->fill_M();
-			if constexpr (is_complex<NumberType>()) {
+			if constexpr (is_complex_v<NumberType>) {
 				if (this->_internal.contains_negative(M.diagonal().real())) {
 					return true;
 				}

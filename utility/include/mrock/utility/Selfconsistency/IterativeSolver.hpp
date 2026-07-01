@@ -11,7 +11,7 @@
 #include <Eigen/Dense>
 #include <limits>
 #include <chrono>
-#include "../UnderlyingFloatingPoint.hpp"
+#include "../UnderlyingRealType.hpp"
 
 namespace mrock::utility::Selfconsistency {
 
@@ -73,7 +73,7 @@ namespace mrock::utility::Selfconsistency {
 	class IterativeSolver {
 	protected:
 		using ParameterVector = Eigen::Vector<DataType, Eigen::Dynamic>;
-		using RealType = UnderlyingFloatingPoint_t<DataType>;
+		using RealType = UnderlyingRealType_t<DataType>;
 
 		Model* _model{};
 		SelfconsistencyAttributes* _attr{};
@@ -216,7 +216,7 @@ namespace mrock::utility::Selfconsistency {
      * @return An IterativeSolver object.
      */
 	template <const DebugPolicy& debugPolicy, class DataType, class Model, class SelfconsistencyAttributes>
-	auto make_iterative(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, const UnderlyingFloatingPoint_t<DataType>& precision = PRECISION<UnderlyingFloatingPoint_t<DataType>>)
+	auto make_iterative(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, const UnderlyingRealType_t<DataType>& precision = PRECISION<UnderlyingRealType_t<DataType>>)
 	{
 		return IterativeSolver<DataType, Model, SelfconsistencyAttributes, debugPolicy>(model_ptr, attribute_ptr, precision);
 	}
@@ -233,7 +233,7 @@ namespace mrock::utility::Selfconsistency {
      * @return An IterativeSolver object.
      */
 	template <class DataType, class Model, class SelfconsistencyAttributes>
-	auto make_iterative(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, const UnderlyingFloatingPoint_t<DataType>& precision = PRECISION<UnderlyingFloatingPoint_t<DataType>>)
+	auto make_iterative(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, const UnderlyingRealType_t<DataType>& precision = PRECISION<UnderlyingRealType_t<DataType>>)
 	{
 		return IterativeSolver<DataType, Model, SelfconsistencyAttributes, WarnNoConvergence>(model_ptr, attribute_ptr, precision);
 	}

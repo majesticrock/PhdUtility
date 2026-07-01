@@ -29,7 +29,7 @@ namespace mrock::utility::Numerics {
 	};
 
 
-	template <class MatrixType, class RealType = UnderlyingFloatingPoint_t<typename MatrixType::Scalar>, class RealVector = Eigen::Vector<RealType, Eigen::Dynamic>>
+	template <class MatrixType, class RealType = UnderlyingRealType_t<typename MatrixType::Scalar>, class RealVector = Eigen::Vector<RealType, Eigen::Dynamic>>
 	struct matrix_wrapper {
 		MatrixType eigenvectors;
 		RealVector eigenvalues;
@@ -98,9 +98,9 @@ namespace mrock::utility::Numerics {
 	};
 
 	template <class Number>
-	struct matrix_wrapper<BlockDiagonalMatrix<detail::MatrixN<Number>>, UnderlyingFloatingPoint_t<Number>, Eigen::Vector<UnderlyingFloatingPoint_t<Number>, Eigen::Dynamic>> {
+	struct matrix_wrapper<BlockDiagonalMatrix<detail::MatrixN<Number>>, UnderlyingRealType_t<Number>, Eigen::Vector<UnderlyingRealType_t<Number>, Eigen::Dynamic>> {
 		BlockDiagonalMatrix<detail::MatrixN<Number>> eigenvectors;
-		Eigen::Vector<UnderlyingFloatingPoint_t<Number>, Eigen::Dynamic> eigenvalues;
+		Eigen::Vector<UnderlyingRealType_t<Number>, Eigen::Dynamic> eigenvalues;
 
 		inline auto reconstruct_matrix() const
 		{
@@ -112,7 +112,7 @@ namespace mrock::utility::Numerics {
 
 		static matrix_wrapper solve_block_diagonal_matrix(const BlockDiagonalMatrix<detail::MatrixN<Number>>& toSolve) {
 			matrix_wrapper solution;
-			solution.eigenvalues = Eigen::Vector<UnderlyingFloatingPoint_t<Number>, Eigen::Dynamic>::Zero(toSolve.rows());
+			solution.eigenvalues = Eigen::Vector<UnderlyingRealType_t<Number>, Eigen::Dynamic>::Zero(toSolve.rows());
 			solution.eigenvectors.blocks.resize(toSolve.blocks.size());
 			solution.eigenvectors.blocks_begin = toSolve.blocks_begin;
 #ifdef _BLOCKS_USE_OMP
@@ -129,5 +129,5 @@ namespace mrock::utility::Numerics {
 		}
 	};
 
-	template <class Number> using blocked_matrix_wrapper = matrix_wrapper<BlockDiagonalMatrix<detail::MatrixN<Number>>, UnderlyingFloatingPoint_t<Number>, Eigen::Vector<UnderlyingFloatingPoint_t<Number>, Eigen::Dynamic>>;
+	template <class Number> using blocked_matrix_wrapper = matrix_wrapper<BlockDiagonalMatrix<detail::MatrixN<Number>>, UnderlyingRealType_t<Number>, Eigen::Vector<UnderlyingRealType_t<Number>, Eigen::Dynamic>>;
 }

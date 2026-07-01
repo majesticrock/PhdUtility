@@ -3,10 +3,11 @@
 #include <cmath>
 #include <stdexcept>
 #include <limits>
+#include <concepts>
 
 #include "../ThrowException.hpp"
 #include "is_integer.hpp"
-#include "../IsComplex.hpp"
+#include "../is_complex.hpp"
 
 #include <iostream>
 
@@ -33,7 +34,7 @@ namespace mrock::utility::Numerics {
          * 
          * The maximum reachable precision is currently around 1e-8.
          */
-        template<Real real, Complex z_t>
+        template<std::floating_point real, Complex z_t>
         auto hg_2F1_continuation(real a, real b, real c, z_t z, real const& tol)
         {
             using result_t = std::common_type_t<real, z_t>;
@@ -78,7 +79,7 @@ namespace mrock::utility::Numerics {
             return prefactor_1 * first_term.result() + prefactor_2 * second_term.result();
         }
 
-        template<Real real, class z_t>
+        template<std::floating_point real, class z_t>
         auto hg_2F1(real a, real b, real c, z_t z, real const& tol) 
         {
             using result_t = std::common_type_t<real, z_t>;
@@ -101,7 +102,7 @@ namespace mrock::utility::Numerics {
      * Asking for more precise results actually *decreases* the precision due to floating point arithmetic.
      * If higher precisions are needed use long double. If that doesn't help, I need to split the summation as to avoid adding 1 + 1e-10 a million times and getting bad results.
      */
-    template<Real real, Complex z_t>
+    template<std::floating_point real, Complex z_t>
     auto hypergeometric_2F1(real a, real b, real c, z_t z, real const& tol = real{1e-10})
     {
         using std::abs;
@@ -119,7 +120,7 @@ namespace mrock::utility::Numerics {
      * Asking for more precise results actually *decreases* the precision due to floating point arithmetic.
      * If higher precisions are needed use long double. If that doesn't help, I need to split the summation as to avoid adding 1 + 1e-10 a million times and getting bad results.
      */
-    template<Real real, Real z_t>
+    template<std::floating_point real, std::floating_point z_t>
     auto hypergeometric_2F1(real a, real b, real c, z_t z, real const& tol = real{1e-10})
     {
         return hypergeometric_2F1(a, b, c, std::complex<z_t>{z, z_t{}}, tol);

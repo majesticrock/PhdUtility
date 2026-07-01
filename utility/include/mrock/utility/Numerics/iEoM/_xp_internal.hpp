@@ -1,5 +1,4 @@
 #pragma once
-#include "../../VectorWrapper.hpp"
 #include <string>
 #include <numeric>
 #include <algorithm>
