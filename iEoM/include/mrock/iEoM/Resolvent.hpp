@@ -6,27 +6,27 @@
 #include <Eigen/Dense>
 #include <cmath>
 
-#include "../is_complex.hpp"
-#include "../UnderlyingRealType.hpp"
-#include "GramSchmidt.hpp"
 
+#include "detail/UnderlyingRealType.hpp"
+#include "detail/is_complex.hpp"
+#include "detail/GramSchmidt.hpp"
 #include "ResolventDataTypes.hpp"
 
-namespace mrock::utility::Numerics {
+namespace mrock::iEoM {
 	using std::abs;
 
 	template <class EigenMatrixType, class EigenVectorType>
 	class Resolvent
 	{
 	private:
-		using RealType = UnderlyingRealType_t<typename EigenMatrixType::Scalar>;
+		using RealType = detail::UnderlyingRealType_t<typename EigenMatrixType::Scalar>;
 		using ComputationType = typename EigenMatrixType::Scalar;
-		using resolvent_data = resolvent_details::ResolventData<RealType>;
-		static constexpr bool isComplex = is_complex_v<typename EigenVectorType::Scalar>;
+		using resolvent_data = ResolventData<RealType>;
+		static constexpr bool isComplex = detail::is_complex_v<typename EigenVectorType::Scalar>;
 
 	public:
 		EigenVectorType startingState;
-		resolvent_details::ResolventDataWrapper<RealType> data;
+		ResolventDataWrapper<RealType> data;
 		// Sets the starting state
 		inline void set_starting_state(const EigenVectorType& state) {
 			this->startingState = state;
@@ -108,7 +108,7 @@ namespace mrock::utility::Numerics {
 				res.b_i.push_back(betas[i + 1]);
 			}
 			data.push_back(std::move(res));
-		};
+		}
 
 		// Computes the resolvent for a Hermitian problem (i.e. the symplectic EigenMatrixType is the identity)
 		void compute(const EigenMatrixType& toSolve, int maxIter)
@@ -170,7 +170,7 @@ namespace mrock::utility::Numerics {
 			// The last b is irrelevant, it does not really exist; it's an artifact of the algorithm
 			res.b_i.pop_back();
 			data.push_back(std::move(res));
-		};
+		}
 
 		// Computes the resolvent directly from M and N. This might be more stable for complex matrices
 		void compute_from_N_M(const EigenMatrixType& toSolve, const EigenMatrixType& symplectic, const EigenMatrixType& N, int maxIter)
@@ -239,7 +239,7 @@ namespace mrock::utility::Numerics {
 				res.b_i.push_back(betas[i + 1]);
 			}
 			data.push_back(std::move(res));
-		};
+		}
 
 		// Computes the resolvent for a Hermitian problem (i.e. the symplectic EigenMatrixType is the identity)
 		// Additionally, this function orthogonalizes the Krylov basis each step
@@ -287,7 +287,7 @@ namespace mrock::utility::Numerics {
 				else {
 					currentSolution = buffer - (alphas.back() * basis_vectors.back());
 				}
-				GramSchmidt<typename EigenVectorType::Scalar>::orthogonalize_single_vector(currentSolution, basis_vectors);
+				detail::GramSchmidt<typename EigenVectorType::Scalar>::orthogonalize_single_vector(currentSolution, basis_vectors);
 				betas.push_back(currentSolution.norm());
 				basis_vectors.push_back(currentSolution / betas.back());
 				++iterNum;
@@ -305,13 +305,13 @@ namespace mrock::utility::Numerics {
 			// The last b is irrelevant, it does not really exist; it's an artifact of the algorithm
 			res.b_i.pop_back();
 			data.push_back(std::move(res));
-		};
+		}
 
 		// Computes the resolvent for a Hermitian problem (i.e. the symplectic EigenMatrixType is the identity)
 		// This function additionally computes the residuals for the lowest n eigenvalues
 		// Additionally, this function orthogonalizes the Krylov basis each step
 		template <int n_residuals>
-		resolvent_details::ResidualInformation<RealType, n_residuals> compute_with_residuals(const EigenMatrixType& toSolve, int maxIter)
+		ResidualInformation<RealType, n_residuals> compute_with_residuals(const EigenMatrixType& toSolve, int maxIter)
 		{
 			static_assert(isComplex == false, "Residual computation not implemented for complex types yet!");
 			const size_t matrix_size = toSolve.rows();
@@ -345,7 +345,7 @@ namespace mrock::utility::Numerics {
 			typedef Eigen::Vector<RealType, Eigen::Dynamic> TVector;
 			typedef Eigen::Map<const TVector> TMap;
 
-			resolvent_details::ResidualInformation<RealType, n_residuals> residual_info;
+			ResidualInformation<RealType, n_residuals> residual_info;
 
 			while (goOn) {
 				// algorithm
@@ -364,7 +364,7 @@ namespace mrock::utility::Numerics {
 					currentSolution = buffer - (alphas.back() * basis_vectors.back());
 				}
 
-				GramSchmidt<typename EigenVectorType::Scalar>::orthogonalize_single_vector(currentSolution, basis_vectors);
+				detail::GramSchmidt<typename EigenVectorType::Scalar>::orthogonalize_single_vector(currentSolution, basis_vectors);
 				betas.push_back(currentSolution.norm());
 				basis_vectors.push_back(currentSolution / betas.back());
 				++iterNum;
@@ -429,17 +429,10 @@ namespace mrock::utility::Numerics {
 			data.push_back(std::move(res));
 
 			return residual_info;
-		};
+		}
 
-		const resolvent_details::ResolventDataWrapper<RealType>& get_data() const {
+		const ResolventDataWrapper<RealType>& get_data() const {
 			return data;
-		};
-
-		// Prints the computed data to <filename>
-		// Asummes that the data has been computed before...
-		void write_data_to_file(const std::string& filename) const
-		{
-			data.write_data_to_file(filename);
-		};
+		}
 	};
 }

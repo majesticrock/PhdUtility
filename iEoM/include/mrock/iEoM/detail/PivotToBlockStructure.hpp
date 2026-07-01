@@ -1,9 +1,11 @@
 #pragma once
 #include <Eigen/Dense>
 #include <omp.h>
+
+#include "UnderlyingRealType.hpp"
 #include "BlockDiagonalMatrix.hpp"
 
-namespace mrock::utility::Numerics {
+namespace mrock::iEoM::detail {
 	// Pivots a matrix so that all offdiagonal 0 blocks are contiguous
 	// The permutation matrix is returned
 	// epsilon is used to determine if a matrix element is 0 (especially important for floating point operations)

@@ -2,11 +2,12 @@
 #include <Eigen/Dense>
 #include <vector>
 #include <type_traits>
-#include "../UnderlyingRealType.hpp"
+
+#include "UnderlyingRealType.hpp"
 
 //#define _BLOCKS_USE_OMP
 
-namespace mrock::utility::Numerics {
+namespace mrock::iEoM::detail {
     namespace detail {
         template<class Number> using MatrixN = Eigen::Matrix<Number, Eigen::Dynamic, Eigen::Dynamic>;
         template<class EigenMatrixType> using RealScalar = UnderlyingRealType_t<typename EigenMatrixType::Scalar>;

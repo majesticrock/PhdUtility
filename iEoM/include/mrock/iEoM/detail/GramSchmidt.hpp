@@ -2,9 +2,8 @@
 #include <Eigen/Dense>
 #include <limits>
 #include <vector>
-#include "../UnderlyingRealType.hpp"
 
-namespace mrock::utility::Numerics
+namespace mrock::iEoM::detail
 {
 	template <typename DataType>
 	class GramSchmidt {

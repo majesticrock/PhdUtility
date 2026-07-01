@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(mrock VERSION 2.6.0 LANGUAGES CXX)
+project(mrock VERSION 3.0.0 LANGUAGES CXX)
 
 set(MROCK_VERSION ${PROJECT_VERSION})
 set(CMAKE_CXX_STANDARD 20)
@@ -17,11 +17,13 @@ mrock_install(mrock)
 
 if(BUILD_TESTS)
     SET(UTIL_TESTS ON)
-    set(SYM_OP_TESTS ON)
+    SET(SYM_OP_TESTS ON)
+    SET(IEOM_TESTS ON)
 endif()
 
 add_subdirectory(utility)
 add_subdirectory(symbolic_operators)
+add_subdirectory(iEoM)
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/mrock-information.cmake)
 install(FILES ${MROCK_INFO_HEADER} DESTINATION include/mrock)
@@ -37,5 +39,10 @@ if(BUILD_TESTS)
         NAME run_symbolic_operators_tests
         COMMAND ${CMAKE_CTEST_COMMAND}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/symbolic_operators/tests
+    )
+    add_test(
+        NAME run_iEoM_tests
+        COMMAND ${CMAKE_CTEST_COMMAND}
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/iEoM/tests
     )
 endif()

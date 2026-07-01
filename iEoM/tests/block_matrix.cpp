@@ -1,9 +1,8 @@
-#include "../include/mrock/utility/Numerics/PivotToBlockStructure.hpp"
+#include "../include/mrock/iEoM/detail/PivotToBlockStructure.hpp"
 #include <iostream>
 #include <chrono>
-//#include "../include/mrock/utility/print_type.hpp"
 
-using namespace mrock::utility::Numerics;
+using namespace mrock::iEoM::detail;
 
 Eigen::MatrixXd generateRandomHermitian(int blockSize) {
     Eigen::MatrixXd mat = Eigen::MatrixXd::Random(blockSize, blockSize);
