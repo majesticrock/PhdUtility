@@ -24,6 +24,12 @@ namespace mrock::symbolic_operators {
     template<class OperatorType>
     class AbstractTerm {
 	protected:
+		// Here, we define buffers to be used later on.
+		// Later, we want to bring all terms to the same notation.
+		// This will entail renaming sums, so that the first sum is always q, the second p, the third r, etc.
+		// To avoid name clashes, we first rename all sums to a buffer name, e.g., the first sum is renamed to :, the second to ;, the third to |, etc.
+		// As of now, this is limited to 11 sums (which I doubt will become a problem in the future).
+		// If more is needed, the buffer_list and name_list need to be extended, and the N_BUFFER constant needs to be changed accordingly.
 		constexpr static int N_BUFFER = 11;
 		constexpr static MomentumSymbol::name_type name_list[N_BUFFER]   = { 'q', 'p', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
 		constexpr static MomentumSymbol::name_type buffer_list[N_BUFFER] = { ':', ';', '|', '?', '!', '.', '-', '_', '+', '/', '=' };
@@ -182,6 +188,7 @@ namespace mrock::symbolic_operators {
 			MomentumSymbol resolve_to{ *(delta_it->first.begin()) };
 			bool found_sum{};
 
+			// Try to find a momentum in the sums that is also in the delta
 			for (auto sum_it = sums.momenta.begin(); sum_it != sums.momenta.end(); ++sum_it) {
 				const auto found_it = std::find_if(delta_it->first.begin(), delta_it->first.end(), [&sum_it](const MomentumSymbol& symbol) {
 					return symbol.name == *sum_it;
@@ -203,12 +210,14 @@ namespace mrock::symbolic_operators {
 			delta_it->second = Momentum(resolve_to);
 			delta_it->first += delta_it->second;
 			
-
+			// Fractional momenta were never implemented, since they were never needed.
+			// If they are ever needed, you unfortunately have to implement them yourself
 			for (MomentumSymbol& symbol : delta_it->first) {
 				assert(symbol.factor % delta_it->second.front().factor == 0);
 				symbol.factor /= delta_it->second.front().factor;
 			}
 
+			// Replace set the delta everywhere, e.g., delta_{k,l+q} would replace each k with l+q
 			for (auto& coeff : coefficients) {
 				coeff.momenta.replace_occurances(delta_it->second.front().name, delta_it->first);
 			}
@@ -263,6 +272,8 @@ namespace mrock::symbolic_operators {
 			Index to_resolve { Index::UndefinedIndex };
 			Index change_to { Index::UndefinedIndex };
 			bool found_sum{};
+
+			// try to find a spin in the sums that is also in the delta
 			auto sum_it = std::find_if( sums.spins.begin(), sums.spins.end(), [&delta_it](const Index& idx) {
 				return idx == delta_it->first;
 			});
