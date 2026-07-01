@@ -6,7 +6,7 @@
 #pragma once
 #include <utility>
 #include <iostream>
-#include <mrock/utility/defines_arithmetic_operators.hpp>
+#include "detail/defines_arithmetic_operators.hpp"
 
 namespace mrock::symbolic_operators {
 
@@ -113,7 +113,7 @@ namespace mrock::symbolic_operators {
 	 * @param rhs The right-hand side element.
 	 * @return KroneckerDelta<T>& The updated KroneckerDelta.
 	 */
-	template<typename T> requires mrock::utility::defines_plus<T>::value
+	template<typename T> requires defines_plus<T>::value
 	inline KroneckerDelta<T>& operator+=(KroneckerDelta<T>& lhs, T& rhs) {
 		lhs.first += rhs;
 		lhs.second += rhs;
@@ -128,7 +128,7 @@ namespace mrock::symbolic_operators {
 	 * @param rhs The right-hand side element.
 	 * @return KroneckerDelta<T>& The updated KroneckerDelta.
 	 */
-	template<typename T> requires mrock::utility::defines_minus<T>::value
+	template<typename T> requires defines_minus<T>::value
 	inline KroneckerDelta<T>& operator-=(KroneckerDelta<T>& lhs, const T& rhs) {
 		lhs.first -= rhs;
 		lhs.second -= rhs;
@@ -143,7 +143,7 @@ namespace mrock::symbolic_operators {
 	 * @param rhs The right-hand side element.
 	 * @return KroneckerDelta<T> The resulting KroneckerDelta.
 	 */
-	template<typename T> requires mrock::utility::defines_plus<T>::value
+	template<typename T> requires defines_plus<T>::value
 	inline KroneckerDelta<T> operator+(KroneckerDelta<T> lhs, T const& rhs) {
 		return (lhs += rhs);
 	}
@@ -156,7 +156,7 @@ namespace mrock::symbolic_operators {
 	 * @param rhs The right-hand side element.
 	 * @return KroneckerDelta<T> The resulting KroneckerDelta.
 	 */
-	template<typename T> requires mrock::utility::defines_minus<T>::value
+	template<typename T> requires defines_minus<T>::value
 	inline KroneckerDelta<T> operator-(KroneckerDelta<T> lhs, T const& rhs) {
 		return (lhs -= rhs);
 	}

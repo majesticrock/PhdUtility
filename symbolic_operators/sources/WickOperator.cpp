@@ -1,5 +1,5 @@
 #include <mrock/symbolic_operators/WickOperator.hpp>
-#include <mrock/utility/StringUtility.hpp>
+#include <mrock/symbolic_operators/detail/string_helper.hpp>
 #include <cassert>
 
 namespace mrock::symbolic_operators {
@@ -13,8 +13,8 @@ namespace mrock::symbolic_operators {
 		// Syntax    type{Momentum_expression;index1,index2,...}(^+)
 
 		this->type = string_to_wick.at(expression.substr(0U, expression.find('{')));
-		std::vector<std::string> momentum_strings = mrock::utility::extract_elements(expression, '{', ';');
-		std::vector<std::string> index_strings = mrock::utility::extract_elements(expression, ';', '}');
+		std::vector<std::string> momentum_strings = extract_elements(expression, '{', ';');
+		std::vector<std::string> index_strings = extract_elements(expression, ';', '}');
 
 		assert(momentum_strings.size() == 1U);
 		this->momentum = Momentum(momentum_strings.front());

@@ -5,7 +5,7 @@
 
 #pragma once
 #include "Momentum.hpp"
-#include <mrock/utility/VectorWrapper.hpp>
+#include "detail/vector_macro.hpp"
 #include <algorithm>
 
 namespace mrock::symbolic_operators {
@@ -14,12 +14,11 @@ namespace mrock::symbolic_operators {
 	 * @class MomentumList
 	 * @brief A wrapper class for a vector of Momentum objects with additional functionalities.
 	 */
-	struct MomentumList : public mrock::utility::VectorWrapper<Momentum>
+	struct MomentumList
 	{
-	private:
-		using _parent = mrock::utility::VectorWrapper<Momentum>;
-
 	public:
+		std::vector<Momentum> momenta; ///< vector that saves the momenta
+
 		/**
 		 * @brief Serializes the MomentumList object, required for boost support.
 		 * @tparam Archive The type of the archive.
@@ -28,7 +27,7 @@ namespace mrock::symbolic_operators {
 		 */
 		template<class Archive>
 		void serialize(Archive& ar, const unsigned int version) {
-			ar& this->_vector;
+			ar& this->momenta;
 		}
 
 		/**
@@ -101,6 +100,10 @@ namespace mrock::symbolic_operators {
 		 * @param momentum The MomentumSymbol name of the Momentum object to flip.
 		 */
 		void flip_single(const MomentumSymbol::name_type momentum);
+
+		MROCK_VECTOR_WRAPPER_FILL_MEMBERS(Momentum, momenta);
+
+		inline auto operator<=>(const MomentumList& rhs) const = default; 
 	};
 
 	/**
@@ -113,7 +116,7 @@ namespace mrock::symbolic_operators {
 
 	// Inline definitions
 	MomentumList& MomentumList::operator*=(const int rhs) {
-		for (auto& mom : _vector) {
+		for (auto& mom : momenta) {
 			mom *= rhs;
 		}
 		return *this;

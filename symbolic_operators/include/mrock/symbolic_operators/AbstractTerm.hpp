@@ -6,16 +6,14 @@
 #pragma once
 
 #include <vector>
-#include <mrock/utility/Fractional.hpp>
 
+#include "Fractional.hpp"
 #include "KroneckerDelta.hpp"
 #include "KroneckerDeltaUtility.hpp"
 #include "Coefficient.hpp"
 #include "SumContainer.hpp"
 
 namespace mrock::symbolic_operators {
-    using IntFractional = mrock::utility::Fractional<int>;
-
     /**
 	 * @class AbstractTerm
 	 * @brief Serves as a parent to \c Term and \c WickTerm.

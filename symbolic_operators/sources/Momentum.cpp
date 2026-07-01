@@ -5,11 +5,11 @@
 
 namespace mrock::symbolic_operators {
 	// Private function used in string expression constructor
-	inline momentum_symbols::value_type identify_subexpression(const std::string& sub) {
+	inline std::vector<MomentumSymbol>::value_type identify_subexpression(const std::string& sub) {
 		if (sub.front() == '+')
 			return identify_subexpression(std::string(sub.begin() + 1, sub.end()));
 		if (sub.front() == '-') {
-			momentum_symbols::value_type ret = identify_subexpression(std::string(sub.begin() + 1, sub.end()));
+			std::vector<MomentumSymbol>::value_type ret = identify_subexpression(std::string(sub.begin() + 1, sub.end()));
 			ret.factor *= -1;
 			return ret;
 		}
@@ -198,7 +198,7 @@ namespace mrock::symbolic_operators {
 			}
 			return os;
 		}
-		for (momentum_symbols::const_iterator it = momentum.momentum_list.begin(); it != momentum.momentum_list.end(); ++it)
+		for (std::vector<MomentumSymbol>::const_iterator it = momentum.momentum_list.begin(); it != momentum.momentum_list.end(); ++it)
 		{
 			if (it != momentum.momentum_list.begin() && it->factor > 0) {
 				os << "+";
@@ -239,7 +239,7 @@ namespace mrock::symbolic_operators {
 	Momentum::Momentum(const MomentumSymbol::name_type value, int plus_minus /* = 1 */, bool Q /* = false */)
 		: momentum_list(1, {plus_minus, value}), add_Q(Q) {}
 	
-	Momentum::Momentum(const momentum_symbols& _momenta, bool Q /* = false */)
+	Momentum::Momentum(const std::vector<MomentumSymbol>& _momenta, bool Q /* = false */)
 		: momentum_list(_momenta), add_Q(Q) {}
 
 	Momentum::Momentum(MomentumSymbol const& momentum_symbol, bool Q /* = false */)

@@ -5,9 +5,11 @@
 
 #pragma once
 #include <iostream>
-#include <mrock/utility/VectorWrapper.hpp>
 #include <string>
 #include <map>
+#include <vector>
+
+#include "detail/vector_macro.hpp"
 
 namespace mrock::symbolic_operators {
 

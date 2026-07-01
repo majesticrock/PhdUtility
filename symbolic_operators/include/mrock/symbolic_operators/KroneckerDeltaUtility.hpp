@@ -7,7 +7,7 @@
 #include "KroneckerDelta.hpp"
 #include "Momentum.hpp"
 #include "IndexWrapper.hpp"
-#include <mrock/utility/defines_arithmetic_operators.hpp>
+#include "detail/defines_arithmetic_operators.hpp"
 #include <concepts>
 
 namespace mrock::symbolic_operators {
@@ -19,7 +19,7 @@ namespace mrock::symbolic_operators {
 	 * @tparam T The LinearlyCombinable (defines + and -) type of the elements.
 	 * @param deltas The vector of KroneckerDelta objects.
 	 */
-	template <mrock::utility::LinearlyCombinable T>
+	template <LinearlyCombinable T>
 		requires std::default_initializable<T> 
 	void remove_delta_squared(std::vector<KroneckerDelta<T>>& deltas) {
 		for (int i = 0; i < deltas.size(); i++)

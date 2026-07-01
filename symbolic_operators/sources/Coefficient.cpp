@@ -1,5 +1,5 @@
 #include <mrock/symbolic_operators/Coefficient.hpp>
-#include <mrock/utility/StringUtility.hpp>
+#include <mrock/symbolic_operators/detail/string_helper.hpp>
 
 namespace mrock::symbolic_operators {
 	void Coefficient::invert_momentum(const MomentumSymbol::name_type what) {
@@ -48,10 +48,10 @@ namespace mrock::symbolic_operators {
     {
 		// Syntax:   name{Momentum_expression1,Momentum_expression1;index1,index2,...}
 		Coefficient ret;
-		ret.name = expression.substr(0U, mrock::utility::find_skip_escaped(expression, '{'));
-		mrock::utility::remove_escape_characters(ret.name);
-		std::vector<std::string> momentum_strings = mrock::utility::extract_elements(expression, '{', ';');
-		std::vector<std::string> index_strings    = mrock::utility::extract_elements(expression, ';', '}');
+		ret.name = expression.substr(0U, find_skip_escaped(expression, '{'));
+		remove_escape_characters(ret.name);
+		std::vector<std::string> momentum_strings = extract_elements(expression, '{', ';');
+		std::vector<std::string> index_strings    = extract_elements(expression, ';', '}');
 
 		ret.momenta.reserve(momentum_strings.size());
 		for (const auto& arg : momentum_strings) {

@@ -61,7 +61,7 @@ namespace mrock::symbolic_operators {
 		 * @param _is_daggered The daggered state of the operator.
 		 * @param _is_fermion The fermion state of the operator (default is true).
 		 */
-		Operator(const momentum_symbols& _momentum, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
+		Operator(const std::vector<MomentumSymbol>& _momentum, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
 
 		/**
 		 * @brief Constructs an Operator with specified momentum symbol name, addition flag, indices, daggered state, and fermion state.

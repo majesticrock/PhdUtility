@@ -8,8 +8,8 @@
  */
 
 #pragma once
-#include <mrock/utility/VectorWrapper.hpp>
 #include <ostream>
+#include "detail/vector_macro.hpp"
 
 namespace mrock::symbolic_operators {
 

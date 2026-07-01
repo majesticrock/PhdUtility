@@ -1,11 +1,21 @@
 #include <mrock/symbolic_operators/Wick.hpp>
 #include <mrock/symbolic_operators/KroneckerDeltaUtility.hpp>
-#include <mrock/utility/Numerics/MathFunctions.hpp>
-#include <mrock/utility/RangeUtility.hpp>
+#include <mrock/symbolic_operators/detail/container_helper.hpp>
 #include <variant>
 #include <numeric>
+#include <type_traits>
 
 namespace mrock::symbolic_operators {
+	// Computes n!!
+	template <typename IntegerType, typename RealType = size_t>
+	constexpr RealType double_factorial(const IntegerType n) {
+		RealType result{ 1 };
+		for (std::make_signed_t<IntegerType> i = n; i > 0; i -= 2) {
+			result *= i;
+		}
+		return result;
+	}
+
 	void wick_processor(const std::vector<Operator>& remaining, WickTermCollector& reciever_list, std::variant<WickTerm, Term> buffer)
 	{
 		if (remaining.empty()) {
@@ -45,7 +55,7 @@ namespace mrock::symbolic_operators {
 	{
 		WickTermCollector prepared_wick;
 		const size_t estimated_size = std::accumulate(terms.begin(), terms.end(), size_t{}, [](size_t current, const Term& term) {
-			return current + mrock::utility::Numerics::double_factorial(term.get_operators().size());
+			return current + double_factorial(term.get_operators().size());
 			});
 
 		prepared_wick.reserve(estimated_size);
@@ -81,7 +91,7 @@ namespace mrock::symbolic_operators {
 				return current + tr.results.size();
 				});
 			if (number_additional_elements > 1U) {
-				mrock::utility::duplicate_n_inplace(ret, number_additional_elements - 1U);
+				duplicate_n_inplace(ret, number_additional_elements - 1U);
 			}
 
 			size_t template_result_it{};
@@ -109,7 +119,7 @@ namespace mrock::symbolic_operators {
 		WickTermCollector prepared_wick = prepare_wick(terms);
 
 		for (auto& w_term : prepared_wick) {
-			mrock::utility::append_if(reciever, identify_wick_operators(w_term, operator_templates), [](const WickTerm& wick) {
+			append_if(reciever, identify_wick_operators(w_term, operator_templates), [](const WickTerm& wick) {
 				return !(is_always_zero(wick.delta_indizes) || is_always_zero(wick.delta_momenta)) && !wick.is_pauli_forbidden();
 				});
 		}
