@@ -1,16 +1,16 @@
 #pragma once
-#include "_internal_functions.hpp"
-#include "_xp_internal.hpp"
-#include "../PivotToBlockStructure.hpp"
-#include "../Resolvent.hpp"
-#include "../../constexpr_power.hpp"
-#include "../../OutputConvenience.hpp"
 #include <Eigen/Dense>
 #include <array>
 #include <list>
 #include <chrono>
 
-namespace mrock::utility::Numerics::iEoM {
+#include "detail/internal_functions.hpp"
+#include "detail/xp_internal.hpp"
+#include "detail/PivotToBlockStructure.hpp"
+#include "XPStartingState.hpp"
+#include "Resolvent.hpp"
+
+namespace mrock::iEoM {
 	/**
 	 * @struct XPResolvent
 	 * @brief Computes resolvent and eigenvalue data for Hermitian and anti-Hermitian dynamic matrices.
@@ -48,19 +48,19 @@ namespace mrock::utility::Numerics::iEoM {
 		using Matrix = Eigen::Matrix<RealType, Eigen::Dynamic, Eigen::Dynamic>;
 		using Vector = Eigen::Vector<RealType, Eigen::Dynamic>;
 
-		using phase_it = PhaseIterator<RealType>;
-		using amplitude_it = AmplitudeIterator<RealType>;
+		using phase_it = detail::PhaseIterator<RealType>;
+		using amplitude_it = detail::AmplitudeIterator<RealType>;
 
-		using const_phase_it = ConstPhaseIterator<RealType>;
-		using const_amplitude_it = ConstAmplitudeIterator<RealType>;
+		using const_phase_it = detail::ConstPhaseIterator<RealType>;
+		using const_amplitude_it = detail::ConstAmplitudeIterator<RealType>;
 
 		using TransformQR = std::conditional_t<!check_qr,
 								Eigen::CompleteOrthogonalDecomposition<Eigen::Ref<Matrix>>,
 								Eigen::CompleteOrthogonalDecomposition<Matrix>>;
 
-		using FullDiagData = resolvent_details::FullDiagonalizationData<RealType, n_residuals>;
-		using ResidualData = resolvent_details::ResidualInformation<RealType, n_residuals>;
-		using ResolventReturnData = resolvent_details::ResolventDataWrapper<RealType>;
+		using FullDiagData = FullDiagonalizationData<RealType, n_residuals>;
+		using ResidualData = ResidualInformation<RealType, n_residuals>;
+		using ResolventReturnData = ResolventDataWrapper<RealType>;
 
 		Matrix K_plus, K_minus, L;
 		std::vector<StartingState<RealType>> starting_states;
@@ -80,7 +80,7 @@ namespace mrock::utility::Numerics::iEoM {
 		}
 
 		template<int CheckHermitian = -1>
-		std::array<matrix_wrapper<Matrix>, 2> diagonalize_K_matrices() {
+		std::array<detail::matrix_wrapper<Matrix>, 2> diagonalize_K_matrices() {
 			set_begin();
 			_derived->fillMatrices();
 			_derived->createStartingStates();
@@ -98,7 +98,7 @@ namespace mrock::utility::Numerics::iEoM {
 			}
 
 			print_duration("Time for filling of M and N: ");
-			std::array<matrix_wrapper<Matrix>, 2> k_solutions;
+			std::array<detail::matrix_wrapper<Matrix>, 2> k_solutions;
 
 			omp_set_nested(2);
 			Eigen::initParallel();
@@ -113,12 +113,12 @@ namespace mrock::utility::Numerics::iEoM {
 				{
 					set_begin();
 					if (_pivot) {
-						k_solutions[0] = matrix_wrapper<Matrix>::pivot_and_solve(K_plus);
+						k_solutions[0] = detail::matrix_wrapper<Matrix>::pivot_and_solve(K_plus);
 					}
 					else {
-						k_solutions[0] = matrix_wrapper<Matrix>::only_solve(K_plus);
+						k_solutions[0] = detail::matrix_wrapper<Matrix>::only_solve(K_plus);
 					}
-					this->_internal.template apply_matrix_operation<IEOM_NONE>(k_solutions[0].eigenvalues, "K_+");
+					this->_internal.template apply_matrix_operation<detail::iEoM_operation::NONE>(k_solutions[0].eigenvalues, "K_+");
 					print_duration("Time for solving K_+: ", false);
 					// free the allocated memory
 					K_plus.resize(0, 0);
@@ -129,12 +129,12 @@ namespace mrock::utility::Numerics::iEoM {
 				{
 					set_begin();
 					if (_pivot) {
-						k_solutions[1] = matrix_wrapper<Matrix>::pivot_and_solve(K_minus);
+						k_solutions[1] = detail::matrix_wrapper<Matrix>::pivot_and_solve(K_minus);
 					}
 					else {
-						k_solutions[1] = matrix_wrapper<Matrix>::only_solve(K_minus);
+						k_solutions[1] = detail::matrix_wrapper<Matrix>::only_solve(K_minus);
 					}
-					this->_internal.template apply_matrix_operation<IEOM_NONE>(k_solutions[1].eigenvalues, "K_-");
+					this->_internal.template apply_matrix_operation<detail::iEoM_operation::NONE>(k_solutions[1].eigenvalues, "K_-");
 					print_duration("Time for solving K_-: ", false);
 					// free the allocated memory
 					K_minus.resize(0, 0);
@@ -148,11 +148,11 @@ namespace mrock::utility::Numerics::iEoM {
 		* To compute the anti-Hermitian part set plus_index = 1 and minus_index = 0
 		*/
 		template <size_t plus_index, size_t minus_index, class StateTransformPolicy>
-		void compute_solver_matrix_impl(const std::array<matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix, StateTransformPolicy&& transform) 
+		void compute_solver_matrix_impl(const std::array<detail::matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix, StateTransformPolicy&& transform) 
 		{
 			set_begin();
 			Vector K_EV = k_solutions[minus_index].eigenvalues;
-			_internal.template apply_matrix_operation<IEOM_INVERSE>(K_EV, plus_index == 1 ? "K_+" : "K_-");
+			_internal.template apply_matrix_operation<detail::iEoM_operation::INVERSE>(K_EV, plus_index == 1 ? "K_+" : "K_-");
 			decltype(auto) L_view = [this]() -> decltype(auto) {
 			        if constexpr (minus_index == 0)
 			            return L.transpose();
@@ -165,8 +165,8 @@ namespace mrock::utility::Numerics::iEoM {
 
 			print_duration("Time for computing N_new: ");
 			{
-				auto n_solution = _pivot ? matrix_wrapper<Matrix>::pivot_and_solve(N_new) : matrix_wrapper<Matrix>::only_solve(N_new);
-				_internal.template apply_matrix_operation<IEOM_INVERSE_SQRT>(n_solution.eigenvalues, plus_index == 1 ? "+: N_new" : "-: N_new");
+				auto n_solution = _pivot ? detail::matrix_wrapper<Matrix>::pivot_and_solve(N_new) : detail::matrix_wrapper<Matrix>::only_solve(N_new);
+				_internal.template apply_matrix_operation<detail::iEoM_operation::INVERSE_SQRT>(n_solution.eigenvalues, plus_index == 1 ? "+: N_new" : "-: N_new");
 				// Starting here, N_new = 1/sqrt(N_new)
 				// I forego another matrix to save some memory
 				N_new.noalias() = n_solution.eigenvectors * n_solution.eigenvalues.asDiagonal() * n_solution.eigenvectors.adjoint();
@@ -188,7 +188,7 @@ namespace mrock::utility::Numerics::iEoM {
 		* To compute the anti-Hermitian part set plus_index = 1 and minus_index = 0
 		*/
 		template <size_t plus_index, size_t minus_index>
-		void compute_solver_matrix(const std::array<matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix) 
+		void compute_solver_matrix(const std::array<detail::matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix) 
 		{
 			compute_solver_matrix_impl<plus_index, minus_index>(k_solutions, solver_matrix,
 				[this](Vector& state, const Matrix& N_new) {
@@ -207,7 +207,7 @@ namespace mrock::utility::Numerics::iEoM {
 		* To compute the anti-Hermitian part set plus_index = 1 and minus_index = 0
 		*/
 		template <size_t plus_index, size_t minus_index>
-		void compute_solver_matrix(const std::array<matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix, Matrix& transform_matrix) 
+		void compute_solver_matrix(const std::array<detail::matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix, Matrix& transform_matrix) 
 		{
 			compute_solver_matrix_impl<plus_index, minus_index>(k_solutions, solver_matrix,
 				[this, &transform_matrix](Vector& state, const Matrix& N_new) {
@@ -275,7 +275,7 @@ namespace mrock::utility::Numerics::iEoM {
 		 * @note The state vector is assumed to be pre-transformed. The weights represent
 		 *       probabilities (squared amplitudes) in the eigenvector basis.
 		 */
-		template<ConstStateIterator iterator_type>
+		template<detail::ConstStateIterator iterator_type>
 		FullDiagData set_full_diag_data(const Eigen::SelfAdjointEigenSolver<Matrix>& solver, const TransformQR& qr, 
 			const size_t& n_zero, const size_t& n_non_zero, const Matrix& transform_matrix) const
 		{
@@ -388,11 +388,11 @@ namespace mrock::utility::Numerics::iEoM {
 				return true;
 			}
 			K_minus = _internal.remove_noise(K_minus);
-			if (! matrix_wrapper<Matrix>::is_non_negative(K_minus, _internal._sqrt_precision)) {
+			if (! detail::matrix_wrapper<Matrix>::is_non_negative(K_minus, _internal._sqrt_precision)) {
 				return true;
 			}
 			K_plus = _internal.remove_noise(K_plus);
-			if (! matrix_wrapper<Matrix>::is_non_negative(K_plus, _internal._sqrt_precision)) {
+			if (! detail::matrix_wrapper<Matrix>::is_non_negative(K_plus, _internal._sqrt_precision)) {
 				return true;
 			}
 			return false;
@@ -556,7 +556,7 @@ namespace mrock::utility::Numerics::iEoM {
 		}
 
 	private:
-		ieom_internal<RealType> _internal;
+		detail::iEoM_internal<RealType> _internal;
 		Derived* _derived;
 		const int _hermitian_size{};
 		const int _antihermitian_size{};

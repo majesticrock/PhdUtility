@@ -1,14 +1,14 @@
 #pragma once
 #include <vector>
 #include <array>
+#include <list>
 #include <string>
 #include <iostream>
 #include <nlohmann/json.hpp>
 
-#include "../RangeUtility.hpp"
-#include "../OutputConvenience.hpp"
+//#include "../OutputConvenience.hpp"
 
-namespace mrock::utility::Numerics::resolvent_details {
+namespace mrock::iEoM {
     template <class RealType>
 	struct ResolventData {
 		std::vector<RealType> a_i;
@@ -30,16 +30,6 @@ namespace mrock::utility::Numerics::resolvent_details {
 		void push_back(const ResolventData<RealType>& data_point) {
 			lanczos.push_back(data_point);
 		};
-		// Prints the computed data to <filename>
-		// Asummes that the data has been computed before...
-		void write_data_to_file(const std::string& filename, const std::vector<std::string>& comments = {}) const
-		{
-			for (const auto& res_data : lanczos) {
-				if (check_data_for_NaN(res_data.a_i)) std::cerr << "Resolvent a_i" << std::endl;
-				if (check_data_for_NaN(res_data.b_i)) std::cerr << "Resolvent b_i" << std::endl;
-			}
-			save_data(lanczos, filename + ".dat.gz");
-		};
 	};
 
 	template <class RealType>
@@ -47,7 +37,8 @@ namespace mrock::utility::Numerics::resolvent_details {
 	{
 		for (auto& sub_target : target) {
 			if(sub_target.name == new_data.name) {
-				append_vector(sub_target.lanczos, new_data.lanczos);
+				// Appends new_data.lanczos to sub_target.lanczos
+				sub_target.lanczos.insert(sub_target.lanczos.end(), new_data.lanczos.begin(), new_data.lanczos.end());
 				return;
 			}
 		}

@@ -1,25 +1,41 @@
 #pragma once
-#include "../../better_to_string.hpp"
-#include "../../UnderlyingRealType.hpp"
 #include <Eigen/Dense>
 #include <iostream>
+#include <charconv>
 
-namespace mrock::utility::Numerics::iEoM {
+#include "UnderlyingRealType.hpp"
+
+namespace mrock::iEoM {
 	template<class RealType>
 	class MatrixIsNegativeException : public std::runtime_error {
+	private:
+		template <class... Args>
+		std::string better_to_string(Args&&... format_args)
+		{
+			std::array<char, 32> str;
+			auto result = std::to_chars(str.data(), str.data() + str.size(), std::forward<Args>(format_args)...);
+
+			if (result.ec == std::errc())
+				return std::string(str.data(), result.ptr - str.data());
+			else
+				return std::make_error_code(result.ec).message();
+		}
+
 	public:
 		RealType negative_eigenvalue{};
+
 		MatrixIsNegativeException(RealType _negative_eigenvalue, const std::string& name = "M")
 			: std::runtime_error("The matrix " + name + " is negative! Most negative eigenvalue = "
-				+ mrock::utility::better_to_string(_negative_eigenvalue, std::chars_format::scientific, 6)),
-			negative_eigenvalue(_negative_eigenvalue)
+					+ better_to_string(_negative_eigenvalue, std::chars_format::scientific, 6)),
+				negative_eigenvalue(_negative_eigenvalue)
 		{};
 	};
 
-	enum ieom_operation { IEOM_NONE, IEOM_INVERSE, IEOM_SQRT, IEOM_INVERSE_SQRT };
+namespace detail {
+	enum class iEoM_operation { NONE, INVERSE, SQRT, INVERSE_SQRT };
 
 	template<class NumberType>
-	struct ieom_internal {
+	struct iEoM_internal {
 		using RealType = UnderlyingRealType_t<NumberType>;
 		using RealVector = Eigen::Vector<RealType, Eigen::Dynamic>;
 
@@ -28,10 +44,10 @@ namespace mrock::utility::Numerics::iEoM {
 
 		const bool _negative_matrix_is_error{ true };
 
-		constexpr ieom_internal() = default;
-		constexpr ieom_internal(RealType const& sqrt_precision)
+		constexpr iEoM_internal() = default;
+		constexpr iEoM_internal(RealType const& sqrt_precision)
 			: _sqrt_precision(sqrt_precision), _precision(sqrt_precision* sqrt_precision) {};
-		constexpr ieom_internal(RealType const& sqrt_precision, bool negative_matrix_is_error)
+		constexpr iEoM_internal(RealType const& sqrt_precision, bool negative_matrix_is_error)
 			: _sqrt_precision(sqrt_precision), _precision(sqrt_precision* sqrt_precision), _negative_matrix_is_error(negative_matrix_is_error) {};
 
 		template <class EigenMatrixType>
@@ -57,7 +73,7 @@ namespace mrock::utility::Numerics::iEoM {
 		* 2: Compute the square root
 		* 3: Compute the pseudoinverse square root
 		*/
-		template<ieom_operation option, bool pseudo_inverse = true>
+		template<iEoM_operation option, bool pseudo_inverse = true>
 		inline void apply_matrix_operation(RealVector& evs, const std::string& name = "M") const {
 			if (contains_negative(evs)) {
 				if (_negative_matrix_is_error) {
@@ -75,29 +91,30 @@ namespace mrock::utility::Numerics::iEoM {
 						ev = RealType{};
 					}
 					else {
-						if constexpr (option == IEOM_INVERSE) {
+						if constexpr (option == iEoM_operation::INVERSE) {
 							ev = (1. / _precision);
 						}
-						else if constexpr (option == IEOM_SQRT) {
+						else if constexpr (option == iEoM_operation::SQRT) {
 							ev = _sqrt_precision;
 						}
-						else if constexpr (option == IEOM_INVERSE_SQRT) {
+						else if constexpr (option == iEoM_operation::INVERSE_SQRT) {
 							ev = (1. / _sqrt_precision);
 						}
 					}
 				}
 				else {
-					if constexpr (option == IEOM_INVERSE) {
+					if constexpr (option == iEoM_operation::INVERSE) {
 						ev = 1. / ev;
 					}
-					else if constexpr (option == IEOM_SQRT) {
+					else if constexpr (option == iEoM_operation::SQRT) {
 						ev = sqrt(ev);
 					}
-					else if constexpr (option == IEOM_INVERSE_SQRT) {
+					else if constexpr (option == iEoM_operation::INVERSE_SQRT) {
 						ev = 1. / sqrt(ev);
 					}
 				}
 			}
 		};
 	};
-}
+} // namespace detail 
+} // namesapce mrock::iEoM

@@ -1,20 +1,22 @@
 #pragma once
-#include "../Resolvent.hpp"
-#include "_internal_functions.hpp"
-#include "../../is_complex.hpp"
-#include "../../constexpr_power.hpp"
-#include "../PivotToBlockStructure.hpp"
 #include <chrono>
 #include <string>
 
-namespace mrock::utility::Numerics::iEoM {
+#include "detail/UnderlyingRealType.hpp"
+#include "detail/internal_functions.hpp"
+#include "detail/PivotToBlockStructure.hpp"
+#include "detail/is_complex.hpp"
+
+#include "Resolvent.hpp"
+
+namespace mrock::iEoM {
 	template<class Derived, class NumberType>
 	struct GeneralResolvent {
 	public:
-		using RealType = UnderlyingRealType_t<NumberType>;
+		using RealType = detail::UnderlyingRealType_t<NumberType>;
 		using Matrix = Eigen::Matrix<NumberType, Eigen::Dynamic, Eigen::Dynamic>;
 		using Vector = Eigen::Vector<NumberType, Eigen::Dynamic>;
-		using BlockedMatrix = BlockDiagonalMatrix<Matrix>;
+		using BlockedMatrix = detail::BlockDiagonalMatrix<Matrix>;
 		using ResolventType = Resolvent<BlockedMatrix, Eigen::Vector< std::complex<RealType>, Eigen::Dynamic >>;
 
 	protected:
@@ -30,7 +32,7 @@ namespace mrock::utility::Numerics::iEoM {
 
 		bool dynamic_matrix_is_negative() {
 			_derived->fill_M();
-			if constexpr (is_complex_v<NumberType>) {
+			if constexpr (detail::is_complex_v<NumberType>) {
 				if (this->_internal.contains_negative(M.diagonal().real())) {
 					return true;
 				}
@@ -41,7 +43,7 @@ namespace mrock::utility::Numerics::iEoM {
 				}
 			}
 			M = this->_internal.remove_noise(M);
-			if (not matrix_wrapper<Matrix>::is_non_negative(M, this->_internal._sqrt_precision)) {
+			if (! detail::matrix_wrapper<Matrix>::is_non_negative(M, this->_internal._sqrt_precision)) {
 				return true;
 			}
 
@@ -49,9 +51,9 @@ namespace mrock::utility::Numerics::iEoM {
 		};
 
 		template<int CheckHermitian = -1>
-		std::vector<resolvent_details::ResolventDataWrapper<RealType>> compute_collective_modes(unsigned int LANCZOS_ITERATION_NUMBER)
+		std::vector<ResolventDataWrapper<RealType>> compute_collective_modes(unsigned int LANCZOS_ITERATION_NUMBER)
 		{
-			using __matrix_wrapper__ = blocked_matrix_wrapper<NumberType>;
+			using __matrix_wrapper__ = detail::blocked_matrix_wrapper<NumberType>;
 			std::chrono::time_point begin = std::chrono::steady_clock::now();
 			std::chrono::time_point end = std::chrono::steady_clock::now();
 
@@ -75,9 +77,9 @@ namespace mrock::utility::Numerics::iEoM {
 				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
 			begin = std::chrono::steady_clock::now();
 
-			const auto pivot = pivot_to_block_structure(M);
+			const auto pivot = detail::pivot_to_block_structure(M);
 			M = pivot.transpose() * M * pivot;
-			const std::vector<HermitianBlock> blocks = identify_hermitian_blocks(M);
+			const std::vector<detail::HermitianBlock> blocks = detail::identify_hermitian_blocks(M);
 			N = pivot.transpose() * N * pivot;
 
 			BlockedMatrix M_blocked(M, blocks);
@@ -89,7 +91,7 @@ namespace mrock::utility::Numerics::iEoM {
 			begin = std::chrono::steady_clock::now();
 
 			__matrix_wrapper__ M_solver = __matrix_wrapper__::solve_block_diagonal_matrix(M_blocked); // , blocks
-			this->_internal.template apply_matrix_operation<IEOM_NONE>(M_solver.eigenvalues);
+			this->_internal.template apply_matrix_operation<detail::iEoM_operation::NONE>(M_solver.eigenvalues);
 
 			end = std::chrono::steady_clock::now();
 			std::cout << "Time for first solving: "
@@ -103,7 +105,7 @@ namespace mrock::utility::Numerics::iEoM {
 				* bufferMatrix.adjoint();
 
 			__matrix_wrapper__ norm_solver = __matrix_wrapper__::solve_block_diagonal_matrix(n_hacek); // , blocks
-			this->_internal.template apply_matrix_operation<IEOM_SQRT>(norm_solver.eigenvalues);
+			this->_internal.template apply_matrix_operation<detail::iEoM_operation::SQRT>(norm_solver.eigenvalues);
 
 			end = std::chrono::steady_clock::now();
 			std::cout << "Time for norm solving: "
@@ -163,7 +165,7 @@ namespace mrock::utility::Numerics::iEoM {
 			std::cout << "Time for resolventes: "
 				<< std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
 
-			std::vector<resolvent_details::ResolventDataWrapper<RealType>> ret;
+			std::vector<ResolventDataWrapper<RealType>> ret;
 			ret.reserve(resolvents.size());
 			for (const auto& re : resolvents)
 			{
@@ -173,7 +175,7 @@ namespace mrock::utility::Numerics::iEoM {
 		}
 
 	private:
-		ieom_internal<RealType> _internal;
+		detail::iEoM_internal<RealType> _internal;
 		Derived* _derived;
 	};
 }
