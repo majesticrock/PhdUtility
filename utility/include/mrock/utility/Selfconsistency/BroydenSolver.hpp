@@ -134,7 +134,7 @@ namespace mrock::utility::Selfconsistency {
      * @return A BroydenSolver object.
      */
 	template <const DebugPolicy& debugPolicy, class DataType, class Model, class SelfconsistencyAttributes>
-	auto make_broyden(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, unsigned int MaxPreBroydenIterations, const UnderlyingFloatingPoint_t<DataType>& preBroydenPrecision = 1e-6)
+	auto make_broyden(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, unsigned int MaxPreBroydenIterations, const UnderlyingRealType_t<DataType>& preBroydenPrecision = 1e-6)
 	{
 		return BroydenSolver<DataType, Model, SelfconsistencyAttributes, debugPolicy>(model_ptr, attribute_ptr, MaxPreBroydenIterations, preBroydenPrecision);
 	}
@@ -152,7 +152,7 @@ namespace mrock::utility::Selfconsistency {
      * @return A BroydenSolver object.
      */
 	template <class DataType, class Model, class SelfconsistencyAttributes>
-	auto make_broyden(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, unsigned int MaxPreBroydenIterations, const UnderlyingFloatingPoint_t<DataType>& preBroydenPrecision = 1e-6)
+	auto make_broyden(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, unsigned int MaxPreBroydenIterations, const UnderlyingRealType_t<DataType>& preBroydenPrecision = 1e-6)
 	{
 		return BroydenSolver<DataType, Model, SelfconsistencyAttributes, WarnNoConvergence>(model_ptr, attribute_ptr, MaxPreBroydenIterations, preBroydenPrecision);
 	}

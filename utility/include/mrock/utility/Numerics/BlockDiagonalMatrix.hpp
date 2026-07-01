@@ -2,14 +2,14 @@
 #include <Eigen/Dense>
 #include <vector>
 #include <type_traits>
-#include "../UnderlyingFloatingPoint.hpp"
+#include "../UnderlyingRealType.hpp"
 
 //#define _BLOCKS_USE_OMP
 
 namespace mrock::utility::Numerics {
     namespace detail {
         template<class Number> using MatrixN = Eigen::Matrix<Number, Eigen::Dynamic, Eigen::Dynamic>;
-        template<class EigenMatrixType> using RealScalar = UnderlyingFloatingPoint_t<typename EigenMatrixType::Scalar>;
+        template<class EigenMatrixType> using RealScalar = UnderlyingRealType_t<typename EigenMatrixType::Scalar>;
     }
 
     struct HermitianBlock {

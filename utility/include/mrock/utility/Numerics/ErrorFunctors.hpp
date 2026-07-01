@@ -9,7 +9,7 @@
 #include <functional>
 #include <cmath>
 
-#include "../UnderlyingFloatingPoint.hpp"
+#include "../UnderlyingRealType.hpp"
 
 namespace mrock::utility::Numerics {
     /**
@@ -49,7 +49,7 @@ namespace mrock::utility::Numerics {
 	template<class vector_type, class value_type = typename vector_type::value_type, bool compute_relative_error = true>
 	struct vector_norm_error {
 	public:
-		typedef UnderlyingFloatingPoint_t<value_type> error_type;
+		typedef UnderlyingRealType_t<value_type> error_type;
 	private:
 		/**
 		 * @brief Computes the norm of a vector.
@@ -95,7 +95,7 @@ namespace mrock::utility::Numerics {
 		 * @param _old The old vector.
 		 * @return value_type The element-wise error.
 		 */
-		typedef UnderlyingFloatingPoint_t<value_type> error_type;
+		typedef UnderlyingRealType_t<value_type> error_type;
 
 		error_type operator()(const vector_type& _new, const vector_type& _old) const {
             const error_type abs_diff = std::transform_reduce(_new.begin(), _new.end(), _old.begin(), error_type{}, 

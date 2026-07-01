@@ -3,7 +3,7 @@
 #include "_xp_internal.hpp"
 #include "../PivotToBlockStructure.hpp"
 #include "../Resolvent.hpp"
-#include "../../ConstexprPower.hpp"
+#include "../../constexpr_power.hpp"
 #include "../../OutputConvenience.hpp"
 #include <Eigen/Dense>
 #include <array>

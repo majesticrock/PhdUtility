@@ -1,6 +1,6 @@
 #pragma once
 #include "../../better_to_string.hpp"
-#include "../../UnderlyingFloatingPoint.hpp"
+#include "../../UnderlyingRealType.hpp"
 #include <Eigen/Dense>
 #include <iostream>
 
@@ -20,7 +20,7 @@ namespace mrock::utility::Numerics::iEoM {
 
 	template<class NumberType>
 	struct ieom_internal {
-		using RealType = UnderlyingFloatingPoint_t<NumberType>;
+		using RealType = UnderlyingRealType_t<NumberType>;
 		using RealVector = Eigen::Vector<RealType, Eigen::Dynamic>;
 
 		const RealType _sqrt_precision{ 1e-6 };

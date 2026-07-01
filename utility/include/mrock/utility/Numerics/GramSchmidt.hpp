@@ -2,7 +2,7 @@
 #include <Eigen/Dense>
 #include <limits>
 #include <vector>
-#include "../UnderlyingFloatingPoint.hpp"
+#include "../UnderlyingRealType.hpp"
 
 namespace mrock::utility::Numerics
 {
