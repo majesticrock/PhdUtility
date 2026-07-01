@@ -4,13 +4,14 @@
  */
 
 #pragma once
+#include <algorithm>
+
 #include "Term.hpp"
 #include "WickOperator.hpp"
 #include "WickOperatorTemplate.hpp"
-#include <algorithm>
+#include "detail/vector_macro.hpp"
 
 namespace mrock::symbolic_operators {
-
 	/**
 	 * @class WickTerm
 	 * @brief A class representing a term consisting of expectation values, represented via WickOperator objects.
@@ -296,7 +297,7 @@ namespace mrock::symbolic_operators {
 	 * @class WickTermCollector
 	 * @brief A wrapper for a vector of WickTerm objects.
 	 */
-	struct WickTermCollector : public mrock::utility::VectorWrapper<WickTerm> {
+	struct WickTermCollector {
 		/**
 		 * @brief Serializes the WickTermCollector object.
 		 * 
@@ -304,10 +305,14 @@ namespace mrock::symbolic_operators {
 		 * @param ar The archive object.
 		 * @param version The version of the serialization.
 		 */
+		std::vector<WickTerm> terms; ///< The collected \c WickTerm objects
+
 		template<class Archive>
 		void serialize(Archive& ar, const unsigned int version) {
-			ar& _vector;
+			ar& terms;
 		};
+
+		MROCK_VECTOR_WRAPPER_FILL_MEMBERS(WickTerm, terms);
 	};
 
 	/**

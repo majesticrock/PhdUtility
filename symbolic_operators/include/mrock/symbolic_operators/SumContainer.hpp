@@ -6,7 +6,7 @@
 #pragma once
 
 #include "SymbolicSum.hpp"
-#include <mrock/utility/RangeUtility.hpp>
+#include "detail/container_helper.hpp"
 #include "IndexWrapper.hpp"
 #include "MomentumSymbol.hpp"
 

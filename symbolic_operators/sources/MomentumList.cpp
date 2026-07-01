@@ -2,19 +2,19 @@
 
 namespace mrock::symbolic_operators {
 	void MomentumList::replace_occurances(const MomentumSymbol::name_type replaceWhat, const Momentum& replaceWith) {
-		for (auto& mom : _vector) {
+		for (auto& mom : momenta) {
 			mom.replace_occurances(replaceWhat, replaceWith);
 		}
 	}
 
 	void MomentumList::remove_zeros() {
-		for (auto& mom : _vector) {
+		for (auto& mom : momenta) {
 			mom.remove_zeros();
 		}
 	}
 
 	void MomentumList::flip_single(const MomentumSymbol::name_type momentum) {
-		for (auto& mom : _vector) {
+		for (auto& mom : momenta) {
 			mom.flip_single(momentum);
 		}
 	}
@@ -33,23 +33,23 @@ namespace mrock::symbolic_operators {
 		return os;
 	}
 
-	MomentumList::MomentumList() : _parent() {}
+	MomentumList::MomentumList() {}
 
 	MomentumList::MomentumList(const Momentum& momentum)
-		: _parent{ momentum } {}
+		: momenta{ momentum } {}
 
 	MomentumList::MomentumList(const Momentum& first, const Momentum& second)
-		: _parent{ first, second } {}
+		: momenta{ first, second } {}
 
 	MomentumList::MomentumList(std::initializer_list<Momentum> init)
-		: _parent(init) {}
+		: momenta(init) {}
 
 	MomentumList::MomentumList(std::initializer_list<char> init)
-		: _parent{ std::vector<Momentum>(init.size()) }
+		: momenta{ std::vector<Momentum>(init.size()) }
 	{
 		for (size_t i = 0U; i < init.size(); i++)
 		{
-			this->_vector[i] = Momentum(init.begin()[i]);
+			this->momenta[i] = Momentum(init.begin()[i]);
 		}
 	}
 }

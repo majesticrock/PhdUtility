@@ -1,6 +1,6 @@
 #include <mrock/symbolic_operators/Term.hpp>
 #include <mrock/symbolic_operators/KroneckerDeltaUtility.hpp>
-#include <mrock/utility/RangeUtility.hpp>
+#include <mrock/symbolic_operators/detail/container_helper.hpp>
 #include <sstream>
 
 namespace mrock::symbolic_operators {
@@ -414,16 +414,16 @@ namespace mrock::symbolic_operators {
 		}
 	}
 
-#define fill_reciever(x) reciever[0].x = left.x; mrock::utility::append_vector(reciever[0].x, right.x); reciever[1].x = left.x; mrock::utility::append_vector(reciever[1].x, right.x);
+#define fill_reciever(x) reciever[0].x = left.x; append_vector(reciever[0].x, right.x); reciever[1].x = left.x; append_vector(reciever[1].x, right.x);
 	std::vector<Term> commutator(const Term& left, const Term& right)
 	{
 		std::vector<Term> reciever(2);
 		reciever[0] = left;
 		reciever[0].multiplicity *= right.multiplicity;
-		mrock::utility::append_vector(reciever[0].operators, right.operators);
+		append_vector(reciever[0].operators, right.operators);
 		reciever[1] = right;
 		reciever[1].multiplicity *= left.multiplicity;
-		mrock::utility::append_vector(reciever[1].operators, left.operators);
+		append_vector(reciever[1].operators, left.operators);
 		reciever[1].flip_sign();
 
 		fill_reciever(coefficients);
@@ -446,7 +446,7 @@ namespace mrock::symbolic_operators {
 			for (const auto& right_term : right)
 			{
 				std::vector<Term> reciever_buffer = commutator(left_term, right_term);
-				mrock::utility::append_vector(reciever, std::move(reciever_buffer));
+				append_vector(reciever, std::move(reciever_buffer));
 			}
 		}
 		return reciever;

@@ -13,17 +13,11 @@
 #include <algorithm>
 #include <vector>
 #include <utility>
-#include <mrock/utility/VectorWrapper.hpp>
+
+#include "detail/vector_macro.hpp"
 #include "MomentumSymbol.hpp"
 
 namespace mrock::symbolic_operators {
-
-	/**
-	 * @typedef momentum_symbols
-	 * @brief Alias for a vector of MomentumSymbol.
-	 */
-	typedef std::vector<MomentumSymbol> momentum_symbols;
-
 	/**
 	 * @struct Momentum
 	 * @brief Represents a collection of momentum symbols with associated operations.
@@ -35,7 +29,7 @@ namespace mrock::symbolic_operators {
 	 * If you want to add \f$Q\f$ here, you can do so by passing \c true to the same constructor as a second argument.
 	 */
 	struct Momentum {
-		momentum_symbols momentum_list; ///< List of momentum symbols.
+		std::vector<MomentumSymbol> momentum_list; ///< List of momentum symbols.
 		bool add_Q{}; ///< Flag indicating additional property \f$Q\f$. \f$Q\f$ is a special momentum with the property \f$2Q = 0\f$. Remeber that momenta are only defined in the first Brillouin zone.
 
 		/**
@@ -76,7 +70,7 @@ namespace mrock::symbolic_operators {
 		 * @param _momenta List of momentum symbols.
 		 * @param Q Additional property Q.
 		 */
-		explicit Momentum(const momentum_symbols& _momenta, bool Q = false);
+		explicit Momentum(const std::vector<MomentumSymbol>& _momenta, bool Q = false);
 
 		/**
 		 * @brief Constructs a Momentum with a single symbol.

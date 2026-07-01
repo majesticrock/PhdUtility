@@ -1,6 +1,6 @@
 #include <mrock/symbolic_operators/WickTerm.hpp>
 #include <mrock/symbolic_operators/KroneckerDeltaUtility.hpp>
-#include <mrock/utility/StringUtility.hpp>
+#include <mrock/symbolic_operators/detail/string_helper.hpp>
 #include <cctype>
 #include <cassert>
 
@@ -85,7 +85,7 @@ namespace mrock::symbolic_operators {
 
 		if (sub.substr(0U, sub_delimiter) == "sum") {
 			const std::string type = expression.substr(sub_delimiter + 1, expression.find('{', sub_delimiter) - sub_delimiter - 1);
-			const std::vector<std::string> argument_list = mrock::utility::extract_elements(expression);
+			const std::vector<std::string> argument_list = extract_elements(expression);
 
 			if (type == "index") {
 				this->sums.spins.reserve(argument_list.size());
@@ -106,7 +106,7 @@ namespace mrock::symbolic_operators {
 		}
 		else if (sub.substr(0U, sub_delimiter) == "delta") {
 			const std::string type = expression.substr(sub_delimiter + 1, expression.find('{', sub_delimiter) - sub_delimiter - 1);
-			const std::vector<std::string> argument_list = mrock::utility::extract_elements(expression);
+			const std::vector<std::string> argument_list = extract_elements(expression);
 			assert(argument_list.size() == 2U);
 
 			if (type == "index") {
