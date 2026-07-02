@@ -1,3 +1,11 @@
+/**
+ * @file defines_arithmetic_operators.hpp
+ * @brief Detects whether a type defines arithmetic assignment operators.
+ *
+ * This header provides compile-time traits for testing whether a type
+ * supports `operator+=`, `operator-=`, `operator*=`, and `operator/=` with
+ * values of its own type.
+ */
 #pragma once
 #include <utility>
 #include <type_traits>
@@ -28,43 +36,96 @@ namespace mrock::symbolic_operators {
 		};
 	}
 
-	// value is true if T defines operator+=(T) and false otherwise
+	/**
+	 * @brief Trait that detects whether a type defines `operator+=(T)`.
+	 *
+	 * @tparam T Type to inspect.
+	 */
 	template <class T>
 	using defines_plus = _internal_utility::_defines_operation<_internal_utility::plus_type, T>;
-	// retruns true if T defines operator+=(T) and false otherwise
+
+	/**
+	 * @brief Returns true when `T` defines `operator+=(T)`.
+	 *
+	 * @tparam T Type to inspect.
+	 * @return `true` if the operator exists, otherwise `false`.
+	 */
 	template <class T>
 	constexpr bool defines_plus_v() { return defines_plus<T>::value; };
 
-	// value is true if T defines operator-=(T) and false otherwise
+	/**
+	 * @brief Trait that detects whether a type defines `operator-=(T)`.
+	 *
+	 * @tparam T Type to inspect.
+	 */
 	template <class T>
 	using defines_minus = _internal_utility::_defines_operation<_internal_utility::minus_type, T>;
-	// retruns true if T defines operator-=(T) and false otherwise
+
+	/**
+	 * @brief Returns true when `T` defines `operator-=(T)`.
+	 *
+	 * @tparam T Type to inspect.
+	 * @return `true` if the operator exists, otherwise `false`.
+	 */
 	template <class T>
 	constexpr bool defines_minus_v() { return defines_minus<T>::value; };
 
-	// value is true if T defines operator*=(T) and false otherwise
+	/**
+	 * @brief Trait that detects whether a type defines `operator*=(T)`.
+	 *
+	 * @tparam T Type to inspect.
+	 */
 	template <class T>
 	using defines_product = _internal_utility::_defines_operation<_internal_utility::product_type, T>;
-	// retruns true if T defines operator*=(T) and false otherwise
+
+	/**
+	 * @brief Returns true when `T` defines `operator*=(T)`.
+	 *
+	 * @tparam T Type to inspect.
+	 * @return `true` if the operator exists, otherwise `false`.
+	 */
 	template <class T>
 	constexpr bool defines_product_v() { return defines_product<T>::value; };
 
-	// value is true if T defines operator/=(T) and false otherwise
+	/**
+	 * @brief Trait that detects whether a type defines `operator/=(T)`.
+	 *
+	 * @tparam T Type to inspect.
+	 */
 	template <class T>
 	using defines_division = _internal_utility::_defines_operation<_internal_utility::division_type, T>;
-	// retruns true if T defines operator/=(T) and false otherwise
+
+	/**
+	 * @brief Returns true when `T` defines `operator/=(T)`.
+	 *
+	 * @tparam T Type to inspect.
+	 * @return `true` if the operator exists, otherwise `false`.
+	 */
 	template <class T>
 	constexpr bool defines_division_v() { return defines_division<T>::value; };
 
-	// value is true if T defines both += and -= operations and false otherwise
+	/**
+	 * @brief Trait indicating a type supports both `+=` and `-=`.
+	 *
+	 * @tparam T Type to inspect.
+	 */
 	template <class T>
 	struct is_linearly_combinable {
 		static constexpr bool value = defines_minus<T>::value && defines_plus<T>::value;
 	};
-	// retruns true if T defines both += and -= operations and false otherwise
+
+	/**
+	 * @brief Returns true when `T` supports both `+=` and `-=`.
+	 *
+	 * @tparam T Type to inspect.
+	 * @return `true` when both operators exist, otherwise `false`.
+	 */
 	template <class T>
 	constexpr bool is_linearly_combinable_v() { return is_linearly_combinable<T>::value; };
 
+	/**
+	 * @brief Concept requiring support for linear combination operators.
+	 */
 	template<typename T>
 	concept LinearlyCombinable = is_linearly_combinable_v<T>();
 }
