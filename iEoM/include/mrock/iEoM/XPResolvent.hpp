@@ -143,10 +143,20 @@ namespace mrock::iEoM {
 			return k_solutions;
 		}
 
-		/* plus(minus)_index indicates whether the upper left block is for the Hermitian or the anti-Hermitian operators.
-		* To compute the Hermitian part set plus_index = 0 and minus_index = 1
-		* To compute the anti-Hermitian part set plus_index = 1 and minus_index = 0
-		*/
+		/**
+		 * @brief Computes the solver matrix using eigen-decomposed K matrices.
+		 *
+		 * @tparam plus_index Index of the K matrix corresponding to the Hermitian block in the assembled solver.
+		 * @tparam minus_index Index of the K matrix corresponding to the anti-Hermitian block in the assembled solver.
+		 * @tparam StateTransformPolicy Transformation functor applied to each starting state.
+		 *
+		 * @param k_solutions Eigen-decomposed K_plus and K_minus wrapped matrices.
+		 * @param solver_matrix Output matrix that will contain the computed solver matrix.
+		 * @param transform Functor used to transform each starting state with the computed N_new matrix.
+		 *
+		 * To compute the Hermitian solver part use plus_index = 0 and minus_index = 1.
+		 * To compute the anti-Hermitian solver part use plus_index = 1 and minus_index = 0.
+		 */
 		template <size_t plus_index, size_t minus_index, class StateTransformPolicy>
 		void compute_solver_matrix_impl(const std::array<detail::matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix, StateTransformPolicy&& transform) 
 		{
@@ -183,10 +193,17 @@ namespace mrock::iEoM {
 			print_duration("Time for computing solver_matrix: ");
 		}
 
-		/* plus(minus)_index indicates whether the upper left block is for the Hermitian or the anti-Hermitian operators.
-		* To compute the Hermitian part set plus_index = 0 and minus_index = 1
-		* To compute the anti-Hermitian part set plus_index = 1 and minus_index = 0
-		*/
+		/**
+		 * @brief Computes solver_matrix and applies the standard state transformation.
+		 *
+		 * @tparam plus_index Index of the Hermitian block within the assembled solver.
+		 * @tparam minus_index Index of the anti-Hermitian block within the assembled solver.
+		 *
+		 * @param k_solutions Eigen-decomposed K_plus and K_minus wrapped matrices.
+		 * @param solver_matrix Output matrix populated by the solver computation.
+		 *
+		 * Uses the standard state transform path for phase and amplitude states.
+		 */
 		template <size_t plus_index, size_t minus_index>
 		void compute_solver_matrix(const std::array<detail::matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix) 
 		{
@@ -202,10 +219,18 @@ namespace mrock::iEoM {
 				});
 		}
 
-		/* plus(minus)_index indicates whether the upper left block is for the Hermitian or the anti-Hermitian operators.
-		* To compute the Hermitian part set plus_index = 0 and minus_index = 1
-		* To compute the anti-Hermitian part set plus_index = 1 and minus_index = 0
-		*/
+		/**
+		 * @brief Computes solver_matrix and applies a custom transformation matrix.
+		 *
+		 * @tparam plus_index Index of the Hermitian block within the assembled solver.
+		 * @tparam minus_index Index of the anti-Hermitian block within the assembled solver.
+		 *
+		 * @param k_solutions Eigen-decomposed K_plus and K_minus wrapped matrices.
+		 * @param solver_matrix Output matrix populated by the solver computation.
+		 * @param transform_matrix Matrix used to transform each state before applying it to the solver.
+		 *
+		 * Uses a precomputed transformation matrix to update the solver state vectors.
+		 */
 		template <size_t plus_index, size_t minus_index>
 		void compute_solver_matrix(const std::array<detail::matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix, Matrix& transform_matrix) 
 		{
@@ -344,29 +369,72 @@ namespace mrock::iEoM {
 		}
 
 	public:
-		// Returns a starting state object with an empty phase part and a zero-initialized amplitude part of size /size/
+		/**
+		 * @brief Create a starting state containing only an amplitude component.
+		 *
+		 * @param size Number of amplitude entries to initialize.
+		 * @param name Optional name for the starting state.
+		 * @return StartingState with an empty phase_state and a zero-initialized amplitude_state.
+		 */
 		static StartingState<RealType> OnlyAmplitude(Eigen::Index size, std::string const& name="") {
             return StartingState<RealType>{ Vector{}, Vector::Zero(size), name };
         }
-		// Returns a starting state object with an empty amplitude part and a zero-initialized phase part of size /size/
+		/**
+		 * @brief Create a starting state containing only a phase component.
+		 *
+		 * @param size Number of phase entries to initialize.
+		 * @param name Optional name for the starting state.
+		 * @return StartingState with a zero-initialized phase_state and an empty amplitude_state.
+		 */
         static StartingState<RealType> OnlyPhase(Eigen::Index size, std::string const& name="") {
             return StartingState<RealType>{ Vector::Zero(size), Vector{}, name };
         }
 
-		// Matrix accessors. Boundary checking is handled by Eigen - if NBEDUG is not defined.
+		/**
+		 * @brief Access an element of the assembled dynamic matrix M.
+		 *
+		 * @param row Row index in the combined Hermitian/anti-Hermitian matrix.
+		 * @param col Column index in the combined Hermitian/anti-Hermitian matrix.
+		 * @return Reference to the requested matrix element.
+		 *
+		 * Boundary checking is handled by Eigen unless NBEDUG is defined.
+		 */
 		inline const RealType& M(int row, int col) const {
 			if(row < _hermitian_size)
 				return K_plus.coeffRef(row, col);
 			return K_minus.coeffRef(row - _hermitian_size, col - _hermitian_size);
 		}
+		/**
+		 * @brief Access a mutable element of the assembled dynamic matrix M.
+		 *
+		 * @param row Row index in the combined Hermitian/anti-Hermitian matrix.
+		 * @param col Column index in the combined Hermitian/anti-Hermitian matrix.
+		 * @return Mutable reference to the requested matrix element.
+		 *
+		 * Boundary checking is handled by Eigen unless NBEDUG is defined.
+		 */
 		inline RealType& M(int row, int col) {
 			if(row < _hermitian_size)
 				return K_plus.coeffRef(row, col);
 			return K_minus.coeffRef(row -_hermitian_size, col - _hermitian_size);
 		}
+		/**
+		 * @brief Access an element of the coupling matrix N.
+		 *
+		 * @param row Row index in the coupling matrix.
+		 * @param col Column index adjusted for the Hermitian block offset.
+		 * @return Reference to the requested coupling matrix element.
+		 */
 		inline const RealType& N(int row, int col) const {
 			return L.coeffRef(row, col - _hermitian_size);
 		}
+		/**
+		 * @brief Access a mutable element of the coupling matrix N.
+		 *
+		 * @param row Row index in the coupling matrix.
+		 * @param col Column index adjusted for the Hermitian block offset.
+		 * @return Mutable reference to the requested coupling matrix element.
+		 */
 		inline RealType& N(int row, int col) {
 			return L.coeffRef(row, col - _hermitian_size);
 		}
@@ -381,6 +449,11 @@ namespace mrock::iEoM {
 
 		virtual ~XPResolvent() = default;
 
+		/**
+		 * @brief Checks whether the assembled dynamic matrix contains negative eigenvalues.
+		 *
+		 * @return true when either K_minus or K_plus contains negative eigenvalues after noise removal.
+		 */
 		bool dynamic_matrix_is_negative()
 		{
 			_derived->fill_M();

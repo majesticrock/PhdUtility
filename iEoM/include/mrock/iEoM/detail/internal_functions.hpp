@@ -6,6 +6,14 @@
 #include "UnderlyingRealType.hpp"
 
 namespace mrock::iEoM {
+	/**
+	 * @brief Exception thrown when a matrix contains negative eigenvalues.
+	 *
+	 * Carries the most negative eigenvalue found during validation of an
+	 * eigenvalue vector or diagonal matrix.
+	 *
+	 * @tparam RealType Numeric type of the eigenvalue.
+	 */
 	template<class RealType>
 	class MatrixIsNegativeException : public std::runtime_error {
 	private:
@@ -34,6 +42,14 @@ namespace mrock::iEoM {
 namespace detail {
 	enum class iEoM_operation { NONE, INVERSE, SQRT, INVERSE_SQRT };
 
+	/**
+	 * @brief Internal numerical helper for matrix eigenvalue filtering and transformation.
+	 *
+	 * Provides precision thresholds, noise removal, negative-value checking, and
+	 * eigenvalue operations such as inverse, square root, and inverse square root.
+	 *
+	 * @tparam NumberType Scalar type used by the matrices and vectors.
+	 */
 	template<class NumberType>
 	struct iEoM_internal {
 		using RealType = UnderlyingRealType_t<NumberType>;
@@ -63,16 +79,30 @@ namespace detail {
 			}
 		};
 
+		/**
+		 * @brief Check whether the vector contains negative eigenvalues.
+		 *
+		 * A value is considered negative when it is below the allowed negative
+		 * precision threshold.
+		 *
+		 * @param vector Eigenvalue vector to inspect.
+		 * @return true if any entry is below -_sqrt_precision.
+		 */
 		inline bool contains_negative(const RealVector& vector) const {
 			return (vector.array() < -_sqrt_precision).any();
 		};
 
-		/* Takes a positive semidefinite vector (the idea is that this contains eigenvalues) and applies an operation on it
-		* 0: Correct for negative eigenvalues
-		* 1: Compute the pseudoinverse
-		* 2: Compute the square root
-		* 3: Compute the pseudoinverse square root
-		*/
+		/**
+		 * @brief Apply an eigenvalue operation to a positive semidefinite vector.
+		 *
+		 * @tparam option Operation to apply: NONE, INVERSE, SQRT, or INVERSE_SQRT.
+		 * @tparam pseudo_inverse When true, values below threshold are set to zero.
+		 * @param evs Vector of eigenvalues to modify in place.
+		 * @param name Optional name used in diagnostics when a negative eigenvalue is found.
+		 *
+		 * This function also verifies that the input vector is non-negative and
+		 * optionally throws a MatrixIsNegativeException if negative values are detected.
+		 */
 		template<iEoM_operation option, bool pseudo_inverse = true>
 		inline void apply_matrix_operation(RealVector& evs, const std::string& name = "M") const {
 			if (contains_negative(evs)) {

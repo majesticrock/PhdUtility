@@ -10,6 +10,17 @@
 #include "Resolvent.hpp"
 
 namespace mrock::iEoM {
+	/**
+	 * @brief General resolvent manager for block-structured matrices.
+	 *
+	 * This CRTP-enabled struct prepares matrices M and N, applies block
+	 * diagonalization, and computes resolvent data for a set of starting states.
+	 * It supports both real and complex number types through the provided
+	 * NumberType template parameter.
+	 *
+	 * @tparam Derived Derived CRTP class providing matrix filling and state creation.
+	 * @tparam NumberType Numeric matrix scalar type, optionally complex.
+	 */
 	template<class Derived, class NumberType>
 	struct GeneralResolvent {
 	public:
@@ -25,11 +36,24 @@ namespace mrock::iEoM {
 		std::vector<Vector> starting_states;
 
 	public:
+		/**
+		 * @brief Construct a GeneralResolvent instance.
+		 *
+		 * @param derived_ptr Pointer to the derived CRTP implementation.
+		 * @param sqrt_precision Precision threshold used for numerical noise removal.
+		 * @param negative_matrix_is_error If true, negative matrix values are treated as errors.
+		 */
 		GeneralResolvent(Derived* derived_ptr, RealType const& sqrt_precision, bool negative_matrix_is_error = true)
 			: _internal(sqrt_precision, negative_matrix_is_error), _derived(derived_ptr) { };
 
 		virtual ~GeneralResolvent() = default;
 
+		/**
+		 * @brief Check whether the dynamic matrix contains negative eigenvalues.
+		 *
+		 * @return true if the matrix M contains negative diagonal entries
+		 *         or is not non-negative after noise removal.
+		 */
 		bool dynamic_matrix_is_negative() {
 			_derived->fill_M();
 			if constexpr (detail::is_complex_v<NumberType>) {
@@ -50,6 +74,17 @@ namespace mrock::iEoM {
 			return false;
 		};
 
+		/**
+		 * @brief Compute resolvent data for all starting states.
+		 *
+		 * This function fills M and N, pivots them into block structure, performs
+		 * eigenvalue decompositions, and then computes Lanczos resolvents for each
+		 * prepared starting state.
+		 *
+		 * @tparam CheckHermitian If positive, enforces Hermiticity checks on M and N.
+		 * @param LANCZOS_ITERATION_NUMBER Number of Lanczos iterations to perform.
+		 * @return Vector of ResolventDataWrapper objects holding the resolvent results.
+		 */
 		template<int CheckHermitian = -1>
 		std::vector<ResolventDataWrapper<RealType>> compute_collective_modes(unsigned int LANCZOS_ITERATION_NUMBER)
 		{

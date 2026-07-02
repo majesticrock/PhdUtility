@@ -6,32 +6,68 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
-//#include "../OutputConvenience.hpp"
-
 namespace mrock::iEoM {
+    /**
+     * @brief Stores Lanczos recurrence coefficients for one resolvent run.
+     *
+     * @tparam RealType Numeric scalar type for the recurrence coefficients.
+     */
     template <class RealType>
 	struct ResolventData {
 		std::vector<RealType> a_i;
 		std::vector<RealType> b_i;
 	};
 
+    /**
+     * @brief Wraps multiple resolvent Lanczos results under a common name.
+     *
+     * @tparam RealType Numeric scalar type for the stored coefficients.
+     */
 	template <class RealType>
 	struct ResolventDataWrapper {
 		std::vector<ResolventData<RealType>> lanczos;
 		std::string name;
 
+		/**
+		 * @brief Default constructed empty wrapper.
+		 */
 		ResolventDataWrapper() = default;
+		/**
+		 * @brief Construct a wrapper with the given name.
+		 *
+		 * @param _name Name associated with this data wrapper.
+		 */
 		ResolventDataWrapper(const std::string& _name) 
 			: name(_name) {};
 
+		/**
+		 * @brief Append a Lanczos result by moving it into the wrapper.
+		 *
+		 * @param data_point Lanczos coefficients to append.
+		 */
 		void push_back(ResolventData<RealType>&& data_point) {
 			lanczos.push_back(std::move(data_point));
 		};
+		/**
+		 * @brief Append a Lanczos result by copying it into the wrapper.
+		 *
+		 * @param data_point Lanczos coefficients to append.
+		 */
 		void push_back(const ResolventData<RealType>& data_point) {
 			lanczos.push_back(data_point);
 		};
 	};
 
+	/**
+	 * @brief Merge a named ResolventDataWrapper into an existing collection.
+	 *
+	 * If a wrapper with the same name already exists, its lanczos data are
+	 * appended. Otherwise, the new wrapper is added to the collection.
+	 *
+	 * @tparam RealType Numeric type of the resolvent data.
+	 * @param target Collection of resolvent data wrappers.
+	 * @param new_data New wrapper to merge.
+	 */
 	template <class RealType>
 	void join_data_wrapper(std::vector<ResolventDataWrapper<RealType>>& target, ResolventDataWrapper<RealType> const& new_data)
 	{
@@ -45,6 +81,13 @@ namespace mrock::iEoM {
 		target.push_back(new_data);
 	}
 
+	/**
+	 * @brief Merge multiple resolvent wrappers into an existing collection.
+	 *
+	 * @tparam RealType Numeric type of the resolvent data.
+	 * @param target Collection of existing wrappers.
+	 * @param new_data New wrappers to merge.
+	 */
 	template <class RealType>
 	void join_data_wrapper(std::vector<ResolventDataWrapper<RealType>>& target, std::vector<ResolventDataWrapper<RealType>> const& new_data)
 	{
@@ -57,6 +100,16 @@ namespace mrock::iEoM {
 		}
 	}
 
+    /**
+	 * @brief Stream output operator for ResolventData.
+	 *
+	 * Writes the a_i and b_i coefficient sequences on separate lines.
+	 *
+	 * @tparam T Numeric type of the resolvent coefficients.
+	 * @param os Output stream.
+	 * @param data Resolvent data to stream.
+	 * @return Reference to the output stream.
+	 */
     template <typename T>
 	inline std::ostream& operator<<(std::ostream& os, const ResolventData<T>& data)
 	{
@@ -71,6 +124,13 @@ namespace mrock::iEoM {
 		return os;
 	}
 
+	/**
+	 * @brief Serialize ResolventData to JSON.
+	 *
+	 * @tparam RealType Numeric type of the resolvent coefficients.
+	 * @param j JSON output object.
+	 * @param res_data Data to serialize.
+	 */
 	template<class RealType>
 	void to_json(nlohmann::json& j, const ResolventData<RealType>& res_data) {
 		j = nlohmann::json{
@@ -78,6 +138,13 @@ namespace mrock::iEoM {
 		};
 	}
 
+	/**
+	 * @brief Serialize a vector of ResolventDataWrapper objects to JSON.
+	 *
+	 * @tparam RealType Numeric type of the resolvent data.
+	 * @param j JSON output object.
+	 * @param vec_resolvent_data Collection of resolvent wrappers.
+	 */
 	template<class RealType>
 	void to_json(nlohmann::json& j, const std::vector<ResolventDataWrapper<RealType>>& vec_resolvent_data) {
 		for (const auto& res : vec_resolvent_data) {
@@ -87,6 +154,12 @@ namespace mrock::iEoM {
 
 
 
+	/**
+	 * @brief Stores residual eigenvalue and Ritz vector information.
+	 *
+	 * @tparam RealType Numeric type for the residual data.
+	 * @tparam n_residuals Number of residual roots tracked.
+	 */
 	template<class RealType, int n_residuals>
 	struct ResidualInformation {
 		std::array<RealType, n_residuals> eigenvalues{};
@@ -104,6 +177,14 @@ namespace mrock::iEoM {
 		}
 	};
 
+	/**
+	 * @brief Serialize ResidualInformation to JSON.
+	 *
+	 * @tparam RealType Numeric type of the residual data.
+	 * @tparam n_residuals Number of residual entries.
+	 * @param j JSON output object.
+	 * @param res_data Data to serialize.
+	 */
 	template<class RealType, int n_residuals>
 	void to_json(nlohmann::json& j, const ResidualInformation<RealType, n_residuals>& res_data) {
 		j = nlohmann::json{
@@ -117,6 +198,12 @@ namespace mrock::iEoM {
 	}
 
 
+	/**
+	 * @brief Stores full diagonalization results for retained eigenvectors.
+	 *
+	 * @tparam RealType Numeric type for eigenvalues and eigenvectors.
+	 * @tparam n Number of retained eigenvectors.
+	 */
 	template<class RealType, int n>
 	struct FullDiagonalizationData {
 		std::vector<RealType> eigenvalues;
@@ -124,6 +211,14 @@ namespace mrock::iEoM {
 		std::list<std::vector<RealType>> weights;
 	};
 
+	/**
+	 * @brief Serialize FullDiagonalizationData to JSON.
+	 *
+	 * @tparam RealType Numeric type of the diagonalization data.
+	 * @tparam n Number of retained eigenvectors.
+	 * @param j JSON output object.
+	 * @param res_data Data to serialize.
+	 */
 	template<class RealType, int n>
 	void to_json(nlohmann::json& j, const FullDiagonalizationData<RealType, n>& res_data) {
 		j = nlohmann::json{

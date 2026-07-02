@@ -1,3 +1,11 @@
+/**
+ * @file string_helper.hpp
+ * @brief Small string utility helpers used by the symbolic operators library.
+ *
+ * This header provides generic utilities for splitting strings, removing
+ * escape characters, finding unescaped symbols, and extracting comma-separated
+ * elements enclosed by delimiters.
+ */
 #pragma once
 
 #include <string>
@@ -8,16 +16,6 @@
 #include <algorithm>
 
 namespace mrock::symbolic_operators {
-
-/**
- * @file string_helper.hpp
- * @brief Small string utility helpers used by the symbolic operators library.
- *
- * This header provides generic utilities for splitting strings, removing
- * escape characters, finding unescaped symbols, and extracting comma-separated
- * elements enclosed by delimiters.
- */
-
 /**
  * @brief Splits a string into tokens using a single-character delimiter.
  *

@@ -15,6 +15,16 @@
 namespace mrock::iEoM {
 	using std::abs;
 
+	/**
+	 * @brief Performs Lanczos-based resolvent computations for linear operators.
+	 *
+	 * This class builds recurrence coefficients for continued fraction resolvent
+	 * representations. It supports Hermitian and symplectic problems and can
+	 * store residual information for low-lying eigenvalues when requested.
+	 *
+	 * @tparam EigenMatrixType Matrix type used for the operator; must be square.
+	 * @tparam EigenVectorType Vector type used for the starting state and Krylov basis.
+	 */
 	template <class EigenMatrixType, class EigenVectorType>
 	class Resolvent
 	{
@@ -25,23 +35,50 @@ namespace mrock::iEoM {
 		static constexpr bool isComplex = detail::is_complex_v<typename EigenVectorType::Scalar>;
 
 	public:
+		/** Starting state vector used to generate the Lanczos basis. */
 		EigenVectorType startingState;
+		/** Computed resolvent data including recurrence coefficients and residual information. */
 		ResolventDataWrapper<RealType> data;
-		// Sets the starting state
+		/**
+		 * @brief Set the starting state used for the resolvent iteration.
+		 *
+		 * @param state New starting state vector.
+		 */
 		inline void set_starting_state(const EigenVectorType& state) {
 			this->startingState = state;
 		};
+		/**
+		 * @brief Get the current starting state.
+		 *
+		 * @return Const reference to the starting state vector.
+		 */
 		const EigenVectorType& getStartingState() const {
 			return this->startingState;
 		}
+		/**
+		 * @brief Construct with a starting state and optional name.
+		 *
+		 * @param _StargingState Initial Krylov vector for the resolvent iteration.
+		 * @param name Optional name stored in the result wrapper.
+		 */
 		Resolvent(const EigenVectorType& _StargingState, const std::string& name="") 
 			: startingState(_StargingState), data(name) { };
+		/**
+		 * @brief Construct with an optional name only.
+		 *
+		 * @param name Name stored in the result wrapper.
+		 */
 		Resolvent(const std::string name)
 			: data(name) { };
 		Resolvent() = default;
 
-		// Computes the resolvent's parameters a_i and b_i
-		// Symplectic needs to be atleast positive semidefinite!
+		/**
+		 * @brief Compute generalized Lanczos coefficients for a symplectic problem.
+		 *
+		 * @param toSolve Operator matrix to solve.
+		 * @param symplectic Symplectic metric matrix; must be positive semidefinite.
+		 * @param maxIter Maximum Lanczos iterations.
+		 */
 		void compute(const EigenMatrixType& toSolve, const EigenMatrixType& symplectic, int maxIter)
 		{
 			const size_t matrix_size = toSolve.rows();
@@ -110,7 +147,14 @@ namespace mrock::iEoM {
 			data.push_back(std::move(res));
 		}
 
-		// Computes the resolvent for a Hermitian problem (i.e. the symplectic EigenMatrixType is the identity)
+		/**
+		 * @brief Compute Lanczos coefficients for a Hermitian problem.
+		 *
+		 * This overload assumes the symplectic metric is the identity matrix.
+		 *
+		 * @param toSolve Operator matrix to solve.
+		 * @param maxIter Maximum Lanczos iterations.
+		 */
 		void compute(const EigenMatrixType& toSolve, int maxIter)
 		{
 			const size_t matrix_size = toSolve.rows();
@@ -172,7 +216,16 @@ namespace mrock::iEoM {
 			data.push_back(std::move(res));
 		}
 
-		// Computes the resolvent directly from M and N. This might be more stable for complex matrices
+		/**
+		 * @brief Compute generalized Lanczos coefficients using an explicit M and N representation.
+		 *
+		 * This form can be more stable for complex-valued matrices whose inner product is defined by N.
+		 *
+		 * @param toSolve Operator matrix to solve.
+		 * @param symplectic Symplectic metric matrix; must be positive semidefinite.
+		 * @param N Auxiliary matrix used in the formulation.
+		 * @param maxIter Maximum Lanczos iterations.
+		 */
 		void compute_from_N_M(const EigenMatrixType& toSolve, const EigenMatrixType& symplectic, const EigenMatrixType& N, int maxIter)
 		{
 			auto matrix_size = toSolve.rows();
@@ -241,8 +294,14 @@ namespace mrock::iEoM {
 			data.push_back(std::move(res));
 		}
 
-		// Computes the resolvent for a Hermitian problem (i.e. the symplectic EigenMatrixType is the identity)
-		// Additionally, this function orthogonalizes the Krylov basis each step
+		/**
+		 * @brief Compute Lanczos coefficients for a Hermitian problem with basis reorthogonalization.
+		 *
+		 * This version reorthogonalizes the Krylov basis at every iteration to improve numerical stability.
+		 *
+		 * @param toSolve Hermitian operator matrix.
+		 * @param maxIter Maximum Lanczos iterations.
+		 */
 		void compute_with_reorthogonalization(const EigenMatrixType& toSolve, int maxIter)
 		{
 			const size_t matrix_size = toSolve.rows();
@@ -307,9 +366,17 @@ namespace mrock::iEoM {
 			data.push_back(std::move(res));
 		}
 
-		// Computes the resolvent for a Hermitian problem (i.e. the symplectic EigenMatrixType is the identity)
-		// This function additionally computes the residuals for the lowest n eigenvalues
-		// Additionally, this function orthogonalizes the Krylov basis each step
+		/**
+		 * @brief Compute Lanczos coefficients and low-lying residuals for a Hermitian problem.
+		 *
+		 * This method uses reorthogonalization and periodically estimates residuals for the
+		 * lowest @p n_residuals Ritz values.
+		 *
+		 * @tparam n_residuals Number of residual eigenvalues to track.
+		 * @param toSolve Hermitian operator matrix.
+		 * @param maxIter Maximum Lanczos iterations.
+		 * @return ResidualInformation containing eigenvalue residuals, converged eigenvectors, and weights.
+		 */
 		template <int n_residuals>
 		ResidualInformation<RealType, n_residuals> compute_with_residuals(const EigenMatrixType& toSolve, int maxIter)
 		{
@@ -431,6 +498,12 @@ namespace mrock::iEoM {
 			return residual_info;
 		}
 
+		/**
+		 * @brief Get the computed resolvent data.
+		 *
+		 * @return Const reference to the stored ResolventDataWrapper containing
+		 *         continued fraction coefficients and residual information.
+		 */
 		const ResolventDataWrapper<RealType>& get_data() const {
 			return data;
 		}
