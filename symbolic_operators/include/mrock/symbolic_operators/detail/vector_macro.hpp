@@ -7,8 +7,6 @@
  * custom vector wrappers.
  *
  * Macros:
- * - \c MROCK_VECTOR_WRAPPER_TYPEDEFS(_vector_type): Defines type aliases for a given vector type.
- * - \c MROCK_VECTOR_WRAPPER_MEMBERS(_vector_name): Defines common member functions for a given vector instance.
  * - \c MROCK_VECTOR_WRAPPER_FILL_MEMBERS(_T,_vector_name): Defines type aliases and common member functions for a \c std::vector<_T>.
  *
  * Example usage:
