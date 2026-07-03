@@ -62,15 +62,15 @@ int main(int argc, char** argv) {
 
     // Wick templates
     const std::vector<WickOperatorTemplate> templates({
-			WickOperatorTemplate{ {IndexComparison{false, Index::SpinDown, Index::SpinUp}}, Momentum(), SC_Type, true },
-			WickOperatorTemplate{ {IndexComparison{true}}, Momentum(), Number_Type, false }
+			WickOperatorTemplate{ {IndexComparison{false, Index::SpinDown, Index::SpinUp}}, Momentum(), OperatorType::SC },
+			WickOperatorTemplate{ {IndexComparison{true}}, Momentum(), OperatorType::Number }
 		});
     
     // Applicable symmetries
     std::vector<std::unique_ptr<WickSymmetry>> symmetries;
     symmetries.push_back(std::make_unique<SpinSymmetry>());
     symmetries.push_back(std::make_unique<InversionSymmetry>());
-    symmetries.push_back(std::make_unique<PhaseSymmetry<SC_Type>>());
+    symmetries.push_back(std::make_unique<PhaseSymmetry<OperatorType::SC>>());
 
     sym_op_test::SymOpTest tester(COMPARE_DIR);
     if (std::filesystem::exists(COMPARE_DIR)) {

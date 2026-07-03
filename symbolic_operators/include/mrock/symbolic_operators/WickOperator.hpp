@@ -16,7 +16,7 @@ namespace mrock::symbolic_operators {
 	 * @brief A structure representing a Wick operator.
 	 */
 	struct WickOperator {
-		OperatorType type{ OperatorType::Undefined_Type }; ///< The type of the operator.
+		OperatorType type{ OperatorType::Undefined }; ///< The type of the operator.
 		bool is_daggered{}; ///< Indicates if the operator is daggered.
 		Momentum momentum; ///< The momentum associated with the operator.
 		IndexWrapper indizes; ///< The indices associated with the operator.

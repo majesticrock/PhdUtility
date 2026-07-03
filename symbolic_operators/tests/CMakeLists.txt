@@ -27,6 +27,11 @@ SET_COMPILER_FLAGS(bosons_test)
 target_link_libraries(bosons_test PRIVATE mrock_symbolic_operators)
 target_include_directories(bosons_test PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../symbolic_operators/include)
 
+add_executable(bcs_test bcs.cpp)
+SET_COMPILER_FLAGS(bcs_test)
+target_link_libraries(bcs_test PRIVATE mrock_symbolic_operators)
+target_include_directories(bcs_test PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../symbolic_operators/include)
+
 add_executable(string_helper_test string_helper.cpp)
 SET_COMPILER_FLAGS(string_helper_test)
 
@@ -34,4 +39,5 @@ enable_testing()
 
 add_test(NAME continuum_test COMMAND continuum_test)
 add_test(NAME bosons_test COMMAND bosons_test)
+add_test(NAME bcs_test COMMAND bcs_test)
 add_test(NAME string_helper_test COMMAND string_helper_test)

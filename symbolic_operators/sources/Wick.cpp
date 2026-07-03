@@ -75,7 +75,7 @@ namespace mrock::symbolic_operators {
 	{
 		WickTermCollector ret;
 		ret.push_back(source);
-		ret.front().temporary_operators.clear();
+		//ret.front().temporary_operators.clear();
 
 		for (size_t i = 0U; i < source.temporary_operators.size(); i += 2U)
 		{
@@ -130,7 +130,7 @@ namespace mrock::symbolic_operators {
 		for (auto it = terms.begin(); it != terms.end();) {
 			bool isEta = false;
 			for (const auto& op : it->operators) {
-				if (op.type == Eta_Type) {
+				if (op.type == OperatorType::Eta) {
 					isEta = true;
 					break;
 				}

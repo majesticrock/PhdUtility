@@ -32,7 +32,7 @@ namespace mrock::symbolic_operators {
 	 * Takes a list of \c OperatorType as template arguments.
 	 * Removes any dagger from all operators with a type from the list.
 	 * Example:
-	 * \c PhaseSymmetry<SC_Type,CDW_Type removes the dagger from \c SC_Type and \c CDW_Type operators.
+	 * \c PhaseSymmetry<OperatorType::SC,OperatorType::CDW removes the dagger from \c OperatorType::SC and \c OperatorType::CDW operators.
 	 * 
 	 * @sa SpinSymmetry, InversionSymmetry, PhaseSymmetry
 	 */

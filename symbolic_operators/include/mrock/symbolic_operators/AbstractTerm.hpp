@@ -21,7 +21,7 @@ namespace mrock::symbolic_operators {
      * 
      * @sa Term, WickTerm
      */
-    template<class OperatorType>
+    template<class tOperatorType>
     class AbstractTerm {
 	protected:
 		// Here, we define buffers to be used later on.
@@ -40,7 +40,7 @@ namespace mrock::symbolic_operators {
 		SumContainer sums; ///< Sum container for the term. Contains e.g. \sum_{k,l} \sum_{sigma}
         std::vector<KroneckerDelta<Momentum>> delta_momenta; ///< Kronecker delta for momenta.
 		std::vector<KroneckerDelta<Index>> delta_indizes; ///< Kronecker delta for indices.
-        std::vector<OperatorType> operators; ///< Operators in the term, if empty the term is considered to contain the identiy operator
+        std::vector<tOperatorType> operators; ///< Operators in the term, if empty the term is considered to contain the identiy operator
        
 
         /**
@@ -58,7 +58,7 @@ namespace mrock::symbolic_operators {
          * @param _delta_momenta The Kronecker deltas for the momenta
          * @param _delta_indizes The Kronecker deltas for the indizes
 		 */
-        AbstractTerm(const IntFractional& _multiplicity, const std::vector<Coefficient>& _coefficients, const SumContainer& _sums, const std::vector<KroneckerDelta<Momentum>>& _delta_momenta, const std::vector<KroneckerDelta<Index>>& _delta_indizes, const std::vector<OperatorType>& _operators)
+        AbstractTerm(const IntFractional& _multiplicity, const std::vector<Coefficient>& _coefficients, const SumContainer& _sums, const std::vector<KroneckerDelta<Momentum>>& _delta_momenta, const std::vector<KroneckerDelta<Index>>& _delta_indizes, const std::vector<tOperatorType>& _operators)
             : multiplicity{_multiplicity}, coefficients{_coefficients}, sums{_sums}, delta_momenta{_delta_momenta}, delta_indizes{_delta_indizes}, operators{_operators}
         { };
 
@@ -70,7 +70,7 @@ namespace mrock::symbolic_operators {
          * @param _coefficients The coefficients
          * @param _operators The operators
 		 */
-        AbstractTerm(const IntFractional& _multiplicity, const std::vector<Coefficient>& _coefficients, const SumContainer& _sums, const std::vector<OperatorType>& _operators = std::vector<OperatorType>())
+        AbstractTerm(const IntFractional& _multiplicity, const std::vector<Coefficient>& _coefficients, const SumContainer& _sums, const std::vector<tOperatorType>& _operators = std::vector<tOperatorType>())
             : multiplicity{_multiplicity}, coefficients{_coefficients}, sums{_sums}, operators{_operators}
         { };
 
@@ -82,7 +82,7 @@ namespace mrock::symbolic_operators {
          * @param _coefficient The coefficient
          * @param _operators The operators
 		 */
-        AbstractTerm(const IntFractional& _multiplicity, const Coefficient& _coefficient, const SumContainer& _sums, const std::vector<OperatorType>& _operators = std::vector<OperatorType>())
+        AbstractTerm(const IntFractional& _multiplicity, const Coefficient& _coefficient, const SumContainer& _sums, const std::vector<tOperatorType>& _operators = std::vector<tOperatorType>())
             : multiplicity{_multiplicity}, coefficients(1, _coefficient), sums{_sums}, operators{_operators}
         { };
 
@@ -93,7 +93,7 @@ namespace mrock::symbolic_operators {
          * @param _coefficient The coefficient
          * @param _operators The operators
 		 */
-        AbstractTerm(const IntFractional& _multiplicity, const Coefficient& _coefficient, const std::vector<OperatorType>& _operators = std::vector<OperatorType>())
+        AbstractTerm(const IntFractional& _multiplicity, const Coefficient& _coefficient, const std::vector<tOperatorType>& _operators = std::vector<tOperatorType>())
             : multiplicity{_multiplicity}, coefficients(1, _coefficient), operators{_operators}
         { };
 
@@ -104,7 +104,7 @@ namespace mrock::symbolic_operators {
          * @param _coefficient The coefficient
          * @param _operators The operators
 		 */
-        explicit AbstractTerm(const IntFractional& _multiplicity, const std::vector<OperatorType>& _operators = std::vector<OperatorType>())
+        explicit AbstractTerm(const IntFractional& _multiplicity, const std::vector<tOperatorType>& _operators = std::vector<tOperatorType>())
             : multiplicity{_multiplicity}, operators{_operators}
         { };
 
@@ -142,7 +142,7 @@ namespace mrock::symbolic_operators {
 		 * @brief Gets the operators in the term.
 		 * @return The operators.
 		 */
-		const std::vector<OperatorType>& get_operators() const;
+		const std::vector<tOperatorType>& get_operators() const;
         
         /**
 		 * @brief Inverts a momentum in the term.
@@ -168,8 +168,8 @@ namespace mrock::symbolic_operators {
 
 
     // Implementations
-    template<class OperatorType>
-    bool AbstractTerm<OperatorType>::resolve_momentum_deltas() 
+    template<class tOperatorType>
+    bool AbstractTerm<tOperatorType>::resolve_momentum_deltas() 
 	{
 		if (is_always_zero(delta_momenta)) return false;
 
@@ -230,6 +230,12 @@ namespace mrock::symbolic_operators {
 				delta_it2->second.replace_occurances(delta_it->second.front().name, delta_it->first);
 			}
 
+			if (additional_target)  {
+				for (auto& target : *additional_target) {
+					target.momentum.replace_occurances(delta_it->second.front().name, delta_it->first);
+				}
+			}
+
 			if (found_sum) {
 				delta_it = delta_momenta.erase(delta_it);
 			}
@@ -263,8 +269,8 @@ namespace mrock::symbolic_operators {
 	}
 
 
-	template<class OperatorType>
-    bool AbstractTerm<OperatorType>::resolve_index_deltas() 
+	template<class tOperatorType, class T = tOperatorType>
+    bool AbstractTerm<tOperatorType>::resolve_index_deltas(T* additional_target) 
 	{
 		if (is_always_zero(delta_indizes)) return false;
 
@@ -327,6 +333,12 @@ namespace mrock::symbolic_operators {
 				}
 			}
 
+			if (additional_target)  {
+				for (auto& target : *additional_target) {
+					target.indizes.replace_index(to_resolve, change_to);
+				}
+			}
+
 			if (found_sum) {
 				sums.spins.erase(sum_it);
 				delta_it = delta_indizes.erase(delta_it);
@@ -344,8 +356,8 @@ namespace mrock::symbolic_operators {
 		return true;
 	}
 
-    template<class OperatorType>
-    void AbstractTerm<OperatorType>::rename_sums()
+    template<class tOperatorType, class T = std::vector<tOperatorType>>
+    void AbstractTerm<tOperatorType>::rename_sums(T* additional_target = nullptr)
 	{
 		for (size_t i = 0U; i < sums.momenta.size(); ++i)
 		{
@@ -361,6 +373,11 @@ namespace mrock::symbolic_operators {
 			for (auto& coeff : coefficients) {
 				coeff.momenta.replace_occurances(sums.momenta[i], Momentum(buffer_list[i]));
 			}
+			if(additional_target) {
+				for (auto& target : *additional_target) {
+					target.momenta.replace_occurances(sums.momenta[i], Momentum(buffer_list[i]));
+				}
+			}
 			sums.momenta[i] = name_list[i];
 		}
 
@@ -372,41 +389,47 @@ namespace mrock::symbolic_operators {
 			for (auto& coeff : coefficients) {
 				coeff.momenta.replace_occurances(buffer_list[i], Momentum(name_list[i]));
 			}
+			if(additional_target) {
+				for (auto& target : *additional_target) {
+					target.momenta.replace_occurances(buffer_list[i], Momentum(name_list[i]));
+				}
+			}
 		}
 
 		if (sums.spins.size() == 1U && sums.spins.front() == Index::SigmaPrime) {
 			sums.spins.front() = Index::Sigma;
 			for (auto& op : operators) {
-				for (auto& index : op.indizes) {
-					if (index == Index::SigmaPrime) index = Index::Sigma;
-				}
+				op.indizes.replace_index(Index::SigmaPrime, Index::Sigma);
 			}
 			for (auto& coeff : coefficients) {
-				for (auto& index : coeff.indizes) {
-					if (index == Index::SigmaPrime) index = Index::Sigma;
+				coeff.indizes.replace_index(Index::SigmaPrime, Index::Sigma);
+			}
+			if (additional_target)  {
+				for (auto& target : *additional_target) {
+					target.indizes.replace_index(to_resolve, change_to);
 				}
 			}
 		}
 	}
 
-    template<class OperatorType>
-    bool AbstractTerm<OperatorType>::is_identity() const noexcept 
+    template<class tOperatorType>
+    bool AbstractTerm<tOperatorType>::is_identity() const noexcept 
     {
 		return this->operators.empty();
 	}
 
-    template<class OperatorType>
-    void AbstractTerm<OperatorType>::flip_sign() {
+    template<class tOperatorType>
+    void AbstractTerm<tOperatorType>::flip_sign() {
 		this->multiplicity *= -1;
 	}
 
-    template<class OperatorType>
-    const std::vector<OperatorType>& AbstractTerm<OperatorType>::get_operators() const {
+    template<class tOperatorType>
+    const std::vector<tOperatorType>& AbstractTerm<tOperatorType>::get_operators() const {
 		return this->operators;
 	}
 
-    template<class OperatorType>
-    void AbstractTerm<OperatorType>::invert_momentum(const MomentumSymbol::name_type what) 
+    template<class tOperatorType>
+    void AbstractTerm<tOperatorType>::invert_momentum(const MomentumSymbol::name_type what) 
     {
 		for (auto& coeff : coefficients) {
 			coeff.invert_momentum(what);
@@ -416,8 +439,8 @@ namespace mrock::symbolic_operators {
 		}
 	}
 
-    template<class OperatorType>
-    void AbstractTerm<OperatorType>::invert_momentum_sum(const MomentumSymbol::name_type what) 
+    template<class tOperatorType>
+    void AbstractTerm<tOperatorType>::invert_momentum_sum(const MomentumSymbol::name_type what) 
     {
 		if (std::find(sums.momenta.begin(), sums.momenta.end(), what) == sums.momenta.end()) {
 			throw std::invalid_argument("You are trying to perform a sum transformation on a momentum that is not being summed over!");
@@ -425,8 +448,8 @@ namespace mrock::symbolic_operators {
 		invert_momentum(what);
 	}
 
-    template<class OperatorType>
-    void AbstractTerm<OperatorType>::remove_momentum_contribution(const MomentumSymbol::name_type value) 
+    template<class tOperatorType>
+    void AbstractTerm<tOperatorType>::remove_momentum_contribution(const MomentumSymbol::name_type value) 
     {
 	    for (auto& coeff : coefficients) {
 	    	coeff.remove_momentum_contribution(value);

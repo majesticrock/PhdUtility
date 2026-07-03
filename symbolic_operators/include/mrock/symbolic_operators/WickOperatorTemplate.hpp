@@ -155,8 +155,7 @@ namespace mrock::symbolic_operators {
 		std::vector<IndexComparison> indexComparison; ///< The vector of index comparisons.
 		Momentum momentum_difference; ///< The momentum difference.
 		OperatorType type; ///< The type of the operator.
-		bool is_sc_type{}; ///< Indicates if the operator is of SC type.
-
+		
 		/**
 		 * @brief Creates a WickOperator from two operators if possible.
 		 * 

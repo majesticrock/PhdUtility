@@ -161,6 +161,10 @@ namespace mrock::symbolic_operators {
 					coeff.momenta.replace_occurances(sum, buffer);
 					coeff.momenta.replace_occurances(buffer_list[0], Momentum(sum));
 				}
+				for (auto& temp_op : temporary_operators) {
+					temp_op.momentum.replace_occurances(sum, buffer);
+					temp_op.momentum.replace_occurances(buffer_list[0], Momentum(sum));
+				}
 			}
 		}
 		discard_zero_momenta();
@@ -203,7 +207,7 @@ namespace mrock::symbolic_operators {
 		}
 
 		for (auto& op : operators) {
-			if (op.type == CDW_Type && op.momentum.add_Q) {
+			if (op.type == OperatorType::CDW && op.momentum.add_Q) {
 				op.momentum.add_Q = false;
 				op.is_daggered = !(op.is_daggered);
 			}
