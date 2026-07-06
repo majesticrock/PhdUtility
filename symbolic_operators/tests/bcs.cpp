@@ -1,3 +1,12 @@
+/**
+ * @file bcs.cpp
+ * @brief Example code for defining and using BCS operators.
+ *
+ * This file demonstrates how to define a Hamiltonian of electrons with the dispersion epsilon(k) and the interaction potential g(k,q).
+ * An example commutation is performed, Wick's theorem applied and then the terms are reduced using symmetries.
+ * Additionally some expectation values are computed for an explicit example to and compared with their analytical values.
+ */
+
 #include <cmath>
 #include <numbers>
 #include <algorithm>

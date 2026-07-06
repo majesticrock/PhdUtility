@@ -2,8 +2,14 @@
  * @file bosons.cpp
  * @brief Example code for defining and using bosonic operators.
  *
- * This file demonstrates how to define a Hamiltonian using bosonic operators
- * and how to perform commutation operations on them.
+ * This file demonstrates how to set up a bosonic Hamiltonian with hopping,
+ * Bogoliubov-type pairing, and a chemical-potential term. The example then
+ * evaluates the commutators of this Hamiltonian with one- and two-operator
+ * bosonic expressions and compares the simplified results against serialized
+ * reference data.
+ * 
+ * These reference data should be generated before changes are made to the library.
+ * Thereby, one can validate that any changes do not break existing results.
  */
 
 #include "compare_test.hpp"
@@ -21,7 +27,8 @@ const std::string COMPARE_DIR = "../../../symbolic_operators/tests/correct_boson
 int main(int argc, char** argv) {
     bool is_baseline = (argc > 1) || !(std::filesystem::exists(COMPARE_DIR));
 
-    // Define the Hamiltonian
+    // Define the Hamiltonian terms. Each Term is built from a prefactor, a coefficient,
+    // the sums that run over momenta or indices, and the ordered operator string.
     const Term hopping(1, Coefficient::HoneyComb("\\gamma", Momentum('k'), false, false),
         MomentumSum{'k'},
         std::vector<Operator>({
@@ -29,6 +36,8 @@ int main(int argc, char** argv) {
             Operator::Boson(Momentum('k'), Index::TypeB, false)
         }));
 
+    // The Bogoliubov term is constructed in the same way, but the second bosonic operator
+    // carries a momentum shift of -1 times k.
     const Term bogo(IntFractional(1, 2), Coefficient::HoneyComb("\\Gamma", Momentum('k'), false, false),
         MomentumSum{'k'},
         std::vector<Operator>({
@@ -36,6 +45,8 @@ int main(int argc, char** argv) {
             Operator::Boson(Momentum('k', -1), Index::TypeB, true)
         }));
 
+    // A chemical-potential term couples a creation and annihilation operator of the same boson.
+    // The index sum ensures that the term is summed over the spin-like index Sigma.
     const Term chemical_potential(-1, Coefficient::Constant("\\mu", Index::Sigma), 
         SumContainer{ MomentumSum{'k'}, IndexSum{Index::Sigma} },
         std::vector<Operator>({
@@ -47,13 +58,15 @@ int main(int argc, char** argv) {
     
     std::cout << begin_align << "H =" << hamiltonian << end_align << std::endl;
 
-    // Define the commutation targets
-    // It is important to choose a different name for the momentum here than in the Hamiltonian
+    // Define the commutation targets. These are also Terms, but here they contain only operators
+    // and no coefficient or sum structure, so the constructor takes the operator list directly.
+    // It is important to choose a different name for the momentum here than in the Hamiltonian.
     const Term to_commute_1(1, std::vector<Operator>({
             Operator::Boson(Momentum('l'), Index::TypeA, true),
             Operator::Boson(Momentum('l', -1), Index::TypeB, true)
         }));
 
+    // The second target is a sum of two bosonic operator strings, each carrying a momentum shift.
     const std::vector<Term> to_commute_2{ 
         Term(1, SumContainer{ MomentumSum{'q'} },
             std::vector<Operator>({

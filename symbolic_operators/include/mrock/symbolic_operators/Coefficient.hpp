@@ -17,7 +17,7 @@ namespace mrock::symbolic_operators {
 
 	/**
 	 * @struct Coefficient
-	 * @brief Represents a coefficient. Various symmetries are pre defined (e.g. inversion symmetry) and can be toggled on or off
+	 * @brief Represents a coefficient. Various symmetries are predefined (e.g. inversion symmetry) and can be toggled on or off
 	 * 		A custom symmetry can also be provided
 	 */
 	struct Coefficient {

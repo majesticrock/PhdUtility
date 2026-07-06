@@ -1,4 +1,13 @@
 #pragma once
+/**
+ * @file compare_test.hpp
+ * @brief Helper utilities for testing symbolic-operator commutators and Wick results.
+ *
+ * This header provides a small test harness that runs the same symbolic-operator
+ * workflow used in the example programs: compute a commutator, simplify the result,
+ * and compare it against a serialized baseline stored on disk. The helper can also
+ * generate new comparison files when a test is run in baseline mode.
+ */
 #include <mrock/symbolic_operators/Term.hpp>
 #include <mrock/symbolic_operators/Wick.hpp>
 #include <mrock/symbolic_operators/SerializationHeaders.hpp>
