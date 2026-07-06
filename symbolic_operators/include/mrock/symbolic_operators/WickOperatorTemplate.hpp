@@ -24,6 +24,23 @@ namespace mrock::symbolic_operators {
 		Index other{ Index::UndefinedIndex }; ///< The other index.
 	};
 
+	/** 
+	 * @brief Convenience definiton of an \c IndexComparison for pair creation/annihilation operators (c c)
+	 * 
+	 * Note that the pair annihilation operator is defined as f_k := c_(-k,down) c_(k,up).
+     * Therefore, the 'base operatore' is the second one in the expression c_(k,up),
+     * and we have to give the index of the second operator first. */
+	inline constexpr IndexComparison SC_Comparison{
+		false, /* The indizes (here only spins), must be fixed */
+            Index::SpinUp, /* The second index must be SpinUp */
+            Index::SpinDown /* The first index must be SpinDown */
+		}; 
+	/** 
+	 * @brief Convenience definiton of an \c IndexComparison for number-like operators (c^dagger c)
+	 */
+	inline constexpr IndexComparison Num_Comparison{ 
+			true /* The indizes (here: spins) of both operators must be equal, but no other restriction is placed */
+		}; 
 	/**
 	 * @struct TemplateResult
 	 * @brief A structure for storing the result of a template operation.

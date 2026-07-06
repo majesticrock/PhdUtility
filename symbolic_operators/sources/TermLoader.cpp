@@ -1,7 +1,10 @@
 #include <mrock/symbolic_operators/TermLoader.hpp>
+#include <mrock/symbolic_operators/SerializationHeaders.hpp>
+
 #include <fstream>
-#include <boost/archive/binary_iarchive.hpp>
 #include <filesystem>
+#include <boost/archive/binary_iarchive.hpp>
+
 
 namespace mrock::symbolic_operators {
 	void TermLoader::load(std::string const& folder, bool use_XP, int n_terms, int start_at/*=0*/) {

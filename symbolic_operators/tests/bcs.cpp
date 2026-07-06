@@ -32,7 +32,7 @@ double g(double epsilon_q, double epsilon_p) {
     if (std::abs(epsilon_p) >= omega) {
         return double{};
     }
-    return -interaction_strength;
+    return interaction_strength;
 };
 
 /* 
@@ -134,6 +134,9 @@ double evaluate_expression(const WickTerm& term, const std::array<double, N>& ks
             value += psum;
         }
     }
+    else if (term.sums.momenta.empty()) {
+        value = evaluate_coefficients(term.coefficients, momentum_map) * evaluate_wick_operators(term.operators, momentum_map, delta);
+    }
     else {
         throw std::runtime_error("Number of momentum sums not supported!");
     }
@@ -189,17 +192,22 @@ int main(int argc, char** argv) {
     const std::vector<WickOperatorTemplate> templates({
             /* Template for pair creation/annhilation operators */
 			WickOperatorTemplate{ 
-                {IndexComparison{
+                {IndexComparison{ /* Alternatively, the constexpr object SC_Comparison could be used */
                     false, /* The indizes (here only spins), must be fixed */
-                    Index::SpinDown, /* The first index must be SpinDown */
-                    Index::SpinUp} /* The second index must be SpinUp */
-                }, 
+                    Index::SpinUp, /* The second index must be SpinUp */
+                    Index::SpinDown} /* The first index must be SpinDown */
+                },  
+                /* Note that the pair annihilation operator is defined as f_k := c_(-k,down) c_(k,up).
+                Therefore, the 'base operatore' is the second one in the expression c_(k,up),
+                and we have to give the index of the second operator first. */
                 Momentum(), /* The total momentum of the expression must be 0 */
                 OperatorType::SC /* It is an OperatorType::SC term, i.e., cc or c^dagger c^dagger with total Momentum 0 */
             },
             /* Template for number operators */
 			WickOperatorTemplate{ 
-                {IndexComparison{true}}, /* The indizes (here: spins) of both operators must be equal, but no other restriction is placed */
+                {IndexComparison{ /* Alternatively, the constexpr object Num_Comparison could be used */
+                    true }  /* The indizes (here: spins) of both operators must be equal, but no other restriction is placed */
+                },
                 Momentum(), /* The total momentum of the expression must be 0 */
                 OperatorType::Number /* It is an OperatorType::Number term, i.e., c^dagger c with total Momentum 0 */
             }
@@ -277,7 +285,7 @@ int main(int argc, char** argv) {
             return current + expec_number(epsilon, delta) * expec_number(epsilon, delta);
         }
     );
-    const double analytical = (kinetic + interaction_strength * (pairing*pairing + one_over_n_part)) / N;
+    const double analytical = (kinetic - interaction_strength * (pairing*pairing + one_over_n_part)) / N;
     /* 
     In addition to those terms, there is a <n><n> contraction of the interaction term
     However, this one scales as 1/N and may thus be neglected in the thermodynamic limit. */
@@ -287,7 +295,7 @@ int main(int argc, char** argv) {
     wicks_theorem(H, templates, wicks);
     /* Clean up the result and apply symmetries */
     clean_wicks(wicks, symmetries);
-    std::cout << "Expressional result from Wick's theorem:\n" << wicks << std::endl;
+    std::cout << "Expressional result from Wick's theorem:\n" << wicks << "\n" << std::endl;
 
     double numerical{};
     for (const auto& term : wicks) {
@@ -308,18 +316,19 @@ int main(int argc, char** argv) {
     /* Compute the commutator and clean up the result */
     std::vector<Term> commutator_result = commutator(H, right);
     clean_up(commutator_result);
-    
+    std::cout << "Result of the commutator:\n" << commutator_result << "\n" << std::endl;
+
     /* Apply Wick's theorem and clean up the result */
     WickTermCollector commutator_wicks;
     wicks_theorem(commutator_result, templates, commutator_wicks);
     clean_wicks(commutator_wicks, symmetries);
-    std::cout << "Expressional result from Wick's theorem:\n" << commutator_wicks << std::endl;
+    std::cout << "Expressional result from Wick's theorem:\n" << commutator_wicks << "\n" << std::endl;
 
 
     /* Compute the expecation value of <[H,f_k]> with the analytical formula for later comparison */
     /* Kinetic part, the factor of 2 accounts for the spins */
 
-    const int k = N/2;
+    const int k = N/4 - 2;
     double bilinear = std::accumulate(epsilons.begin(), epsilons.end(), double{},
         [&delta](const double& current, const double& epsilon) {
             if (std::abs(epsilon) >= omega) {
@@ -329,7 +338,9 @@ int main(int argc, char** argv) {
         }
     );
     bilinear *= -interaction_strength;
-    bilinear += 2. * epsilons[k] * expec_pair(epsilons[k], delta);
+    if (std::abs(epsilons[k]) < omega) {
+        bilinear += 2. * epsilons[k] * expec_pair(epsilons[k], delta);
+    }
 
     /* Pairing part */
     double quartic = std::accumulate(epsilons.begin(), epsilons.end(), double{},
@@ -340,17 +351,19 @@ int main(int argc, char** argv) {
             return current + expec_pair(epsilon, delta);
         }
     );
-    quartic += 2. * expec_number(epsilons[k], delta) * interaction_strength;
+    quartic *= 2. * expec_number(epsilons[k], delta) * interaction_strength;
+
     if (std::abs(epsilons[k]) >= omega) {
         quartic = 0.0;
+        bilinear = 0.0;
     }
-    const double analytical_commutator = (bilinear + quartic) / N;
+    const double analytical_commutator = (bilinear + quartic) ;// N;
 
     double numerical_commutator{};
     for (const auto& term : commutator_wicks) {
         numerical_commutator += evaluate_expression(term, ks, delta, ks[k]);
     }
-    numerical_commutator /= N;
+    //numerical_commutator /= N;
     std::cout << std::setprecision(14) 
               << "Analytical value for <[H, f_k]>/N = " << analytical_commutator << std::endl;
     std::cout << " Numerical value for <[H, f_k]>/N = " << numerical_commutator  << std::endl;

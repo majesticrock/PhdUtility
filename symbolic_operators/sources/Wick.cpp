@@ -75,20 +75,22 @@ namespace mrock::symbolic_operators {
 	{
 		WickTermCollector ret;
 		ret.push_back(source);
-		//ret.front().temporary_operators.clear();
+		ret.back().temporary_operators.clear();
 
 		for (size_t i = 0U; i < source.temporary_operators.size(); i += 2U)
 		{
 			std::vector<TemplateResult> template_results;
 			for (const auto& operator_template : operator_templates) {
 				auto template_result = operator_template.create_from_operators(source.temporary_operators[i], source.temporary_operators[i + 1U]);
-				if (template_result)
+				if (template_result) {
 					template_results.push_back(std::move(template_result));
+				}
 			}
 
 			const size_t current_size = ret.size();
-			const size_t number_additional_elements = std::accumulate(template_results.begin(), template_results.end(), size_t{}, [](size_t current, const TemplateResult& tr) {
-				return current + tr.results.size();
+			const size_t number_additional_elements = std::accumulate(template_results.begin(), template_results.end(), size_t{}, 
+				[](size_t current, const TemplateResult& tr) {
+					return current + tr.results.size();
 				});
 			if (number_additional_elements > 1U) {
 				duplicate_n_inplace(ret, number_additional_elements - 1U);
@@ -120,7 +122,7 @@ namespace mrock::symbolic_operators {
 
 		for (auto& w_term : prepared_wick) {
 			append_if(reciever, identify_wick_operators(w_term, operator_templates), [](const WickTerm& wick) {
-				return !(is_always_zero(wick.delta_indizes) || is_always_zero(wick.delta_momenta)) && !wick.is_pauli_forbidden();
+				return !(is_always_zero(wick.delta_indizes) || is_always_zero(wick.delta_momenta));
 				});
 		}
 	}
@@ -165,6 +167,19 @@ namespace mrock::symbolic_operators {
 			it->rename_sums();
 			it->sort();
 			
+			/* 
+			This function must be called before symmetries are applied!
+			Sometimes <o^dagger> = <o> is a symmetry, which would transform <o^dagger> <o> into <o><o>.
+			is_pauli_forbidden() transforms <o> back into the original operators and checks, whether its legal.
+			That is, if <o> = <c_-k c_k>, then
+			<o^dagger> <o> becomes <c_k^dagger c_-k^dagger c_-k c_k> which is finite.
+			Applyng the aforementioned symmetry gives
+			<o><o> = <c_-k c_k c_-k c_k> which would be Pauli forbidden. */
+			if (it->is_pauli_forbidden()) {
+				it = terms.erase(it);
+				continue;
+			}
+
 			for (const auto& symmetry : symmetries) {
 				symmetry->apply_to(*it);
 			}

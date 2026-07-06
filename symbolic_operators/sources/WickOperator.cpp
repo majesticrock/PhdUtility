@@ -27,6 +27,45 @@ namespace mrock::symbolic_operators {
 		this->is_daggered = expression.find("^+") != std::string::npos;
 	}
 
+    std::vector<Operator> WickOperator::to_operator_expression() const
+    {
+		std::vector<Operator> result{
+			Operator(this->momentum, this->indizes, false), 
+			Operator(this->momentum, this->indizes, false)
+		};
+
+		switch(this->type) {
+			case OperatorType::Eta:
+				result[0].momentum.add_Q = true;
+			case OperatorType::SC:
+				result[0].momentum.flip_momentum();
+				result[0].indizes.insert(result[0].indizes.begin(), Index::SpinDown);
+				result[1].indizes.insert(result[1].indizes.begin(), Index::SpinUp);
+
+				result[0].is_daggered = this->is_daggered;
+				result[1].is_daggered = this->is_daggered;
+				if(this->is_daggered) {
+					std::swap(result[0], result[1]);
+				}
+				break;
+
+			case OperatorType::CDW:
+				result[0].momentum.add_Q = true;
+			case OperatorType::Number:
+				if(this->is_daggered) {
+					std::swap(result[0], result[1]);
+				}
+				result[0].is_daggered = true;
+				result[1].is_daggered = false;
+				break;
+				
+			default:
+				throw std::runtime_error("Operator type not handled!");
+		}
+
+		return result;
+	}
+
 	std::ostream& operator<<(std::ostream& os, const WickOperator& op)
 	{
 		os << "\\langle " << op.type << "_{ " << op.momentum << ", ";

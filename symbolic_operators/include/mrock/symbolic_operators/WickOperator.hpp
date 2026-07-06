@@ -5,9 +5,11 @@
 
 #pragma once
 #include <iostream>
+#include <vector>
 #include "Momentum.hpp"
 #include "IndexWrapper.hpp"
 #include "OperatorType.hpp"
+#include "Operator.hpp"
 
 namespace mrock::symbolic_operators {
 
@@ -92,6 +94,14 @@ namespace mrock::symbolic_operators {
 		 * @param value The momentum value to remove.
 		 */
 		inline void remove_momentum_contribution(const MomentumSymbol::name_type value);
+
+		/**
+		 * @brief Transforms \c this to the equivalent operator expression.
+		 * Example: < \c OperatorType::SC , \c Momentum k, \c is_dagger \c false > becomes < c_{-k down} c_{k up} > 
+		 * 
+		 * @return The transformed expression
+		 */
+		std::vector<Operator> to_operator_expression() const;
 	};
 
 	/**

@@ -161,10 +161,6 @@ namespace mrock::symbolic_operators {
 					coeff.momenta.replace_occurances(sum, buffer);
 					coeff.momenta.replace_occurances(buffer_list[0], Momentum(sum));
 				}
-				for (auto& temp_op : temporary_operators) {
-					temp_op.momentum.replace_occurances(sum, buffer);
-					temp_op.momentum.replace_occurances(buffer_list[0], Momentum(sum));
-				}
 			}
 		}
 		discard_zero_momenta();
@@ -291,15 +287,25 @@ namespace mrock::symbolic_operators {
 	
 	bool WickTerm::is_pauli_forbidden() const {
 		// Cannot be forbidden if there is only one WickOperator
-		if (this->operators.size() < 2U) return false; 
+		if (operators.size() < 2U) return false; 
+		// IMPORTANT: This function assumes that the term prior to the application of
+		// Wick's theorem was normal ordered!
 
-		for (auto it = this->operators.begin(); it != this->operators.end() - 1; ++it) {
-			for (auto jt = it + 1; jt != this->operators.end(); ++jt) {
-				if (*it == *jt) {
+		std::vector<Operator> transformed_operators;
+		transformed_operators.reserve(2 * operators.size());
+		
+		for(const auto& wick_op : operators) {
+			append_vector(transformed_operators, wick_op.to_operator_expression());
+		}
+
+		for (size_t i=0U; i < transformed_operators.size(); ++i) {
+			for (size_t j=i+1; j < transformed_operators.size(); ++j) {
+				if (transformed_operators[i] == transformed_operators[j]) {
 					return true;
 				}
 			}
 		}
+
 		return false;
 	}
 

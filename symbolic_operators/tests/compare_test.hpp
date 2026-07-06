@@ -1,8 +1,8 @@
 #pragma once
-#include "../include/mrock/symbolic_operators/Term.hpp"
-#include "../include/mrock/symbolic_operators/Wick.hpp"
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
+#include <mrock/symbolic_operators/Term.hpp>
+#include <mrock/symbolic_operators/Wick.hpp>
+#include <mrock/symbolic_operators/SerializationHeaders.hpp>
+
 #include <fstream>
 #include <filesystem>
 #include <string>

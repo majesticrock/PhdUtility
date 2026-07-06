@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <cassert>
+
 #include "Momentum.hpp"
 #include "IndexWrapper.hpp"
 

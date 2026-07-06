@@ -81,9 +81,6 @@ namespace mrock::symbolic_operators {
 		// c_{k}^+ c_{k+q}
 		// q
 		const Momentum momentum_diff = right.momentum - left.momentum;
-		KroneckerDelta<Momentum> momentum_delta{ this->momentum_difference, momentum_diff };
-
-		std::vector<KroneckerDelta<Index>> index_delta;
 
 		TemplateResult result(1U, this->type, left.momentum);
 		result.results.front().op.is_daggered = false;

@@ -5,11 +5,13 @@
 
 #pragma once
 
+#include <optional>
+#include <functional>
+#include <cassert>
+
 #include "Operator.hpp"
 #include "IndexWrapper.hpp"
 #include "MomentumList.hpp"
-#include <optional>
-#include <functional>
 
 namespace mrock::symbolic_operators {
 

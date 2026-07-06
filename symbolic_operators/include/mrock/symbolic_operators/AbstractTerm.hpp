@@ -173,6 +173,11 @@ namespace mrock::symbolic_operators {
 	{
 		if (is_always_zero(delta_momenta)) return false;
 
+		// Remove delta^2
+		remove_delta_squared(this->delta_momenta);
+		// Erase delta_k,k etc
+		remove_delta_is_one(this->delta_momenta);
+
 		for (auto delta_it = delta_momenta.begin(); delta_it != delta_momenta.end(); ) {
 			delta_it->first -= delta_it->second;
 			delta_it->second = Momentum();
@@ -201,14 +206,13 @@ namespace mrock::symbolic_operators {
 				}
 			}
 
-			if (resolve_to.factor > 0) {
-				delta_it->first.flip_momentum();
-			}
-			else {
-				resolve_to.factor *= -1;
-			}
 			delta_it->second = Momentum(resolve_to);
+			delta_it->second.flip_momentum();
 			delta_it->first += delta_it->second;
+			if (delta_it->second.front().factor < 0) {
+				delta_it->first.flip_momentum();
+				delta_it->second.flip_momentum();
+			}
 			
 			// Fractional momenta were never implemented, since they were never needed.
 			// If they are ever needed, you unfortunately have to implement them yourself
@@ -228,12 +232,6 @@ namespace mrock::symbolic_operators {
 				if (delta_it2 == delta_it) continue;
 				delta_it2->first.replace_occurances(delta_it->second.front().name, delta_it->first);
 				delta_it2->second.replace_occurances(delta_it->second.front().name, delta_it->first);
-			}
-
-			if (additional_target)  {
-				for (auto& target : *additional_target) {
-					target.momentum.replace_occurances(delta_it->second.front().name, delta_it->first);
-				}
 			}
 
 			if (found_sum) {
@@ -261,18 +259,23 @@ namespace mrock::symbolic_operators {
 		}
 
 		// Remove delta^2
-		remove_delta_squared(this->delta_indizes);
+		remove_delta_squared(this->delta_momenta);
 		// Erase delta_k,k etc
-		remove_delta_is_one(this->delta_indizes);
+		remove_delta_is_one(this->delta_momenta);
 
 		return true;
 	}
 
 
-	template<class tOperatorType, class T = tOperatorType>
-    bool AbstractTerm<tOperatorType>::resolve_index_deltas(T* additional_target) 
+	template<class tOperatorType>
+    bool AbstractTerm<tOperatorType>::resolve_index_deltas() 
 	{
 		if (is_always_zero(delta_indizes)) return false;
+
+		// Remove delta^2
+		remove_delta_squared(this->delta_indizes);
+		// Erase delta_k,k etc
+		remove_delta_is_one(this->delta_indizes);
 
 		for (auto delta_it = delta_indizes.begin(); delta_it != delta_indizes.end(); ) {
 			Index to_resolve { Index::UndefinedIndex };
@@ -333,12 +336,6 @@ namespace mrock::symbolic_operators {
 				}
 			}
 
-			if (additional_target)  {
-				for (auto& target : *additional_target) {
-					target.indizes.replace_index(to_resolve, change_to);
-				}
-			}
-
 			if (found_sum) {
 				sums.spins.erase(sum_it);
 				delta_it = delta_indizes.erase(delta_it);
@@ -356,8 +353,8 @@ namespace mrock::symbolic_operators {
 		return true;
 	}
 
-    template<class tOperatorType, class T = std::vector<tOperatorType>>
-    void AbstractTerm<tOperatorType>::rename_sums(T* additional_target = nullptr)
+    template<class tOperatorType>
+    void AbstractTerm<tOperatorType>::rename_sums()
 	{
 		for (size_t i = 0U; i < sums.momenta.size(); ++i)
 		{
@@ -373,11 +370,6 @@ namespace mrock::symbolic_operators {
 			for (auto& coeff : coefficients) {
 				coeff.momenta.replace_occurances(sums.momenta[i], Momentum(buffer_list[i]));
 			}
-			if(additional_target) {
-				for (auto& target : *additional_target) {
-					target.momenta.replace_occurances(sums.momenta[i], Momentum(buffer_list[i]));
-				}
-			}
 			sums.momenta[i] = name_list[i];
 		}
 
@@ -389,11 +381,6 @@ namespace mrock::symbolic_operators {
 			for (auto& coeff : coefficients) {
 				coeff.momenta.replace_occurances(buffer_list[i], Momentum(name_list[i]));
 			}
-			if(additional_target) {
-				for (auto& target : *additional_target) {
-					target.momenta.replace_occurances(buffer_list[i], Momentum(name_list[i]));
-				}
-			}
 		}
 
 		if (sums.spins.size() == 1U && sums.spins.front() == Index::SigmaPrime) {
@@ -403,11 +390,6 @@ namespace mrock::symbolic_operators {
 			}
 			for (auto& coeff : coefficients) {
 				coeff.indizes.replace_index(Index::SigmaPrime, Index::Sigma);
-			}
-			if (additional_target)  {
-				for (auto& target : *additional_target) {
-					target.indizes.replace_index(to_resolve, change_to);
-				}
 			}
 		}
 	}
