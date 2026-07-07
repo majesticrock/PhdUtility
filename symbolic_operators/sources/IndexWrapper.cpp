@@ -20,34 +20,31 @@ namespace mrock::symbolic_operators {
 		case Index::SpinDown:
 			os << "\\downarrow";
 			break;
+
 		case Index::Sigma:
 			os << "\\sigma";
 			break;
 		case Index::SigmaPrime:
 			os << "\\sigma'";
 			break;
-		case Index::GeneralSpin_S:
-			os << "S";
-			break;
-		case Index::GeneralSpin_SPrime:
-			os << "S'";
-			break;
-		case Index::TypeA:
-			os << "A";
-			break;
-		case Index::TypeB:
-			os << "B";
-			break;
-		case Index::TypeC:
-			os << "C";
-			break;
+		
 		case Index::UndefinedIndex:
 			os << "UNDEFINED INDEX";
 			break;
 		case Index::NoIndex:
 			break;
 		default:
-			os << static_cast<char>(index);
+			index_base c = static_cast<index_base>(index);
+			if (is_mutable(index)) {
+				os << "S";
+				c -= static_cast<index_base>(Index::GeneralSpin_S);
+				while(c --> 0) {
+					os << "'";
+				}
+			}
+			else {
+				os << static_cast<index_base>(index);
+			}
 			break;
 		}
 		return os;

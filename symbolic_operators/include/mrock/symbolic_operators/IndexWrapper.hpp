@@ -21,36 +21,43 @@ namespace mrock::symbolic_operators {
 
 	/**
 	 * @enum Index
-	 * @brief Enumeration representing various symbolic indices.
-	 * 
-	 * The indices include:
-	 * - SpinUp: Represents spin up (0).
-	 * - SpinDown: Represents spin down (1).
-	 * - Sigma: Represents sigma (2).
-	 * - SigmaPrime: Represents sigma prime (3).
-	 * - GeneralSpin_S: Represents general spin S (4).
-	 * - GeneralSpin_SPrime: Represents general spin S prime (5).
-	 * - TypeA: Represents type A (6).
-	 * - TypeB: Represents type B (7).
-	 * - TypeC: Represents type C (8).
-	 * - char_a: Represents the lowercase ASCII character 'a' (97).
-	 * - UndefinedIndex: Represents an undefined index (254).
-	 * - NoIndex: Represents no index (255).
-	 * 
-	 * - Not explicitly represented, but defined implementation-wise are any lower-case ASCII characters.char_to_index.
-	 *	 These can be obtained via static_cast<Index>(char) or using the char_to_index() function
+	 * @brief Enumeration of symbolic index values used throughout the symbolic operators library.
+	 *
+	 * The enum covers a set of named indices, reserved ranges for additional categories,
+	 * and a direct ASCII-backed range for lower-case character indices.
+	 *
+	 * The explicitly named values are:
+	 * - SpinUp: spin up index (0)
+	 * - SpinDown: spin down index (1)
+	 * - Sigma: sigma index (16)
+	 * - SigmaPrime: sigma prime index (17)
+	 * - GeneralSpin_S: general spin S index (18)
+	 * - GeneralSpin_SPrime: general spin S prime index (19)
+	 * - TypeA: type A index (65)
+	 * - TypeB: type B index (66)
+	 * - TypeC: type C index (67)
+	 * - char_a: lowercase ASCII character 'a' (97)
+	 * - UndefinedIndex: undefined index marker (254)
+	 * - NoIndex: no index marker (255)
+	 *
+	 * Lower-case ASCII characters beyond 'a' are represented implicitly by their character
+	 * code and can be obtained by static_cast<Index>(c) or via char_to_index(c).
 	 */
 	enum class Index : index_base { 
 		SpinUp = 0, 
-		SpinDown, 
-		Sigma, 
-		SigmaPrime, 
-		GeneralSpin_S, 
-		GeneralSpin_SPrime, 
-		TypeA, 
-		TypeB, 
-		TypeC,
-		char_a = 97, 
+		SpinDown = 1, 
+		/* The gap is put here as a placeholder, if e.g., spin=1 has to be handled */
+		Sigma = 16, 
+		SigmaPrime = 17, 
+		GeneralSpin_S = 18, 
+		GeneralSpin_SPrime = 19, 
+		/* The gap is put here as a placeholder, for e.g., additional spin summations */
+		TypeA = 65, 
+		TypeB = 66, 
+		TypeC = 67,
+		/* The ascii symbols continue here, but have no special name */
+		char_a = 97,
+		/* The ascii symbols continue here, but have no special name */
 		UndefinedIndex = 254, 
 		NoIndex = 255 
 	};
@@ -63,7 +70,7 @@ namespace mrock::symbolic_operators {
 	 * @param c The character to convert.
 	 * @return The corresponding Index value.
 	 */
-	constexpr Index char_to_index(unsigned char c) {
+	constexpr Index char_to_index(index_base c) {
 		return static_cast<Index>(c);
 	}
 
@@ -122,7 +129,8 @@ namespace mrock::symbolic_operators {
 	 * @return True if the index is mutable, false otherwise.
 	 */
 	constexpr bool is_mutable(const Index idx) {
-		return (static_cast<index_base>(idx) > 1 && static_cast<index_base>(idx) < 6);
+		return (static_cast<index_base>(idx) >= static_cast<index_base>(Index::Sigma) 
+			&& static_cast<index_base>(idx) < static_cast<index_base>(Index::TypeA));
 	}
 
 	/**

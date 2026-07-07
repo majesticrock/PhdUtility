@@ -253,7 +253,7 @@ namespace mrock::symbolic_operators {
 			if (left.delta_momenta.empty() && right.delta_momenta.size() > 0) {
 				return true;
 			}
-			if (left.delta_momenta.size() > 0 && right.delta_momenta.size() > 0) {
+			else if (left.delta_momenta.size() > 0 && right.delta_momenta.size() > 0) {
 				if (left.delta_momenta.size() < right.delta_momenta.size()) {
 					return true;
 				}
@@ -275,15 +275,20 @@ namespace mrock::symbolic_operators {
 				}
 			}
 			else if (left.delta_momenta.empty() && right.delta_momenta.empty()) {
-				if (!left.coefficients.empty() && right.coefficients[0].name < left.coefficients[0].name) {
+				if (left.coefficients.size() < right.coefficients.size()) {
 					return true;
 				}
-				else if ((!left.coefficients.empty() && right.coefficients[0].name == left.coefficients[0].name) || left.coefficients.empty()) {
-					if (!left.operators.empty() && right.operators.empty()) {
+				else if (!left.coefficients.empty() && !right.coefficients.empty()) {
+					if (right.coefficients[0].name < left.coefficients[0].name) {
 						return true;
 					}
-					else if ((!left.operators.empty() && !right.operators.empty()) && left.operators.front().type < right.operators.front().type) {
-						return true;
+					else if (right.coefficients[0].name == left.coefficients[0].name) {
+						if (left.operators.size() > right.operators.size()) {
+							return true;
+						}
+						else if ((!left.operators.empty() && !right.operators.empty()) && left.operators.front().type < right.operators.front().type) {
+							return true;
+						}
 					}
 				}
 			}

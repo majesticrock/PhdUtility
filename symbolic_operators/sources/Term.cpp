@@ -431,23 +431,12 @@ namespace mrock::symbolic_operators {
 		}
 	}
 
-#define fill_reciever(x) reciever[0].x = left.x; append_vector(reciever[0].x, right.x); reciever[1].x = left.x; append_vector(reciever[1].x, right.x);
 	std::vector<Term> commutator(const Term& left, const Term& right)
 	{
 		std::vector<Term> reciever(2);
-		reciever[0] = left;
-		reciever[0].multiplicity *= right.multiplicity;
-		append_vector(reciever[0].operators, right.operators);
-		reciever[1] = right;
-		reciever[1].multiplicity *= left.multiplicity;
-		append_vector(reciever[1].operators, left.operators);
+		reciever[0] = left * right;
+		reciever[1] = right * left;
 		reciever[1].flip_sign();
-
-		fill_reciever(coefficients);
-		fill_reciever(sums.momenta);
-		fill_reciever(sums.spins);
-		fill_reciever(delta_momenta);
-		fill_reciever(delta_indizes);
 
 		normal_order(reciever);
 		return reciever;
@@ -455,17 +444,9 @@ namespace mrock::symbolic_operators {
 
 	std::vector<Term> commutator(const std::vector<Term>& left, const std::vector<Term>& right)
 	{
-		std::vector<Term> reciever;
-		reciever.reserve(2 * left.size() * right.size());
-		
-		for (const auto& left_term : left)
-		{
-			for (const auto& right_term : right)
-			{
-				std::vector<Term> reciever_buffer = commutator(left_term, right_term);
-				append_vector(reciever, std::move(reciever_buffer));
-			}
-		}
+		std::vector<Term> reciever = left * right;
+		append_vector(reciever, -right * left);
+		normal_order(reciever);
 		return reciever;
 	}
 
@@ -492,6 +473,7 @@ namespace mrock::symbolic_operators {
 		}
 		return os;
 	}
+	
 	std::ostream& operator<<(std::ostream& os, const std::vector<Term>& terms)
 	{
 		for (std::vector<Term>::const_iterator it = terms.begin(); it != terms.end(); ++it)
@@ -552,12 +534,18 @@ namespace mrock::symbolic_operators {
 
 	std::vector<Term>& operator+=(std::vector<Term>& lhs, const std::vector<Term>& rhs)
 	{
+		if (rhs.empty()) {
+			return lhs;
+		}
 		append_vector(lhs, rhs);
 		return lhs;
 	}
 
 	std::vector<Term>& operator-=(std::vector<Term>& lhs, const std::vector<Term>& rhs)
 	{
+		if (rhs.empty()) {
+			return lhs;
+		}
 		// we effectively compute -(-lhs + rhs)
 		// Doing so forgoes creating the temporary of -rhs
 		for (auto& term : lhs) {
@@ -572,8 +560,12 @@ namespace mrock::symbolic_operators {
 
 	std::vector<Term>& operator*=(std::vector<Term>& lhs, const std::vector<Term>& rhs)
 	{
+		if (rhs.empty()) {
+			lhs.clear();
+			return lhs;
+		};
 		const size_t n = lhs.size();
-		duplicate_n_inplace(lhs, rhs.size());
+		duplicate_n_inplace(lhs, rhs.size() - 1U);
 		for (size_t l = 0U; l < n; ++l) {
 			for (size_t r = 0U; r < rhs.size(); ++r) {
 				lhs[l + r * n] *= rhs[r];

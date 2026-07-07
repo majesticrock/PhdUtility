@@ -21,7 +21,7 @@
 
 using namespace mrock::symbolic_operators;
 
-constexpr int N = 1000;
+constexpr int N = 100;
 
 /* We consider a simple 1D chain with nearest-neighbor hopping => epsilon(k) = 2 cos(k) */
 double epsilon(double k) {
@@ -31,9 +31,9 @@ double epsilon(double k) {
 /* 
 We consider a BCS interaction g(q,p) = g Theta(omega - |epsilon(q)|) Theta(omega - |epsilon(p)|)
 It therefore actually only depends on epsilon(q) and epsilon(p), which we leverage
-We set g=0.1 and omega=0.2 */
+We set g=0.1 and omega=0.5 */
 constexpr double interaction_strength = 0.1 / static_cast<double>(N);
-constexpr double omega = 0.2;
+constexpr double omega = 0.5;
 double g(double epsilon_q, double epsilon_p) {
     if (std::abs(epsilon_q) >= omega) {
         return double{};
@@ -121,7 +121,6 @@ You can always do that in practice, since you can always just compute the Wick e
 and have a look at them. 
 If you would rather implement a general handler, feel free to do so though. */
 double evaluate_expression(const WickTerm& term, const std::array<double, N>& ks, double delta, double k=0) {
-    /* The result contains either a single sum over q oder a double sum over p and q */
     std::map<MomentumSymbol::name_type, double> momentum_map;
     momentum_map['k'] = k;
 
@@ -139,6 +138,43 @@ double evaluate_expression(const WickTerm& term, const std::array<double, N>& ks
             for (int p=0; p<N; ++p) {
                 momentum_map[term.sums.momenta[1]] = ks[p];
                 psum += evaluate_coefficients(term.coefficients, momentum_map) * evaluate_wick_operators(term.operators, momentum_map, delta);
+            }
+            value += psum;
+        }
+    }
+    else if (term.sums.momenta.size() == 3U) {
+        for (int q=0; q<N; ++q) {
+            momentum_map[term.sums.momenta[0]] = ks[q];
+            double psum{};
+            for (int p=0; p<N; ++p) {
+                momentum_map[term.sums.momenta[1]] = ks[p];
+                double rsum{};
+                for (int r=0; r<N; ++r) {
+                    momentum_map[term.sums.momenta[2]] = ks[r];
+                    rsum += evaluate_coefficients(term.coefficients, momentum_map) * evaluate_wick_operators(term.operators, momentum_map, delta);
+                }
+                psum += rsum;
+            }
+            value += psum;
+        }
+    }
+    else if (term.sums.momenta.size() == 4U) {
+        for (int q=0; q<N; ++q) {
+            momentum_map[term.sums.momenta[0]] = ks[q];
+            double psum{};
+            for (int p=0; p<N; ++p) {
+                momentum_map[term.sums.momenta[1]] = ks[p];
+                double rsum{};
+                for (int r=0; r<N; ++r) {
+                    momentum_map[term.sums.momenta[2]] = ks[r];
+                    double ssum{};
+                    for (int s=0; s<N; ++s) {
+                        momentum_map[term.sums.momenta[3]] = ks[s];
+                        ssum += evaluate_coefficients(term.coefficients, momentum_map) * evaluate_wick_operators(term.operators, momentum_map, delta);
+                    }
+                    rsum += ssum;
+                }
+                psum += rsum;
             }
             value += psum;
         }
@@ -366,13 +402,13 @@ int main(int argc, char** argv) {
         quartic = 0.0;
         bilinear = 0.0;
     }
-    const double analytical_commutator = (bilinear + quartic) ;// N;
+    const double analytical_commutator = (bilinear + quartic) / N;
 
     double numerical_commutator{};
     for (const auto& term : commutator_wicks) {
         numerical_commutator += evaluate_expression(term, ks, delta, ks[k]);
     }
-    //numerical_commutator /= N;
+    numerical_commutator /= N;
     std::cout << std::setprecision(14) 
               << "Analytical value for <[H, f_k]>/N = " << analytical_commutator << std::endl;
     std::cout << " Numerical value for <[H, f_k]>/N = " << numerical_commutator  << std::endl;
@@ -381,10 +417,66 @@ int main(int argc, char** argv) {
     }
 
 
-    /* 
-    Lastly, we want to compute the expectation value of <H^2>.
-    We still have the Hamiltonian stored in H, however, one must pay attention: */
-    
+    /* The last analytical check is the expectation value of sum_(k,k',q,p) g(k,k') g(p,q) <f_k^dagger f_q^dagger f_k' f_p> */
+    std::vector<Term> eight_T = std::vector<Term>{H_Ph * H_Ph};
+    normal_order(eight_T);
+    clean_up(eight_T);
+    eight_T.erase(eight_T.begin() + 1, eight_T.end());
+    std::cout << "Cleaned H_Ph^2:\n" << eight_T << std::endl;
+    std::cout << "The only remaining term should be equal to T = sum_(k,k',q,p) g(k,k') g(p,q) f_k^dagger f_q^dagger f_k' f_p" << std::endl;
+
+    WickTermCollector expec_eight_T;
+    wicks_theorem(eight_T, templates, expec_eight_T);
+    clean_wicks(expec_eight_T, symmetries);
+
+    std::cout << "Expectation value <T>:\n" << expec_eight_T << std::endl;
+
+    /* Precompute the expectation values */
+    std::array<double, N> numbers{};
+    std::transform(epsilons.begin(), epsilons.end(), numbers.begin(), [&delta](double eps) {
+        return expec_number(eps, delta);
+    });
+    std::array<double, N> pairs{};
+    std::transform(epsilons.begin(), epsilons.end(), pairs.begin(), [&delta](double eps) {
+        return expec_pair(eps, delta);
+    });
+
+    double eight_analytical{};
+    for (int q=0; q<N; ++q) {
+        if (std::abs(epsilons[q]) >= omega) continue;
+        double psum{};
+        for (int p=0; p<N; ++p) {
+            if (std::abs(epsilons[p]) >= omega) continue;
+            double rsum{};
+            for (int r=0; r<N; ++r) {
+                if (std::abs(epsilons[r]) >= omega) continue;
+                double ssum{};
+                for (int s=0; s<N; ++s) {
+                    if (std::abs(epsilons[s]) >= omega) continue;
+
+                    ssum += pairs[q] * pairs[p] * pairs[r] * pairs[s];
+                }
+                rsum += ssum;
+                rsum += 4 * pairs[q] * pairs[p] * numbers[r] * numbers[r];
+            }
+            psum += rsum;
+            psum += 2 * numbers[q] * numbers[q] * numbers[p] * numbers[p];
+        }
+        eight_analytical += psum;
+    }
+    eight_analytical *= interaction_strength*interaction_strength;
+
+    double eight_numerical{};
+    for (const auto& term : expec_eight_T) {
+        eight_numerical += evaluate_expression(term, ks, delta, ks[k]);
+    }
+
+    std::cout << std::setprecision(14) 
+              << "Analytical value for <f^dagger f^dagger f f> = " << eight_analytical << std::endl;
+    std::cout << " Numerical value for <f^dagger f^dagger f f> = " << eight_numerical  << std::endl;
+    if (std::abs(eight_numerical - eight_analytical) > 1e-10) {
+        return -1;
+    }
 
     return 0;
 }
