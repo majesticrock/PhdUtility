@@ -293,6 +293,18 @@ namespace mrock::symbolic_operators {
 	 	 * @return The output stream.
 	 	 */
 		friend std::ostream& operator<<(std::ostream& os, const Term& term);
+
+		/**
+		 * @brief Multiplies this by rhs
+		 * IMPOARTANT: The result will not be normal ordered! If you require
+		 * a normal ordered expression, please call normal_order!
+		 * Note, that doing so may create additional terms, and the result must therefore
+		 * be std::vector<Term> and cannot be implemented as Term::operator*=
+		 * 
+		 * @param rhs the right-hand side Term object.
+		 * @return Reference to this containing the result.
+		 */
+		Term& operator*=(const Term& rhs);
 	};
 
 	/**
@@ -334,6 +346,92 @@ namespace mrock::symbolic_operators {
 	 * @return True if not equal, false otherwise.
 	 */
 	inline bool operator!=(const Term& lhs, const Term& rhs) { return !(lhs == rhs); }
+
+	/**
+	 * @brief Multiplies a Term by another Term.
+	 * IMPOARTANT: The result will not be normal ordered! If you require
+	 * a normal ordered expression, please call normal_order!
+	 * See Term::operator*=(const Term& rhs)
+	 * 
+	 * @param lhs The left-hand side Term.
+	 * @param rhs The right-hand side Term.
+	 * @return The result of the multiplication.
+	 */
+	inline Term operator*(Term lhs, const Term& rhs) {
+		lhs *= rhs;
+		return lhs;
+	}
+
+	/**
+	 * @brief Negates each term in the vector.
+	 *
+	 * @param terms The terms to negate.
+	 * @return A vector containing the negated terms.
+	 */
+	std::vector<Term> operator-(std::vector<Term> terms);
+
+	/**
+	 * @brief Adds the right-hand side terms to the left-hand side terms.
+	 *
+	 * @param lhs The left-hand side terms that are modified in place.
+	 * @param rhs The right-hand side terms to add.
+	 * @return A reference to the modified left-hand side terms.
+	 */
+	std::vector<Term>& operator+=(std::vector<Term>& lhs, const std::vector<Term>& rhs);
+	
+	/**
+	 * @brief Subtracts the right-hand side terms from the left-hand side terms.
+	 *
+	 * @param lhs The left-hand side terms that are modified in place.
+	 * @param rhs The right-hand side terms to subtract.
+	 * @return A reference to the modified left-hand side terms.
+	 */
+	std::vector<Term>& operator-=(std::vector<Term>& lhs, const std::vector<Term>& rhs);
+
+	/**
+	 * @brief Multiplies the left-hand side term vector by the right-hand side term vector.
+	 *
+	 * @param lhs The left-hand side terms that are modified in place.
+	 * @param rhs The right-hand side terms to multiply by.
+	 * @return A reference to the modified left-hand side terms.
+	 */
+	std::vector<Term>& operator*=(std::vector<Term>& lhs, const std::vector<Term>& rhs);
+
+	/**
+	 * @brief Adds two vectors of terms and returns the result.
+	 *
+	 * @param lhs The left-hand side terms.
+	 * @param rhs The right-hand side terms.
+	 * @return A vector containing the sum of the operands.
+	 */
+	inline std::vector<Term> operator+(std::vector<Term> lhs, const std::vector<Term>& rhs) {
+		lhs += rhs;
+		return lhs;
+	}
+
+	/**
+	 * @brief Subtracts the right-hand side term vector from the left-hand side term vector.
+	 *
+	 * @param lhs The left-hand side terms.
+	 * @param rhs The right-hand side terms.
+	 * @return A vector containing the difference of the operands.
+	 */
+	inline std::vector<Term> operator-(std::vector<Term> lhs, const std::vector<Term>& rhs) {
+		lhs -= rhs;
+		return lhs;
+	}
+
+	/**
+	 * @brief Multiplies two vectors of terms and returns the result.
+	 *
+	 * @param lhs The left-hand side terms.
+	 * @param rhs The right-hand side terms.
+	 * @return A vector containing the product of the operands.
+	 */
+	inline std::vector<Term> operator*(std::vector<Term> lhs, const std::vector<Term>& rhs) {
+		lhs *= rhs;
+		return lhs;
+	}
 
 	/**
 	 * @brief Outputs a coefficient to a stream.

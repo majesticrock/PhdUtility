@@ -381,5 +381,10 @@ int main(int argc, char** argv) {
     }
 
 
+    /* 
+    Lastly, we want to compute the expectation value of <H^2>.
+    We still have the Hamiltonian stored in H, however, one must pay attention: */
+    
+
     return 0;
 }

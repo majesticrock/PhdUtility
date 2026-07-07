@@ -2,6 +2,7 @@
 #include <mrock/symbolic_operators/KroneckerDeltaUtility.hpp>
 #include <mrock/symbolic_operators/detail/container_helper.hpp>
 #include <sstream>
+#include <stdexcept>
 
 namespace mrock::symbolic_operators {
 	Term::Term(IntFractional _multiplicity, std::vector<Coefficient> _coefficients, const SumContainer& _sums, const std::vector<Operator>& _operators)
@@ -278,6 +279,14 @@ namespace mrock::symbolic_operators {
 				}
 			}
 		}
+		for (auto& delta : delta_indizes) {
+			if (delta.first == what) {
+				delta.first = to;
+			}
+			if (delta.second == what) {
+				delta.second = to;
+			}
+		}
 	}
 
 	void Term::rename_momenta(const MomentumSymbol::name_type what, const MomentumSymbol::name_type to) {
@@ -297,6 +306,14 @@ namespace mrock::symbolic_operators {
 		}
 		for (auto& op : operators) {
 			op.momentum.replace_occurances(what, Momentum(to));
+		}
+		for (auto& delta : delta_momenta) {
+			if (delta.first.uses(what)) {
+				delta.first.replace_occurances(what, Momentum(to));
+			}
+			if (delta.second.uses(what)) {
+				delta.second.replace_occurances(what, Momentum(to));
+			}
 		}
 	}
 
@@ -486,6 +503,83 @@ namespace mrock::symbolic_operators {
 			os << "\n";
 		}
 		return os;
+	}
+
+	Term& Term::operator*=(const Term& rhs)
+	{
+		unsigned char c = 0;
+		for(const auto& sum_momentum : sums.momenta) {
+			if (rhs.sums.momenta.is_summed_over(sum_momentum)) {
+				while(rhs.sums.momenta.is_summed_over(name_list[c]) || this->sums.momenta.is_summed_over(name_list[c])) {
+					++c;
+					if (c >= N_BUFFER) {
+						throw std::runtime_error("The momentum buffer is too short!");
+					}
+				}
+				this->rename_momenta(sum_momentum, name_list[c]);
+			}
+		}
+
+		c = static_cast<unsigned char>(Index::Sigma);
+		for (const auto& sum_index : sums.spins) {
+			if (rhs.sums.spins.is_summed_over(sum_index)) {
+				while(rhs.sums.spins.is_summed_over(static_cast<Index>(c)) || this->sums.spins.is_summed_over(static_cast<Index>(c))) {
+					++c;
+					if (c >= static_cast<unsigned char>(Index::TypeA)) {
+						throw std::runtime_error("The index buffer is too short!");
+					}
+				}
+				this->rename_indizes(sum_index, static_cast<Index>(c));
+			}
+		}
+		this->sums.append(rhs.sums);
+
+		this->multiplicity *= rhs.multiplicity;
+		append_vector(this->coefficients, rhs.coefficients);
+		append_vector(this->delta_momenta, rhs.delta_momenta);
+		append_vector(this->delta_indizes, rhs.delta_indizes);
+		append_vector(this->operators, rhs.operators);
+
+		return *this;
+	}
+
+	std::vector<Term> operator-(std::vector<Term> terms) {
+		for (auto& term : terms) {
+			term.multiplicity *= -1;
+		}
+		return terms;
+	}
+
+	std::vector<Term>& operator+=(std::vector<Term>& lhs, const std::vector<Term>& rhs)
+	{
+		append_vector(lhs, rhs);
+		return lhs;
+	}
+
+	std::vector<Term>& operator-=(std::vector<Term>& lhs, const std::vector<Term>& rhs)
+	{
+		// we effectively compute -(-lhs + rhs)
+		// Doing so forgoes creating the temporary of -rhs
+		for (auto& term : lhs) {
+			term.multiplicity *= -1;
+		}
+		append_vector(lhs, rhs);
+		for (auto& term : lhs) {
+			term.multiplicity *= -1;
+		}
+		return lhs;
+	}
+
+	std::vector<Term>& operator*=(std::vector<Term>& lhs, const std::vector<Term>& rhs)
+	{
+		const size_t n = lhs.size();
+		duplicate_n_inplace(lhs, rhs.size());
+		for (size_t l = 0U; l < n; ++l) {
+			for (size_t r = 0U; r < rhs.size(); ++r) {
+				lhs[l + r * n] *= rhs[r];
+			}
+		}
+		return lhs;
 	}
 
 	void clean_up(std::vector<Term>& terms)

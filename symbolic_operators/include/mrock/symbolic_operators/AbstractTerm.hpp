@@ -166,7 +166,6 @@ namespace mrock::symbolic_operators {
 		void remove_momentum_contribution(const MomentumSymbol::name_type value);
     };
 
-
     // Implementations
     template<class tOperatorType>
     bool AbstractTerm<tOperatorType>::resolve_momentum_deltas() 
@@ -445,6 +444,4 @@ namespace mrock::symbolic_operators {
 	    }
 	    std::erase_if(sums.momenta.summations, [&](const MomentumSymbol::name_type sum_idx) { return sum_idx == value; });
 	}
-
-
 } // namespace mrock::symbolic_operators
