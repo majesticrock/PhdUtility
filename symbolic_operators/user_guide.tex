@@ -1,0 +1,488 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[top=2cm, bottom=2cm, right=2cm, left=2cm]{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{hyperref}
+
+\xdefinecolor{tugreen}{RGB}{132, 184, 25} % #84b819
+\xdefinecolor{codegray}{rgb}{0.5,0.5,0.5}
+\xdefinecolor{codepurple}{rgb}{0.58,0,0.82}
+\xdefinecolor{backcolor}{rgb}{0.95,0.95,0.92}
+\xdefinecolor{classcolor}{HTML}{CC8F00}
+
+\newcommand{\tokencode}[1]{%
+  \texttt{#1}%
+}
+\newcommand{\code}[1]{%
+  \texttt{\detokenize{#1}}%
+}
+\newcommand{\classlink}[1]{%
+  \hyperref[class:#1]{\textcolor{classcolor}{\detokenize{#1}}}%
+}
+\newcommand{\class}[1]{%
+  \hyperref[class:#1]{\textcolor{classcolor}{\code{#1}}}%
+}
+
+\lstdefinestyle{mystyle}{
+  backgroundcolor=\color{backcolor},   
+  commentstyle=\color{tugreen},
+  keywordstyle=\color{magenta},
+  numberstyle=\tiny\color{codegray},
+  stringstyle=\color{codepurple},
+  basicstyle=\ttfamily\footnotesize,
+  breakatwhitespace=false,   
+  breaklines=true,     
+  captionpos=b,      
+  keepspaces=true,     
+  numbers=left,      
+  numbersep=5pt,      
+  showspaces=false,    
+  showstringspaces=false,
+  showtabs=false,      
+  tabsize=2
+}
+\lstset{
+    style=mystyle,
+    language=C++,
+    emph={
+      AbstractTerm,
+      Coefficient,
+      Fractional,
+      Index,
+      IndexWrapper,
+      KroneckerDelta,
+      Momentum,
+      MomentumList,
+      MomentumSymbol,
+      Operator,
+      OperatorType,
+      SumContainer,
+      SymbolicSum,
+      Term,
+      TermLoader,
+      WickOperator,
+      WickOperatorTemplate,
+      WickSymmetry,
+      SpinSymmetry,
+      InversionSymmetry,
+      PhaseSymmetry,
+      WickTerm,
+      WickTermCollector,
+      bad_term_exception
+    },
+    emphstyle=\color{classcolor},
+}
+
+\title{Symbolic Operators --- User Guide}
+\author{Joshua Althüser}
+\date{2026}
+
+
+
+
+\begin{document}
+\maketitle
+
+\section{Overview}
+
+The \code{symbolic_operators} library serves as a lightweight utility for commuting the canonical creation and annihilation operators.
+The library supports both fermionic and bosonic types of operators.
+Additionally, if a higher-order expression, such as $c_1^\dagger c_2^\dagger c_3 c_4$, is given, the program can reduce its expectation value to products of bilinear expressions using Wick's theorem.
+
+To keep this document short, we do not list or explain all functions here; instead, we only discuss the most important attributes and functions.
+Please view the source files themselves.
+
+
+\section{Overview of the classes}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{AbstractTerm}
+\label{class:AbstractTerm}
+\class{AbstractTerm} is a class template with the template parameter \code{tOperatorType}.
+The class template serves as a parent of the \class{Term} and \class{WickTerm} classes; both inherit publicly from it.
+\class{AbstractTerm} is not intended to be used directly.
+Instead, it contains the attributes and functionality used by both classes.
+The attributes are
+\begin{itemize}
+  \item The multiplicity of the term, represented by \tokencode{\classlink{IntFractional} multiplicity}
+  \item The list of coefficients, stored in \tokencode{std::vector<\classlink{Coefficient}> coefficients}
+  \item The summation structure, stored in \tokencode{\classlink{SumContainer} sums}
+  \item The Kronecker deltas for momenta, stored in \tokencode{std::vector<\classlink{KroneckerDelta}<\classlink{Momentum}>{}> \detokenize{delta_momenta}}
+  \item The Kronecker deltas for indices, stored in \tokencode{std::vector<\classlink{KroneckerDelta}<\classlink{Index}>{}> \detokenize{delta_indizes}}
+  \item The operators contained in the term are stored in \tokencode{std::vector<tOperatorType> operators}; if this vector is empty, the term is treated as the identity operator
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Coefficient}
+\label{class:Coefficient}
+
+\class{Coefficient} represents one symbolic coefficient that can appear in a term.
+It stores the coefficient name, the associated momenta and indices, and a set of symmetry flags indicating whether the coefficient is inversion-symmetric, real, or subject to additional custom symmetries.
+This class is used for hopping amplitudes, interactions, and similar objects that enter the symbolic expressions.
+The attributes are
+\begin{itemize}
+  \item The coefficient name, stored in \code{name}
+  \item The list of momenta, stored in \code{\classlink{MomentumList} momenta}
+  \item The index wrapper, stored in \code{\classlink{IndexWrapper} indizes}
+  \item An optional custom symmetry callback, stored in \code{custom_symmetry}
+  \item Symmetry flags such as \code{inversion_symmetry}, \code{is_symmetrized_interaction}, \code{Q_changes_sign}, \code{is_real}, and \code{is_daggered}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Fractional}
+\label{class:Fractional}
+\label{class:IntFractional}
+
+\class{Fractional} is a small template for representing rational numbers with an integer numerator and denominator.
+It supports arithmetic and comparisons, conversion to built-in numeric types, and reduction to lowest terms.
+In this library, it is mainly used for multiplicities and other bookkeeping quantities.
+The attributes are
+\begin{itemize}
+  \item The numerator, stored in \code{numerator}
+  \item The denominator, stored in \code{denominator}
+\end{itemize}
+\class{IntFractional} is a template specialization for \code{int}, i.e.,
+\begin{lstlisting}
+  typedef Fractional<int> IntFractional;
+\end{lstlisting}
+Integers can be implicitly converted to objects of this class.
+That is, all of the following examples are valid
+\begin{lstlisting}
+  Term t1(1); // implicitly convert int to IntFractional
+  Term t2(IntFractional(1)); // use the typedef
+  Term t3(Fractional<int>(1)); // directly use the class template
+  Term t4(IntFractional(1,2)); // represents 1/2
+\end{lstlisting}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Index}
+\label{class:Index}
+
+\class{Index} is an enum class that represents the symbolic labels used for spin, orbital, or other internal indices.
+It includes predefined values such as spin-up and spin-down states, as well as general-purpose labels for use in symbolic expressions.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{IndexWrapper}
+\label{class:IndexWrapper}
+
+\class{IndexWrapper} wraps a collection of \code{Index} values and is used to describe the internal indices of an operator or a coefficient.
+In addition to storing the indices, it provides convenience constructors and comparison operators, making it easy to pass around spin or orbital labels.
+The attributes are
+\begin{itemize}
+  \item The wrapped list of indices, stored in \code{indizes}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{KroneckerDelta}
+\label{class:KroneckerDelta}
+
+\class{KroneckerDelta} is a lightweight template that represents a Kronecker delta between two objects of the same type.
+It is used throughout the library for enforcing momentum and index constraints, and the helper function \code{make_delta} provides a convenient way to construct such objects.
+The attributes are
+\begin{itemize}
+  \item The first entry of the delta, stored in \code{first}
+  \item The second entry of the delta, stored in \code{second}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Momentum}
+\label{class:Momentum}
+
+\class{Momentum} represents a symbolic momentum expression as a collection of \class{MomentumSymbol} objects.
+It supports addition and subtraction-like algebra, the optional inclusion of the special momentum $Q$, and helper functions for sorting, flipping, and removing contributions.
+Strings such as \code{\"3k+l-p\"} can also be parsed into a momentum object. The attributes are
+\begin{itemize}
+  \item The list of momentum symbols, stored in \code{momentum_list}
+  \item The flag indicating whether the special momentum $Q$ is present, stored in \code{add_Q}
+\end{itemize}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{MomentumList}
+\label{class:MomentumList}
+
+\class{MomentumList} is a thin wrapper around a vector of \class{Momentum} objects.
+It is mainly used for coefficients that depend on several momenta, such as interaction vertices, and provides convenience methods for applying global operations to all entries.
+The attributes are
+\begin{itemize}
+  \item The stored list of momenta, stored in \code{momenta}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{MomentumSymbol}
+\label{class:MomentumSymbol}
+
+\class{MomentumSymbol} stores one symbolic momentum contribution together with its integer prefactor and name.
+This is the most basic building block of the library's momentum algebra.
+The attributes are
+\begin{itemize}
+  \item The integer prefactor, stored in \code{factor}
+  \item The momentum name, stored in \code{name}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Operator}
+\label{class:Operator}
+
+\class{Operator} represents a single fermionic or bosonic creation or annihilation operator.
+It stores the momentum, the relevant indices, whether it is daggered, and whether it is a fermion or a boson.
+The class, therefore, forms the basic unit that is later combined into larger terms.
+The attributes are
+\begin{itemize}
+  \item The momentum of the operator, stored in \code{momentum}
+  \item The associated indices, stored in \code{indizes}
+  \item The dagger flag (whether or not the operator is a Hermitian conjugate), stored in \code{is_daggered}
+  \item The fermion flag, stored in \code{is_fermion}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{OperatorType}
+\label{class:OperatorType}
+
+\class{OperatorType} is an enum class that labels the different kinds of Wick operators that can appear after applying Wick's theorem.
+It is used to distinguish number-like operators, pair operators, and other types of symbolic contractions.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{SumContainer}
+\label{class:SumContainer}
+
+\class{SumContainer} collects the symbolic sums appearing in a term.
+It stores sums over momenta and over spins separately and provides methods to append additional sums or to check whether a momentum or spin sum is present.
+The attributes are
+\begin{itemize}
+  \item The momentum sums, stored in \code{momenta}
+  \item The spin sums, stored in \code{spins}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{SymbolicSum}
+\label{class:SymbolicSum}
+
+\class{SymbolicSum} is a generic helper class for storing one or more symbolic summation indices.
+It is templated on the index type and can be used for both momentum sums and spin sums.
+Its main purpose is to track which indices are being summed over and to make such information available in a compact form.
+The attributes are
+\begin{itemize}
+  \item The list of summed indices, stored in \code{summations}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Term}
+\label{class:Term}
+
+This class inherits publicly from \class{AbstractTerm} and specifies the template as \class{Operator}.
+\class{Term} is used to represent a string of creation and annihilation operators.
+Fermionic and bosonic operators may be mixed.
+It does not define any new attributes beyond the inherited members of \class{AbstractTerm}; the user-facing data is therefore the same multiplicity, coefficient, sum, delta, and operator storage inherited from the base class.
+However, it defines a set of new functions and constructors.
+
+This class is the heart of the library's outward-facing part.
+Almost anything a user might want to do will involve creating \class{Term} objects.
+Therefore, there are many ways to initialize such an object.
+See the source file for a list of them.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{TermLoader}
+\label{class:TermLoader}
+
+\class{TermLoader} is a small utility class for loading precomputed \class{WickTerm} objects from disk.
+It stores vectors of \class{WickTermCollector} objects for the matrices $M$ and $N$ appearing in the iterated equations of motion method\footnote{J. Althüser and G. S. Uhrig, Phys. Rev. B \textbf{109}, 205153 (2024), https://doi.org/10.1103/PhysRevB.109.205153 }.
+This class should make it convenient to load and manage larger sets of symbolic terms.
+The attributes are
+\begin{itemize}
+  \item The loaded \class{WickTerm} objects for the matrix $M$, stored in \code{M}
+  \item The loaded \class{WickTerm} objects for the matrix $N$, stored in \code{N}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{WickOperator}
+\label{class:WickOperator}
+
+\class{WickOperator} represents an operator that appears in a Wick contraction.
+It stores the operator type, Hermitian conjugate (``dagger'') status, momentum, and indices, and can be converted back to ordinary \class{Operator} objects when needed.
+This class is used internally when applying Wick's theorem to higher-order expressions.
+The attributes are
+\begin{itemize}
+  \item The operator type, stored in \code{type}
+  \item The dagger flag (whether or not the operator is a Hermitian conjugate), stored in \code{is_daggered}
+  \item The momentum of the operator, stored in \code{momentum}
+  \item The associated indices, stored in \code{indizes}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{WickOperatorTemplate}
+\label{class:WickOperatorTemplate}
+
+\class{WickOperatorTemplate} provides the logic for deciding whether a given pair of ordinary operators can be interpreted as a specific Wick contraction.
+It stores index comparison rules and the expected momentum difference, and it returns a template result describing the allowed operator structure.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{WickSymmetry}
+\label{class:WickSymmetry}
+
+\class{WickSymmetry} is an abstract base class for symmetry operations that can be applied to \class{WickTerm} objects after contraction.
+The library already provides concrete implementations such as \class{SpinSymmetry}, \class{InversionSymmetry}, and \class{PhaseSymmetry}, which simplify expressions by exploiting symmetry relations.
+
+\subsubsection{SpinSymmetry}
+\label{class:SpinSymmetry}
+\class{SpinSymmetry} changes all spins in a \class{WickTerm} object to \code{Index::SpinUp} ($\uparrow$), effectively enforcing spin symmetry and simplifying expressions that do not depend on the spin orientation.
+
+\subsubsection{InversionSymmetry}
+\label{class:InversionSymmetry}
+\class{InversionSymmetry} flips momenta so that the first momentum in a term is always treated in a canonical orientation, which helps identify equivalent terms under inversion.
+
+\subsubsection{PhaseSymmetry}
+\label{class:PhaseSymmetry}
+\class{PhaseSymmetry} removes the dagger from operators of selected \class{OperatorType} values, making the corresponding expectation values real or phase-symmetric.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{WickTerm}
+\label{class:WickTerm}
+
+This class inherits publicly from \class{AbstractTerm} and specifies the template as \class{WickOperator}.
+\class{Term} is used to represent a string of expectation values, represented via \class{WickOperator} objects.
+The main additional attribute is \code{temporary_operators}, which is used internally to transform a string of \class{Operator} objects into \class{WickOperator} objects.
+Objects of this class are usually not created by the user directly, but obtained as a result of the \code{wicks_theorem} function.
+The attributes are
+\begin{itemize}
+  \item The inherited term data from \class{AbstractTerm}
+  \item The temporary operator list, stored in \code{temporary_operators}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{WickTermCollector}
+\label{class:WickTermCollector}
+
+\class{WickTermCollector} is a simple container for collecting many \class{WickTerm} objects.
+It supports the usual arithmetic-style accumulation operations and is therefore convenient when building up a larger set of Wick-expanded terms from many individual contributions.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\detokenize{bad_term_exception}}
+\label{class:bad_term_exception}
+
+\class{bad_term_exception} is an exception type used to report invalid or inconsistent \class{WickTerm} objects.
+It stores the offending term and can therefore be used to provide detailed diagnostics when a contraction cannot be processed.
+
+
+
+
+\section{Example workflow}
+
+The file \code{bcs.cpp} demonstrates a complete workflow for using the library in a realistic setting.
+It builds a simple BCS-like Hamiltonian, applies Wick's theorem to the resulting operator strings, and then evaluates the resulting expressions numerically.
+The example is intentionally compact, but it exercises most of the library's important building blocks.
+
+The workflow can be summarized as follows.
+
+\begin{enumerate}
+  \item Define symbolic operator strings with \class{Term}.
+    \class{Term} is used to encode the symbolic structure of the Hamiltonian.
+    The first term represents a bilinear hopping contribution, and the second one encodes the pairing interaction with a coefficient \code{g(q,p)}.
+    The sums over momenta and spin are stored in \class{SumContainer}, while the actual operator sequence is stored in the term's operator vector.
+    \begin{lstlisting}
+const Term H_Kin(1,
+    Coefficient("\\epsilon", Momentum('q')),
+    SumContainer{ MomentumSum({ 'q' }), Index::Sigma },
+    std::vector<Operator>({
+        Operator('q', 1, false, Index::Sigma, true),
+        Operator('q', 1, false, Index::Sigma, false)
+    }));
+
+const Term H_Ph(-1,
+    Coefficient::RealInversionSymmetric("g",
+        MomentumList({ 'q', 'p' }),
+        std::function<void(Coefficient&)>([](Coefficient& coeff) {
+            coeff.momenta.sort();
+        })),
+    SumContainer{ MomentumSum({ 'p', 'q' }) },
+    std::vector<Operator>({
+        c_k_dagger.with_momentum('q'),
+        c_minus_k_dagger.with_momentum('q'),
+        c_minus_k.with_momentum('p'),
+        c_k.with_momentum('p')
+    }));
+    \end{lstlisting}
+
+  \item Define the contraction patterns that Wick's theorem should recognize.
+    The example uses two templates: one for number operators of the form $c_{k\sigma}^{\dagger} c_{k\sigma}$ 
+    \begin{lstlisting}
+    WickOperatorTemplate{
+        {IndexComparison{true}},
+        Momentum(),
+        OperatorType::Number
+    }
+    \end{lstlisting}
+    and one for pair operators of the form $c_{q\uparrow}^{\dagger} c_{-q\downarrow}^{\dagger}$ and $c_{-q\downarrow} c_{q\uparrow}$.
+    \begin{lstlisting}
+    WickOperatorTemplate{
+        {IndexComparison{false, Index::SpinUp, Index::SpinDown}},
+        Momentum(),
+        OperatorType::SC
+    }
+    \end{lstlisting}
+    These templates are passed to \code{wicks_theorem}.
+
+\item Evaluate the desired expression (e.g., a commutator), and clean up the result
+\begin{lstlisting}
+std::vector<Term> commutator_result = commutator(H, right);
+clean_up(commutator_result);
+
+std::vector<Term> eight_T = std::vector<Term>{H_Ph * H_Ph};
+normal_order(eight_T);
+clean_up(eight_T);
+\end{lstlisting}
+    Note that \code{commutator} returns a normal ordered result, but using the operator overload \code{operator*} does not.
+    Hence, \code{normal_order} must be called in the second example.
+
+  \item Transform the resulting expression into \class{WickTerm} objects via
+\begin{lstlisting}
+WickTermCollector commutator_wicks;
+wicks_theorem(commutator_result, templates, commutator_wicks);
+clean_wicks(wicks);
+\end{lstlisting}
+    The result is typically messy, and should be cleaned up by calling \code{clean_wicks}.
+    However, the function can do more, if symmetries are known.
+    Those can be applied via the child classes of \class{WickSymmetry}.
+    Our example adds spin symmetry (expectation values are independent of spin), inversion symmetry (expectation values at $-k$ are the same as at $k$), and a phase symmetry for the superconducting pair channel (the expectation values of the pair-creation and annihilation operators are real).
+    This reduces the set of equivalent terms and makes the symbolic output more compact.
+    \begin{lstlisting}
+std::vector<std::unique_ptr<WickSymmetry>> symmetries;
+symmetries.push_back(std::make_unique<SpinSymmetry>());
+symmetries.push_back(std::make_unique<InversionSymmetry>());
+symmetries.push_back(std::make_unique<PhaseSymmetry<OperatorType::SC>>());
+    \end{lstlisting}
+    After the definitions above, we can instead use
+    \begin{lstlisting}
+WickTermCollector wicks;
+wicks_theorem(H, templates, wicks);
+clean_wicks(wicks, symmetries);
+    \end{lstlisting}
+
+  \item Evaluate the resulting expressions numerically.
+    After the Wick expansion is computed, the example converts the symbolic result into numerical values by assigning momentum values to the summation variables and evaluating the coefficients and contraction operators.
+    Doing so can be done in multiple ways.
+    One example is shown below.
+    Note that this example is kept rather general.
+    If the specifics of the problem are known, one can often heavily abuse them to reduce computational costs.
+    \begin{lstlisting}
+double evaluate_momentum(const Momentum& expression, const std::map<...>& momentum_map) {
+    double value{};
+    for (const MomentumSymbol& momentum : expression) {
+        value += momentum.factor * momentum_map.at(momentum.name);
+    }
+    if (expression.add_Q) {
+        value += std::numbers::pi;
+    }
+    return value;
+}
+
+double evaluate_coefficients(...){ ... }
+double evaluate_wick_operators(...){ ... }
+    \end{lstlisting}
+\end{enumerate}
+
+
+\end{document}
