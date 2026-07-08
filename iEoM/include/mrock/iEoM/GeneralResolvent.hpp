@@ -6,6 +6,7 @@
 #include "detail/internal_functions.hpp"
 #include "detail/PivotToBlockStructure.hpp"
 #include "detail/is_complex.hpp"
+#include "detail/constexpr_power.hpp"
 
 #include "Resolvent.hpp"
 
@@ -116,10 +117,10 @@ namespace mrock::iEoM {
 			create_starting_states();
 
 			if constexpr (CheckHermitian > 0) {
-				if ((M - M.adjoint()).norm() > constexprPower<-CheckHermitian, RealType, RealType>(10.)) {
+				if ((M - M.adjoint()).norm() > detail::constexpr_power<-CheckHermitian, RealType, RealType>(10.)) {
 					throw std::runtime_error("M is not Hermitian!");
 				}
-				if ((N - N.adjoint()).norm() > constexprPower<-CheckHermitian, RealType, RealType>(10.)) {
+				if ((N - N.adjoint()).norm() > detail::constexpr_power<-CheckHermitian, RealType, RealType>(10.)) {
 					throw std::runtime_error("N is not Hermitian!");
 				}
 			}

@@ -7,6 +7,7 @@
 #include "detail/internal_functions.hpp"
 #include "detail/xp_internal.hpp"
 #include "detail/PivotToBlockStructure.hpp"
+#include "detail/constexpr_power.hpp"
 #include "XPStartingState.hpp"
 #include "Resolvent.hpp"
 
@@ -195,10 +196,11 @@ namespace mrock::iEoM {
 			create_starting_states();
 
 			if constexpr (CheckHermitian > 0) {
-				if ((K_plus - K_plus.adjoint()).norm() > constexprPower<-CheckHermitian, RealType, RealType>(10.)) {
+				std::cout << detail::constexpr_power<-CheckHermitian, RealType, RealType>(10.) << std::endl;
+				if ((K_plus - K_plus.adjoint()).norm() > detail::constexpr_power<-CheckHermitian, RealType, RealType>(10.)) {
 					throw std::runtime_error("K_plus is not Hermitian!");
 				}
-				if ((K_minus - K_minus.adjoint()).norm() > constexprPower<-CheckHermitian, RealType, RealType>(10.)) {
+				if ((K_minus - K_minus.adjoint()).norm() > detail::constexpr_power<-CheckHermitian, RealType, RealType>(10.)) {
 					throw std::runtime_error("K_minus is not Hermitian!");
 				}
 			}

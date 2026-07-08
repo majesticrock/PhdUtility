@@ -1,7 +1,8 @@
 #pragma once
 #include <Eigen/Dense>
 #include <string>
-#include <algorithm>
+#include <numeric>
+#include <utility>
 
 namespace mrock::iEoM {
 	/**

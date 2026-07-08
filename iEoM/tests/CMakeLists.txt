@@ -22,11 +22,17 @@ find_package(OpenMP REQUIRED)
 
 add_executable(block_matrix_test block_matrix.cpp)
 SET_COMPILER_FLAGS(block_matrix_test)
-
+target_include_directories(block_matrix_test PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../iEoM/include)
 target_link_libraries(block_matrix_test PRIVATE OpenMP::OpenMP_CXX)
+
+add_executable(ieom_bcs_test ieom_bcs.cpp)
+SET_COMPILER_FLAGS(ieom_bcs_test)
+target_include_directories(ieom_bcs_test PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../iEoM/include)
+target_link_libraries(ieom_bcs_test PRIVATE OpenMP::OpenMP_CXX)
 
 # Enable CTest
 enable_testing()
 
 # Add a test
 add_test(NAME block_matrix_test COMMAND block_matrix_test)
+add_test(NAME ieom_bcs_test COMMAND ieom_bcs_test)
