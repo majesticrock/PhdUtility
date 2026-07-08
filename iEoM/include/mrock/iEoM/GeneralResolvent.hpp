@@ -49,10 +49,13 @@ namespace mrock::iEoM {
 		virtual ~GeneralResolvent() = default;
 
 		/**
-		 * @brief Check whether the dynamic matrix contains negative eigenvalues.
+		 * @brief Checks whether the assembled dynamic matrix contains negative eigenvalues,
+		 * or its diagonal contains negative numbers.
+		 * These must be >= 0 in thermal equilibrium. Thus, if this function returns true,
+		 * one can deduce that the system under study is not in thermal equilibrium.
+		 * Note that the converse is not true.
 		 *
-		 * @return true if the matrix M contains negative diagonal entries
-		 *         or is not non-negative after noise removal.
+		 * @return true when M contains negative eigenvalues.
 		 */
 		bool dynamic_matrix_is_negative() {
 			_derived->fill_M();
@@ -66,7 +69,6 @@ namespace mrock::iEoM {
 					return true;
 				}
 			}
-			M = this->_internal.remove_noise(M);
 			if (! detail::matrix_wrapper<Matrix>::is_non_negative(M, this->_internal._sqrt_precision)) {
 				return true;
 			}
@@ -94,9 +96,6 @@ namespace mrock::iEoM {
 
 			_derived->fillMatrices();
 			_derived->createStartingStates();
-
-			M = this->_internal.remove_noise(M);
-			N = this->_internal.remove_noise(N);
 
 			if constexpr (CheckHermitian > 0) {
 				if ((M - M.adjoint()).norm() > constexprPower<-CheckHermitian, RealType, RealType>(10.)) {

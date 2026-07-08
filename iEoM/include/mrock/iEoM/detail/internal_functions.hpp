@@ -66,19 +66,6 @@ namespace detail {
 		constexpr iEoM_internal(RealType const& sqrt_precision, bool negative_matrix_is_error)
 			: _sqrt_precision(sqrt_precision), _precision(sqrt_precision* sqrt_precision), _negative_matrix_is_error(negative_matrix_is_error) {};
 
-		template <class EigenMatrixType>
-		inline auto remove_noise(EigenMatrixType const& matrix) const {
-			return matrix.unaryExpr([this](typename EigenMatrixType::Scalar const& val) {
-				return (abs(val) < this->_precision ? typename EigenMatrixType::Scalar{} : val);
-				});
-		};
-		template <class EigenMatrixType>
-		inline void remove_noise_inplace(EigenMatrixType& matrix) const {
-			for (auto& el : matrix.reshaped()) {
-				if (abs(el) < this->_precision) el = typename EigenMatrixType::Scalar{};
-			}
-		};
-
 		/**
 		 * @brief Check whether the vector contains negative eigenvalues.
 		 *

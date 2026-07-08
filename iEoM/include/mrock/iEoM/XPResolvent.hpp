@@ -70,23 +70,54 @@ namespace mrock::iEoM {
 		std::chrono::time_point<std::chrono::steady_clock> begin;
 		std::chrono::time_point<std::chrono::steady_clock> end;
 
+		/**
+		 * @brief Start or restart the internal profiling timer.
+		 *
+		 * Records the current steady-clock time into the internal `begin` member.
+		 * This is used in conjunction with `print_duration()` to measure elapsed
+		 * time for sections of the algorithm for lightweight profiling.
+		 */
 		void set_begin() {
 			begin = std::chrono::steady_clock::now();
 		}
+		
+		/**
+		 * @brief Print elapsed time since last call to `set_begin()`.
+		 *
+		 * @param message A C-string prefix printed before the elapsed time (in milliseconds).
+		 * @param reset If true, restarts the timer after printing (default: true).
+		 *
+		 * This helper is used for lightweight profiling and debugging. Time is measured
+		 * using `std::chrono::steady_clock` and printed to `std::cout` in milliseconds.
+		 */
 		void print_duration(const char* message, bool reset=true) {
 			end = std::chrono::steady_clock::now();
 			std::cout << message << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << std::endl;
 			if (reset) set_begin();
 		}
 
+		/**
+		 * @brief Diagonalize the K_plus and K_minus dynamic matrices.
+		 *
+		 * This function delegates to the derived class to fill the matrix blocks and
+		 * to create starting states, optionally performs a Hermiticity check (when
+		 * `CheckHermitian>0`), and then computes eigen-decompositions of both
+		 * `K_plus` and `K_minus`. Eigen-solves are executed in parallel where
+		 * permitted. After decomposition the on-device `K_plus` and `K_minus` storage
+		 * is released (resized to 0).
+		 *
+		 * @tparam CheckHermitian If positive, enable an additional Hermiticity
+		 *                        verification using a precision threshold of
+		 *                        10^-CheckHermitian.
+		 * @return An array with two `detail::matrix_wrapper<Matrix>` entries holding
+		 *         the eigenvalues and eigenvectors for `K_plus` (index 0) and
+		 *         `K_minus` (index 1) respectively.
+		 */
 		template<int CheckHermitian = -1>
 		std::array<detail::matrix_wrapper<Matrix>, 2> diagonalize_K_matrices() {
 			set_begin();
 			_derived->fillMatrices();
 			_derived->createStartingStates();
-
-			//K_minus = this->_internal.remove_noise(K_minus);
-			//K_plus = this->_internal.remove_noise(K_plus);
 
 			if constexpr (CheckHermitian > 0) {
 				if ((K_plus - K_plus.adjoint()).norm() > constexprPower<-CheckHermitian, RealType, RealType>(10.)) {
@@ -439,18 +470,49 @@ namespace mrock::iEoM {
 			return L.coeffRef(row, col - _hermitian_size);
 		}
 
+		/**
+		 * @brief Construct an XPResolvent with a derived implementation pointer.
+		 *
+		 * @param derived_ptr Pointer to the CRTP-derived class used to fill matrices
+		 *                    and create starting states.
+		 * @param sqrt_precision Square-root precision threshold for internal checks.
+		 * @param pivot Enable matrix pivoting during solves (default: true).
+		 * @param negative_matrix_is_error If true, negative diagonal entries are treated as errors.
+		 */
 		XPResolvent(Derived* derived_ptr, RealType const& sqrt_precision, bool pivot = true, bool negative_matrix_is_error = true)
 			: _internal(sqrt_precision, negative_matrix_is_error), _derived(derived_ptr), _pivot(pivot) { };
 
+		/**
+		 * @brief Construct an XPResolvent with explicit block sizes.
+		 *
+		 * This constructor allows directly specifying the sizes of the Hermitian and
+		 * anti-Hermitian blocks when those are known ahead of time.
+		 *
+		 * @param derived_ptr Pointer to the CRTP-derived class used to fill matrices.
+		 * @param sqrt_precision Square-root precision threshold for internal checks.
+		 * @param hermitian_size Number of rows/cols in the Hermitian block.
+		 * @param antihermitian_size Number of rows/cols in the anti-Hermitian block.
+		 * @param pivot Enable matrix pivoting during solves (default: true).
+		 * @param negative_matrix_is_error If true, negative diagonal entries are treated as errors.
+		 */
 		XPResolvent(Derived* derived_ptr, RealType const& sqrt_precision, int hermitian_size, int antihermitian_size,
 			bool pivot = true, bool negative_matrix_is_error = true)
 			: _internal(sqrt_precision, negative_matrix_is_error), _derived(derived_ptr), 
 			_hermitian_size(hermitian_size), _antihermitian_size(antihermitian_size), _pivot(pivot) { };
 
+		/**
+		 * @brief Virtual default destructor.
+		 *
+		 * Allows proper cleanup through base-class pointers in CRTP usage scenarios.
+		 */
 		virtual ~XPResolvent() = default;
 
 		/**
-		 * @brief Checks whether the assembled dynamic matrix contains negative eigenvalues.
+		 * @brief Checks whether the assembled dynamic matrix contains negative eigenvalues,
+		 * or its diagonal contains negative numbers.
+		 * These must be >= 0 in thermal equilibrium. Thus, if this function returns true,
+		 * one can deduce that the system under study is not in thermal equilibrium.
+		 * Note that the converse is not true.
 		 *
 		 * @return true when either K_minus or K_plus contains negative eigenvalues after noise removal.
 		 */
@@ -471,6 +533,19 @@ namespace mrock::iEoM {
 			return false;
 		};
 
+		/**
+		 * @brief Compute collective-mode resolvents using Lanczos iteration.
+		 *
+		 * This routine diagonalizes the K_plus and K_minus blocks (optionally checking
+		 * Hermiticity controlled by the `CheckHermitian` template parameter), assembles
+		 * solver matrices for phase and amplitude channels, then runs Lanczos iterations
+		 * to obtain resolvent data for all configured starting states.
+		 *
+		 * @tparam CheckHermitian If >0, enables runtime Hermiticity checks against precision 10^-CheckHermitian.
+		 * @param n_lanczos_iterations Number of Lanczos iterations used for each resolvent.
+		 * @return A vector of `ResolventReturnData` containing resolvent results for
+		 *         phase followed by amplitude starting states.
+		 */
 		template<int CheckHermitian = -1>
 		std::vector<ResolventReturnData> compute_collective_modes(unsigned int n_lanczos_iterations)
 		{
@@ -516,6 +591,19 @@ namespace mrock::iEoM {
 			return ret;
 		};
 
+		/**
+		 * @brief Compute resolvents and collect residual eigenvector information.
+		 *
+		 * Similar to `compute_collective_modes()` but, instead of returning only the
+		 * resolvent summaries, this version also computes Lanczos residuals and returns
+		 * detailed residual eigenvector data for post-analysis.
+		 *
+		 * @tparam CheckHermitian If >0, enables runtime Hermiticity checks against precision 10^-CheckHermitian.
+		 * @param n_lanczos_iterations Number of Lanczos iterations used for each resolvent.
+		 * @return A pair where the first element is a vector of `ResolventReturnData`
+		 *         and the second element is a `std::list` of `ResidualData` entries
+		 *         containing eigenvectors and eigenvalues extracted from Lanczos residuals.
+		 */
 		template<int CheckHermitian = -1>
 		std::pair<std::vector<ResolventReturnData>, std::list<ResidualData>> compute_collective_modes_with_residuals(unsigned int n_lanczos_iterations)
 		{
@@ -571,10 +659,10 @@ namespace mrock::iEoM {
 			return return_data;
 		};
 
-		/*
-		* Performs a full diagonalization of the dynamic matrices.
+		/**
+		* @brief Performs a full diagonalization of the dynamic matrices.
 		* Saves the first <n_residuals> eigenvectors, all eigenvalues and the weights for each starting state.
-		* Returns a pair of FullDiagData objects, the first for the phase states, the second for the amplitude states.
+		* @return A pair of FullDiagData objects, the first for the phase states, the second for the amplitude states.
 		*/
 		template<int CheckHermitian = -1>
 		std::pair<FullDiagData, FullDiagData> full_diagonalization() {
