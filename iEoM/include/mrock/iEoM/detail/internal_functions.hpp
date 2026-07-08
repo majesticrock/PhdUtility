@@ -45,7 +45,7 @@ namespace detail {
 	/**
 	 * @brief Internal numerical helper for matrix eigenvalue filtering and transformation.
 	 *
-	 * Provides precision thresholds, noise removal, negative-value checking, and
+	 * Provides precision thresholds, negative-value checking, and
 	 * eigenvalue operations such as inverse, square root, and inverse square root.
 	 *
 	 * @tparam NumberType Scalar type used by the matrices and vectors.

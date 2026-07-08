@@ -13,7 +13,7 @@
 namespace mrock::iEoM {
 	/**
 	 * @struct XPResolvent
-	 * @brief Computes resolvent and eigenvalue data for Hermitian and anti-Hermitian dynamic matrices.
+	 * @brief Computes resolvent and eigenvalue data for Hermitian and anti-Hermitian dynamical matrices.
 	 * 
 	 * This struct performs eigenvalue decomposition and resolvent calculations on K_plus and K_minus
 	 * matrices, computing collective modes via Lanczos iteration. It supports both standard resolvent
@@ -21,7 +21,6 @@ namespace mrock::iEoM {
 	 * See https://doi.org/10.1103/PhysRevB.109.205153 for the derivation and use of the algorithm.
 	 * 
 	 * @tparam RealType The floating-point type (e.g., double, float)
-	 * @tparam Derived The CRTP-derived class providing matrix filling and starting state creation
 	 * @tparam n_residuals Number of residual eigenvectors to retain in full diagonalization
 	 * @tparam check_qr If true, validates QR decomposition accuracy via error norms
 	 * 
@@ -36,15 +35,20 @@ namespace mrock::iEoM {
 	 * - dynamic_matrix_is_negative(): Checks for negative eigenvalues in diagonal matrices
 	 * 
 	 * Member Variables:
-	 * - K_plus: Hermitian matrix block
-	 * - K_minus: Anti-Hermitian matrix block  
-	 * - L: Coupling matrix between blocks
+	 * - K_plus: Hermitian block of the dynamical matrix
+	 * - K_minus: Anti-Hermitian block of the dynamical matrix
+	 * - L: norm matrix; couples between blocks
 	 * - starting_states: Initial phase and amplitude states for resolvent computation
 	 * - resolvents: Computed resolvent objects
 	 */
-	template<class Derived, class RealType, int n_residuals = 0, bool check_qr = false>
+	template<class RealType, int n_residuals = 0, bool check_qr = false>
 	struct XPResolvent {
 	public:
+		using ResolventReturnData = ResolventDataWrapper<RealType>;
+		using FullDiagData = FullDiagonalizationData<RealType, n_residuals>;
+		using ResidualData = ResidualInformation<RealType, n_residuals>;
+
+	protected:
 		using Matrix = Eigen::Matrix<RealType, Eigen::Dynamic, Eigen::Dynamic>;
 		using Vector = Eigen::Vector<RealType, Eigen::Dynamic>;
 
@@ -58,18 +62,89 @@ namespace mrock::iEoM {
 								Eigen::CompleteOrthogonalDecomposition<Eigen::Ref<Matrix>>,
 								Eigen::CompleteOrthogonalDecomposition<Matrix>>;
 
-		using FullDiagData = FullDiagonalizationData<RealType, n_residuals>;
-		using ResidualData = ResidualInformation<RealType, n_residuals>;
-		using ResolventReturnData = ResolventDataWrapper<RealType>;
-
 		Matrix K_plus, K_minus, L;
 		std::vector<StartingState<RealType>> starting_states;
 		std::vector<Resolvent<Matrix, Vector>> resolvents;
-
+	
 	private:
+		detail::iEoM_internal<RealType> _internal;
+		const int _hermitian_size{};
+		const int _antihermitian_size{};
+		const bool _pivot{};
+
 		std::chrono::time_point<std::chrono::steady_clock> begin;
 		std::chrono::time_point<std::chrono::steady_clock> end;
 
+	protected:
+		// The following virtual functions must be implemented by the user
+		// If one knows that certain functions are not needed, implementing an empty
+		// function suffices.
+		// An example would be: fill_M() is only needed by dynamic_matrix_is_negative()
+		// Thus, if this function is not called, fill_M() is not required either.
+
+		/**
+		 * @brief Must be implemented by the user. Must fill the starting states for the Laczos algorithm
+		 */
+		virtual void create_starting_states() = 0;
+		/**
+		 * @brief Must be implemented by the user. Must fill the matrices K_+, K_-, and L
+		 */
+		virtual void fill_matrices() = 0;
+		/**
+		 * @brief Must be implemented by the user. Must fill the matrices K_+ and K_-
+		 */
+		virtual void fill_M() = 0;
+
+		/**
+		 * @brief Access an element of the dynamical matrix M.
+		 *
+		 * @param row Row index in the combined Hermitian/anti-Hermitian matrix.
+		 * @param col Column index in the combined Hermitian/anti-Hermitian matrix.
+		 * @return Reference to the requested matrix element.
+		 *
+		 * Boundary checking is handled by Eigen unless NBEDUG is defined.
+		 */
+		inline const RealType& M(int row, int col) const {
+			if(row < _hermitian_size)
+				return K_plus.coeffRef(row, col);
+			return K_minus.coeffRef(row - _hermitian_size, col - _hermitian_size);
+		}
+		/**
+		 * @brief Access a mutable element of the dynamical matrix M.
+		 *
+		 * @param row Row index in the combined Hermitian/anti-Hermitian matrix.
+		 * @param col Column index in the combined Hermitian/anti-Hermitian matrix.
+		 * @return Mutable reference to the requested matrix element.
+		 *
+		 * Boundary checking is handled by Eigen unless NBEDUG is defined.
+		 */
+		inline RealType& M(int row, int col) {
+			if(row < _hermitian_size)
+				return K_plus.coeffRef(row, col);
+			return K_minus.coeffRef(row -_hermitian_size, col - _hermitian_size);
+		}
+		/**
+		 * @brief Access an element of the norm matrix N.
+		 *
+		 * @param row Row index in the norm matrix.
+		 * @param col Column index adjusted for the Hermitian block offset.
+		 * @return Reference to the requested norm matrix element.
+		 */
+		inline const RealType& N(int row, int col) const {
+			return L.coeffRef(row, col - _hermitian_size);
+		}
+		/**
+		 * @brief Access a mutable element of the norm matrix N.
+		 *
+		 * @param row Row index in the norm matrix.
+		 * @param col Column index adjusted for the Hermitian block offset.
+		 * @return Mutable reference to the requested norm matrix element.
+		 */
+		inline RealType& N(int row, int col) {
+			return L.coeffRef(row, col - _hermitian_size);
+		}
+
+	private:
 		/**
 		 * @brief Start or restart the internal profiling timer.
 		 *
@@ -97,7 +172,7 @@ namespace mrock::iEoM {
 		}
 
 		/**
-		 * @brief Diagonalize the K_plus and K_minus dynamic matrices.
+		 * @brief Diagonalize the K_plus and K_minus dynamical matrices.
 		 *
 		 * This function delegates to the derived class to fill the matrix blocks and
 		 * to create starting states, optionally performs a Hermiticity check (when
@@ -116,8 +191,8 @@ namespace mrock::iEoM {
 		template<int CheckHermitian = -1>
 		std::array<detail::matrix_wrapper<Matrix>, 2> diagonalize_K_matrices() {
 			set_begin();
-			_derived->fillMatrices();
-			_derived->createStartingStates();
+			fill_matrices();
+			create_starting_states();
 
 			if constexpr (CheckHermitian > 0) {
 				if ((K_plus - K_plus.adjoint()).norm() > constexprPower<-CheckHermitian, RealType, RealType>(10.)) {
@@ -220,7 +295,6 @@ namespace mrock::iEoM {
 			print_duration("Time for adjusting N_new: ");
 			N_new *= k_solutions[plus_index].eigenvectors;
 			solver_matrix.noalias() = N_new * k_solutions[plus_index].eigenvalues.asDiagonal() * N_new.adjoint();
-			//_internal.remove_noise_inplace(solver_matrix);
 			print_duration("Time for computing solver_matrix: ");
 		}
 
@@ -422,65 +496,14 @@ namespace mrock::iEoM {
         }
 
 		/**
-		 * @brief Access an element of the assembled dynamic matrix M.
+		 * @brief Construct an XPResolvent
 		 *
-		 * @param row Row index in the combined Hermitian/anti-Hermitian matrix.
-		 * @param col Column index in the combined Hermitian/anti-Hermitian matrix.
-		 * @return Reference to the requested matrix element.
-		 *
-		 * Boundary checking is handled by Eigen unless NBEDUG is defined.
-		 */
-		inline const RealType& M(int row, int col) const {
-			if(row < _hermitian_size)
-				return K_plus.coeffRef(row, col);
-			return K_minus.coeffRef(row - _hermitian_size, col - _hermitian_size);
-		}
-		/**
-		 * @brief Access a mutable element of the assembled dynamic matrix M.
-		 *
-		 * @param row Row index in the combined Hermitian/anti-Hermitian matrix.
-		 * @param col Column index in the combined Hermitian/anti-Hermitian matrix.
-		 * @return Mutable reference to the requested matrix element.
-		 *
-		 * Boundary checking is handled by Eigen unless NBEDUG is defined.
-		 */
-		inline RealType& M(int row, int col) {
-			if(row < _hermitian_size)
-				return K_plus.coeffRef(row, col);
-			return K_minus.coeffRef(row -_hermitian_size, col - _hermitian_size);
-		}
-		/**
-		 * @brief Access an element of the coupling matrix N.
-		 *
-		 * @param row Row index in the coupling matrix.
-		 * @param col Column index adjusted for the Hermitian block offset.
-		 * @return Reference to the requested coupling matrix element.
-		 */
-		inline const RealType& N(int row, int col) const {
-			return L.coeffRef(row, col - _hermitian_size);
-		}
-		/**
-		 * @brief Access a mutable element of the coupling matrix N.
-		 *
-		 * @param row Row index in the coupling matrix.
-		 * @param col Column index adjusted for the Hermitian block offset.
-		 * @return Mutable reference to the requested coupling matrix element.
-		 */
-		inline RealType& N(int row, int col) {
-			return L.coeffRef(row, col - _hermitian_size);
-		}
-
-		/**
-		 * @brief Construct an XPResolvent with a derived implementation pointer.
-		 *
-		 * @param derived_ptr Pointer to the CRTP-derived class used to fill matrices
-		 *                    and create starting states.
 		 * @param sqrt_precision Square-root precision threshold for internal checks.
 		 * @param pivot Enable matrix pivoting during solves (default: true).
 		 * @param negative_matrix_is_error If true, negative diagonal entries are treated as errors.
 		 */
-		XPResolvent(Derived* derived_ptr, RealType const& sqrt_precision, bool pivot = true, bool negative_matrix_is_error = true)
-			: _internal(sqrt_precision, negative_matrix_is_error), _derived(derived_ptr), _pivot(pivot) { };
+		XPResolvent(RealType const& sqrt_precision, bool pivot = true, bool negative_matrix_is_error = true)
+			: _internal(sqrt_precision, negative_matrix_is_error), _pivot(pivot) { };
 
 		/**
 		 * @brief Construct an XPResolvent with explicit block sizes.
@@ -488,16 +511,15 @@ namespace mrock::iEoM {
 		 * This constructor allows directly specifying the sizes of the Hermitian and
 		 * anti-Hermitian blocks when those are known ahead of time.
 		 *
-		 * @param derived_ptr Pointer to the CRTP-derived class used to fill matrices.
 		 * @param sqrt_precision Square-root precision threshold for internal checks.
 		 * @param hermitian_size Number of rows/cols in the Hermitian block.
 		 * @param antihermitian_size Number of rows/cols in the anti-Hermitian block.
 		 * @param pivot Enable matrix pivoting during solves (default: true).
 		 * @param negative_matrix_is_error If true, negative diagonal entries are treated as errors.
 		 */
-		XPResolvent(Derived* derived_ptr, RealType const& sqrt_precision, int hermitian_size, int antihermitian_size,
+		XPResolvent(RealType const& sqrt_precision, int hermitian_size, int antihermitian_size,
 			bool pivot = true, bool negative_matrix_is_error = true)
-			: _internal(sqrt_precision, negative_matrix_is_error), _derived(derived_ptr), 
+			: _internal(sqrt_precision, negative_matrix_is_error), 
 			_hermitian_size(hermitian_size), _antihermitian_size(antihermitian_size), _pivot(pivot) { };
 
 		/**
@@ -508,25 +530,23 @@ namespace mrock::iEoM {
 		virtual ~XPResolvent() = default;
 
 		/**
-		 * @brief Checks whether the assembled dynamic matrix contains negative eigenvalues,
+		 * @brief Checks whether the assembled dynamical matrix contains negative eigenvalues,
 		 * or its diagonal contains negative numbers.
 		 * These must be >= 0 in thermal equilibrium. Thus, if this function returns true,
 		 * one can deduce that the system under study is not in thermal equilibrium.
 		 * Note that the converse is not true.
 		 *
-		 * @return true when either K_minus or K_plus contains negative eigenvalues after noise removal.
+		 * @return true when either K_minus or K_plus contains negative eigenvalues.
 		 */
 		bool dynamic_matrix_is_negative()
 		{
-			_derived->fill_M();
+			fill_M();
 			if (_internal.contains_negative(K_minus.diagonal()) || _internal.contains_negative(K_plus.diagonal())) {
 				return true;
 			}
-			K_minus = _internal.remove_noise(K_minus);
 			if (! detail::matrix_wrapper<Matrix>::is_non_negative(K_minus, _internal._sqrt_precision)) {
 				return true;
 			}
-			K_plus = _internal.remove_noise(K_plus);
 			if (! detail::matrix_wrapper<Matrix>::is_non_negative(K_plus, _internal._sqrt_precision)) {
 				return true;
 			}
@@ -660,7 +680,7 @@ namespace mrock::iEoM {
 		};
 
 		/**
-		* @brief Performs a full diagonalization of the dynamic matrices.
+		* @brief Performs a full diagonalization of the dynamical matrices.
 		* Saves the first <n_residuals> eigenvectors, all eigenvalues and the weights for each starting state.
 		* @return A pair of FullDiagData objects, the first for the phase states, the second for the amplitude states.
 		*/
@@ -715,12 +735,5 @@ namespace mrock::iEoM {
 
 			return return_data;
 		}
-
-	private:
-		detail::iEoM_internal<RealType> _internal;
-		Derived* _derived;
-		const int _hermitian_size{};
-		const int _antihermitian_size{};
-		const bool _pivot{};
 	};
 }

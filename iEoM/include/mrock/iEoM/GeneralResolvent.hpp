@@ -18,33 +18,51 @@ namespace mrock::iEoM {
 	 * It supports both real and complex number types through the provided
 	 * NumberType template parameter.
 	 *
-	 * @tparam Derived Derived CRTP class providing matrix filling and state creation.
 	 * @tparam NumberType Numeric matrix scalar type, optionally complex.
 	 */
-	template<class Derived, class NumberType>
+	template<class NumberType>
 	struct GeneralResolvent {
-	public:
+	protected:
 		using RealType = detail::UnderlyingRealType_t<NumberType>;
 		using Matrix = Eigen::Matrix<NumberType, Eigen::Dynamic, Eigen::Dynamic>;
 		using Vector = Eigen::Vector<NumberType, Eigen::Dynamic>;
 		using BlockedMatrix = detail::BlockDiagonalMatrix<Matrix>;
 		using ResolventType = Resolvent<BlockedMatrix, Eigen::Vector< std::complex<RealType>, Eigen::Dynamic >>;
-
-	protected:
+		
 		Matrix M, N;
 		std::vector<std::string> resolvent_names;
 		std::vector<Vector> starting_states;
+
+		detail::iEoM_internal<RealType> _internal;
+
+		// The following virtual functions must be implemented by the user
+		// If one knows that certain functions are not needed, implementing an empty
+		// function suffices.
+		// An example would be: fill_M() is only needed by dynamic_matrix_is_negative()
+		// Thus, if this function is not called, fill_M() is not required either.
+
+		/**
+		 * @brief Must be implemented by the user. Must fill the starting states for the Laczos algorithm
+		 */
+		virtual void create_starting_states() = 0;
+		/**
+		 * @brief Must be implemented by the user. Must fill the matrices M and N
+		 */
+		virtual void fill_matrices() = 0;
+		/**
+		 * @brief Must be implemented by the user. Must fill the matrix M
+		 */
+		virtual void fill_M() = 0;
 
 	public:
 		/**
 		 * @brief Construct a GeneralResolvent instance.
 		 *
-		 * @param derived_ptr Pointer to the derived CRTP implementation.
-		 * @param sqrt_precision Precision threshold used for numerical noise removal.
+		 * @param sqrt_precision Precision threshold used for numerical comparisons.
 		 * @param negative_matrix_is_error If true, negative matrix values are treated as errors.
 		 */
-		GeneralResolvent(Derived* derived_ptr, RealType const& sqrt_precision, bool negative_matrix_is_error = true)
-			: _internal(sqrt_precision, negative_matrix_is_error), _derived(derived_ptr) { };
+		GeneralResolvent(RealType const& sqrt_precision, bool negative_matrix_is_error = true)
+			: _internal(sqrt_precision, negative_matrix_is_error) { };
 
 		virtual ~GeneralResolvent() = default;
 
@@ -58,7 +76,7 @@ namespace mrock::iEoM {
 		 * @return true when M contains negative eigenvalues.
 		 */
 		bool dynamic_matrix_is_negative() {
-			_derived->fill_M();
+			fill_M();
 			if constexpr (detail::is_complex_v<NumberType>) {
 				if (this->_internal.contains_negative(M.diagonal().real())) {
 					return true;
@@ -94,8 +112,8 @@ namespace mrock::iEoM {
 			std::chrono::time_point begin = std::chrono::steady_clock::now();
 			std::chrono::time_point end = std::chrono::steady_clock::now();
 
-			_derived->fillMatrices();
-			_derived->createStartingStates();
+			fill_matrices();
+			create_starting_states();
 
 			if constexpr (CheckHermitian > 0) {
 				if ((M - M.adjoint()).norm() > constexprPower<-CheckHermitian, RealType, RealType>(10.)) {
@@ -207,9 +225,5 @@ namespace mrock::iEoM {
 			}
 			return ret;
 		}
-
-	private:
-		detail::iEoM_internal<RealType> _internal;
-		Derived* _derived;
 	};
 }
