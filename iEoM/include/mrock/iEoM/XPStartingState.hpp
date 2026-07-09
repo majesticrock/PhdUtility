@@ -14,7 +14,7 @@ namespace mrock::iEoM {
 	 * @tparam RealType Numeric type for the state vectors.
 	 */
 	template<class RealType>
-	struct StartingState {
+	struct XPStartingState {
 	    using Vector = Eigen::Vector<RealType, Eigen::Dynamic>;
 
 	    /** Phase state vector. Empty when no phase state is present. */
@@ -78,8 +78,8 @@ namespace mrock::iEoM {
 	 * @return Number of states with a non-empty phase_state.
 	 */
 	template<class RealType>
-	auto phase_size(std::vector<StartingState<RealType>> const& states) {
-	    return std::count_if(states.begin(), states.end(), [](const StartingState<RealType>& state) {
+	auto phase_size(std::vector<XPStartingState<RealType>> const& states) {
+	    return std::count_if(states.begin(), states.end(), [](const XPStartingState<RealType>& state) {
 	        return state.contains_phase_state();
 	    });
 	}
@@ -91,8 +91,8 @@ namespace mrock::iEoM {
 	 * @return Number of states with a non-empty amplitude_state.
 	 */
 	template<class RealType>
-	auto amplitude_size(std::vector<StartingState<RealType>> const& states) {
-	    return std::count_if(states.begin(), states.end(), [](const StartingState<RealType>& state) {
+	auto amplitude_size(std::vector<XPStartingState<RealType>> const& states) {
+	    return std::count_if(states.begin(), states.end(), [](const XPStartingState<RealType>& state) {
 	        return state.contains_amplitude_state();
 	    });
 	}
@@ -104,8 +104,8 @@ namespace mrock::iEoM {
 	 * @return Total count of phase and amplitude vectors contained in all states.
 	 */
 	template<class RealType>
-	int total_size(std::vector<StartingState<RealType>> const& states) {
-	    return std::accumulate(states.begin(), states.end(), int{}, [](int current, const StartingState<RealType>& state) {
+	int total_size(std::vector<XPStartingState<RealType>> const& states) {
+	    return std::accumulate(states.begin(), states.end(), int{}, [](int current, const XPStartingState<RealType>& state) {
 	        return std::move(current) + state.size();
 	    });
 	}

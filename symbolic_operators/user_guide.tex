@@ -77,7 +77,7 @@
     emphstyle=\color{classcolor},
 }
 
-\title{Symbolic Operators --- User Guide}
+\title{Symbolic Operators \\ --- \\ User Guide}
 \author{Joshua Althüser}
 \date{2026}
 
@@ -87,6 +87,15 @@
 \begin{document}
 \maketitle
 
+\section{Prerequistes}
+
+Valid installations of
+\begin{itemize}
+  \item C++ 20 and a functioning compiler, e.g., gcc 
+  \item (optional) boost (tested with version 1.78.0) --- https://www.boost.org/ --- used for serialization, saving, and reading the results. 
+  If one does not want to delegate these tasks to boost, one can of course implement it.
+\end{itemize}
+
 \section{Overview}
 
 The \code{symbolic_operators} library serves as a lightweight utility for commuting the canonical creation and annihilation operators.
@@ -95,7 +104,9 @@ Additionally, if a higher-order expression, such as $c_1^\dagger c_2^\dagger c_3
 
 To keep this document short, we do not list or explain all functions here; instead, we only discuss the most important attributes and functions.
 Please view the source files themselves.
-
+Everything user-facing is defined in the namespace \code{mrock::symbolic_operators}.
+The namespace \code{mrock::symbolic_operators::detail} contains various functions that are used under the hood.
+Most functions of the classes are also intended to be used internally, though, if desired, they can be used by the user as well.
 
 \section{Overview of the classes}
 
@@ -371,7 +382,7 @@ It stores the offending term and can therefore be used to provide detailed diagn
 
 \section{Example workflow}
 
-The file \code{bcs.cpp} demonstrates a complete workflow for using the library in a realistic setting.
+The file \code{tests/bcs.cpp} demonstrates a complete workflow for using the library in a realistic setting.
 It builds a simple BCS-like Hamiltonian, applies Wick's theorem to the resulting operator strings, and then evaluates the resulting expressions numerically.
 The example is intentionally compact, but it exercises most of the library's important building blocks.
 

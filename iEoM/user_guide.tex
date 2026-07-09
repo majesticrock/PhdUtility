@@ -1,0 +1,292 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[top=2cm, bottom=2cm, right=2cm, left=2cm]{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\usepackage{mathrsfs}
+
+\makeatletter
+\newcommand\footnoteref[1]{\protected@xdef\@thefnmark{\ref{#1}}\@footnotemark}
+\makeatother
+
+\xdefinecolor{tugreen}{RGB}{132, 184, 25} % #84b819
+\xdefinecolor{codegray}{rgb}{0.5,0.5,0.5}
+\xdefinecolor{codepurple}{rgb}{0.58,0,0.82}
+\xdefinecolor{backcolor}{rgb}{0.95,0.95,0.92}
+\xdefinecolor{classcolor}{HTML}{CC8F00}
+
+\newcommand{\tokencode}[1]{%
+  \texttt{#1}%
+}
+\newcommand{\code}[1]{%
+  \texttt{\detokenize{#1}}%
+}
+\newcommand{\classlink}[1]{%
+  \hyperref[class:#1]{\textcolor{classcolor}{\detokenize{#1}}}%
+}
+\newcommand{\class}[1]{%
+  \hyperref[class:#1]{\textcolor{classcolor}{\code{#1}}}%
+}
+
+\lstdefinestyle{mystyle}{
+ backgroundcolor=\color{backcolor},
+ commentstyle=\color{tugreen},
+ keywordstyle=\color{magenta},
+ numberstyle=\tiny\color{codegray},
+ stringstyle=\color{codepurple},
+ basicstyle=\ttfamily\footnotesize,
+ breakatwhitespace=false,
+ breaklines=true,
+ captionpos=b,
+ keepspaces=true,
+ numbers=left,
+ numbersep=5pt,
+ showspaces=false,
+ showstringspaces=false,
+ showtabs=false,
+ tabsize=2
+}
+\lstset{
+ style=mystyle,
+ language=C++,
+ emph={
+  XPResolvent,
+  GeneralResolvent,
+  Resolvent,
+  ResolventData,
+  ResolventDataWrapper
+ },
+ emphstyle=\color{classcolor},
+}
+
+\title{Green's functions via iterated Equations of Motion (iEoM) \\ --- \\ User Guide}
+\author{Joshua Alth\"user}
+\date{2026}
+
+\begin{document}
+\maketitle
+
+\section{Prerequistes}
+
+Valid installations of
+\begin{itemize}
+  \item C++ 20 and a functioning compiler, e.g., gcc 
+  \item Eigen (tested with version 3.4.1) --- https://gitlab.com/libeigen/eigen
+  \item (optional) BLAS and/or LAPACK: Eigen can delegate certain tasks (such as matrix diagonalization) to those libraries, which can be parallelized and be faster. Read the Eigen documentation for details.
+\end{itemize}
+
+\section{Overview}
+
+The \code{iEoM} library provides an implementation of the algorithms presented in Ref.\footnote{J. Althüser and G. S. Uhrig, Phys. Rev. B \textbf{109}, 205153 (2024), https://doi.org/10.1103/PhysRevB.109.205153 \label{prb}} and in Ref.\footnote{J. Althüser and G. S. Uhrig, arXiv:2605.20059 (2026), https://doi.org/10.48550/arXiv.2605.20059 \label{arxiv}}.
+
+The first algorithm\footnoteref{prb} efficiently computes Fourier-transformed Green's functions.
+It requires an initial set $\mathfrak{S}$ of linearly independent operators.
+Then, one defines the dynamical matrix
+\begin{equation}
+  \mathcal{M}_{ij} \coloneqq \langle [O_i^\dagger, [\mathscr{H}, O_j]] \rangle ,
+\end{equation}
+and the norm matrix
+\begin{equation}
+  \mathcal{N}_{ij} \coloneqq \langle [O_i^\dagger, O_j] \rangle .
+\end{equation}
+Here, $O_i$ are the operators contained in $\mathfrak{S}$.
+One may always recombine the operators into Hermitian and anti-Hermitian operators,
+\begin{equation}
+  \mathfrak{S}_{XP} = \{ X_i \coloneqq O_i + O_i^\dagger \;|\; O_i \in \mathfrak{S} \} 
+      \cup \{ P_i \coloneqq O_i - O_i^\dagger \;|\; O_i \in \mathfrak{S} \},
+\end{equation}
+where redundant operators are omitted such that the resulting set remains linearly independent while spanning the same operator space.
+
+The matrices $\mathcal{M}$ and $\mathcal{N}$ now decompose into a block structure.
+In particular, if all relevant expectation values are real, large blocks of zeros appear:
+\begin{equation}
+  \mathcal{M} = \begin{pmatrix}
+    \mathcal{K}_+ & \underline{\underline{0}} \\
+    \underline{\underline{0}} & \mathcal{K}_-
+  \end{pmatrix}\qquad\qquad \mathcal{N} = \begin{pmatrix}
+    \underline{\underline{0}} & \mathcal{L} \\
+    \mathcal{L}^\dagger & \underline{\underline{0}}.
+  \end{pmatrix}
+\end{equation}
+The diagonal blocks correspond to the Hermitian ($X$) and anti-Hermitian ($P$) type operators, respectively.
+The offdiagonal blocks mix them.
+This block structure is leveraged by \class{XPResolvent} to speed up the calculations.
+If the expectation values are not real, or, for whatever reason, one does not want to order the operator set in the way described above, the implementation in \class{GeneralResolvent} can be used.
+However, it must be noted that the algorithms in \class{XPResolvent} are much more fleshed out because they could always be used in the systems I studied.
+
+The second algorithm\footnoteref{arxiv} extends the first one.
+It can additionally compute the linear combinations of operators that excite any given energy level or mode.
+These operators are coined \emph{eigenoperators} and have the property
+\begin{equation}
+  \mathscr{E}_n = \omega_n^2 [ \mathscr{H}, [ \mathscr{H}, \mathscr{E}_n ] ],
+\end{equation}
+with the mode energy $\omega_n$.
+These operators can be represented using the operator basis $\mathfrak{S}$ via
+\begin{equation}
+  \mathscr{E}_n = \sum_{i} \psi_i^{(n)} O_i.
+\end{equation}
+The coefficients $\psi_i^{(n)}$ are called \emph{operator amplitudes}.
+This algorithm computes these operator amplitudes.
+It has been implemented only for the special case mentioned above, i.e., in \class{XPResolvent}.
+It should be possible to extend it to the general case as well, but it requires additional careful thought.
+
+
+In the following, the classes will be described.
+Then, we discuss the example in \code{tests/ieom_bcs.cpp}, which computes the Green's functions for a simple BCS-type problem.
+Everything user-facing is defined in the namespace \code{mrock::iEoM}.
+The namespace \code{mrock::iEoM::detail} contains various functions that are used under the hood.
+
+Generally, both \class{XPResolvent} and \class{GeneralResolvent} require the user to derive from them.
+Moreover, the user must define and override the virtual functions \code{create_starting_states()}, \code{fill_M()}, and \code{fill_matrices()}:
+\begin{lstlisting}
+struct MyResolvent : public XPResolvent<double> {
+  void fill_M() override { /* ... */ }
+  void fill_matrices() override { /* ... */ }
+  void create_starting_states() override { /* ... */ }
+
+  MyResolvent() : XPResolvent<double>(/* ... */) { /* ... */ }
+};
+\end{lstlisting}
+
+\section{Overview of the classes}
+
+\subsection{XPResolvent}
+\label{class:XPResolvent}
+
+\class{XPResolvent} is the main driver for the two-block formulation used in the BCS example. The template parameters are
+\begin{itemize}
+  \item \code{RealType}: the floating-point scalar type (for example \code{double}),
+  \item \code{n_residuals}: the number of residual eigenvectors to retain in the diagonalization-based variants,
+  \item \code{check_qr}: a switch that enables additional QR-related checks when set to \code{true}.
+\end{itemize}
+
+The class stores the two dynamical blocks \code{K_plus} and \code{K_minus} together with the norm matrix \code{L}. A user-defined subclass must implement the following protected virtual methods:
+\begin{itemize}
+  \item \code{fill_M()}: fill the dynamical blocks \code{K_plus} and \code{K_minus},
+  \item \code{fill_matrices()}: fill both the dynamical blocks and the norm matrix \code{L},
+  \item \code{create_starting_states()}: define the initial vectors used by the Lanczos algorithm.
+\end{itemize}
+
+The most important public methods are
+\begin{itemize}
+  \item \code{compute_collective_modes<CheckHermitian>(maxIter)}: run the Lanczos-based collective-mode computation,
+  \item \code{compute_collective_modes_with_residuals()}: compute the same result while retaining residual eigenvector information,
+  \item \code{full_diagonalization()}: perform a full diagonalization for the retained residual modes,
+  \item \code{dynamic_matrix_is_negative()}: check whether the dynamical matrix has negative eigenvalues.
+\end{itemize}
+
+\subsection{GeneralResolvent}
+\label{class:GeneralResolvent}
+
+\class{GeneralResolvent} provides a more general interface for systems whose dynamical problem is described by a single matrix \code{M} and a norm matrix \code{N}. It is useful whenever the problem is not naturally written in the \code{K_plus}/\code{K_minus}/\code{L} form. The workflow is the same as for \class{XPResolvent}, but the user fills \code{M} and \code{N} instead of the two-block structure.
+
+\subsection{XPStartingState}
+\label{class:XPStartingState}
+
+\class{XPStartingState} is a small wrapper around two vectors, one for the phase-like part and one for the amplitude-like part. It is used to specify the initial states for the Lanczos procedure. Its attributes are
+\begin{itemize}
+  \item \code{phase_state}: the vector for the phase-like sector,
+  \item \code{amplitude_state}: the vector for the amplitude-like sector,
+  \item \code{name}: an optional identifier used in the output data.
+\end{itemize}
+
+The helper functions \code{phase_size()}, \code{amplitude_size()}, and \code{total_size()} count how many such states are present.
+
+\subsection{Resolvent}
+\label{class:Resolvent}
+
+\class{Resolvent} is the low-level Krylov solver. It stores a starting state, runs the Lanczos recurrence, and computes the continued-fraction coefficients that are later interpreted as resolvent data. The class supports several overloads of \code{compute()}, depending on whether the problem is Hermitian, symplectic, or expressed through an explicit \code{N} matrix.
+
+\subsection{ResolventData and ResolventDataWrapper}
+\label{class:ResolventData}
+\label{class:ResolventDataWrapper}
+
+\class{ResolventData} stores one set of Lanczos coefficients as two vectors, \code{a_i} and \code{b_i}. A \class{ResolventDataWrapper} groups several such runs under a common name and is the form returned by the high-level resolvent methods.
+
+\section{Minimal usage pattern}
+
+A typical implementation follows this pattern:
+
+\begin{lstlisting}
+struct MySolver : public XPResolvent<double> {
+ void fill_M() override {
+ // fill K_plus and K_minus
+ }
+
+ void fill_matrices() override {
+ // fill K_plus, K_minus, and L
+ }
+
+ void create_starting_states() override {
+ // push back XPStartingState objects
+ }
+};
+
+MySolver solver;
+auto result = solver.compute_collective_modes<11>(100);
+\end{lstlisting}
+
+In practice, the user should keep the implementation of \code{fill_M()} and \code{fill_matrices()} as close as possible to the underlying equations of motion. The starting states control which collective response is probed; different choices lead to different resolvent functions.
+
+\section{The BCS example: \code{tests/ieom_bcs.cpp}}
+
+The file \code{tests/ieom_bcs.cpp} is the best way to see the library in action. It implements a simple BCS mean-field problem in which the dynamical matrix is split into amplitude-like and phase-like sectors. The example assumes the operator basis
+\begin{align*}
+S_k^+ &= \{f_k + f_k^\dagger,\; n_{k\uparrow} + n_{-k\downarrow}\},\qquad
+S_k^- = \{f_k - f_k^\dagger\}.
+\end{align*}
+
+The derived class \code{BCSTester} inherits from \class{XPResolvent}. Its constructor forwards the numerical tolerance and the dimensions of the Hermitian and anti-Hermitian sectors to the base class.
+
+\subsection{Filling the matrices}
+
+The function \code{fill_M()} fills the blocks \code{K_plus} and \code{K_minus}. Diagonal terms are built from the BCS quasiparticle energy and the mean-field occupation and pairing functions, while the off-diagonal entries describe collective coupling between momentum points. Those terms scale as \(1/N_k\) and are what generate the collective-mode structure in the resolvent.
+
+The function \code{fill_matrices()} completes the setup by filling the norm matrix \code{L}. In the example, \code{L} is sparse: only the diagonal amplitude and phase couplings are non-zero.
+
+\subsection{Creating the starting states}
+
+The function \code{create_starting_states()} constructs a single \class{XPStartingState}. The phase part is initialized with a normalized vector of ones, while the amplitude part is filled with a normalized pattern of ones as well. This choice corresponds to probing the superconducting response and is sufficient for the example.
+
+\subsection{Running the computation}
+
+The main routine performs three steps:
+\begin{enumerate}
+  \item Solve the BCS self-consistency equation for the gap \(\Delta\),
+  \item instantiate \code{BCSTester} and call \code{compute_collective_modes<11>(N_lanczos)},
+  \item save the resulting \code{a_i} and \code{b_i} coefficients to disk and compare them to a reference file.
+\end{enumerate}
+
+A minimal version of this workflow looks like this:
+
+\begin{lstlisting}
+BCSTester tester(delta_new);
+auto result = tester.compute_collective_modes<11>(N_lanczos);
+\end{lstlisting}
+
+The helper \code{save_data()} writes the coefficients into a plain-text file so that the computed resolvent data can be compared to a reference result.
+
+\subsection{Checking thermodynamic stability}
+
+The method \code{dynamic_matrix_is_negative()} is used at the end of the example after multiplying the gap by a factor of two. In this setup, the dynamical matrix becomes unstable and the method returns \code{true}, signaling that the system is no longer in the assumed equilibrium state.
+
+\section{Practical remarks}
+
+\begin{itemize}
+  \item The starting states are the main interface for choosing which Green's functions are computed. They should be normalized and physically motivated.
+  \item The template parameter in \code{compute_collective_modes<CheckHermitian>(...)} is useful for debugging. A value such as \code{11} checks Hermiticity at a tolerance of \(10^{-11}\).
+  \item The norm matrix should be positive semidefinite, otherwise the Lanczos construction can become unstable.
+  \item For small test problems, the example in \code{tests/ieom_bcs.cpp} is usually the fastest way to validate the implementation.
+\end{itemize}
+
+\section{Summary}
+
+The iEoM library separates the mathematical setup from the numerical solver. The user provides the matrices and the initial states, while the library handles the block transformations and the Lanczos recursion. The BCS example in \code{tests/ieom_bcs.cpp} demonstrates the intended pattern: construct the dynamical problem, define physically meaningful starting vectors, and then compute the resolvent data.
+
+\end{document}

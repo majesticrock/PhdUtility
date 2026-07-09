@@ -62,12 +62,14 @@ namespace mrock::iEoM {
 		using const_phase_it = detail::ConstPhaseIterator<RealType>;
 		using const_amplitude_it = detail::ConstAmplitudeIterator<RealType>;
 
+		using StartingState = XPStartingState<RealType>;
+
 		using TransformQR = std::conditional_t<!check_qr,
 								Eigen::CompleteOrthogonalDecomposition<Eigen::Ref<Matrix>>,
 								Eigen::CompleteOrthogonalDecomposition<Matrix>>;
 
 		Matrix K_plus, K_minus, L;
-		std::vector<StartingState<RealType>> starting_states;
+		std::vector<StartingState> starting_states;
 		std::vector<Resolvent<Matrix, Vector>> resolvents;
 	
 	private:
@@ -487,8 +489,8 @@ namespace mrock::iEoM {
 		 * @param name Optional name for the starting state.
 		 * @return StartingState with an empty phase_state and a zero-initialized amplitude_state.
 		 */
-		static StartingState<RealType> OnlyAmplitude(Eigen::Index size, std::string const& name="") {
-            return StartingState<RealType>{ Vector{}, Vector::Zero(size), name };
+		static StartingState OnlyAmplitude(Eigen::Index size, std::string const& name="") {
+            return StartingState{ Vector{}, Vector::Zero(size), name };
         }
 		/**
 		 * @brief Create a starting state containing only a phase component.
@@ -497,8 +499,8 @@ namespace mrock::iEoM {
 		 * @param name Optional name for the starting state.
 		 * @return StartingState with a zero-initialized phase_state and an empty amplitude_state.
 		 */
-        static StartingState<RealType> OnlyPhase(Eigen::Index size, std::string const& name="") {
-            return StartingState<RealType>{ Vector::Zero(size), Vector{}, name };
+        static StartingState OnlyPhase(Eigen::Index size, std::string const& name="") {
+            return StartingState{ Vector::Zero(size), Vector{}, name };
         }
 
 		/**

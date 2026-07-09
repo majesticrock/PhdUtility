@@ -61,7 +61,7 @@ struct BCSTester : public XPResolvent<double> {
     // algorithm. K_plus and K_minus encode linearized equations of
     // motion; off-diagonal 1/N terms implement collective coupling
     // between different k-modes (finite-size corrections to mean-field).
-    void fill_M() {
+    void fill_M() override {
         K_plus.resize(2*N_k, 2*N_k);
         K_minus.resize(N_k, N_k);
 
@@ -103,7 +103,7 @@ struct BCSTester : public XPResolvent<double> {
         }
     }
 
-    void fill_matrices() {
+    void fill_matrices() override {
         fill_M();
         L.resize(2 * N_k, N_k);
 
@@ -115,10 +115,10 @@ struct BCSTester : public XPResolvent<double> {
     }
 
     // Create initial Lanczos starting states for the resolvent iteration.
-    void create_starting_states() {
+    void create_starting_states() override {
         starting_states.clear();
         // `Vector` is an Eigen::VectorXd defined in the base class.
-        starting_states.push_back(StartingState<double>{  Vector::Ones(N_k), Vector::Zero(2*N_k), "SC" });
+        starting_states.push_back(StartingState{  Vector::Ones(N_k), Vector::Zero(2*N_k), "SC" });
         for (int i=0; i < N_k; ++i) {
             // Set amplitude-state pattern (all pair creation operators)
             starting_states.front().amplitude_state(i) = 1.;

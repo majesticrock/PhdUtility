@@ -26,20 +26,20 @@ namespace mrock::iEoM::detail {
     template<class RealType, bool iteratesPhase, bool isConst>
     class StateIteratorImpl {
         using container_type = std::conditional_t<isConst,
-            const std::vector<StartingState<RealType>>,
-            std::vector<StartingState<RealType>>>;
+            const std::vector<XPStartingState<RealType>>,
+            std::vector<XPStartingState<RealType>>>;
         
         using value_type_impl = std::conditional_t<isConst,
-            const StartingState<RealType>,
-            StartingState<RealType>>;
+            const XPStartingState<RealType>,
+            XPStartingState<RealType>>;
     public:
         using iterator_category = std::forward_iterator_tag;
-        using value_type        = StartingState<RealType>;
+        using value_type        = XPStartingState<RealType>;
         using difference_type   = std::ptrdiff_t;
         using pointer           = value_type_impl*;
         using reference         = value_type_impl&;
 
-        using Vector = typename StartingState<RealType>::Vector;
+        using Vector = typename XPStartingState<RealType>::Vector;
         static constexpr bool is_const_iterator = isConst;
         using state_iterator_tag = mrock::iEoM::detail::state_iterator_tag;
 
