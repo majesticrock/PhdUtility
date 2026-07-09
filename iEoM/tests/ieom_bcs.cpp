@@ -1,4 +1,6 @@
-#include <mrock/iEoM/XPResolvent.hpp>
+#include "../include/mrock/iEoM/XPResolvent.hpp"
+#include "bcs_result.hpp"
+
 #include <cmath>
 #include <numbers>
 #include <iostream>
@@ -20,27 +22,45 @@ using namespace mrock::iEoM;
  *              f_k - f_k^+dagger
  *          }
  * 
- * inversion symmetry is assumed
+ * the + block contains amplitude-like operators and density combinations, 
+ * while the - block contains phase-like operators.
+ * 
+ * Inversion symmetry is assumed.
  */
 
-constexpr int N_k = 4;
+// Discretization parameters and interaction strength. N_k is the
+// number of momentum points and N_lanczos the number of Lanczos
+// coefficients saved per resolvent.
+constexpr int N_k = 400;
 constexpr int N_lanczos = N_k / 10;
-constexpr double U = -0.5;
+constexpr double U = -2; // Attractive interaction; larger U are easier numerically, and this is just a test script anyways
 std::array<double, N_k> epsilons;
 
+// BCSTester extends the XPResolvent driver to provide the specific
+// matrices (K_plus, K_minus, L) and starting states used by the
+// resolvent/Lanczos algorithm for the BCS test case.
 struct BCSTester : public XPResolvent<double> {
-    double Delta;
-    
+    double Delta; // superconducting gap (self-consistent value)
+
+    // Quasiparticle energy for given dispersion `eps` and gap `Delta`.
     double E(double eps) {
         return std::sqrt(eps*eps + Delta*Delta);
     }
+
+    // Expectation value of the number operator in BCS mean-field.
     double number(double eps) {
         return 0.5 * (1. - eps / E(eps));
     }
+
+    // Expectation value of the pair operator in BCS mean-field.
     double pair(double eps) {
         return -0.5 * Delta / E(eps);
     }
-    
+
+    // Fill the interaction / dynamic matrices used by the iEoM
+    // algorithm. K_plus and K_minus encode linearized equations of
+    // motion; off-diagonal 1/N terms implement collective coupling
+    // between different k-modes (finite-size corrections to mean-field).
     void fill_M() {
         K_plus.resize(2*N_k, 2*N_k);
         K_minus.resize(N_k, N_k);
@@ -52,14 +72,18 @@ struct BCSTester : public XPResolvent<double> {
 
             // The terms with epsilon actually read epsilon - mu + U/2
             // But at half-filling mu = U/2
-            K_plus(k*2, k*2) = 4 * epsilons[k] * (1 - 2*number_k);
-            K_plus(k*2 + 1, k*2 + 1) = -8 * Delta * pair_k;
+            K_plus(k, k) = 4 * epsilons[k] * (1 - 2*number_k);
+            K_plus(k + N_k, k + N_k) = -8 * Delta * pair_k;
 
-            K_plus(k*2 + 1, k*2) = -8 * epsilons[k] * pair_k;
-            K_plus(k*2, k*2 + 1) = 4 * Delta * ( 1 - 2*number_k );
+            // Couplings between amplitude and phase blocks on the diagonal
+            K_plus(k + N_k, k) = -8 * epsilons[k] * pair_k;
+            K_plus(k, k + N_k) = 4 * Delta * ( 1 - 2*number_k );
 
+            // K_minus diagonal element for k
             K_minus(k, k) = 4 * epsilons[k] * (1 - 2*number_k ) - 8 * Delta * pair_k;
 
+            // Off-diagonal (k != l) collective couplings. These scale as 1/N_k
+            // and encode the coupling between different momentum modes.
             for (int l=0; l<N_k; ++l) {
                 // K-offdiagonal filling, these terms tend to be small in
                 // the thermodynamic limit, as they scale as 1/N - but there
@@ -68,13 +92,13 @@ struct BCSTester : public XPResolvent<double> {
                 double number_l = number(epsilons[l]);
                 double pair_l = pair(epsilons[l]);
 
-                K_plus(k*2, l*2) += (2 * U / N_k) * (1 - 2*number_k) * (1 - 2*number_l);
-                K_plus(k*2 + 1, l*2 + 1) += (8 * U / N_k) * pair_l * pair_k;
+                K_plus(l, k) += (2 * U / N_k) * (1 - 2*number_k) * (1 - 2*number_l);
+                K_plus(l + N_k, k + N_k) += (8 * U / N_k) * pair_l * pair_k;
 
-                K_plus(k*2 + 1, l*2) += (-4 * U / N_k) * pair_l * (1 - 2*number_k);
-                K_plus(k*2, l*2 + 1) += (-4 * U / N_k) * pair_k * (1 - 2*number_l);
+                K_plus(l + N_k, k) += (-4 * U / N_k) * pair_l * (1 - 2*number_k);
+                K_plus(l, k + N_k) += (-4 * U / N_k) * pair_k * (1 - 2*number_l);
 
-                K_minus(k, l) += (2 * U / N_k) * (1 - 2*number_k) * (1 - 2*number_l) + (8 * U / N_k) * pair_l * pair_k;
+                K_minus(l, k) += (2 * U / N_k) * (1 - 2*number_k) * (1 - 2*number_l) + (8 * U / N_k) * pair_l * pair_k;
             }
         }
     }
@@ -84,80 +108,120 @@ struct BCSTester : public XPResolvent<double> {
         L.resize(2 * N_k, N_k);
 
         for (int k=0; k<N_k; ++k) {
-            // L has only k-diagonal components
-            L(k, k) = -2 * (1 - 2*number(epsilons[k]));
-            L(k+1, k) = 4 * pair(epsilons[k]);
+            // Only the k-diagonal components of L are non-zero in this setup.
+            L(k, k) = 4. * number(epsilons[k]) - 2.;
+            L(k + N_k, k) = 4. * pair(epsilons[k]);
         }
     }
 
+    // Create initial Lanczos starting states for the resolvent iteration.
     void create_starting_states() {
         starting_states.clear();
-        // Vector is defined as a protected member of the algorithm.
-        // Here, it is an Eigen::VectorXd.
-        starting_states.push_back(StartingState<double>{  Vector::Ones(N_k), Vector::Ones(2*N_k), "SC" });
+        // `Vector` is an Eigen::VectorXd defined in the base class.
+        starting_states.push_back(StartingState<double>{  Vector::Ones(N_k), Vector::Zero(2*N_k), "SC" });
+        for (int i=0; i < N_k; ++i) {
+            // Set amplitude-state pattern (all pair creation operators)
+            starting_states.front().amplitude_state(i) = 1.;
+        }
+        starting_states.front().amplitude_state.normalize();
+        starting_states.front().phase_state.normalize();
     }
 
     BCSTester(double _delta) 
-        : XPResolvent<double>(1e-6, 2*N_k, N_k),
+        : XPResolvent<double>(1e-7, 2*N_k, N_k, false),
         Delta{_delta} {}
 };
 
-void save_data(const std::vector<BCSTester::ResolventReturnData>& data, std::ofstream& out)
+// Helper to write the Lanczos coefficients to an output stream. The
+// format writes a header (names) followed by N_lanczos rows with the
+// (a_i, b_i) pairs for each computed resolvent.
+std::array<std::string, N_lanczos> save_data(const std::vector<BCSTester::ResolventReturnData>& data, std::ofstream& out)
 {
 	out << std::scientific << std::setprecision(10);
-    std::array<std::string, N_lanczos+1> lines;
-    lines[0] = "#";
+    std::string header_line = "#";
+    std::array<std::string, N_lanczos> lines;
 
-	for (const auto& data_wrapper : data) {
-        lines[0] += data_wrapper.name + ":a_i " + data_wrapper.name + ":b_i ";
+    for (const auto& data_wrapper : data) {
+        // Build header like: #name:a_i name:b_i ...
+        header_line += data_wrapper.name + ":a_i " + data_wrapper.name + ":b_i ";
 
-		for (const auto& resolvent_data : data_wrapper.lanczos) {
+        // Append all Lanczos coefficients into per-row strings.
+        for (const auto& resolvent_data : data_wrapper.lanczos) {
             for (int i=0; i<N_lanczos; ++i) {
-                lines[i+1] += " " + std::to_string(resolvent_data.a_i[i]) + " " + std::to_string(resolvent_data.b_i[i]);
+                lines[i] += std::to_string(resolvent_data.a_i[i]) + " " + std::to_string(resolvent_data.b_i[i]) + " ";
             }
         }
 	}
 
-    for (const auto& line : lines) {
+    // Write header and then N_lanczos rows to file.
+    out << header_line << '\n';
+    for (auto& line : lines) {
+        line.pop_back(); // remove trailing space
         out << line << '\n';
     }
+    return lines;
 };
 
 int main() {
+    // Build a simple 1D-like dispersion on the grid of N_k points.
+    // The chosen parametrization maps k -> eps(k).
     for (int k=0; k<N_k; ++k) {
-        epsilons[k] += -2. * std::cos(std::numbers::pi * (1. - static_cast<double>(k) / static_cast<double>(N_k)) );
+        double kx = 2 * static_cast<double>(k) / static_cast<double>(N_k);
+        epsilons[k] += -2. * (
+              std::cos(std::numbers::pi * (1. - kx)) 
+        );
     }
 
+    // Define the BCS self-consistency map: given an old gap value
+    // return the updated gap after integrating over the discretized k-grid.
     auto selfconsistency = [](double delta_old) {
         double delta_new{};
         for (int k=0; k<N_k; ++k) {
+            // Contribution of momentum k to the gap equation
             delta_new += -0.5 * delta_old / std::sqrt(epsilons[k]*epsilons[k] + delta_old*delta_old);
         }
         delta_new *= U/N_k;
         return delta_new;
     };
 
-    double delta_old = 0.1;
+    // Iterate the self-consistent gap equation until convergence.
+    double delta_old = 0.3;
     double delta_new = selfconsistency(delta_old);
-    while(std::abs(delta_old - delta_new) > 1e-6) {
+    while(std::abs(delta_old - delta_new) > 1e-8) {
         delta_old = delta_new;
         delta_new = selfconsistency(delta_old);
     }
     std::cout << std::scientific << "Self-consistency converged! Delta = " << delta_new << std::endl; 
 
+    // Construct our tester object and let it do its calculations
+    // The template <11> means that it checks whether the matrices are Hermitian with a tolerance of 10^-11
     BCSTester tester(delta_new);
-    std::vector<BCSTester::ResolventReturnData> result = tester.compute_collective_modes<10>(N_lanczos);
+    std::vector<BCSTester::ResolventReturnData> result = tester.compute_collective_modes<11>(N_lanczos);
 
+    // Save the Lanczos coefficients to file and compare with reference
+    // results stored in `bcs_result.hpp` (via `comparison_result`).
     std::ofstream filestream("bcs_result.txt", std::ios_base::out);
     if (filestream.is_open()) {
-        save_data(result, filestream);
+        const auto lines = save_data(result, filestream);
         filestream.close();
+
+        if (lines != comparison_result) {
+            std::cerr << "Result does not match the comparison!" << std::endl;
+            return 1;
+        }
     }
     else {
         std::cerr << "ieom_bcs.cpp could not open output filestream" << std::endl;
         return 1;
     }
     std::cout << "Test data has been saved to bcs_result.txt" << std::endl;
+
+    // increase the gap by a factor of 2 => Now the system is no longer in thermal equilibrium
+    tester.Delta *= 2; 
+    if (!tester.dynamic_matrix_is_negative()) {
+        std::cerr << "Dynamical matrix should be negative in this example!" << std::endl;
+        return 1;
+    }
 
     return 0;
 }

@@ -16,7 +16,7 @@ namespace mrock::utility {
             } 
             else 
             {
-                return constexpr_power<exponent / 1, NumberType, ResultType>(base * base);
+                return constexpr_power<exponent / 2, NumberType, ResultType>(base * base);
             }
         }
         else 

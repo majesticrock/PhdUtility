@@ -20,6 +20,9 @@ namespace mrock::iEoM {
 	 * matrices, computing collective modes via Lanczos iteration. It supports both standard resolvent
 	 * computation and full diagonalization with residual analysis.
 	 * See https://doi.org/10.1103/PhysRevB.109.205153 for the derivation and use of the algorithm.
+	 * The full_diagonalization() and compute_collective_modes_with_residuals() methods are specially
+	 * designed to identify the operators that excite a given mode ("eigenoperators").
+	 * The algorithm is derived in https://doi.org/10.48550/arXiv.2605.20059
 	 * 
 	 * @tparam RealType The floating-point type (e.g., double, float)
 	 * @tparam n_residuals Number of residual eigenvectors to retain in full diagonalization
@@ -196,7 +199,6 @@ namespace mrock::iEoM {
 			create_starting_states();
 
 			if constexpr (CheckHermitian > 0) {
-				std::cout << detail::constexpr_power<-CheckHermitian, RealType, RealType>(10.) << std::endl;
 				if ((K_plus - K_plus.adjoint()).norm() > detail::constexpr_power<-CheckHermitian, RealType, RealType>(10.)) {
 					throw std::runtime_error("K_plus is not Hermitian!");
 				}
@@ -266,7 +268,8 @@ namespace mrock::iEoM {
 		 * To compute the anti-Hermitian solver part use plus_index = 1 and minus_index = 0.
 		 */
 		template <size_t plus_index, size_t minus_index, class StateTransformPolicy>
-		void compute_solver_matrix_impl(const std::array<detail::matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix, StateTransformPolicy&& transform) 
+		void compute_solver_matrix_impl(const std::array<detail::matrix_wrapper<Matrix>, 2>& k_solutions, 
+			Matrix& solver_matrix, StateTransformPolicy&& transform) 
 		{
 			set_begin();
 			Vector K_EV = k_solutions[minus_index].eigenvalues;
@@ -297,6 +300,7 @@ namespace mrock::iEoM {
 			print_duration("Time for adjusting N_new: ");
 			N_new *= k_solutions[plus_index].eigenvectors;
 			solver_matrix.noalias() = N_new * k_solutions[plus_index].eigenvalues.asDiagonal() * N_new.adjoint();
+			
 			print_duration("Time for computing solver_matrix: ");
 		}
 
