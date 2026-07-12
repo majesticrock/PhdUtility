@@ -4,6 +4,10 @@
 #include <list>
 #include <chrono>
 
+#ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
+#include <omp.h>
+#endif
+
 #include "detail/internal_functions.hpp"
 #include "detail/xp_internal.hpp"
 #include "detail/PivotToBlockStructure.hpp"
@@ -43,7 +47,6 @@ namespace mrock::iEoM {
 	 * - K_minus: Anti-Hermitian block of the dynamical matrix
 	 * - L: norm matrix; couples between blocks
 	 * - starting_states: Initial phase and amplitude states for resolvent computation
-	 * - resolvents: Computed resolvent objects
 	 */
 	template<class RealType, int n_residuals = 0, bool check_qr = false>
 	struct XPResolvent {
@@ -70,13 +73,13 @@ namespace mrock::iEoM {
 
 		Matrix K_plus, K_minus, L;
 		std::vector<StartingState> starting_states;
-		std::vector<Resolvent<Matrix, Vector>> resolvents;
 	
 	private:
 		detail::iEoM_internal<RealType> _internal;
 		const int _hermitian_size{};
 		const int _antihermitian_size{};
 		const bool _pivot{};
+		bool compute_transform{true};
 
 		std::chrono::time_point<std::chrono::steady_clock> begin;
 		std::chrono::time_point<std::chrono::steady_clock> end;
@@ -347,8 +350,14 @@ namespace mrock::iEoM {
 		template <size_t plus_index, size_t minus_index>
 		void compute_solver_matrix(const std::array<detail::matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix, Matrix& transform_matrix) 
 		{
+			compute_transform = true;
 			compute_solver_matrix_impl<plus_index, minus_index>(k_solutions, solver_matrix,
 				[this, &transform_matrix](Vector& state, const Matrix& N_new) {
+					if (!compute_transform) {
+						state.applyOnTheLeft(transform_matrix);
+						return;
+					}
+
 					if constexpr (minus_index == 0) {
 						transform_matrix.noalias() = N_new * L.transpose();
 					}
@@ -420,9 +429,6 @@ namespace mrock::iEoM {
 			FullDiagData data;
 			for (size_t i = 0U; i < n_residuals; ++i){
 				Vector buffer = qr.solve(solver.eigenvectors().col(i + n_zero));
-				if constexpr (check_qr) {
-					std::cout << "Error of QR result ||AX - B||=" << (transform_matrix * buffer - solver.eigenvectors().col(i + n_zero)).norm() << std::endl;
-				}
 				data.first_eigenvectors[i] = std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
 			}
 			data.eigenvalues = std::vector<RealType>(solver.eigenvalues().data() + n_zero, solver.eigenvalues().data() + solver.eigenvalues().size());
@@ -469,9 +475,6 @@ namespace mrock::iEoM {
 				if (vj.empty()) continue;
 				Eigen::Map<Vector> vj_eigen(vj.data(), vj.size());
 				Vector buffer = qr.solve(vj_eigen);
-				if constexpr (check_qr) {
-					std::cout << "Error of QR result ||AX - B||=" << (transform_matrix * buffer - vj_eigen).norm() << std::endl;
-				}
 				vj = std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
 			}
 			for (auto& ev :residual_info.eigenvalues) {
@@ -532,8 +535,6 @@ namespace mrock::iEoM {
 
 		/**
 		 * @brief Virtual default destructor.
-		 *
-		 * Allows proper cleanup through base-class pointers in CRTP usage scenarios.
 		 */
 		virtual ~XPResolvent() = default;
 
@@ -582,7 +583,7 @@ namespace mrock::iEoM {
 
 			set_begin();
 			const int N_RESOLVENT_TYPES = total_size(starting_states);
-			resolvents.resize(N_RESOLVENT_TYPES);
+			std::vector<Resolvent<Matrix, Vector>> resolvents(N_RESOLVENT_TYPES);
 			auto resolvent_it = resolvents.begin();
 
 			compute_solver_matrix<0, 1>(k_solutions, solver_matrix);
@@ -643,11 +644,12 @@ namespace mrock::iEoM {
 
 			set_begin();
 			const int N_RESOLVENT_TYPES = total_size(starting_states);
-			resolvents.resize(N_RESOLVENT_TYPES);
+			std::vector<Resolvent<Matrix, Vector>> resolvents(N_RESOLVENT_TYPES);
 			auto resolvent_it = resolvents.begin();
 
-			compute_solver_matrix<0, 1>(k_solutions, solver_matrix, transform_matrix);
-			{ 
+			// No need to do anything if there are no starting states for the phase channel
+			if (phase_size(starting_states) > 0U) {
+				compute_solver_matrix<0, 1>(k_solutions, solver_matrix, transform_matrix);
 				TransformQR qr(transform_matrix); // Curly braces to free memory after usage
 				print_duration("Time for second QR decomp: ");
 				for (phase_it it = phase_it::begin(starting_states); it != phase_it::end(starting_states); ++resolvent_it, ++it) {
@@ -662,8 +664,9 @@ namespace mrock::iEoM {
 				} 
 			}
 
-			compute_solver_matrix<1, 0>(k_solutions, solver_matrix, transform_matrix);
-			{ 
+			// No need to do anything if there are no starting states for the amplitude channel
+			if (amplitude_size(starting_states) > 0U) {
+				compute_solver_matrix<1, 0>(k_solutions, solver_matrix, transform_matrix);
 				TransformQR qr(transform_matrix); // Curly braces to free memory after usage
 				print_duration("Time for second QR decomp: ");
 				for (amplitude_it it = amplitude_it::begin(starting_states); it != amplitude_it::end(starting_states); ++resolvent_it, ++it) {
@@ -700,11 +703,12 @@ namespace mrock::iEoM {
 			Eigen::SelfAdjointEigenSolver<Matrix> solver;
 			std::pair<FullDiagData, FullDiagData> return_data;
 
-			compute_solver_matrix<0, 1>(k_solutions, solver_matrix, transform_matrix);
-			set_begin();
-			solver.compute(solver_matrix);
-			print_duration("Time for first ED: ");
-			{ // Curly braces to free memory after usage
+			// No need to do anything if there are no starting states for the phase channel
+			if (phase_size(starting_states) > 0U) {
+				compute_solver_matrix<0, 1>(k_solutions, solver_matrix, transform_matrix);
+				set_begin();
+				solver.compute(solver_matrix);
+				print_duration("Time for first ED: ");
 				TransformQR qr(transform_matrix); 
 				print_duration("Time for first QR decomp: ");
 				const size_t n_zero = get_number_of_zero_eigenvalues(solver);
@@ -718,13 +722,15 @@ namespace mrock::iEoM {
 							<< (solver_matrix * reconstructed - return_data.first.eigenvalues[i] * return_data.first.eigenvalues[i] * reconstructed).norm() << std::endl;
 					}
 				}
+			
 			}
 
-			compute_solver_matrix<1, 0>(k_solutions, solver_matrix, transform_matrix);
-			set_begin();
-			solver.compute(solver_matrix);
-			print_duration("Time for second ED: ");
-			{ // Curly braces to free memory after usage
+			// No need to do anything if there are no starting states for the amplitude channel
+			if (amplitude_size(starting_states) > 0U) {
+				compute_solver_matrix<1, 0>(k_solutions, solver_matrix, transform_matrix);
+				set_begin();
+				solver.compute(solver_matrix);
+				print_duration("Time for second ED: ");
 				TransformQR qr(transform_matrix); 
 				const size_t n_zero = get_number_of_zero_eigenvalues(solver);
 				const size_t n_non_zero = solver.eigenvalues().size() - n_zero;

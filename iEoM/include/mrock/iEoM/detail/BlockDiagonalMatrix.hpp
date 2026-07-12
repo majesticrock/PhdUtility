@@ -5,7 +5,9 @@
 
 #include "UnderlyingRealType.hpp"
 
-//#define _BLOCKS_USE_OMP
+#ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
+#include <omp.h>
+#endif
 
 namespace mrock::iEoM::detail {
     template<class Number> 
@@ -175,7 +177,7 @@ namespace mrock::iEoM::detail {
         BlockDiagonalMatrix(BlockDiagonalMatrix<_other_base> const& other)
             : blocks(other.blocks.size()), blocks_begin(other.blocks_begin)
         {
-#ifdef _BLOCKS_USE_OMP
+#ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
             for (int i = 0; i < other.blocks.size(); ++i) {
@@ -195,7 +197,7 @@ namespace mrock::iEoM::detail {
         {
             this->blocks.resize(other.blocks.size());
             this->blocks_begin = other.blocks_begin;
-#ifdef _BLOCKS_USE_OMP
+#ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
             for (int i = 0; i < other.blocks.size(); ++i) {
@@ -212,7 +214,7 @@ namespace mrock::iEoM::detail {
         ConstructedMatrix construct_matrix() const 
         {
             ConstructedMatrix ret = ConstructedMatrix::Zero(rows(), cols());
-#ifdef _BLOCKS_USE_OMP
+#ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
             for (int i = 0; i < blocks.size(); ++i) {
@@ -228,7 +230,7 @@ namespace mrock::iEoM::detail {
          */
         BlockDiagonalMatrix<eval_result> eval() const {
             typename base_traits<eval_result>::mutable_vector new_blocks(this->blocks.size());
-#ifdef _BLOCKS_USE_OMP
+#ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
             for (int i = 0; i < this->blocks.size(); ++i) {
@@ -316,7 +318,7 @@ namespace mrock::iEoM::detail {
          * @return Reference to this block diagonal matrix.
          */
         BlockDiagonalMatrix& applyOnTheLeft(BlockDiagonalMatrix const& other) {
-#ifdef _BLOCKS_USE_OMP
+#ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
             for (size_t i = 0U; i < blocks.size(); ++i) {
@@ -342,7 +344,7 @@ namespace mrock::iEoM::detail {
          */
         template<class _other_base>
         BlockDiagonalMatrix& operator+=(const BlockDiagonalMatrix<_other_base>& rhs) {
-#ifdef _BLOCKS_USE_OMP
+#ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
             for (int i = 0; i < blocks.size(); ++i) {
@@ -360,7 +362,7 @@ namespace mrock::iEoM::detail {
          */
         template<class _other_base>
         BlockDiagonalMatrix& operator-=(const BlockDiagonalMatrix<_other_base>& rhs) {
-#ifdef _BLOCKS_USE_OMP
+#ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
             for (int i = 0; i < blocks.size(); ++i) {
@@ -378,7 +380,7 @@ namespace mrock::iEoM::detail {
          */
         template<class _other_base>
         BlockDiagonalMatrix& operator*=(const BlockDiagonalMatrix<_other_base>& rhs) {
-#ifdef _BLOCKS_USE_OMP
+#ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
             for (int i = 0; i < blocks.size(); ++i) {
@@ -398,7 +400,7 @@ namespace mrock::iEoM::detail {
          */
         template<class __matrix__>
         BlockDiagonalMatrix& operator+=(const Eigen::DiagonalWrapper<__matrix__>& rhs) {
-#ifdef _BLOCKS_USE_OMP
+#ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
             for (int i = 0; i < blocks.size(); ++i) {
@@ -418,7 +420,7 @@ namespace mrock::iEoM::detail {
          */
         template<class __matrix__>
         BlockDiagonalMatrix& operator-=(const Eigen::DiagonalWrapper<__matrix__>& rhs) {
-#ifdef _BLOCKS_USE_OMP
+#ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
             for (int i = 0; i < blocks.size(); ++i) {
@@ -438,7 +440,7 @@ namespace mrock::iEoM::detail {
          */
         template<class __matrix__>
         BlockDiagonalMatrix& operator*=(const Eigen::DiagonalWrapper<__matrix__>& rhs) {
-#ifdef _BLOCKS_USE_OMP
+#ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
             for (int i = 0; i < blocks.size(); ++i) {
@@ -525,7 +527,7 @@ namespace mrock::iEoM::detail {
     template <class EigenMatrixType, class _base>
     EigenMatrixType operator*(EigenMatrixType basic_matrix, const BlockDiagonalMatrix<_base>& block_matrix) {
         assert(basic_matrix.cols() == block_matrix.rows());
-#ifdef _BLOCKS_USE_OMP
+#ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
         for (int i = 0; i < block_matrix.blocks.size(); ++i) {
@@ -546,7 +548,7 @@ namespace mrock::iEoM::detail {
     template <class EigenMatrixType, class _base>
     EigenMatrixType operator*(const BlockDiagonalMatrix<_base>& block_matrix, EigenMatrixType basic_matrix) {
         assert(block_matrix.cols() == basic_matrix.rows());
-#ifdef _BLOCKS_USE_OMP
+#ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
         for (int i = 0; i < block_matrix.blocks.size(); ++i) {

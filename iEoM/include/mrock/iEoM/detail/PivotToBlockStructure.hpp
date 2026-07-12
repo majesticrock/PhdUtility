@@ -1,6 +1,5 @@
 #pragma once
 #include <Eigen/Dense>
-#include <omp.h>
 
 #include "UnderlyingRealType.hpp"
 #include "BlockDiagonalMatrix.hpp"
@@ -89,7 +88,7 @@ namespace mrock::iEoM::detail {
 		static matrix_wrapper solve_block_diagonal_matrix(const MatrixType& toSolve, const std::vector<HermitianBlock>& blocks) {
 			matrix_wrapper solution(toSolve.rows());
 
-#ifdef _BLOCKS_USE_OMP
+#ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
 			for (int i = 0; i < blocks.size(); ++i)
@@ -205,7 +204,7 @@ namespace mrock::iEoM::detail {
 			solution.eigenvalues = Eigen::Vector<UnderlyingRealType_t<Number>, Eigen::Dynamic>::Zero(toSolve.rows());
 			solution.eigenvectors.blocks.resize(toSolve.blocks.size());
 			solution.eigenvectors.blocks_begin = toSolve.blocks_begin;
-#ifdef _BLOCKS_USE_OMP
+#ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
 			for (int i = 0; i < toSolve.blocks.size(); ++i)

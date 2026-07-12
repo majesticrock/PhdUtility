@@ -4,7 +4,10 @@
 #include <list>
 #include <string>
 #include <iostream>
+
+#ifndef MROCK_IEOM_NO_NLOHMANN_JSON
 #include <nlohmann/json.hpp>
+#endif
 
 namespace mrock::iEoM {
     /**
@@ -125,6 +128,43 @@ namespace mrock::iEoM {
 	}
 
 	/**
+	 * @brief Stores residual eigenvalue and Ritz vector information.
+	 *
+	 * @tparam RealType Numeric type for the residual data.
+	 * @tparam n Number of residual roots tracked.
+	 */
+	template<class RealType, int n>
+	struct ResidualInformation {
+		std::array<RealType, n> eigenvalues{};
+		std::array<std::vector<RealType>, n> eigenvectors{};
+		std::array<RealType, n> weights{};
+		std::array<RealType, n> residuals{};
+		std::array<int, n> n_ghosts{};
+		std::array<bool, n> converged{};
+
+		ResidualInformation() {
+			// Placeholder filling
+			// Filling with 0 may produces errors if an actual eigenvalue is 0 and one asks whether
+			// The eigenvalue is already contained within ResidualInformation
+			eigenvalues.fill(std::numeric_limits<RealType>::max());
+		}
+	};
+
+	/**
+	 * @brief Stores full diagonalization results for retained eigenvectors.
+	 *
+	 * @tparam RealType Numeric type for eigenvalues and eigenvectors.
+	 * @tparam n Number of retained eigenvectors.
+	 */
+	template<class RealType, int n>
+	struct FullDiagonalizationData {
+		std::vector<RealType> eigenvalues;
+		std::array<std::vector<RealType>, n> first_eigenvectors;
+		std::list<std::vector<RealType>> weights;
+	};
+
+#ifndef MROCK_IEOM_NO_NLOHMANN_JSON
+	/**
 	 * @brief Serialize ResolventData to JSON.
 	 *
 	 * @tparam RealType Numeric type of the resolvent coefficients.
@@ -152,41 +192,16 @@ namespace mrock::iEoM {
 		}
 	}
 
-
-
-	/**
-	 * @brief Stores residual eigenvalue and Ritz vector information.
-	 *
-	 * @tparam RealType Numeric type for the residual data.
-	 * @tparam n_residuals Number of residual roots tracked.
-	 */
-	template<class RealType, int n_residuals>
-	struct ResidualInformation {
-		std::array<RealType, n_residuals> eigenvalues{};
-		std::array<std::vector<RealType>, n_residuals> eigenvectors{};
-		std::array<RealType, n_residuals> weights{};
-		std::array<RealType, n_residuals> residuals{};
-		std::array<int, n_residuals> n_ghosts{};
-		std::array<bool, n_residuals> converged{};
-
-		ResidualInformation() {
-			// Placeholder filling
-			// Filling with 0 may produces errors if an actual eigenvalue is 0 and one asks whether
-			// The eigenvalue is already contained within ResidualInformation
-			eigenvalues.fill(std::numeric_limits<RealType>::max());
-		}
-	};
-
 	/**
 	 * @brief Serialize ResidualInformation to JSON.
 	 *
 	 * @tparam RealType Numeric type of the residual data.
-	 * @tparam n_residuals Number of residual entries.
+	 * @tparam n Number of residual entries.
 	 * @param j JSON output object.
 	 * @param res_data Data to serialize.
 	 */
-	template<class RealType, int n_residuals>
-	void to_json(nlohmann::json& j, const ResidualInformation<RealType, n_residuals>& res_data) {
+	template<class RealType, int n>
+	void to_json(nlohmann::json& j, const ResidualInformation<RealType, n>& res_data) {
 		j = nlohmann::json{
 			{"eigenvalues", res_data.eigenvalues},
 			{"eigenvectors", res_data.eigenvectors},
@@ -196,20 +211,6 @@ namespace mrock::iEoM {
 			{"n_ghosts", res_data.n_ghosts},
 		};
 	}
-
-
-	/**
-	 * @brief Stores full diagonalization results for retained eigenvectors.
-	 *
-	 * @tparam RealType Numeric type for eigenvalues and eigenvectors.
-	 * @tparam n Number of retained eigenvectors.
-	 */
-	template<class RealType, int n>
-	struct FullDiagonalizationData {
-		std::vector<RealType> eigenvalues;
-		std::array<std::vector<RealType>, n> first_eigenvectors;
-		std::list<std::vector<RealType>> weights;
-	};
 
 	/**
 	 * @brief Serialize FullDiagonalizationData to JSON.
@@ -227,4 +228,5 @@ namespace mrock::iEoM {
 			{"weights", res_data.weights},
 		};
 	}
+#endif
 }

@@ -2,6 +2,10 @@
 #include <chrono>
 #include <string>
 
+#ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
+#include <omp.h>
+#endif
+
 #include "detail/UnderlyingRealType.hpp"
 #include "detail/internal_functions.hpp"
 #include "detail/PivotToBlockStructure.hpp"
@@ -34,8 +38,10 @@ namespace mrock::iEoM {
 		std::vector<std::string> resolvent_names;
 		std::vector<Vector> starting_states;
 
+	private:
 		detail::iEoM_internal<RealType> _internal;
-
+		
+	protected:
 		// The following virtual functions must be implemented by the user
 		// If one knows that certain functions are not needed, implementing an empty
 		// function suffices.
@@ -65,6 +71,9 @@ namespace mrock::iEoM {
 		GeneralResolvent(RealType const& sqrt_precision, bool negative_matrix_is_error = true)
 			: _internal(sqrt_precision, negative_matrix_is_error) { };
 
+		/**
+		 * @brief Virtual default destructor.
+		 */
 		virtual ~GeneralResolvent() = default;
 
 		/**
