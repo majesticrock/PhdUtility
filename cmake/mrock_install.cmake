@@ -1,6 +1,7 @@
 include_guard()
 
 macro(mrock_install comp)
+    set(_mrock_install_root "${CMAKE_CURRENT_SOURCE_DIR}")
     set(LIBRARY_DEST lib)
     set(INCLUDE_DEST include)
     set(CONFIG_DEST lib/cmake/${comp})
@@ -10,11 +11,11 @@ macro(mrock_install comp)
         ARCHIVE DESTINATION ${LIBRARY_DEST}
         LIBRARY DESTINATION ${LIBRARY_DEST}
     )
-    install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include/ DESTINATION ${INCLUDE_DEST})
+    install(DIRECTORY "${_mrock_install_root}/include/" DESTINATION ${INCLUDE_DEST})
 
     include(CMakePackageConfigHelpers)
     configure_package_config_file(
-        "${CMAKE_CURRENT_LIST_DIR}/cmake/${comp}-config.cmake.in"
+        "${_mrock_install_root}/cmake/${comp}-config.cmake.in"
         "${CMAKE_CURRENT_BINARY_DIR}/${comp}-config.cmake"
         INSTALL_DESTINATION ${CONFIG_DEST}
     )
