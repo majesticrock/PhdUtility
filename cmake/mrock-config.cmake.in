@@ -2,62 +2,41 @@
 
 include(CMakeFindDependencyMacro)
 
-macro(mrock_load_component comp required)
-    if(NOT TARGET mrock::${comp})
-        set(__mrock_lib mrock_${comp})
-        get_filename_component(__mrock_path "${CMAKE_CURRENT_LIST_DIR}/../${__mrock_lib}/" ABSOLUTE)
+include(
+    "${CMAKE_CURRENT_LIST_DIR}/mrock-targets.cmake"
+)
 
-        if(EXISTS "${__mrock_path}/${__mrock_lib}-config.cmake")
-            include("${__mrock_path}/${__mrock_lib}-config.cmake")
-            add_library(mrock::${comp} ALIAS mrock::${__mrock_lib})
-            list(APPEND mrock_LIBRARIES mrock::${comp})
-        elseif(required)
-            message(FATAL_ERROR "Required component '${comp}' was not found")
-        endif()
+set(mrock_AVAILABLE_COMPONENTS
+    utility
+    symbolic_operators
+    iEoM
+)
 
-        unset(__mrock_lib)
-        unset(__mrock_path)
-    endif()
-endmacro()
-
-# Load header location
-if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/mrock-targets.cmake")
-    include("${CMAKE_CURRENT_LIST_DIR}/mrock-targets.cmake")
-endif()
-
-if(TARGET mrock::mrock)
-    get_target_property(mrock_INCLUDES mrock::mrock INTERFACE_INCLUDE_DIRECTORIES)
-    if(mrock_INCLUDES)
-        list(APPEND mrock_INCLUDE_DIRS ${mrock_INCLUDES})
-    endif()
-endif()
-
-# List of available components
-set(mrock_AVAILABLE_COMPONENTS utility symbolic_operators iEoM)
-
-# Handle COMPONENTS
 if(mrock_FIND_COMPONENTS)
     foreach(component IN LISTS mrock_FIND_COMPONENTS)
         if(component STREQUAL "utility")
-            mrock_load_component(utility REQUIRED)
+
+            find_dependency(mrock_utility)
+
         elseif(component STREQUAL "symbolic_operators")
-            mrock_load_component(symbolic_operators REQUIRED)
+
+            find_dependency(mrock_symbolic_operators)
+
         elseif(component STREQUAL "iEoM")
-            mrock_load_component(iEoM REQUIRED)
+
+            find_dependency(mrock_iEoM)
+
+        else()
+
+            message(
+                FATAL_ERROR
+                "Unknown mrock component: ${component}"
+            )
+
         endif()
     endforeach()
-else()
-    mrock_load_component(utility REQUIRED)
-    mrock_load_component(symbolic_operators REQUIRED)
-    mrock_load_component(iEoM REQUIRED)
 endif()
 
-if(TARGET mrock::mrock)
-    set(mrock_VERSION "@PROJECT_VERSION@")
-    set(mrock_FOUND TRUE)
-    message("-- Found mrock")
-else()
-    message(FATAL_ERROR "Did not find mrock!")
-endif()
+set(mrock_VERSION "@PROJECT_VERSION@")
 
 check_required_components(mrock)

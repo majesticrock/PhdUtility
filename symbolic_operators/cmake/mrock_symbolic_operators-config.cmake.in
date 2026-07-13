@@ -2,13 +2,14 @@
 
 include(CMakeFindDependencyMacro)
 
-# Dependencies required by mrock_symbolic_operators
-find_dependency(Boost REQUIRED COMPONENTS serialization iostreams)
+find_dependency(
+    Boost
+    REQUIRED
+    COMPONENTS
+        serialization
+        iostreams
+)
 
-# Include targets
-if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/mrock_symbolic_operators-targets.cmake")
-    include("${CMAKE_CURRENT_LIST_DIR}/mrock_symbolic_operators-targets.cmake")
-endif()
-
-# Ensure that the target is available
-check_required_components(mrock_symbolic_operators)
+include(
+    "${CMAKE_CURRENT_LIST_DIR}/mrock_symbolic_operators-targets.cmake"
+)

@@ -1,21 +1,25 @@
 cmake_minimum_required(VERSION 3.16)
 
-if(NOT MROCK_VERSION)
-    if(TARGET mrock)
-        message(WARNING "MROCK_VERSION not set!")
-    endif()
-    set(MROCK_VERSION 0.0.0)
-endif()
-project(mrock_symbolic_operators VERSION ${MROCK_VERSION} LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+project(
+    mrock_symbolic_operators
+    VERSION ${MROCK_VERSION}
+    LANGUAGES CXX
+)
 
-# --- Dependencies ---
 include(CMakeFindDependencyMacro)
-find_dependency(Boost REQUIRED COMPONENTS serialization iostreams)
 
-# --- Library Definition
-add_library(mrock_symbolic_operators STATIC
+find_dependency(
+    Boost
+    REQUIRED
+    COMPONENTS
+        serialization
+        iostreams
+)
+
+add_library(
+    mrock_symbolic_operators
+    STATIC
+
     sources/Coefficient.cpp
     sources/IndexWrapper.cpp
     sources/Momentum.cpp
@@ -31,28 +35,34 @@ add_library(mrock_symbolic_operators STATIC
     sources/WickSymmetry.cpp
     sources/WickTerm.cpp
 )
-add_library(mrock::symbolic_operators ALIAS mrock_symbolic_operators)
 
-# Compiler flags
-include(${CMAKE_CURRENT_LIST_DIR}/../cmake/mrock-message.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/../cmake/DefaultCompilerFlags.cmake)
-SET_COMPILER_FLAGS(mrock_symbolic_operators)
-
-target_include_directories(mrock_symbolic_operators PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+add_library(
+    mrock::symbolic_operators
+    ALIAS
+    mrock_symbolic_operators
 )
 
-target_link_libraries(mrock_symbolic_operators INTERFACE 
-    Boost::serialization
-    Boost::iostreams
+target_link_libraries(
+    mrock_symbolic_operators
+    PUBLIC
+        mrock::mrock
+        Boost::serialization
+        Boost::iostreams
 )
 
-include(${CMAKE_CURRENT_LIST_DIR}/../cmake/mrock_install.cmake)
+target_include_directories(
+    mrock_symbolic_operators
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+
+include(
+    ${CMAKE_CURRENT_LIST_DIR}/../cmake/mrock_install.cmake
+)
+
 mrock_install(mrock_symbolic_operators)
 
-if(NOT CLUSTER_BUILD)
-    if(SYM_OP_TESTS)
-        add_subdirectory(tests)
-    endif()
+if(SYM_OP_TESTS)
+    add_subdirectory(tests)
 endif()

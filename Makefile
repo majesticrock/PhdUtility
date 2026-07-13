@@ -1,26 +1,31 @@
 ROOT_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
-BUILD_DIR := $(ROOT_DIR)/build
-INSTALL_PREFIX := $(ROOT_DIR)/install
-CONFIGURE_STAMP := $(BUILD_DIR)/CMakeCache.txt
 
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+BUILD_DIR ?= $(ROOT_DIR)/build
+INSTALL_PREFIX ?=
+
+CONFIGURE_STAMP := $(BUILD_DIR)/CMakeCache.txt
 
 $(CONFIGURE_STAMP):
 	mkdir -p $(BUILD_DIR)
-	cmake -S $(ROOT_DIR) -B $(BUILD_DIR)
+	cmake -S $(ROOT_DIR) -B $(BUILD_DIR) \
+	    $(if $(INSTALL_PREFIX),-DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX))
 
-test: $(CONFIGURE_STAMP)
+build: $(CONFIGURE_STAMP)
 	cmake --build $(BUILD_DIR) --parallel
+
+test: build
 	ctest --test-dir $(BUILD_DIR) --output-on-failure
 
-install: $(CONFIGURE_STAMP)
-	@cmake --install $(BUILD_DIR)
+install: build
+	cmake --install $(BUILD_DIR) \
+	    $(if $(INSTALL_PREFIX),--prefix $(INSTALL_PREFIX))
 
-all:
-	@bash $(ROOT_DIR)/scripts/build_and_test.sh
+all: build
+	ctest --test-dir $(BUILD_DIR) --output-on-failure
+	cmake --install $(BUILD_DIR) \
+	    $(if $(INSTALL_PREFIX),--prefix $(INSTALL_PREFIX))
 
 clean:
-	@rm -rf $(BUILD_DIR) $(INSTALL_PREFIX)
+	rm -rf $(BUILD_DIR) $(INSTALL_PREFIX)
 
-.PHONY: all test install clean
+.PHONY: all build test install clean
