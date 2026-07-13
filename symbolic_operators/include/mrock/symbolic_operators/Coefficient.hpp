@@ -1,9 +1,9 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_COEFFICIENT_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_COEFFICIENT_HPP
 /**
  * @file Coefficient.hpp
  * @brief Defines the Coefficient structure used in symbolic operators.
  */
-
-#pragma once
 
 #include <optional>
 #include <functional>
@@ -274,3 +274,4 @@ namespace mrock::symbolic_operators {
 		return copy;
 	}
 } // namespace mrock::symbolic_operators
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_COEFFICIENT_HPP

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_INTERPOLATION_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_INTERPOLATION_HPP
 #include <array>
 #include <cassert>
 #include <utility>
@@ -53,3 +54,4 @@ namespace mrock::utility::Numerics {
 		return interpolate_lagrange<n>(x, x_arr, y_arr);
 	}
 }
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_INTERPOLATION_HPP

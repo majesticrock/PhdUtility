@@ -1,9 +1,9 @@
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_ERRORFUNCTORS_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_ERRORFUNCTORS_HPP
 /**
  * @file ErrorFunctors.hpp
  * @brief Provides some functors for computing errors
  */
-
-#pragma once
 #include <numeric>
 #include <limits>
 #include <functional>
@@ -112,3 +112,4 @@ namespace mrock::utility::Numerics {
 		}
 	};
 }
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_ERRORFUNCTORS_HPP

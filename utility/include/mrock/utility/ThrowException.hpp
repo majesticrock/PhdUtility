@@ -1,9 +1,9 @@
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_THROWEXCEPTION_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_THROWEXCEPTION_HPP
 /**
  * @file ThrowException.hpp
  * @brief Provides a utility function for throwing exceptions conditionally based on the build configuration.
  */
-
-#pragma once
 #include <utility>
 
 #ifndef NDEBUG
@@ -33,3 +33,4 @@ namespace mrock::utility {
 #endif
     }
 } // namespace mrock::utility
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_THROWEXCEPTION_HPP

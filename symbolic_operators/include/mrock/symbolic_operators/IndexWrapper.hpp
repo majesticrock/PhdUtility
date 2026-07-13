@@ -1,9 +1,10 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_INDEXWRAPPER_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_INDEXWRAPPER_HPP
 /**
  * @file IndexWrapper.hpp
  * @brief Defines the Index enum and the IndexWrapper class for handling indizes.
  */
 
-#pragma once
 #include <iostream>
 #include <string>
 #include <map>
@@ -218,3 +219,4 @@ namespace mrock::symbolic_operators {
 	 */
 	std::ostream& operator<<(std::ostream& os, const IndexWrapper& indizes);
 } // namespace mrock::symbolic_operators
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_INDEXWRAPPER_HPP

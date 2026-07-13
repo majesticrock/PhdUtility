@@ -1,9 +1,9 @@
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_INTEGRATION_ADAPTIVETRAPEZOIDALRULE_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_INTEGRATION_ADAPTIVETRAPEZOIDALRULE_HPP
 /**
  * @file AdaptiveTrapezoidalRule.hpp
  * @brief Provides numerical integration using the adaptive trapezoidal rule.
  */
-
-#pragma once
 
 #include "../../ThrowException.hpp"
 #include "../ErrorFunctors.hpp"
@@ -153,3 +153,4 @@ namespace mrock::utility::Numerics::Integration {
 		}
 	};
 }
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_INTEGRATION_ADAPTIVETRAPEZOIDALRULE_HPP

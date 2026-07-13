@@ -1,3 +1,5 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_CONTAINER_HELPER_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_CONTAINER_HELPER_HPP
 /**
  * @file container_helper.hpp
  * @brief Utility helpers for sequence-like container operations.
@@ -6,7 +8,7 @@
  * contents and appending elements from one container to another, including
  * overloads for move-aware append operations and predicate-based filtering.
  */
-#pragma once
+
 #include <iterator>
 #include <algorithm>
 
@@ -83,3 +85,4 @@ namespace mrock::symbolic_operators {
 		std::copy_if(std::make_move_iterator(source.begin()), std::make_move_iterator(source.end()), std::back_inserter(target), predicate);
 	}
 }
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_CONTAINER_HELPER_HPP

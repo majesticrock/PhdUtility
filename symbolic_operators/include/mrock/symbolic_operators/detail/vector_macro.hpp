@@ -1,3 +1,5 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_VECTOR_MACRO_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_VECTOR_MACRO_HPP
 /**
  * @file vector_macro.hpp
  * @brief This file contains macros for defining wrapper types and member functions for vector-like containers.
@@ -17,8 +19,6 @@
  * };
  * @endcode
  */
-#ifndef _MROCK_VECTOR_MACRO_H
-#define _MROCK_VECTOR_MACRO_H
 
 #include <vector>
 
@@ -125,5 +125,4 @@
 		inline auto insert(iterator pos, input_iterator first, input_iterator last) { \
 			return _vector_name.insert(pos, first, last); \
 		} \
-
-#endif // _MROCK_VECTOR_MACRO_H
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_VECTOR_MACRO_HPP

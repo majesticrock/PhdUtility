@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_CONSTEXPR_POWER_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_CONSTEXPR_POWER_HPP
 namespace mrock::utility {
     template<int exponent, class NumberType, class ResultType = double>
     constexpr ResultType constexpr_power(NumberType base) 
@@ -25,3 +25,4 @@ namespace mrock::utility {
         }
     }
 }
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_CONSTEXPR_POWER_HPP

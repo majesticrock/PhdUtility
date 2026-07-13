@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_BETTER_TO_STRING_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_BETTER_TO_STRING_HPP
 #include <string>
 #include <array>
 #include <charconv>
@@ -31,3 +32,4 @@ namespace mrock::utility {
 			return std::make_error_code(result.ec).message();
 	}
 }
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_BETTER_TO_STRING_HPP

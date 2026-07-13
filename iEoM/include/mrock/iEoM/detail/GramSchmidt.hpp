@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_GRAMSCHMIDT_HPP
+#define MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_GRAMSCHMIDT_HPP
 #include <Eigen/Dense>
 #include <limits>
 #include <vector>
@@ -82,3 +83,4 @@ namespace mrock::iEoM::detail
 		};
 	};
 }
+#endif  // MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_GRAMSCHMIDT_HPP

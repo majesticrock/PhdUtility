@@ -1,9 +1,9 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_ABSTRACTTERM_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_ABSTRACTTERM_HPP
 /**
  * @file AbstractTerm.hpp
  * @brief Defines the AbstractTerm structure, which serves as a parent to both \c Term and \c WickTerm.
  */
-
-#pragma once
 
 #include <vector>
 
@@ -445,3 +445,4 @@ namespace mrock::symbolic_operators {
 	    std::erase_if(sums.momenta.summations, [&](const MomentumSymbol::name_type sum_idx) { return sum_idx == value; });
 	}
 } // namespace mrock::symbolic_operators
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_ABSTRACTTERM_HPP

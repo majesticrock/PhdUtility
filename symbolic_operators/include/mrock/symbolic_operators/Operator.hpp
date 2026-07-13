@@ -1,9 +1,9 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_OPERATOR_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_OPERATOR_HPP
 /**
  * @file Operator.hpp
  * @brief Defines the Operator struct and related functions for symbolic operators.
  */
-
-#pragma once
 
 #include <cassert>
 
@@ -254,3 +254,4 @@ namespace mrock::symbolic_operators {
 		}
 	}
 } // namespace mrock::symbolic_operators
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_OPERATOR_HPP

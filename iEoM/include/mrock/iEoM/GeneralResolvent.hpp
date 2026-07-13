@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_IEOM_INCLUDE_MROCK_IEOM_GENERALRESOLVENT_HPP
+#define MROCK_IEOM_INCLUDE_MROCK_IEOM_GENERALRESOLVENT_HPP
 #include <chrono>
 #include <string>
 
@@ -237,3 +238,4 @@ namespace mrock::iEoM {
 		}
 	};
 }
+#endif  // MROCK_IEOM_INCLUDE_MROCK_IEOM_GENERALRESOLVENT_HPP

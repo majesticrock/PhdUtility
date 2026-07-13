@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_OUTPUTWRITER_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_OUTPUTWRITER_HPP
 #include <iomanip>
 #include <fstream>
 #include <vector>
@@ -112,3 +113,4 @@ namespace mrock::utility {
 		};
 	};
 }
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_OUTPUTWRITER_HPP

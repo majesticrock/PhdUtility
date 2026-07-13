@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_OUTPUTCONVENIENCE_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_OUTPUTCONVENIENCE_HPP
 #include "OutputWriter.hpp"
 #include <iostream>
 
@@ -202,3 +203,4 @@ namespace mrock::utility {
 	}
 #endif // End not using boost
 }
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_OUTPUTCONVENIENCE_HPP

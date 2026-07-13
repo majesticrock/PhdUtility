@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_CONSTEXPR_POWER_HPP
+#define MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_CONSTEXPR_POWER_HPP
 namespace mrock::iEoM::detail {
     template<int exponent, class NumberType, class ResultType = double>
     constexpr ResultType constexpr_power(NumberType base) 
@@ -25,3 +25,4 @@ namespace mrock::iEoM::detail {
         }
     }
 }
+#endif  // MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_CONSTEXPR_POWER_HPP

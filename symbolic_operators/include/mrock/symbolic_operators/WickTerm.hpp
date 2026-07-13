@@ -1,9 +1,10 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICKTERM_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICKTERM_HPP
 /**
  * @file WickTerm.hpp
  * @brief Defines the WickTerm class and related functions.
  */
 
-#pragma once
 #include <algorithm>
 
 #include "Term.hpp"
@@ -518,3 +519,4 @@ namespace mrock::symbolic_operators {
 		return !(lhs == rhs);
 	}
 } // namespace mrock::symbolic_operators
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICKTERM_HPP

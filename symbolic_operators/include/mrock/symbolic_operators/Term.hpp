@@ -1,9 +1,9 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_TERM_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_TERM_HPP
 /**
  * @file Term.hpp
  * @brief Defines the Term class and related functions for symbolic operators.
  */
-
-#pragma once
 
 #include "AbstractTerm.hpp"
 #include <algorithm>
@@ -530,3 +530,4 @@ namespace mrock::symbolic_operators {
 		}
 	}
 } // namespace mrock::symbolic_operators
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_TERM_HPP

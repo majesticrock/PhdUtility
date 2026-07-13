@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_HYPERGEOMETRIC_2F1_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_HYPERGEOMETRIC_2F1_HPP
 #include <type_traits>
 #include <cmath>
 #include <stdexcept>
@@ -126,3 +127,4 @@ namespace mrock::utility::Numerics {
         return hypergeometric_2F1(a, b, c, std::complex<z_t>{z, z_t{}}, tol);
     }
 }
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_HYPERGEOMETRIC_2F1_HPP

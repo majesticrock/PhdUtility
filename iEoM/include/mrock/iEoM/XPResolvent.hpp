@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_IEOM_INCLUDE_MROCK_IEOM_XPRESOLVENT_HPP
+#define MROCK_IEOM_INCLUDE_MROCK_IEOM_XPRESOLVENT_HPP
 #include <Eigen/Dense>
 #include <array>
 #include <list>
@@ -751,3 +752,4 @@ namespace mrock::iEoM {
 		}
 	};
 }
+#endif  // MROCK_IEOM_INCLUDE_MROCK_IEOM_XPRESOLVENT_HPP

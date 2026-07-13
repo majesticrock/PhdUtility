@@ -1,9 +1,10 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICKOPERATOR_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICKOPERATOR_HPP
 /**
  * @file WickOperator.hpp
  * @brief Defines the WickOperator structure used in symbolic operators.
  */
 
-#pragma once
 #include <iostream>
 #include <vector>
 #include "Momentum.hpp"
@@ -136,3 +137,4 @@ namespace mrock::symbolic_operators {
 		momentum.remove_contribution(value);
 	}
 } // namespace mrock::symbolic_operators
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICKOPERATOR_HPP

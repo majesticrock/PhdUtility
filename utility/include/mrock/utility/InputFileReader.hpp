@@ -1,6 +1,5 @@
-#ifndef _InputFileReader_hpp_
-#define _InputFileReader_hpp_
-
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_INPUTFILEREADER_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_INPUTFILEREADER_HPP
 #include <fstream>
 #include <vector>
 #include <string>
@@ -225,4 +224,4 @@ namespace mrock::utility {
 		};
 	};
 }
-#endif
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_INPUTFILEREADER_HPP

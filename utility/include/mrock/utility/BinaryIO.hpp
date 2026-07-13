@@ -1,3 +1,5 @@
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_BINARYIO_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_BINARYIO_HPP
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -60,3 +62,4 @@ namespace mrock::utility::BinaryIO {
 		return writer;
 	};
 }
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_BINARYIO_HPP

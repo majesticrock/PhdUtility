@@ -1,9 +1,10 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICKSYMMETRY_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICKSYMMETRY_HPP
 /**
  * @file WickSymmetry.hpp
  * @brief Defines symmetries for Wick terms.
  */
 
-#pragma once
 #include "OperatorType.hpp"
 #include "WickTerm.hpp"
 #include <type_traits>
@@ -102,3 +103,4 @@ namespace mrock::symbolic_operators {
 	};
 
 } // namespace mrock::symbolic_operators
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICKSYMMETRY_HPP

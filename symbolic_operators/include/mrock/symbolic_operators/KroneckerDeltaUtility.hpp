@@ -1,9 +1,10 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_KRONECKERDELTAUTILITY_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_KRONECKERDELTAUTILITY_HPP
 /**
  * @file KroneckerDeltaUtility.hpp
  * @brief Utility functions for manipulating KroneckerDelta objects.
  */
 
-#pragma once
 #include "KroneckerDelta.hpp"
 #include "Momentum.hpp"
 #include "IndexWrapper.hpp"
@@ -115,3 +116,4 @@ namespace mrock::symbolic_operators {
 		}
 	}
 } // namespace mrock::symbolic_operators
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_KRONECKERDELTAUTILITY_HPP

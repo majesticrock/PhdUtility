@@ -1,10 +1,9 @@
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_SELFCONSISTENCY_ITERATIVESOLVER_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_SELFCONSISTENCY_ITERATIVESOLVER_HPP
 /**
  * @file IterativeSolver.hpp
  * @brief Provides the IterativeSolver template class and related functions for self-consistency computations.
  */
-
-#ifndef _ITERATIVE_SOLVER_HPP
-#define _ITERATIVE_SOLVER_HPP
 
 #include <iostream>
 #include <iomanip>
@@ -238,4 +237,4 @@ namespace mrock::utility::Selfconsistency {
 		return IterativeSolver<DataType, Model, SelfconsistencyAttributes, WarnNoConvergence>(model_ptr, attribute_ptr, precision);
 	}
 }
-#endif // _ITERATIVE_SOLVER_HPP
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_SELFCONSISTENCY_ITERATIVESOLVER_HPP

@@ -20,6 +20,9 @@ target_include_directories(mrock_iEoM INTERFACE
     $<INSTALL_INTERFACE:include>
 )
 
+find_package(OpenMP REQUIRED)
+target_link_libraries(${TARGET} PRIVATE OpenMP::OpenMP_CXX)
+
 include(${CMAKE_CURRENT_LIST_DIR}/../cmake/mrock_install.cmake)
 mrock_install(mrock_iEoM)
 

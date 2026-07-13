@@ -1,3 +1,5 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_FRACTIONAL_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_FRACTIONAL_HPP
 /**
  * @file Fractional.hpp
  * @brief A simple compile-time rational number wrapper for integer types.
@@ -7,7 +9,6 @@
  * It supports arithmetic operations, comparisons, conversion to built-in
  * numeric types, and ostream formatting.
  */
-#pragma once
 
 #include <numeric>
 #include <type_traits>
@@ -431,3 +432,4 @@ namespace mrock::symbolic_operators {
      */
     typedef Fractional<int> IntFractional;
 }
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_FRACTIONAL_HPP

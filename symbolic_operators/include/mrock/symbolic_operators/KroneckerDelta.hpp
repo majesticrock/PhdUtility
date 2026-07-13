@@ -1,9 +1,10 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_KRONECKERDELTA_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_KRONECKERDELTA_HPP
 /**
  * @file KroneckerDelta.hpp
  * @brief Defines the KroneckerDelta structure used in symbolic operators.
  */
 
-#pragma once
 #include <utility>
 #include <iostream>
 #include "detail/defines_arithmetic_operators.hpp"
@@ -175,3 +176,4 @@ namespace mrock::symbolic_operators {
 		return os;
 	};
 } // namespace mrock::symbolic_operators
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_KRONECKERDELTA_HPP

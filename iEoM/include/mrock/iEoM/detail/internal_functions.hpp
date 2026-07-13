@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_INTERNAL_FUNCTIONS_HPP
+#define MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_INTERNAL_FUNCTIONS_HPP
 #include <Eigen/Dense>
 #include <iostream>
 #include <charconv>
@@ -135,3 +136,4 @@ namespace detail {
 	};
 } // namespace detail 
 } // namesapce mrock::iEoM
+#endif  // MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_INTERNAL_FUNCTIONS_HPP

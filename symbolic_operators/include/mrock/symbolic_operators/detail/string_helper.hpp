@@ -1,3 +1,5 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_STRING_HELPER_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_STRING_HELPER_HPP
 /**
  * @file string_helper.hpp
  * @brief Small string utility helpers used by the symbolic operators library.
@@ -6,7 +8,6 @@
  * escape characters, finding unescaped symbols, and extracting comma-separated
  * elements enclosed by delimiters.
  */
-#pragma once
 
 #include <string>
 #include <vector>
@@ -138,3 +139,4 @@ namespace mrock::symbolic_operators {
 		return elements;
 	}
 }
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_STRING_HELPER_HPP

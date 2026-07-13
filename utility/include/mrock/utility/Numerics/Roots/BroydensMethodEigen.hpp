@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_ROOTS_BROYDENSMETHODEIGEN_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_ROOTS_BROYDENSMETHODEIGEN_HPP
 #include <Eigen/Dense>
 #include <complex>
 #include <type_traits>
@@ -114,3 +115,4 @@ namespace mrock::utility::Numerics::Roots {
 		}
 	};
 }
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_ROOTS_BROYDENSMETHODEIGEN_HPP

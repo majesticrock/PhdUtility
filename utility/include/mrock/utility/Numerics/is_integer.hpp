@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_IS_INTEGER_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_IS_INTEGER_HPP
 #include <cmath>
 
 namespace mrock::utility::Numerics {
@@ -8,3 +9,4 @@ namespace mrock::utility::Numerics {
         return abs(val - (T)((int)val)) < tol || abs(val - (T)((int)val + 1)) < tol;
     }
 }
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_IS_INTEGER_HPP

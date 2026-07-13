@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_INTEGRATION_CAUCHYPRINCIPALVALUE_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_INTEGRATION_CAUCHYPRINCIPALVALUE_HPP
 #include <array>
 #include <limits>
 #include <boost/math/quadrature/gauss.hpp>
@@ -71,3 +72,4 @@ namespace mrock::utility::Numerics::Integration {
         }
     };
 }
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_INTEGRATION_CAUCHYPRINCIPALVALUE_HPP

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_INFO_TO_JSON_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_INFO_TO_JSON_HPP
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -19,3 +20,4 @@ namespace mrock::utility {
         };
     }
 }
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_INFO_TO_JSON_HPP

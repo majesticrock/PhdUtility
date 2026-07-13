@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_XP_INTERNAL_HPP
+#define MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_XP_INTERNAL_HPP
 #include <type_traits>
 #include "../XPStartingState.hpp"
 
@@ -140,3 +141,4 @@ namespace mrock::iEoM::detail {
     template<class RealType>
     using ConstAmplitudeIterator = StateIteratorImpl<RealType, false, true>;
 }
+#endif  // MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_XP_INTERNAL_HPP

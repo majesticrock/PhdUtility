@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_PIVOTTOBLOCKSTRUCTURE_HPP
+#define MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_PIVOTTOBLOCKSTRUCTURE_HPP
 #include <Eigen/Dense>
 
 #include "UnderlyingRealType.hpp"
@@ -221,3 +222,4 @@ namespace mrock::iEoM::detail {
 	template <class Number> 
 	using blocked_matrix_wrapper = matrix_wrapper<BlockDiagonalMatrix<detail::MatrixN<Number>>, UnderlyingRealType_t<Number>, Eigen::Vector<UnderlyingRealType_t<Number>, Eigen::Dynamic>>;
 }
+#endif  // MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_PIVOTTOBLOCKSTRUCTURE_HPP

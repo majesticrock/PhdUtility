@@ -1,3 +1,5 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_SYMBOLICSUM_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_SYMBOLICSUM_HPP
 /**
  * @file SymbolicSum.hpp
  * @brief Defines the SymbolicSum template struct for symbolic summation operations.
@@ -7,7 +9,6 @@
  * constructors, serialization support, and comparison operators.
  */
 
-#pragma once
 #include <ostream>
 #include "detail/vector_macro.hpp"
 
@@ -114,3 +115,4 @@ namespace mrock::symbolic_operators {
 		return os;
 	}
 } // namespace mrock::symbolic_operators
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_SYMBOLICSUM_HPP

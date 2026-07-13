@@ -1,9 +1,9 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_SUMCONTAINER_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_SUMCONTAINER_HPP
 /**
  * @file SumContainer.hpp
  * @brief Defines the SumContainer structure and related operators for symbolic operations.
  */
-
-#pragma once
 
 #include "SymbolicSum.hpp"
 #include "detail/container_helper.hpp"
@@ -140,3 +140,4 @@ namespace mrock::symbolic_operators {
 		return !spins.empty();
 	}
 } // namespace mrock::symbolic_operators
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_SUMCONTAINER_HPP

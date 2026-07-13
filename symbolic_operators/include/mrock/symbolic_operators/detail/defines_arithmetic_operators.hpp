@@ -1,3 +1,5 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_DEFINES_ARITHMETIC_OPERATORS_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_DEFINES_ARITHMETIC_OPERATORS_HPP
 /**
  * @file defines_arithmetic_operators.hpp
  * @brief Detects whether a type defines arithmetic assignment operators.
@@ -6,7 +8,7 @@
  * supports `operator+=`, `operator-=`, `operator*=`, and `operator/=` with
  * values of its own type.
  */
-#pragma once
+
 #include <utility>
 #include <type_traits>
 
@@ -165,3 +167,4 @@ void test() {
 	std::cout << "enum: " << is_linearly_combinable<enum_test>::value << std::endl;
 }
 */
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_DEFINES_ARITHMETIC_OPERATORS_HPP

@@ -1,9 +1,10 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_OPERATORTYPE_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_OPERATORTYPE_HPP
 /**
  * @file OperatorType.hpp
  * @brief Defines the OperatorType enum and related functions for symbolic operators.
  */
 
-#pragma once
 #include <iostream>
 #include <map>
 
@@ -48,3 +49,4 @@ namespace mrock::symbolic_operators {
 	 */
 	std::ostream& operator<<(std::ostream& os, const OperatorType op);
 } // namespace mrock::symbolic_operators
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_OPERATORTYPE_HPP

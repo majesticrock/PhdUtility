@@ -1,10 +1,9 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICK_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICK_HPP
 /**
  * @file Wick.hpp
  * @brief Functions for applying Wick's theorem and manipulating Wick terms.
  */
-
-#ifndef _WICK
-#define _WICK
 
 #include "WickTerm.hpp"
 #include "WickSymmetry.hpp"
@@ -46,5 +45,4 @@ namespace mrock::symbolic_operators {
 	 */
 	void clean_wicks(WickTermCollector& terms, const std::vector<std::unique_ptr<WickSymmetry>>& symmetries = std::vector<std::unique_ptr<WickSymmetry>>{});
 } // namespace mrock::symbolic_operators
-
-#endif
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICK_HPP

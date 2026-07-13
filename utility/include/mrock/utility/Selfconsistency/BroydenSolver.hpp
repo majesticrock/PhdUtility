@@ -1,10 +1,9 @@
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_SELFCONSISTENCY_BROYDENSOLVER_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_SELFCONSISTENCY_BROYDENSOLVER_HPP
 /**
  * @file BroydenSolver.hpp
  * @brief Provides the BroydenSolver template class for self-consistency computations using Broyden's method.
  */
-
-#ifndef _BROYDEN_SOLVER_HPP
-#define _BROYDEN_SOLVER_HPP
 
 #include "IterativeSolver.hpp"
 #include "../Numerics/Roots/BroydensMethodEigen.hpp"
@@ -157,4 +156,4 @@ namespace mrock::utility::Selfconsistency {
 		return BroydenSolver<DataType, Model, SelfconsistencyAttributes, WarnNoConvergence>(model_ptr, attribute_ptr, MaxPreBroydenIterations, preBroydenPrecision);
 	}
 }
-#endif // _BROYDEN_SOLVER_HPP
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_SELFCONSISTENCY_BROYDENSOLVER_HPP

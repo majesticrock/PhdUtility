@@ -1,9 +1,10 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_TERMLOADER_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_TERMLOADER_HPP
 /**
  * @file TermLoader.hpp
  * @brief Header file for the TermLoader structure in the symbolic_operators namespace.
  */
 
-#pragma once
 #include "WickTerm.hpp"
 #include <vector>
 #include <string>
@@ -30,3 +31,4 @@ namespace mrock::symbolic_operators {
 	};
 
 } // namespace mrock::symbolic_operators
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_TERMLOADER_HPP

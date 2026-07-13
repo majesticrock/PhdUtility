@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_IEOM_INCLUDE_MROCK_IEOM_RESOLVENTDATATYPES_HPP
+#define MROCK_IEOM_INCLUDE_MROCK_IEOM_RESOLVENTDATATYPES_HPP
 #include <vector>
 #include <array>
 #include <list>
@@ -230,3 +231,4 @@ namespace mrock::iEoM {
 	}
 #endif
 }
+#endif  // MROCK_IEOM_INCLUDE_MROCK_IEOM_RESOLVENTDATATYPES_HPP

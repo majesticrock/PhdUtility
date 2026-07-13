@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_BLOCKDIAGONALMATRIX_HPP
+#define MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_BLOCKDIAGONALMATRIX_HPP
 #include <Eigen/Dense>
 #include <vector>
 #include <type_traits>
@@ -625,3 +626,4 @@ namespace mrock::iEoM::detail {
         return BlockDiagonalMatrix<multiplication_result<_matrix_base, diagonal_segment_type<__matrix__>>>(std::move(new_blocks), lhs.blocks_begin);
     }
 }
+#endif  // MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_BLOCKDIAGONALMATRIX_HPP

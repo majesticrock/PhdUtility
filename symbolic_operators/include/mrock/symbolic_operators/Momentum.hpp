@@ -1,9 +1,9 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_MOMENTUM_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_MOMENTUM_HPP
 /**
  * @file Momentum.hpp
  * @brief Defines the Momentum structure and related operations for symbolic manipulation of momentum symbols.
  */
-
-#pragma once
 
 #include <algorithm>
 #include <vector>
@@ -364,3 +364,4 @@ namespace mrock::symbolic_operators {
 		return !(*this == rhs);
 	}
 } // namespace mrock::symbolic_operators
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_MOMENTUM_HPP

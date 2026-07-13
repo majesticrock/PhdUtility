@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_SYMBOLIC_OPERATORS_TESTS_COMPARE_TEST_HPP
+#define MROCK_SYMBOLIC_OPERATORS_TESTS_COMPARE_TEST_HPP
 /**
  * @file compare_test.hpp
  * @brief Helper utilities for testing symbolic-operator commutators and Wick results.
@@ -117,3 +118,4 @@ namespace sym_op_test {
         }
     };
 }
+#endif  // MROCK_SYMBOLIC_OPERATORS_TESTS_COMPARE_TEST_HPP

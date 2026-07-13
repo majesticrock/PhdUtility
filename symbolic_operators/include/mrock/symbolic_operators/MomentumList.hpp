@@ -1,9 +1,10 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_MOMENTUMLIST_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_MOMENTUMLIST_HPP
 /**
  * @file MomentumList.hpp
  * @brief Defines the MomentumList class for handling a list of Momentum objects.
  */
 
-#pragma once
 #include "Momentum.hpp"
 #include "detail/vector_macro.hpp"
 #include <algorithm>
@@ -131,3 +132,4 @@ namespace mrock::symbolic_operators {
 		std::sort(this->begin(), this->end());
 	}
 } // namespace mrock::symbolic_operators
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_MOMENTUMLIST_HPP

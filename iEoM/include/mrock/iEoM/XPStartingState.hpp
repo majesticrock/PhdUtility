@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_IEOM_INCLUDE_MROCK_IEOM_XPSTARTINGSTATE_HPP
+#define MROCK_IEOM_INCLUDE_MROCK_IEOM_XPSTARTINGSTATE_HPP
 #include <Eigen/Dense>
 #include <string>
 #include <numeric>
@@ -110,3 +111,4 @@ namespace mrock::iEoM {
 	    });
 	}
 } // namespace mrock::iEoM
+#endif  // MROCK_IEOM_INCLUDE_MROCK_IEOM_XPSTARTINGSTATE_HPP

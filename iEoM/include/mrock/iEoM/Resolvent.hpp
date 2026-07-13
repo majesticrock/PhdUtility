@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_IEOM_INCLUDE_MROCK_IEOM_RESOLVENT_HPP
+#define MROCK_IEOM_INCLUDE_MROCK_IEOM_RESOLVENT_HPP
 // Use (void) to silence unused warnings.
 #define assertm(exp, msg) assert(((void)msg, exp))
 
@@ -509,3 +510,4 @@ namespace mrock::iEoM {
 		}
 	};
 }
+#endif  // MROCK_IEOM_INCLUDE_MROCK_IEOM_RESOLVENT_HPP

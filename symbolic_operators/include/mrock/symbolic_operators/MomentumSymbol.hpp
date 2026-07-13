@@ -1,10 +1,9 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_MOMENTUMSYMBOL_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_MOMENTUMSYMBOL_HPP
 /**
  * @file MomentumSymbol.hpp
  * @brief Defines the MomentumSymbol structure and related operators for symbolic operations.
  */
-
-#ifndef _MROCK_SYM_OP_MOMENTUM_SYMBOL_HPP_
-#define _MROCK_SYM_OP_MOMENTUM_SYMBOL_HPP_
 
 #include <iostream>
 #include <string>
@@ -224,5 +223,4 @@ namespace mrock::symbolic_operators {
 		return (_vector_wrap(sym) + str);
 	}
 } // namespace mrock::symbolic_operators
-
-#endif // _MROCK_SYM_OP_MOMENTUM_SYMBOL_HPP_
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_MOMENTUMSYMBOL_HPP

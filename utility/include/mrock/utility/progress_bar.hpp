@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_PROGRESS_BAR_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_PROGRESS_BAR_HPP
 #include <iostream>
 #include <vector>
 
@@ -46,3 +46,4 @@ namespace mrock::utility {
         std::cout.flush();
     }
 }
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_PROGRESS_BAR_HPP

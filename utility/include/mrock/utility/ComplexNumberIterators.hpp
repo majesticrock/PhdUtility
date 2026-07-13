@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_COMPLEXNUMBERITERATORS_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_COMPLEXNUMBERITERATORS_HPP
 #include <complex>
 #include <iterator>
 
@@ -123,3 +124,4 @@ namespace mrock::utility {
         return ImagPartIterator<typename Vector::value_type::value_type>::End(vec);
     }
 }
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_COMPLEXNUMBERITERATORS_HPP

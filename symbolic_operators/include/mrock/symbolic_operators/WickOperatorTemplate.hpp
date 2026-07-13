@@ -1,9 +1,9 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICKOPERATORTEMPLATE_HPP
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICKOPERATORTEMPLATE_HPP
 /**
  * @file WickOperatorTemplate.hpp
  * @brief Defines templates for creating  Wick operators from a set of normal operators.
  */
-
-#pragma once
 
 #include "Operator.hpp"
 #include "WickOperator.hpp"
@@ -222,3 +222,4 @@ namespace mrock::symbolic_operators {
 		operation_on_each([&index](SingleResult& res) { res.index_deltas.push_back(index); });
 	}
 } // namespace mrock::symbolic_operators
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICKOPERATORTEMPLATE_HPP

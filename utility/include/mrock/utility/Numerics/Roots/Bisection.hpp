@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_ROOTS_BISECTION_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_ROOTS_BISECTION_HPP
 #include <utility>
 #include <iostream>
 #include <cmath>
@@ -50,3 +51,4 @@ namespace mrock::utility::Numerics::Roots {
         return (begin * f_upper - end * f_lower) / (f_upper - f_lower);
     }
 }
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_ROOTS_BISECTION_HPP

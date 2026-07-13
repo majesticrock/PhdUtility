@@ -16,7 +16,7 @@ set(Boost_DIR /usr/lib64/openmpi/lib/cmake/Boost-1.78.0)# the cluster needs help
 # --- Dependencies ---
 include(CMakeFindDependencyMacro)
 find_dependency(ZLIB REQUIRED)
-find_dependency(Boost REQUIRED COMPONENTS serialization iostreams)
+find_dependency(Boost REQUIRED COMPONENTS iostreams)
 
 # --- Library Definition ---
 add_library(mrock_utility INTERFACE)
@@ -29,7 +29,6 @@ target_include_directories(mrock_utility INTERFACE
 
 target_link_libraries(mrock_utility INTERFACE 
     ZLIB::ZLIB 
-    Boost::serialization
     Boost::iostreams
 )
 
