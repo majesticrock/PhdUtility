@@ -3,11 +3,7 @@ project(iEoM_tests)
 
 function(SET_COMPILER_FLAGS TARGET)
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 11.0)
-            message(FATAL_ERROR "GCC version ${CMAKE_CXX_COMPILER_VERSION} is not supported. GCC 11.0 or newer is required for C++20 support.")
-        endif()
-
-        target_compile_options(${TARGET} PRIVATE -Wall -Wno-sign-compare -fopenmp -march=native -O3)
+        target_compile_options(${TARGET} PRIVATE -Wall -Wno-sign-compare -march=native -O3)
     else()
         message(FATAL_ERROR "Unsupported compiler ${CMAKE_CXX_COMPILER_ID}. Only GCC is supported.")
     endif()
@@ -18,17 +14,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS OFF)
 include_directories("~/usr/local/include")
 
-find_package(OpenMP REQUIRED)
-
 add_executable(block_matrix_test block_matrix.cpp)
 SET_COMPILER_FLAGS(block_matrix_test)
 target_include_directories(block_matrix_test PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../iEoM/include)
-target_link_libraries(block_matrix_test PRIVATE OpenMP::OpenMP_CXX)
 
 add_executable(ieom_bcs_test ieom_bcs.cpp)
 SET_COMPILER_FLAGS(ieom_bcs_test)
 target_include_directories(ieom_bcs_test PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../../iEoM/include)
-target_link_libraries(ieom_bcs_test PRIVATE OpenMP::OpenMP_CXX)
 
 # Enable CTest
 enable_testing()

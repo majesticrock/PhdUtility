@@ -1,13 +1,18 @@
 #ifndef MROCK_IEOM_INCLUDE_MROCK_IEOM_XPRESOLVENT_HPP
 #define MROCK_IEOM_INCLUDE_MROCK_IEOM_XPRESOLVENT_HPP
-#include <Eigen/Dense>
-#include <array>
-#include <list>
-#include <chrono>
+
+#ifndef _OPENMP
+#define MROCK_IEOM_DO_NOT_PARALLELIZE
+#endif
 
 #ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 #include <omp.h>
 #endif
+
+#include <Eigen/Dense>
+#include <array>
+#include <list>
+#include <chrono>
 
 #include "detail/internal_functions.hpp"
 #include "detail/xp_internal.hpp"
@@ -216,8 +221,10 @@ namespace mrock::iEoM {
 			print_duration("Time for filling of M and N: ");
 			std::array<detail::matrix_wrapper<Matrix>, 2> k_solutions;
 
+#ifdef _OPENMP
 			omp_set_nested(2);
 			Eigen::initParallel();
+#endif
 
 #ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 #pragma omp parallel sections
@@ -385,7 +392,7 @@ namespace mrock::iEoM {
 		 * @note The precision threshold is obtained from _internal._precision.
 		 */
 		size_t get_number_of_zero_eigenvalues(const Eigen::SelfAdjointEigenSolver<Matrix>& solver) const noexcept {
-			size_t n_zero = 0;
+			size_t n_zero{};
 			while (n_zero < solver.eigenvalues().size() && solver.eigenvalues()(n_zero) < _internal._precision) {
 				++n_zero;
 			}
@@ -694,6 +701,8 @@ namespace mrock::iEoM {
 		/**
 		* @brief Performs a full diagonalization of the dynamical matrices.
 		* Saves the first <n_residuals> eigenvectors, all eigenvalues and the weights for each starting state.
+		* NOTE: This algorithm keeps only one eigenvalue (and its corresponding weight) from the nullspace of the solver matrix.
+		* The nullspace is determined via the precision given to the constructor, see get_number_of_zero_eigenvalues().
 		* @return A pair of FullDiagData objects, the first for the phase states, the second for the amplitude states.
 		*/
 		template<int CheckHermitian = -1>

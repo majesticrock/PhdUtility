@@ -181,12 +181,13 @@ std::array<std::string, N_lanczos> save_data(const std::vector<BCSTester::Resolv
 
 std::array<std::string, 3> save_data(const PhaseTester::FullDiagData& data, std::ofstream& out)
 {
-    out << std::scientific << std::setprecision(10);
     std::array<std::string, 3> lines;
+    // The complex phase of an eigenvector is arbitrary, so we can fix the gauge here
+    const double flip_sign = data.first_eigenvectors[0][0] < 0. ? -1. : 1.;
     for (int i=0; i < N_k; ++i) {
         lines[0] += std::to_string(data.eigenvalues[i]) + " ";
         lines[1] += std::to_string(data.weights.front()[i]) + " ";
-        lines[2] += std::to_string(data.first_eigenvectors[0][i]) + " ";
+        lines[2] += std::to_string(flip_sign * data.first_eigenvectors[0][i]) + " ";
     }
 
     for (auto& line : lines) {
@@ -201,9 +202,7 @@ int main() {
     // The chosen parametrization maps k -> eps(k).
     for (int k=0; k<N_k; ++k) {
         double kx = 2 * static_cast<double>(k) / static_cast<double>(N_k);
-        epsilons[k] += -2. * (
-              std::cos(std::numbers::pi * (1. - kx)) 
-        );
+        epsilons[k] += -2. * std::cos(std::numbers::pi * (1. - kx));
     }
 
     // Define the BCS self-consistency map: given an old gap value
@@ -239,10 +238,10 @@ int main() {
         const auto lines = save_data(result, filestream);
         filestream.close();
 
-        //if (lines != comparison_result) {
-        //    std::cerr << "Result does not match the comparison!" << std::endl;
-        //    return 1;
-        //}
+        if (lines != comparison_result) {
+            std::cerr << "Result does not match the comparison!" << std::endl;
+            return 1;
+        }
     }
     else {
         std::cerr << "ieom_bcs.cpp could not open output filestream" << std::endl;

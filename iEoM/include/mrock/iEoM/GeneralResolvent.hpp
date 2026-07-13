@@ -1,11 +1,16 @@
 #ifndef MROCK_IEOM_INCLUDE_MROCK_IEOM_GENERALRESOLVENT_HPP
 #define MROCK_IEOM_INCLUDE_MROCK_IEOM_GENERALRESOLVENT_HPP
-#include <chrono>
-#include <string>
+
+#ifndef _OPENMP
+#define MROCK_IEOM_DO_NOT_PARALLELIZE
+#endif
 
 #ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 #include <omp.h>
 #endif
+
+#include <chrono>
+#include <string>
 
 #include "detail/UnderlyingRealType.hpp"
 #include "detail/internal_functions.hpp"

@@ -7,7 +7,9 @@
 #include "UnderlyingRealType.hpp"
 
 #ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 #endif
 
 namespace mrock::iEoM::detail {

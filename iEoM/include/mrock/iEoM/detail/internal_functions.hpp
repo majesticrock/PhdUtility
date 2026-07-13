@@ -63,9 +63,9 @@ namespace detail {
 
 		constexpr iEoM_internal() = default;
 		constexpr iEoM_internal(RealType const& sqrt_precision)
-			: _sqrt_precision(sqrt_precision), _precision(sqrt_precision* sqrt_precision) {};
+			: _sqrt_precision(sqrt_precision), _precision(RealType{2} * sqrt_precision* sqrt_precision) {};
 		constexpr iEoM_internal(RealType const& sqrt_precision, bool negative_matrix_is_error)
-			: _sqrt_precision(sqrt_precision), _precision(sqrt_precision* sqrt_precision), _negative_matrix_is_error(negative_matrix_is_error) {};
+			: _sqrt_precision(sqrt_precision), _precision(RealType{2} * sqrt_precision* sqrt_precision), _negative_matrix_is_error(negative_matrix_is_error) {};
 
 		/**
 		 * @brief Check whether the vector contains negative eigenvalues.
