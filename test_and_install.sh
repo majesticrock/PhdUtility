@@ -93,18 +93,53 @@ if [[ "$DO_INSTALL" == ON ]]; then
 fi
 
 ###############################################################################
+# Extra include directories
+###############################################################################
+
+MROCK_EXTRA_INCLUDE_DIRS=""
+
+if ask_yes_no "Add custom include directories?" N; then
+
+    echo "Enter include directories one by one."
+    echo "Leave empty to finish."
+
+    while true; do
+        read -rp "Include directory: " INCLUDE_DIR
+
+        if [[ -z "${INCLUDE_DIR}" ]]; then
+            break
+        fi
+
+        if [[ -n "${MROCK_EXTRA_INCLUDE_DIRS}" ]]; then
+            MROCK_EXTRA_INCLUDE_DIRS="${MROCK_EXTRA_INCLUDE_DIRS};${INCLUDE_DIR}"
+        else
+            MROCK_EXTRA_INCLUDE_DIRS="${INCLUDE_DIR}"
+        fi
+    done
+fi
+
+###############################################################################
 # Configure
 ###############################################################################
 
 echo
 echo "Configuring..."
 
-cmake \
-    -S "${ROOT_DIR}" \
-    -B "${BUILD_DIR}" \
-    -DMROCK_BUILD_UTILITY="${BUILD_UTILITY}" \
-    -DMROCK_BUILD_SYMBOLIC_OPERATORS="${BUILD_SYMBOLIC_OPERATORS}" \
+CMAKE_ARGS=(
+    -S "${ROOT_DIR}"
+    -B "${BUILD_DIR}"
+    -DMROCK_BUILD_UTILITY="${BUILD_UTILITY}"
+    -DMROCK_BUILD_SYMBOLIC_OPERATORS="${BUILD_SYMBOLIC_OPERATORS}"
     -DMROCK_BUILD_IEOM="${BUILD_IEOM}"
+)
+
+if [[ -n "${MROCK_EXTRA_INCLUDE_DIRS}" ]]; then
+    CMAKE_ARGS+=(
+        "-DMROCK_EXTRA_INCLUDE_DIRS=${MROCK_EXTRA_INCLUDE_DIRS}"
+    )
+fi
+
+cmake "${CMAKE_ARGS[@]}"
 
 ###############################################################################
 # Build

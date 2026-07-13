@@ -19,6 +19,10 @@ option(MROCK_ENABLE_NATIVE_ARCH
     OFF
 )
 
+set(MROCK_EXTRA_INCLUDE_DIRS "" CACHE STRING
+    "Additional include directories for mrock"
+)
+
 option(MROCK_BUILD_UTILITY
     "Build the utility component"
     ON
@@ -44,6 +48,7 @@ add_library(mrock::mrock ALIAS mrock)
 target_include_directories(mrock INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    ${MROCK_EXTRA_INCLUDE_DIRS}
 )
 
 #
