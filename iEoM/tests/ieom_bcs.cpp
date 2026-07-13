@@ -36,10 +36,15 @@ constexpr int N_lanczos = N_k / 10;
 constexpr double U = -2; // Attractive interaction; larger U are easier numerically, and this is just a test script anyways
 std::array<double, N_k> epsilons;
 
-// BCSTester extends the XPResolvent driver to provide the specific
+// BCSTester extends the XPResolvent class to provide the specific
 // matrices (K_plus, K_minus, L) and starting states used by the
 // resolvent/Lanczos algorithm for the BCS test case.
-struct BCSTester : public XPResolvent<double, 2, true> {
+// 
+// The template parameters of XPResolvent mean:
+// double: The class works with \code{double} as the floating-point type,
+// 1: We retain only one eigenvector; the one corresponding to the lowest energy eigenvalue,
+// true: We check the result of the QR decomposition and print it to the console.
+struct BCSTester : public XPResolvent<double, 1, true> {
     double Delta; // superconducting gap (self-consistent value)
 
     // Quasiparticle energy for given dispersion `eps` and gap `Delta`.
@@ -132,7 +137,7 @@ struct BCSTester : public XPResolvent<double, 2, true> {
     }
 
     BCSTester(double _delta) 
-        : XPResolvent<double, 2, true>(1e-7, // target precision
+        : XPResolvent<double, 1, true>(1e-7, // target precision
              2*N_k, // 2N_k amplitude operators
              N_k, // N_k phase operators
              false, // no need to pivot
@@ -174,15 +179,14 @@ std::array<std::string, N_lanczos> save_data(const std::vector<BCSTester::Resolv
     return lines;
 };
 
-std::array<std::string, 4> save_data(const PhaseTester::FullDiagData& data, std::ofstream& out)
+std::array<std::string, 3> save_data(const PhaseTester::FullDiagData& data, std::ofstream& out)
 {
     out << std::scientific << std::setprecision(10);
-    std::array<std::string, 4> lines;
+    std::array<std::string, 3> lines;
     for (int i=0; i < N_k; ++i) {
         lines[0] += std::to_string(data.eigenvalues[i]) + " ";
-        lines[1] += std::to_string(data.first_eigenvectors[0][i]) + " ";
-        lines[2] += std::to_string(data.first_eigenvectors[1][i]) + " ";
-        lines[3] += std::to_string(data.weights.front()[i]) + " ";
+        lines[1] += std::to_string(data.weights.front()[i]) + " ";
+        lines[2] += std::to_string(data.first_eigenvectors[0][i]) + " ";
     }
 
     for (auto& line : lines) {

@@ -10,7 +10,7 @@
 \usepackage{mathtools}
 \usepackage{hyperref}
 \usepackage{mathrsfs}
-\usepackage{cleveref}
+\usepackage[capitalise]{cleveref}
 
 \makeatletter
 \newcommand\footnoteref[1]{\protected@xdef\@thefnmark{\ref{#1}}\@footnotemark}
@@ -80,7 +80,7 @@
 
 Valid installations of
 \begin{itemize}
-  \item C++ 20 and a functioning compiler, e.g., g++ (tested with g++ 13.3.0 on WSL and g++ 11.5.0 on Red Hat)
+  \item C++ 20 and a functioning compiler (tested with g++ 13.3.0 on WSL and g++ 11.5.0 on Red Hat)
   \item Eigen (tested with version 3.4.1) \\ --- https://gitlab.com/libeigen/eigen
   \item (recommended) OpenMP \\ --- https://www.openmp.org/ \\ --- used for parallelization of the algorithms.
         If it is not desired, certain preprocessor flags must be set, cf. \cref{sec:parallel}.
@@ -133,7 +133,7 @@ If the expectation values are not real, or, for whatever reason, one does not wa
 However, it must be noted that the algorithms in \class{XPResolvent} are much more fleshed out because they could always be used in the systems I studied.
 
 The implementations in both classes are called via \code{compute_collective_modes(int n)}.
-This code performs the required manipulations of the matrices described in Ref.\footnoteref{prb} and consequently performs a Lanczos algorithm to tridiagonalize the final matrix; \code{n} Lanczos iterations are performed.
+This code performs the required manipulations of the matrices described in Ref.\footnoteref{prb} and, consequently, applies the Lanczos algorithm to tridiagonalize the final matrix; \code{n} Lanczos iterations are performed.
 The result is stored in a vector of \class{ResolventDataWrapper} objects.
 Each element corresponds to one starting state previously set via \code{create_starting_states()}.
 The structure of the \class{ResolventDataWrapper} will be explained later.
@@ -144,6 +144,7 @@ The second algorithm\footnoteref{arxiv} extends the first one.
 It can additionally compute the linear combinations of operators that excite any given energy level or mode.
 These operators are coined \emph{eigenoperators} and have the property
 \begin{equation}
+\label{eqn:eigenop}
   \mathscr{E}_n = \omega_n^2 [ \mathscr{H}, [ \mathscr{H}, \mathscr{E}_n ] ],
 \end{equation}
 with the mode energy $\omega_n$.
@@ -382,7 +383,7 @@ The dispersion thus reads
     \varepsilon_k = -2 \cos(k).
 \end{equation}
 Moreover, we focus on $U<0$, so the system exhibits a SU(2) pseudospin symmetry that manifests in a coexistence of a charge-density wave and $s$-wave superconductivity.
-We use the aforementioned symmetry to remove the charge-density wave and only focus on superconductivity.
+We use the aforementioned symmetry to eliminate the charge-density wave and focus solely on superconductivity.
 Then, the considered operator set is 
 \begin{subequations}
 \begin{align}
@@ -393,9 +394,11 @@ Then, the considered operator set is
 \end{subequations}
 The necessary expectation values are computed with respect to the mean-field ground state.
 
+\subsection{Evaluating spectral functions}
+
 First, we derive from \class{XPResolvent} and define the necessary methods
 \begin{lstlisting}
-struct BCSTester : public XPResolvent<double> {
+struct BCSTester : public XPResolvent<double /* ... */> {
     void fill_M() override { /* ... */ }
     
     void fill_matrices() override { /* ... */ }
@@ -403,7 +406,7 @@ struct BCSTester : public XPResolvent<double> {
     void create_starting_states() override { /* ... */ }
     
     BCSTester( /* ... */ ) 
-        : XPResolvent<double>(1e-7, // target precision
+        : XPResolvent<double /* ... */>(1e-7, // target precision
              2*N_k, // 2N_k amplitude operators
              N_k, // N_k phase operators
              false, // no need to pivot
@@ -414,15 +417,15 @@ struct BCSTester : public XPResolvent<double> {
 \end{lstlisting}
 The \code{1e-7} means that the target precision of the algorithm is $10^{-7}$.
 Note that the algorithm involves square roots.
-Thus a precision higher than the square root of machine precision is meaningless.
+Thus, a precision higher than the square root of machine precision is meaningless.
 
 
 There are $2N_k$ Hermitian and $N_k$ anti-Hermitian operators.
 Thus, filling the matrices is done via
 \begin{lstlisting}
 void fill_M() override {
-    K_plus.resize(2*N_k, 2*N_k);
-    K_minus.resize(N_k, N_k);
+    K_plus = Matrix::Zero(2*N_k, 2*N_k);
+    K_minus = Matrix::Zero(N_k, N_k);
     for (int k=0; k<N_k; ++k) {
         // K-diagonal filling
         /* ... */
@@ -434,7 +437,7 @@ void fill_M() override {
 }
 void fill_matrices() override {
     fill_M();
-    L.resize(2 * N_k, N_k);
+    L = Matrix::Zero(2 * N_k, N_k);
     for (int k=0; k<N_k; ++k) {
         // Only the k-diagonal components of L are non-zero in this setup.
         /* ... */
@@ -479,16 +482,66 @@ void create_starting_states() override {
 \end{figure}
 
 The main method first solves the self-consistency problem to find the order parameter $\Delta$.
-Then, we create an object of our resolvent class and can simply call \code{compute_collective_modes()}
+Then, we create an object of our resolvent class and can call \code{compute_collective_modes()}
 \begin{lstlisting}
 BCSTester tester(delta_new);
 std::vector<BCSTester::ResolventReturnData> result 
     = tester.compute_collective_modes<11>(N_lanczos);
 \end{lstlisting}
-Here, $11$ is the the value of \code{checkHermitian} (cf. \cref{class:XPResolvent}), and \code{N_lanczos} tells the algorithm the number of Lanczos iterations to carry out.
-Now, we can simply save the result to a file and use it.
+Here, $11$ is the value of \code{checkHermitian} (cf. \cref{class:XPResolvent}), and \code{N_lanczos} tells the algorithm the number of Lanczos iterations to carry out.
+Now we can save the result to a file and use it later.
 One example usage is provided in \code{tests/bcs_spectral.py}.
-This script evaluates the continued fraction representing the Green's functions truncated via a square-root terminator, see Ref.\footnoteref{prb}.
+This script evaluates the continued fraction representing the Green's functions truncated via a square-root terminator; see Ref.\footnoteref{prb}.
 It creates the plots shown in \cref{fig:ieom_bcs_result}.
+
+\subsection{Evaluating operator amplitudes}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\linewidth]{amplitudes.pdf}
+    \caption{Left: The spectral function evaluated from the entire spectrum of the system evaluated in \code{tester/ieom_bcs.cpp}. 
+    The frequencies are shifted into the complex plane to visualize the occurring $\delta$-peaks; $\omega \to \omega + 3\mathrm{i} \cdot10^{-2}$.
+    Right: The operator amplitudes of the Goldstone mode. The dotted lines mark the momenta $k$ with $\varepsilon_k = 0$.}
+    \label{fig:ieom_goldstone_result}
+\end{figure}
+
+Only excitations whose energies lie outside of continua can be directly associated with a single energy eigenvalue.
+Here, the only such excitation is the Goldstone mode in the phase channel.
+We will compute its operator amplitudes, i.e., the coefficients $\psi_k$ such that
+\begin{equation}
+    \mathscr{E} = \sum_k \psi_k ( c_{-k\downarrow} c_{k\uparrow} - \text{H.c.})
+\end{equation}
+fulfills \cref{eqn:eigenop} (on the level of the applied approximations).
+
+Since we care only about the phase channel, we extend our original tester class
+\begin{lstlisting}
+struct BCSTester : public XPResolvent<double, 1, true> 
+{ /* ... */ };
+struct PhaseTester : public BCSTester {
+    void create_starting_states() override {
+        starting_states.clear();
+        starting_states.push_back(OnlyPhase(N_k, "SC"));
+        starting_states.front().phase_state.fill(1.);
+        starting_states.front().phase_state.normalize();
+    }
+    PhaseTester(/* ... */) : BCSTester(/* ... */) {}
+};
+\end{lstlisting}
+The template parameters of \class{XPResolvent} mean
+\begin{itemize}
+    \item \code{double}: The class works with \code{double} as the floating-point type,
+    \item \code{1}: We retain only one eigenvector; the one corresponding to the lowest energy eigenvalue,
+    \item \code{true}: We check the result of the QR decomposition and print it to the console.
+\end{itemize}
+Now, one can create an object of this class and call the corresponding function
+\begin{lstlisting}
+PhaseTester phase_tester(delta_new);
+// Both objects are of the type FullDiagonalizationData<double, 1>
+// amplitude_data is empty because we did not specify an amplitude starting state
+const auto [phase_data, amplitude_data] = phase_tester.full_diagonalization();
+\end{lstlisting}
+The result is saved and plotted in \cref{fig:ieom_goldstone_result}.
+The left panel shows the spectral function $A_\mathrm{Phase}(\omega)$ evaluated over the full system spectrum, along with the weights corresponding to the starting state.
+The right panel shows the operator amplitudes $\psi_k$.
 
 \end{document}
