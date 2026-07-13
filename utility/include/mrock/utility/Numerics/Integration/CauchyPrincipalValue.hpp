@@ -41,6 +41,7 @@ namespace mrock::utility::Numerics::Integration {
             };
             return gauss::integrate(proper_integrand, lower, upper);
         }
+        
     public:
         template <class F>
         static decltype(std::declval<F>()(Real{})) cauchy_principal_value(F const& f, Real lower, Real upper, Real singularity) {

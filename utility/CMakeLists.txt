@@ -9,9 +9,8 @@ endif()
 project(mrock_utility VERSION ${MROCK_VERSION} LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-set(Boost_DIR /usr/lib64/openmpi/lib/cmake/Boost-1.78.0)# the cluster needs help finding the correct version of boost
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # --- Dependencies ---
 include(CMakeFindDependencyMacro)

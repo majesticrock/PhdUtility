@@ -1,32 +1,26 @@
-BUILD_DIR = build
-CLUSTER_BUILD_DIR = build_cluster
-INSTALL_PREFIX = $(HOME)/usr/local
+ROOT_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+BUILD_DIR := $(ROOT_DIR)/build
+INSTALL_PREFIX := $(ROOT_DIR)/install
+CONFIGURE_STAMP := $(BUILD_DIR)/CMakeCache.txt
 
-all: $(BUILD_DIR)/Makefile
-	@$(MAKE) -C $(BUILD_DIR)
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
-$(BUILD_DIR)/Makefile: CMakeLists.txt
-	@mkdir -p $(BUILD_DIR)
-	@cd $(BUILD_DIR) && cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) -DBUILD_TESTS=ON ..
+$(CONFIGURE_STAMP):
+	mkdir -p $(BUILD_DIR)
+	cmake -S $(ROOT_DIR) -B $(BUILD_DIR)
 
-cluster: $(CLUSTER_BUILD_DIR)/Makefile
-	@$(MAKE) -C $(CLUSTER_BUILD_DIR)
+test: $(CONFIGURE_STAMP)
+	cmake --build $(BUILD_DIR) --parallel
+	ctest --test-dir $(BUILD_DIR) --output-on-failure
 
-$(CLUSTER_BUILD_DIR)/Makefile: CMakeLists.txt
-	@mkdir -p $(CLUSTER_BUILD_DIR)
-	@cd $(CLUSTER_BUILD_DIR) && cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) -DCLUSTER_BUILD=ON ..
+install: $(CONFIGURE_STAMP)
+	@cmake --install $(BUILD_DIR)
 
-test: $(BUILD_DIR)/Makefile
-	@$(MAKE) -C $(BUILD_DIR)
-	cd build && ctest --output-on-failure
+all:
+	@bash $(ROOT_DIR)/scripts/build_and_test.sh
 
 clean:
-	@rm -rf $(BUILD_DIR) $(CLUSTER_BUILD_DIR) build_header
+	@rm -rf $(BUILD_DIR) $(INSTALL_PREFIX)
 
-install: all
-	@$(MAKE) -C $(BUILD_DIR) install
-
-install_cluster: cluster
-	@$(MAKE) -C $(CLUSTER_BUILD_DIR) install
-
-.PHONY: all clean install
+.PHONY: all test install clean

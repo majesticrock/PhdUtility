@@ -35,12 +35,7 @@ add_library(mrock::symbolic_operators ALIAS mrock_symbolic_operators)
 
 # Compiler flags
 include(${CMAKE_CURRENT_LIST_DIR}/../cmake/mrock-message.cmake)
-if(CLUSTER_BUILD)
-    include(${CMAKE_CURRENT_LIST_DIR}/cmake/CascadelakeCompilerFlags.cmake)
-    #include(${CMAKE_CURRENT_LIST_DIR}/cmake/IcelakeCompilerFlags.cmake)
-else()
-    include(${CMAKE_CURRENT_LIST_DIR}/cmake/DefaultCompilerFlags.cmake)
-endif()
+include(${CMAKE_CURRENT_LIST_DIR}/../cmake/DefaultCompilerFlags.cmake)
 SET_COMPILER_FLAGS(mrock_symbolic_operators)
 
 target_include_directories(mrock_symbolic_operators PUBLIC

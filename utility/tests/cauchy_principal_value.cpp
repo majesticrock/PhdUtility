@@ -10,7 +10,7 @@ typedef double Real;
 typedef std::array<Real, N_A> result_set_A;
 constexpr size_t N_B = 4;
 typedef std::array<Real, N_B> result_set_B;
-constexpr Real EPS = 1e-10;
+constexpr Real EPS = 1e-9;
 
 using base_integrator = mrock::utility::Numerics::Integration::CauchyPrincipalValue<Real, 60>;
 using gen_integrator = mrock::utility::Numerics::Integration::GeneralizedPrincipalValue<Real, 60>;

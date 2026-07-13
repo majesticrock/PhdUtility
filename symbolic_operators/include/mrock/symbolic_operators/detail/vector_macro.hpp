@@ -125,4 +125,5 @@
 		inline auto insert(iterator pos, input_iterator first, input_iterator last) { \
 			return _vector_name.insert(pos, first, last); \
 		} \
+
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_VECTOR_MACRO_HPP

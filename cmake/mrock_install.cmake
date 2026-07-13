@@ -2,9 +2,9 @@ include_guard()
 
 macro(mrock_install comp)
     set(_mrock_install_root "${CMAKE_CURRENT_SOURCE_DIR}")
-    set(LIBRARY_DEST lib)
-    set(INCLUDE_DEST include)
-    set(CONFIG_DEST lib/cmake/${comp})
+    set(LIBRARY_DEST ${CMAKE_INSTALL_LIBDIR})
+    set(INCLUDE_DEST ${CMAKE_INSTALL_INCLUDEDIR})
+    set(CONFIG_DEST ${CMAKE_INSTALL_LIBDIR}/cmake/${comp})
 
     install(TARGETS ${comp}
         EXPORT ${comp}-targets

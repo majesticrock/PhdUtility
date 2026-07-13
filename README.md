@@ -26,8 +26,13 @@ Its heart is the iEoM implementation in Numerics/iEoM.
 - Cmake (for installation) https://cmake.org/
 
 ### Installation
-Go to the root folder of PhdUtility and type `make install`. This builds and installs the entire library (including symbolic_operators) and installs it to `~/usr/local/`.
-The header files are copied to `include` and the precompiled sources to `lib`.
+From the repository root, run the WSL-compatible build script:
+
+```sh
+bash ./scripts/build_and_test.sh
+```
+
+This configures, builds, runs the tests, and installs the project into the local `install/` directory under the repository root. The build is portable and does not assume a machine-specific installation prefix or CPU target.
 
 ### Usage
 This section is header-only. Therefore, you can simply add `~/usr/local` to your include path and use `#include <mrock/utility/Numerics/iEoM/XPResolvent.hpp>`.

@@ -642,9 +642,11 @@ namespace mrock::symbolic_operators {
 			}
 		}
 
+#ifndef NDEBUG
 		for (const auto& term : terms) {
 			assert(term.is_normal_ordered());
 		}
+#endif
 	}
 
 	void clear_duplicates(std::vector<Term>& terms) {
