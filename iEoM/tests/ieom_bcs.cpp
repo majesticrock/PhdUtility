@@ -1,3 +1,5 @@
+#define MROCK_IEOM_NO_NLOHMANN_JSON
+
 #include "../include/mrock/iEoM/XPResolvent.hpp"
 #include "bcs_result.hpp"
 
