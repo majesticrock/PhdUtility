@@ -269,9 +269,8 @@ int main() {
         filestream_goldstone.close();
 
         if (lines != comparison_goldstone) {
-            // TODO: Slight fail in the algorithm for the weight of the Goldstone mode
             std::cerr << "Result does not match the comparison!" << std::endl;
-            //return 1;
+            return 1;
         }
     }
     else {

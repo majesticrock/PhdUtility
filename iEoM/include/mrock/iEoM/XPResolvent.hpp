@@ -448,9 +448,14 @@ namespace mrock::iEoM {
 				Eigen::Map<Vector> weight_map(data.weights.back().data(), n_non_zero);
 				// state is already transformed; this line computes
 				// sum_j <u_j| transform_matrix | original_amplitude_state> = sum_j <u_j | N^{-1/2} L | original_amplitude_state>
-				// The analogue also applies to phase states:  sum_j <u_j | N^{-1/2} L^+ | original_phase_state>
+				// The analog also applies to phase states:  sum_j <u_j | N^{-1/2} L^+ | original_phase_state>
 				weight_map = solver.eigenvectors().rightCols(n_non_zero).adjoint() * it.state();
 				weight_map = weight_map.array().square();
+
+				const Vector nullspace_weights = solver.eigenvectors().leftCols(n_zero).adjoint() * it.state();
+				for (const auto& weight : nullspace_weights) {
+					data.weights.back()[0] += weight;
+				}
 			}
 			return data;
 		}
