@@ -9,12 +9,12 @@
  * elements enclosed by delimiters.
  */
 
-#include <string>
-#include <vector>
-#include <sstream>
-#include <cassert>
-#include <type_traits>
 #include <algorithm>
+#include <cassert>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <vector>
 
 namespace mrock::symbolic_operators {
 /**
@@ -27,17 +27,20 @@ namespace mrock::symbolic_operators {
  * @param delimiter The character used to split the string.
  * @return A vector of tokens of type `StringType`.
  */
-	template<class StringType, class InputStringStreamType = std::basic_istringstream<typename StringType::value_type, typename StringType::traits_type, typename StringType::allocator_type>>
-	std::vector<StringType> split(const StringType &str, std::add_const_t<typename StringType::value_type> delimiter) {
-		std::vector<StringType> tokens;
-		StringType token;
-		InputStringStreamType tokenStream(str);
-		while (std::getline(tokenStream, token, delimiter)) {
-			tokens.push_back(token);
-		}
-		return tokens;
-	}
-	
+template <class StringType,
+          class InputStringStreamType = std::basic_istringstream<typename StringType::value_type,
+                                                                 typename StringType::traits_type,
+                                                                 typename StringType::allocator_type>>
+std::vector<StringType> split(const StringType& str, std::add_const_t<typename StringType::value_type> delimiter) {
+    std::vector<StringType> tokens;
+    StringType token;
+    InputStringStreamType tokenStream(str);
+    while (std::getline(tokenStream, token, delimiter)) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
 /**
  * @brief Removes escape characters from a string in-place.
  *
@@ -52,27 +55,30 @@ namespace mrock::symbolic_operators {
  * @param escape The escape character to remove (defaults to '\\').
  * @return The number of characters removed from `input`.
  */
-	template<class StringType, class ForwardIt = typename StringType::iterator>
-	std::size_t remove_escape_characters(StringType& input, std::add_const_t<typename StringType::value_type> escape = '\\') {
-		assert(!(input.size() == 1U && input.back() == escape) && "The last character of the string must not be an escape character!");
-		assert(!(input.size() > 1U && input.back() == escape && *(input.end() - 2) != escape) && "The last character of the string must not be an escape character!");
-		
-		ForwardIt first = std::find(input.begin(), input.end(), escape);
-	    if (first == input.end()) return 0U;
+template <class StringType, class ForwardIt = typename StringType::iterator>
+std::size_t remove_escape_characters(StringType& input,
+                                     std::add_const_t<typename StringType::value_type> escape = '\\') {
+    assert(!(input.size() == 1U && input.back() == escape) &&
+           "The last character of the string must not be an escape character!");
+    assert(!(input.size() > 1U && input.back() == escape && *(input.end() - 2) != escape) &&
+           "The last character of the string must not be an escape character!");
 
-	    for (ForwardIt i = first; i != input.end(); ++i) {
-	        if (*i != escape) {
-			*first++ = std::move(*i);
-		}
-		else if ((i + 1) != input.end() && *(i + 1) == escape) {
-			// Situation [esc][esc] should become [esc]
-			*first++ = std::move(*i++);
-		}
-	}
-	    std::size_t n_removed = input.end() - first;
-		input.erase(first, input.end());
-		return n_removed;
-	}
+    ForwardIt first = std::find(input.begin(), input.end(), escape);
+    if (first == input.end())
+        return 0U;
+
+    for (ForwardIt i = first; i != input.end(); ++i) {
+        if (*i != escape) {
+            *first++ = std::move(*i);
+        } else if ((i + 1) != input.end() && *(i + 1) == escape) {
+            // Situation [esc][esc] should become [esc]
+            *first++ = std::move(*i++);
+        }
+    }
+    std::size_t n_removed = input.end() - first;
+    input.erase(first, input.end());
+    return n_removed;
+}
 
 /**
  * @brief Finds the first occurrence of a symbol that is not escaped.
@@ -87,24 +93,25 @@ namespace mrock::symbolic_operators {
  * @param escape The escape character (defaults to '\\').
  * @return The position of the unescaped symbol, or `StringType::npos` if none found.
  */
-	template<class StringType>
-	std::size_t find_skip_escaped(const StringType& input, std::add_const_t<typename StringType::value_type> symbol, std::size_t start = 0U, 
-		std::add_const_t<typename StringType::value_type> escape = '\\') 
-	{
-		while (start < input.size()) {
-			std::size_t pos = input.find(symbol, start);
-			if(pos == StringType::npos) return StringType::npos;
-			
-			if (pos > 0 && input[pos - 1] == escape) {
-				start = pos + 1;
-			}
-			else {
-				return pos;
-			}
-		}
+template <class StringType>
+std::size_t find_skip_escaped(const StringType& input,
+                              std::add_const_t<typename StringType::value_type> symbol,
+                              std::size_t start = 0U,
+                              std::add_const_t<typename StringType::value_type> escape = '\\') {
+    while (start < input.size()) {
+        std::size_t pos = input.find(symbol, start);
+        if (pos == StringType::npos)
+            return StringType::npos;
 
-		return StringType::npos;
-	}
+        if (pos > 0 && input[pos - 1] == escape) {
+            start = pos + 1;
+        } else {
+            return pos;
+        }
+    }
+
+    return StringType::npos;
+}
 
 /**
  * @brief Extracts comma-separated elements enclosed by delimiters from a string.
@@ -119,24 +126,25 @@ namespace mrock::symbolic_operators {
  * @param escape The escape character used to skip delimiters (default '\\').
  * @return A vector of extracted elements as `StringType` values.
  */
-	template<class StringType>
-	std::vector<StringType> extract_elements(const StringType& input, std::add_const_t<typename StringType::value_type> left_delimiter = '{', 
-		std::add_const_t<typename StringType::value_type> right_delimiter = '}', std::add_const_t<typename StringType::value_type> escape = '\\') 
-	{
-		std::vector<StringType> elements;
-	
-		// Find the positions of the braces
-		std::size_t startPos = find_skip_escaped(input, left_delimiter , 0U, escape);
-		std::size_t endPos   = find_skip_escaped(input, right_delimiter, 0U, escape);
-	
-		// Check if both braces are found
-		if (startPos != StringType::npos && endPos != StringType::npos && startPos < endPos) {
-			// Extract the substring within the braces
-			StringType substring = input.substr(startPos + 1, endPos - startPos - 1);
-			elements = split(substring, typename StringType::value_type(','));
-		}
-	
-		return elements;
-	}
+template <class StringType>
+std::vector<StringType> extract_elements(const StringType& input,
+                                         std::add_const_t<typename StringType::value_type> left_delimiter = '{',
+                                         std::add_const_t<typename StringType::value_type> right_delimiter = '}',
+                                         std::add_const_t<typename StringType::value_type> escape = '\\') {
+    std::vector<StringType> elements;
+
+    // Find the positions of the braces
+    std::size_t startPos = find_skip_escaped(input, left_delimiter, 0U, escape);
+    std::size_t endPos = find_skip_escaped(input, right_delimiter, 0U, escape);
+
+    // Check if both braces are found
+    if (startPos != StringType::npos && endPos != StringType::npos && startPos < endPos) {
+        // Extract the substring within the braces
+        StringType substring = input.substr(startPos + 1, endPos - startPos - 1);
+        elements = split(substring, typename StringType::value_type(','));
+    }
+
+    return elements;
 }
+}  // namespace mrock::symbolic_operators
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_STRING_HELPER_HPP

@@ -1,12 +1,12 @@
-#include <iostream>
+#include <Eigen/Dense>
+#include <mrock/utility/Numerics/ErrorFunctors.hpp>
+#include <mrock/utility/Numerics/Integration/AdaptiveTrapezoidalRule.hpp>
+
+#include <algorithm>
 #include <cmath>
 #include <iomanip>
-#include <Eigen/Dense>
+#include <iostream>
 #include <numbers>
-#include <algorithm>
-
-#include <mrock/utility/Numerics/Integration/AdaptiveTrapezoidalRule.hpp>
-#include <mrock/utility/Numerics/ErrorFunctors.hpp>
 
 using namespace mrock::utility::Numerics;
 using namespace mrock::utility::Numerics::Integration;
@@ -24,8 +24,9 @@ int main() {
     double max_error = 1e-8;
 
     double cos_analytical = std::sin(end) - std::sin(begin);
-    double inv_one_plus_cos_func_analytical = std::tan(0.5 * end) - std::tan(0.5 * begin); 
-    double x_squared_exp_x_analytical = (end*end - 2*end + 2) * std::exp(end) - (begin*begin - 2*begin + 2) * std::exp(begin);
+    double inv_one_plus_cos_func_analytical = std::tan(0.5 * end) - std::tan(0.5 * begin);
+    double x_squared_exp_x_analytical =
+        (end * end - 2 * end + 2) * std::exp(end) - (begin * begin - 2 * begin + 2) * std::exp(begin);
 
     adapative_trapezoidal_rule<double, adapative_trapezoidal_rule_print_policy{false, false, true}> adaptive;
     num_steps = 10;
@@ -33,9 +34,12 @@ int main() {
     double inv_one_plus_cos_func_adaptive = adaptive.integrate(inv_one_plus_cos_func, begin, end, num_steps, max_error);
     double x_squared_exp_x_adaptive = adaptive.integrate(x_squared_exp_x_func, begin, end, num_steps, max_error);
 
-    std::cout << "Integral of cos(x) from 0 to 1: " << cos_adaptive << " (Analytical: " << cos_analytical << ")" << std::endl;
-    std::cout << "Integral of sin(x)/x from 0 to 1: " << inv_one_plus_cos_func_adaptive << " (Analytical: " << inv_one_plus_cos_func_analytical << ")" << std::endl;
-    std::cout << "Integral of x^2 * e^x from 0 to 1: " << x_squared_exp_x_adaptive << " (Analytical: " << x_squared_exp_x_analytical << ")" << std::endl;
+    std::cout << "Integral of cos(x) from 0 to 1: " << cos_adaptive << " (Analytical: " << cos_analytical << ")"
+              << std::endl;
+    std::cout << "Integral of sin(x)/x from 0 to 1: " << inv_one_plus_cos_func_adaptive
+              << " (Analytical: " << inv_one_plus_cos_func_analytical << ")" << std::endl;
+    std::cout << "Integral of x^2 * e^x from 0 to 1: " << x_squared_exp_x_adaptive
+              << " (Analytical: " << x_squared_exp_x_analytical << ")" << std::endl;
 
     scalar_error<double> error_func;
     if (error_func(cos_adaptive, cos_analytical) > max_error) {
@@ -48,34 +52,35 @@ int main() {
         return 1;
     }
 
-    auto vector_func = [](double x) { 
-        return Eigen::Vector3d{std::tan(x), x * std::cos(x), (std::sin(x) + std::cos(x)) * std::exp(-x)}; 
+    auto vector_func = [](double x) {
+        return Eigen::Vector3d{std::tan(x), x * std::cos(x), (std::sin(x) + std::cos(x)) * std::exp(-x)};
     };
-    Eigen::Vector3d vector_analytical = { 
+    Eigen::Vector3d vector_analytical = {
         std::log(std::abs(std::cos(begin))) - std::log(std::abs(std::cos(end))),
-        end * std::sin(end) + std::cos(end) - begin * std::sin(begin) - std::cos(begin), 
-        std::cos(begin) * std::exp(-begin) - std::cos(end) * std::exp(-end) 
-    };
+        end * std::sin(end) + std::cos(end) - begin * std::sin(begin) - std::cos(begin),
+        std::cos(begin) * std::exp(-begin) - std::cos(end) * std::exp(-end)};
 
     vector_norm_error<Eigen::Vector3d> vector_error;
     vector_elementwise_error<Eigen::Vector3d> alt_vector_error;
 
-    Eigen::Vector3d vector_adaptive = adaptive.integrate(vector_func, begin, end, num_steps, max_error, vector_error, Eigen::Vector3d::Zero());
-    
-    std::cout << "Integrating a vector valued function:\n" << vector_adaptive << "\nAnalytical:\n" << vector_analytical 
-        << "\nError = " << vector_error(vector_analytical, vector_adaptive) << std::endl;
+    Eigen::Vector3d vector_adaptive =
+        adaptive.integrate(vector_func, begin, end, num_steps, max_error, vector_error, Eigen::Vector3d::Zero());
+
+    std::cout << "Integrating a vector valued function:\n"
+              << vector_adaptive << "\nAnalytical:\n"
+              << vector_analytical << "\nError = " << vector_error(vector_analytical, vector_adaptive) << std::endl;
     std::cout << "Elementwise error = " << alt_vector_error(vector_analytical, vector_adaptive) << std::endl;
 
     if (vector_error(vector_analytical, vector_adaptive) > max_error) {
         return 1;
     }
 
-    auto interval_func = [](double x) {
-        return std::cos(x*x);
-    };
-    const double interval_adaptive = adaptive.split_integrate<10>(interval_func, 0.0, 2.0 * std::numbers::pi, 100, max_error);
+    auto interval_func = [](double x) { return std::cos(x * x); };
+    const double interval_adaptive =
+        adaptive.split_integrate<10>(interval_func, 0.0, 2.0 * std::numbers::pi, 100, max_error);
     const double interval_analytical = 0.704681810414167278042914562159196134988380537626793;
-    std::cout << "Integral with subintervals of cos(x^2) from 0 to 2pi: " << interval_adaptive << " (Analytical: " << interval_analytical << ")" << std::endl;
+    std::cout << "Integral with subintervals of cos(x^2) from 0 to 2pi: " << interval_adaptive
+              << " (Analytical: " << interval_analytical << ")" << std::endl;
     if (error_func(interval_adaptive, interval_analytical) > max_error) {
         return 1;
     }

@@ -1,25 +1,24 @@
 /**
  * @file progress_bar.cpp
  * @brief Example for the usage of the progress bar utility
- * 
+ *
  * Compile with g++ -fopenmp progress_bar.cpp -o progress_bar.o
  * Run with ./progress_bar.o
  */
 
 #include "<mrock/utility/progress_bar.hpp"
+
 #include <chrono>
-#include <thread>
-#include <omp.h>
 #include <cstdlib>
+#include <omp.h>
+#include <thread>
 
 // from https://en.cppreference.com/w/cpp/numeric/random/rand
-unsigned bounded_rand(unsigned range)
-{
+unsigned bounded_rand(unsigned range) {
     for (unsigned x, r;;)
         if (x = rand(), r = x % range, x - r <= -range)
             return r;
 }
-
 
 int main() {
     for (int i = 0; i < 100; ++i) {

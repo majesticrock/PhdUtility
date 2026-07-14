@@ -1,4 +1,5 @@
 #include <mrock/utility/function_time.hpp>
+
 #include <cmath>
 
 double test_cos(double x, int N) {
@@ -44,22 +45,26 @@ int main() {
     // Calling f(args)
     const double test_cos_result = function_time_micro(&test_cos, x, N);
     const double base_line = test_cos(x, N);
-    if(std::abs(test_cos_result - base_line) > 1e-12) return 1;
+    if (std::abs(test_cos_result - base_line) > 1e-12)
+        return 1;
     // Calling f()
     const double test_cos_result_2 = function_time_micro(&test_cos_2);
     const double base_line_2 = test_cos_2();
-    if(std::abs(test_cos_result_2 - base_line_2) > 1e-12) return 1;
+    if (std::abs(test_cos_result_2 - base_line_2) > 1e-12)
+        return 1;
 
     // Calling class::f(args)
     TestStruct test_struct;
     const double test_struct_result = member_function_time_micro(test_struct, &TestStruct::member_test, N);
     TestStruct base_struct;
     const double base_struct_result = base_struct.member_test(N);
-    if(std::abs(test_struct_result - base_struct_result) > 1e-12) return 1;
+    if (std::abs(test_struct_result - base_struct_result) > 1e-12)
+        return 1;
     // Calling class::f()
     const double test_struct_result_2 = member_function_time_micro(test_struct, &TestStruct::member_test_2);
     const double base_struct_result_2 = base_struct.member_test_2();
-    if(std::abs(test_struct_result_2 - base_struct_result_2) > 1e-12) return 1;
+    if (std::abs(test_struct_result_2 - base_struct_result_2) > 1e-12)
+        return 1;
 
     return 0;
 }

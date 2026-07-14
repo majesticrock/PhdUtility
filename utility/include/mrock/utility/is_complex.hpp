@@ -1,7 +1,7 @@
 #ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_IS_COMPLEX_HPP
 #define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_IS_COMPLEX_HPP
-#include <type_traits>
 #include <complex>
+#include <type_traits>
 
 namespace mrock::utility {
 
@@ -16,5 +16,5 @@ inline constexpr bool is_complex_v = is_complex<std::remove_cvref_t<T>>::value;
 
 template <class T>
 concept Complex = is_complex_v<T>;
-}
+}  // namespace mrock::utility
 #endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_IS_COMPLEX_HPP

@@ -1,12 +1,17 @@
-#include <mrock/symbolic_operators/Term.hpp>
-#include <mrock/symbolic_operators/detail/container_helper.hpp>
-#include <mrock/symbolic_operators/AbstractTerm.hpp>
-#include <mrock/symbolic_operators/Coefficient.hpp>
-#include <mrock/symbolic_operators/IndexWrapper.hpp>
-#include <mrock/symbolic_operators/KroneckerDelta.hpp>
-#include <mrock/symbolic_operators/Momentum.hpp>
-#include <mrock/symbolic_operators/MomentumList.hpp>
-#include <mrock/symbolic_operators/Fractional.hpp>
-#include <mrock/symbolic_operators/MomentumSymbol.hpp>
-#include <mrock/symbolic_operators/Operator.hpp>
-#include <mrock/symbolic_operators/SumContainer.hpp>
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_COMMUTATION
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_COMMUTATION
+
+#include "mrock/symbolic_operators/AbstractTerm.hpp"
+#include "mrock/symbolic_operators/Coefficient.hpp"
+#include "mrock/symbolic_operators/Fractional.hpp"
+#include "mrock/symbolic_operators/IndexWrapper.hpp"
+#include "mrock/symbolic_operators/KroneckerDelta.hpp"
+#include "mrock/symbolic_operators/Momentum.hpp"
+#include "mrock/symbolic_operators/MomentumList.hpp"
+#include "mrock/symbolic_operators/MomentumSymbol.hpp"
+#include "mrock/symbolic_operators/Operator.hpp"
+#include "mrock/symbolic_operators/SumContainer.hpp"
+#include "mrock/symbolic_operators/Term.hpp"
+#include "mrock/symbolic_operators/detail/container_helper.hpp"
+
+#endif // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_COMMUTATION

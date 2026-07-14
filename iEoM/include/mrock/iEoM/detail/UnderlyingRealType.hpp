@@ -33,5 +33,5 @@ struct UnderlyingRealType<std::complex<T>> : std::type_identity<T> {};
  */
 template <class T>
 using UnderlyingRealType_t = typename UnderlyingRealType<std::remove_cvref_t<T>>::type;
-}
+}  // namespace mrock::iEoM::detail
 #endif  // MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_UNDERLYINGREALTYPE_HPP

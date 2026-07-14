@@ -1,7 +1,7 @@
 #ifndef MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_IS_COMPLEX_HPP
 #define MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_IS_COMPLEX_HPP
-#include <type_traits>
 #include <complex>
+#include <type_traits>
 
 namespace mrock::iEoM::detail {
 
@@ -40,5 +40,5 @@ inline constexpr bool is_complex_v = is_complex<std::remove_cvref_t<T>>::value;
  */
 template <class T>
 concept Complex = is_complex_v<T>;
-}
+}  // namespace mrock::iEoM::detail
 #endif  // MROCK_IEOM_INCLUDE_MROCK_IEOM_DETAIL_IS_COMPLEX_HPP

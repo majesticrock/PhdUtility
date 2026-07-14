@@ -1,1 +1,24 @@
+#ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_EXPECTATIONVALUES
+#define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_EXPECTATIONVALUES
+
+#include "AbstractTerm.hpp"
+#include "Coefficient.hpp"
+#include "Fractional.hpp"
+#include "IndexWrapper.hpp"
+#include "KroneckerDelta.hpp"
+#include "Momentum.hpp"
+#include "MomentumList.hpp"
+#include "MomentumSymbol.hpp"
+#include "Operator.hpp"
+#include "OperatorType.hpp"
+#include "SumContainer.hpp"
+#include "Term.hpp"
 #include "Wick.hpp"
+#include "WickOperator.hpp"
+#include "WickOperatorTemplate.hpp"
+#include "WickSymmetry.hpp"
+#include "WickTerm.hpp"
+#include "detail/container_helper.hpp"
+#include "detail/string_helper.hpp"
+
+#endif //MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_EXPECTATIONVALUES

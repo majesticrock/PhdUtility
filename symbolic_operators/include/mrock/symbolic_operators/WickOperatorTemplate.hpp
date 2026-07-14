@@ -5,226 +5,222 @@
  * @brief Defines templates for creating  Wick operators from a set of normal operators.
  */
 
+#include "IndexWrapper.hpp"
+#include "KroneckerDelta.hpp"
+#include "Momentum.hpp"
 #include "Operator.hpp"
 #include "OperatorType.hpp"
 #include "WickOperator.hpp"
-#include "KroneckerDelta.hpp"
-#include "IndexWrapper.hpp"
-#include "Momentum.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <vector>
-#include <algorithm>
 
 namespace mrock::symbolic_operators {
 
-	/**
-	 * @struct IndexComparison
-	 * @brief A structure for comparing indices. E.g. <n_k> merely requires that the spin indizes of the composing operators are identical,
-	 * 		but <f_k> requires the first index to be spin down.
-	 */
-	struct IndexComparison {
-		bool any_identical; ///< Indicates if any identical indices are identical.
-		Index base{ Index::UndefinedIndex }; ///< The base index.
-		Index other{ Index::UndefinedIndex }; ///< The other index.
-	};
+/**
+ * @struct IndexComparison
+ * @brief A structure for comparing indices. E.g. <n_k> merely requires that the spin indizes of the composing operators
+ * are identical, but <f_k> requires the first index to be spin down.
+ */
+struct IndexComparison {
+    bool any_identical;                  ///< Indicates if any identical indices are identical.
+    Index base{Index::UndefinedIndex};   ///< The base index.
+    Index other{Index::UndefinedIndex};  ///< The other index.
+};
 
-	/** 
-	 * @brief Convenience definiton of an \c IndexComparison for pair creation/annihilation operators (c c)
-	 * 
-	 * Note that the pair annihilation operator is defined as f_k := c_(-k,down) c_(k,up).
-     * Therefore, the 'base operatore' is the second one in the expression c_(k,up),
-     * and we have to give the index of the second operator first. */
-	inline constexpr IndexComparison SC_Comparison{
-		false, /* The indizes (here only spins), must be fixed */
-            Index::SpinUp, /* The second index must be SpinUp */
-            Index::SpinDown /* The first index must be SpinDown */
-		}; 
-	/** 
-	 * @brief Convenience definiton of an \c IndexComparison for number-like operators (c^dagger c)
-	 */
-	inline constexpr IndexComparison Num_Comparison{ 
-			true /* The indizes (here: spins) of both operators must be equal, but no other restriction is placed */
-		}; 
-	/**
-	 * @struct TemplateResult
-	 * @brief A structure for storing the result of a template operation.
-	 */
-	struct TemplateResult {
+/**
+ * @brief Convenience definiton of an \c IndexComparison for pair creation/annihilation operators (c c)
+ *
+ * Note that the pair annihilation operator is defined as f_k := c_(-k,down) c_(k,up).
+ * Therefore, the 'base operatore' is the second one in the expression c_(k,up),
+ * and we have to give the index of the second operator first. */
+inline constexpr IndexComparison SC_Comparison{
+    false,          /* The indizes (here only spins), must be fixed */
+    Index::SpinUp,  /* The second index must be SpinUp */
+    Index::SpinDown /* The first index must be SpinDown */
+};
+/**
+ * @brief Convenience definiton of an \c IndexComparison for number-like operators (c^dagger c)
+ */
+inline constexpr IndexComparison Num_Comparison{
+    true /* The indizes (here: spins) of both operators must be equal, but no other restriction is placed */
+};
+/**
+ * @struct TemplateResult
+ * @brief A structure for storing the result of a template operation.
+ */
+struct TemplateResult {
+    /**
+     * @struct SingleResult
+     * @brief A structure for storing a single result.
+     */
+    struct SingleResult {
+        int factor{};                                     ///< The factor of the result.
+        WickOperator op;                                  ///< The Wick operator.
+        std::vector<KroneckerDelta<Index>> index_deltas;  ///< The index deltas.
 
-		/**
-		 * @struct SingleResult
-		 * @brief A structure for storing a single result.
-		 */
-		struct SingleResult {
-			int factor{}; ///< The factor of the result.
-			WickOperator op; ///< The Wick operator.
-			std::vector<KroneckerDelta<Index>> index_deltas; ///< The index deltas.
+        /**
+         * @brief Clears KroneckerDelta objects that are one, i.e., delta_{a,a} = 1
+         */
+        inline void clear_delta_equals_one();
 
-			/**
-			 * @brief Clears KroneckerDelta objects that are one, i.e., delta_{a,a} = 1
-			 */
-			inline void clear_delta_equals_one();
+        /**
+         * @brief Checks if the result contains an impossible delta, e.g., delta_{down,up}
+         *
+         * @return true if the result contains an impossible delta and false otherwise.
+         */
+        inline bool contains_impossible_delta() const;
+    };
 
-			/**
-			 * @brief Checks if the result contains an impossible delta, e.g., delta_{down,up}
-			 * 
-			 * @return true if the result contains an impossible delta and false otherwise.
-			 */
-			inline bool contains_impossible_delta() const;
-		};
+    std::vector<SingleResult> results;        ///< The vector of single results.
+    KroneckerDelta<Momentum> momentum_delta;  ///< The momentum delta.
 
-		std::vector<SingleResult> results; ///< The vector of single results.
-		KroneckerDelta<Momentum> momentum_delta; ///< The momentum delta.
+    /**
+     * @brief Default constructor for TemplateResult.
+     */
+    TemplateResult() = default;
 
-		/**
-		 * @brief Default constructor for TemplateResult.
-		 */
-		TemplateResult() = default;
+    /**
+     * @brief Constructs a TemplateResult object.
+     *
+     * @param initial_size The initial size of the results vector.
+     * @param operator_type The type of the operator.
+     * @param base_momentum The base momentum.
+     */
+    TemplateResult(std::size_t initial_size, OperatorType operator_type, const Momentum& base_momentum);
 
-		/**
-		 * @brief Constructs a TemplateResult object.
-		 * 
-		 * @param initial_size The initial size of the results vector.
-		 * @param operator_type The type of the operator.
-		 * @param base_momentum The base momentum.
-		 */
-		TemplateResult(std::size_t initial_size, OperatorType operator_type, const Momentum& base_momentum);
+    /**
+     * @brief Creates a null TemplateResult.
+     *
+     * @return TemplateResult A null TemplateResult.
+     */
+    inline static TemplateResult null_result() { return {}; }
 
-		/**
-		 * @brief Creates a null TemplateResult.
-		 * 
-		 * @return TemplateResult A null TemplateResult.
-		 */
-		inline static TemplateResult null_result() { return {}; }
+    /**
+     * @brief Applies an operation on a range of results.
+     *
+     * @tparam UnaryOperation The type of the operation.
+     * @param operation The operation to apply.
+     * @param begin The beginning of the range.
+     * @param n The number of elements in the range.
+     */
+    template <class UnaryOperation>
+    void operation_on_range(const UnaryOperation& operation, std::size_t begin, std::size_t n) {
+        for (std::size_t i = begin; i < begin + n; ++i) {
+            operation(results[i]);
+        }
+    }
 
-		/**
-		 * @brief Applies an operation on a range of results.
-		 * 
-		 * @tparam UnaryOperation The type of the operation.
-		 * @param operation The operation to apply.
-		 * @param begin The beginning of the range.
-		 * @param n The number of elements in the range.
-		 */
-		template<class UnaryOperation>
-		void operation_on_range(const UnaryOperation& operation, std::size_t begin, std::size_t n) {
-			for (std::size_t i = begin; i < begin + n; ++i)
-			{
-				operation(results[i]);
-			}
-		}
+    /**
+     * @brief Applies an operation on each result.
+     *
+     * @tparam UnaryOperation The type of the operation.
+     * @param operation The operation to apply.
+     */
+    template <class UnaryOperation>
+    void operation_on_each(const UnaryOperation& operation) {
+        for (auto& res : results) {
+            operation(res);
+        }
+    }
 
-		/**
-		 * @brief Applies an operation on each result.
-		 * 
-		 * @tparam UnaryOperation The type of the operation.
-		 * @param operation The operation to apply.
-		 */
-		template<class UnaryOperation>
-		void operation_on_each(const UnaryOperation& operation) {
-			for (auto& res : results)
-			{
-				operation(res);
-			}
-		}
+    /**
+     * @brief Adds an index delta to a range of results.
+     *
+     * @param index The index delta to add.
+     * @param begin The beginning of the range.
+     * @param n The number of elements in the range.
+     */
+    inline void add_index_delta_range(const KroneckerDelta<Index>& index, std::size_t begin, std::size_t n);
 
-		/**
-		 * @brief Adds an index delta to a range of results.
-		 * 
-		 * @param index The index delta to add.
-		 * @param begin The beginning of the range.
-		 * @param n The number of elements in the range.
-		 */
-		inline void add_index_delta_range(const KroneckerDelta<Index>& index, std::size_t begin, std::size_t n);
+    /**
+     * @brief Adds an index delta to each result.
+     *
+     * @param index The index delta to add.
+     */
+    inline void add_index_delta(const KroneckerDelta<Index>& index);
 
-		/**
-		 * @brief Adds an index delta to each result.
-		 * 
-		 * @param index The index delta to add.
-		 */
-		inline void add_index_delta(const KroneckerDelta<Index>& index);
+    /**
+     * @brief Creates a branch in the results vector.
+     *
+     * @return std::size_t The size of the current results vector.
+     */
+    std::size_t create_branch();
 
-		/**
-		 * @brief Creates a branch in the results vector.
-		 * 
-		 * @return std::size_t The size of the current results vector.
-		 */
-		std::size_t create_branch();
+    /**
+     * @brief Clears impossible results.
+     */
+    void clear_impossible();
 
-		/**
-		 * @brief Clears impossible results.
-		 */
-		void clear_impossible();
+    /**
+     * @brief Cleans up the results by clearing deltas that are one and removing impossible results.
+     */
+    void clean_up();
 
-		/**
-		 * @brief Cleans up the results by clearing deltas that are one and removing impossible results.
-		 */
-		void clean_up();
+    /**
+     * @brief Checks if the TemplateResult is valid.
+     *
+     * @return true if the TemplateResult is valid and false otherwise.
+     */
+    inline explicit operator bool() const { return !this->results.empty(); }
+};
 
-		/**
-		 * @brief Checks if the TemplateResult is valid.
-		 * 
-		 * @return true if the TemplateResult is valid and false otherwise.
-		 */
-		inline explicit operator bool() const { return !this->results.empty(); }
-	};
+/**
+ * @class WickOperatorTemplate
+ * @brief A template for creating Wick operators.
+ */
+struct WickOperatorTemplate {
+    std::vector<IndexComparison> indexComparison;  ///< The vector of index comparisons.
+    Momentum momentum_difference;                  ///< The momentum difference.
+    OperatorType type;                             ///< The type of the operator.
 
-	/**
-	 * @class WickOperatorTemplate
-	 * @brief A template for creating Wick operators.
-	 */
-	struct WickOperatorTemplate {
-		std::vector<IndexComparison> indexComparison; ///< The vector of index comparisons.
-		Momentum momentum_difference; ///< The momentum difference.
-		OperatorType type; ///< The type of the operator.
-		
-		/**
-		 * @brief Creates a WickOperator from two operators if possible.
-		 * 
-		 * @param left The left operator.
-		 * @param right The right operator.
-		 * @return TemplateResult The result of the creation.
-		 */
-		TemplateResult create_from_operators(const Operator& left, const Operator& right) const;
+    /**
+     * @brief Creates a WickOperator from two operators if possible.
+     *
+     * @param left The left operator.
+     * @param right The right operator.
+     * @return TemplateResult The result of the creation.
+     */
+    TemplateResult create_from_operators(const Operator& left, const Operator& right) const;
 
-	private:
-		/**
-		 * @brief Handles the creation of SC type operators.
-		 * 
-		 * @param left The left operator.
-		 * @param right The right operator.
-		 * @return TemplateResult The result of the creation.
-		 */
-		TemplateResult _handle_sc_type(const Operator& left, const Operator& right) const;
+private:
+    /**
+     * @brief Handles the creation of SC type operators.
+     *
+     * @param left The left operator.
+     * @param right The right operator.
+     * @return TemplateResult The result of the creation.
+     */
+    TemplateResult _handle_sc_type(const Operator& left, const Operator& right) const;
 
-		/**
-		 * @brief Handles the creation of NUM type operators.
-		 * 
-		 * @param left The left operator.
-		 * @param right The right operator.
-		 * @return TemplateResult The result of the creation.
-		 */
-		TemplateResult _handle_num_type(const Operator& left, const Operator& right) const;
-	};
+    /**
+     * @brief Handles the creation of NUM type operators.
+     *
+     * @param left The left operator.
+     * @param right The right operator.
+     * @return TemplateResult The result of the creation.
+     */
+    TemplateResult _handle_num_type(const Operator& left, const Operator& right) const;
+};
 
-	// Inline definitions
-	void TemplateResult::SingleResult::clear_delta_equals_one() {
-		auto new_end = std::remove_if(this->index_deltas.begin(), this->index_deltas.end(), [](const KroneckerDelta<Index>& delta) {
-			return delta.first == delta.second;
-			});
-		this->index_deltas.erase(new_end, this->index_deltas.end());
-	}
-	bool TemplateResult::SingleResult::contains_impossible_delta() const {
-		return std::any_of(this->index_deltas.begin(), this->index_deltas.end(), [](const KroneckerDelta<Index>& delta) {
-			return (!is_mutable(delta.first) && !is_mutable(delta.second) && delta.first != delta.second);
-			});
-	}
+// Inline definitions
+void TemplateResult::SingleResult::clear_delta_equals_one() {
+    auto new_end = std::remove_if(this->index_deltas.begin(), this->index_deltas.end(),
+                                  [](const KroneckerDelta<Index>& delta) { return delta.first == delta.second; });
+    this->index_deltas.erase(new_end, this->index_deltas.end());
+}
+bool TemplateResult::SingleResult::contains_impossible_delta() const {
+    return std::any_of(this->index_deltas.begin(), this->index_deltas.end(), [](const KroneckerDelta<Index>& delta) {
+        return (!is_mutable(delta.first) && !is_mutable(delta.second) && delta.first != delta.second);
+    });
+}
 
-	void TemplateResult::add_index_delta_range(const KroneckerDelta<Index>& index, std::size_t begin, std::size_t n) {
-		operation_on_range([&index](SingleResult& res) { res.index_deltas.push_back(index); }, begin, n);
-	}
-	void TemplateResult::add_index_delta(const KroneckerDelta<Index>& index) {
-		operation_on_each([&index](SingleResult& res) { res.index_deltas.push_back(index); });
-	}
-} // namespace mrock::symbolic_operators
+void TemplateResult::add_index_delta_range(const KroneckerDelta<Index>& index, std::size_t begin, std::size_t n) {
+    operation_on_range([&index](SingleResult& res) { res.index_deltas.push_back(index); }, begin, n);
+}
+void TemplateResult::add_index_delta(const KroneckerDelta<Index>& index) {
+    operation_on_each([&index](SingleResult& res) { res.index_deltas.push_back(index); });
+}
+}  // namespace mrock::symbolic_operators
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICKOPERATORTEMPLATE_HPP

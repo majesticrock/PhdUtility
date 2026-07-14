@@ -1,329 +1,314 @@
-#include <mrock/symbolic_operators/Wick.hpp>
-#include <mrock/symbolic_operators/KroneckerDeltaUtility.hpp>
-#include <mrock/symbolic_operators/detail/container_helper.hpp>
 #include <mrock/symbolic_operators/Coefficient.hpp>
 #include <mrock/symbolic_operators/Fractional.hpp>
 #include <mrock/symbolic_operators/KroneckerDelta.hpp>
+#include <mrock/symbolic_operators/KroneckerDeltaUtility.hpp>
 #include <mrock/symbolic_operators/Momentum.hpp>
 #include <mrock/symbolic_operators/MomentumSymbol.hpp>
 #include <mrock/symbolic_operators/Operator.hpp>
 #include <mrock/symbolic_operators/OperatorType.hpp>
 #include <mrock/symbolic_operators/SumContainer.hpp>
 #include <mrock/symbolic_operators/Term.hpp>
+#include <mrock/symbolic_operators/Wick.hpp>
 #include <mrock/symbolic_operators/WickOperator.hpp>
 #include <mrock/symbolic_operators/WickOperatorTemplate.hpp>
 #include <mrock/symbolic_operators/WickSymmetry.hpp>
 #include <mrock/symbolic_operators/WickTerm.hpp>
+#include <mrock/symbolic_operators/detail/container_helper.hpp>
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
-#include <algorithm>
 #include <iostream>
+#include <numeric>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <variant>
-#include <numeric>
-#include <type_traits>
 
 namespace mrock::symbolic_operators {
-	// Computes n!!
-	template <typename IntegerType, typename RealType = std::size_t>
-	constexpr RealType double_factorial(const IntegerType n) {
-		RealType result{ 1 };
-		for (std::make_signed_t<IntegerType> i = n; i > 0; i -= 2) {
-			result *= i;
-		}
-		return result;
-	}
-
-	void wick_processor(const std::vector<Operator>& remaining, WickTermCollector& reciever_list, std::variant<WickTerm, Term> buffer)
-	{
-		if (remaining.empty()) {
-			reciever_list.push_back(std::get<WickTerm>(buffer));
-			return;
-		}
-		for (std::size_t i = 1U; i < remaining.size(); ++i)
-		{
-			if (std::holds_alternative<Term>(buffer)) {
-				WickTerm temp(std::get<Term>(buffer));
-				buffer = temp;
-			}
-			if (!(i & 1)) {
-				std::get<WickTerm>(buffer).multiplicity *= -1;
-			}
-			std::get<WickTerm>(buffer).temporary_operators.reserve(std::get<WickTerm>(buffer).temporary_operators.size() + 2);
-			std::get<WickTerm>(buffer).temporary_operators.push_back(remaining[0]);
-			std::get<WickTerm>(buffer).temporary_operators.push_back(remaining[i]);
-
-			std::vector<Operator> copy_operators = remaining;
-			copy_operators.erase(copy_operators.begin() + i);
-			copy_operators.erase(copy_operators.begin());
-			wick_processor(copy_operators, reciever_list, buffer);
-
-			// delete last two elements, as they are to be updated in the next iteration
-			std::get<WickTerm>(buffer).temporary_operators.pop_back();
-			std::get<WickTerm>(buffer).temporary_operators.pop_back();
-			if (!(i & 1)) {
-				std::get<WickTerm>(buffer).multiplicity *= -1;
-			}
-		}
-	}
-	
-	// Sorts the operators in 'term' according to Wick's theorem within 'temporary_operators'
-	// Afterwards, these can be rewritten in terms of 'WickOperator's.
-	WickTermCollector prepare_wick(const std::vector<Term>& terms)
-	{
-		WickTermCollector prepared_wick;
-		const std::size_t estimated_size = std::accumulate(terms.begin(), terms.end(), std::size_t{}, [](std::size_t current, const Term& term) {
-			return current + double_factorial(term.get_operators().size());
-			});
-
-		prepared_wick.reserve(estimated_size);
-		for (const auto& term : terms) {
-			if (term.is_identity()) {
-				prepared_wick.push_back(WickTerm(term));
-			}
-			else {
-				wick_processor(term.get_operators(), prepared_wick, term);
-			}
-		}
-
-		return prepared_wick;
-	}
-
-	WickTermCollector identify_wick_operators(const WickTerm& source, const std::vector<WickOperatorTemplate>& operator_templates)
-	{
-		WickTermCollector ret;
-		ret.push_back(source);
-		ret.back().temporary_operators.clear();
-
-		for (std::size_t i = 0U; i < source.temporary_operators.size(); i += 2U)
-		{
-			std::vector<TemplateResult> template_results;
-			for (const auto& operator_template : operator_templates) {
-				auto template_result = operator_template.create_from_operators(source.temporary_operators[i], source.temporary_operators[i + 1U]);
-				if (template_result) {
-					template_results.push_back(std::move(template_result));
-				}
-			}
-
-			const std::size_t current_size = ret.size();
-			const std::size_t number_additional_elements = std::accumulate(template_results.begin(), template_results.end(), std::size_t{}, 
-				[](std::size_t current, const TemplateResult& tr) {
-					return current + tr.results.size();
-				});
-			if (number_additional_elements > 1U) {
-				duplicate_n_inplace(ret, number_additional_elements - 1U);
-			}
-
-			std::size_t template_result_it{};
-			std::size_t old_it{};
-			for (const auto& tr : template_results) {
-				old_it = template_result_it;
-				for (const auto& tr_result : tr.results) {
-					for (auto it = ret.begin(); it != ret.begin() + current_size; ++it) {
-						(it + template_result_it * current_size)->include_template_result(tr_result);
-					}
-					++template_result_it;
-				}
-				std::for_each(ret.begin() + old_it * current_size, ret.begin() + current_size * template_result_it, [&tr](WickTerm& ret_element) {
-					if (!tr.momentum_delta.isOne())
-						ret_element.delta_momenta.push_back(tr.momentum_delta);
-					});
-			}
-		}
-
-		return ret;
-	}
-
-	void wicks_theorem(const std::vector<Term>& terms, const std::vector<WickOperatorTemplate>& operator_templates, WickTermCollector& reciever)
-	{
-		WickTermCollector prepared_wick = prepare_wick(terms);
-
-		for (auto& w_term : prepared_wick) {
-			append_if(reciever, identify_wick_operators(w_term, operator_templates), [](const WickTerm& wick) {
-				return !(is_always_zero(wick.delta_indizes) || is_always_zero(wick.delta_momenta));
-				});
-		}
-	}
-
-	void clear_etas(WickTermCollector& terms)
-	{
-		for (auto it = terms.begin(); it != terms.end();) {
-			bool isEta = false;
-			for (const auto& op : it->operators) {
-				if (op.type == OperatorType::Eta) {
-					isEta = true;
-					break;
-				}
-			}
-			if (isEta) {
-				it = terms.erase(it);
-			}
-			else {
-				++it;
-			}
-		}
-	}
-
-	void clean_wicks(WickTermCollector& terms, const std::vector<std::unique_ptr<WickSymmetry>>& symmetries /*= std::vector<std::unique_ptr<WickSymmetry>>{}*/)
-	{
-		for (auto& term : terms) {
-			for (std::vector<Coefficient>::iterator it = term.coefficients.begin(); it != term.coefficients.end();) {
-				if (it->name == "") {
-					it = term.coefficients.erase(it);
-				}
-				else {
-					++it;
-				}
-			}
-		}
-		for (WickTermCollector::iterator it = terms.begin(); it != terms.end();) {
-			if (!(it->resolve_deltas())) {
-				it = terms.erase(it);
-				continue;
-			}
-			it->discard_zero_momenta();
-			it->rename_sums();
-			it->sort();
-			
-			/* 
-			This function must be called before symmetries are applied!
-			Sometimes <o^dagger> = <o> is a symmetry, which would transform <o^dagger> <o> into <o><o>.
-			is_pauli_forbidden() transforms <o> back into the original operators and checks, whether its legal.
-			That is, if <o> = <c_-k c_k>, then
-			<o^dagger> <o> becomes <c_k^dagger c_-k^dagger c_-k c_k> which is finite.
-			Applyng the aforementioned symmetry gives
-			<o><o> = <c_-k c_k c_-k c_k> which would be Pauli forbidden. */
-			if (it->is_pauli_forbidden()) {
-				it = terms.erase(it);
-				continue;
-			}
-
-			for (const auto& symmetry : symmetries) {
-				symmetry->apply_to(*it);
-			}
-
-			for (auto jt = it->sums.spins.begin(); jt != it->sums.spins.end();)
-			{
-				if (it->uses_index(*jt)) {
-					++jt;
-				}
-				else {
-					// We are assuming there are only spin indizes here (spin 1/2)
-					// If another kind of index arises I have to readress this section.
-					it->multiplicity *= 2;
-					jt = it->sums.spins.erase(jt);
-				}
-			}
-			for (auto& coeff : it->coefficients) {
-				coeff.apply_custom_symmetry();
-			}
-			++it;
-		}
-
-		// Setup so that we always have a structure like delta_(l,k+something)
-		for (auto& term : terms) {
-			for (auto& delta : term.delta_momenta) {
-				assert(delta.first.momentum_list.size() == 1U);
-				int l_is = delta.first.is_used_at('l');
-				if(l_is == 0) continue;
-
-				l_is = delta.second.is_used_at('l');
-				if(l_is == -1) {
-					std::cout << "################\n# Broken term\n";
-					std::cout << term << std::endl;
-					throw std::runtime_error("There is no l in the delta, but we need an l!");
-				}
-				const Momentum l_mom('l', delta.second.momentum_list[l_is].factor);
-				const Momentum remainder = delta.second - l_mom;
-				delta -= remainder;
-				std::swap(delta.first, delta.second);
-				if(delta.first.add_Q) {
-					delta.second.add_Q = !delta.second.add_Q;
-					delta.first.add_Q = false;
-				}
-			}
-		}
-		// remove duplicates
-		for (int i = 0; i < terms.size(); i++)
-		{
-			for (int j = i + 1; j < terms.size(); j++)
-			{
-				if (terms[i] == terms[j]) {
-					terms[i].multiplicity += terms[j].multiplicity;
-					terms.erase(terms.begin() + j);
-					--i;
-					break;
-				}
-			}
-		}
-		// removes any terms that have a 0 prefactor
-		for (auto it = terms.begin(); it != terms.end();)
-		{
-			if (it->multiplicity == 0) {
-				it = terms.erase(it);
-			}
-			else {
-				++it;
-			}
-		}
-
-		auto predicate = [](const WickTerm& left, const WickTerm& right) -> bool {
-			if (left.delta_momenta.empty() && right.delta_momenta.size() > 0) {
-				return true;
-			}
-			else if (left.delta_momenta.size() > 0 && right.delta_momenta.size() > 0) {
-				if (left.delta_momenta.size() < right.delta_momenta.size()) {
-					return true;
-				}
-				else if (left.delta_momenta.size() == right.delta_momenta.size()) {
-					if (left.delta_momenta[0].second.add_Q && !(right.delta_momenta[0].second.add_Q)) {
-						return true;
-					}
-					else if (!left.coefficients.empty() && right.coefficients[0].name < left.coefficients[0].name) {
-						return true;
-					}
-					else if ((!left.coefficients.empty() && right.coefficients[0].name == left.coefficients[0].name) || left.coefficients.empty()) {
-						if (!left.operators.empty() && right.operators.empty()) {
-							return true;
-						}
-						else if ((!left.operators.empty() && !right.operators.empty()) && left.operators.front().type < right.operators.front().type) {
-							return true;
-						}
-					}
-				}
-			}
-			else if (left.delta_momenta.empty() && right.delta_momenta.empty()) {
-				if (left.coefficients.size() < right.coefficients.size()) {
-					return true;
-				}
-				else if (!left.coefficients.empty() && !right.coefficients.empty()) {
-					if (right.coefficients[0].name < left.coefficients[0].name) {
-						return true;
-					}
-					else if (right.coefficients[0].name == left.coefficients[0].name) {
-						if (left.operators.size() > right.operators.size()) {
-							return true;
-						}
-						else if ((!left.operators.empty() && !right.operators.empty()) && left.operators.front().type < right.operators.front().type) {
-							return true;
-						}
-					}
-				}
-			}
-			return false;
-		};
-
-		// Sort terms
-		for (std::size_t i = 0; i < terms.size(); i++)
-		{
-			for (std::size_t j = i + 1; j < terms.size(); j++)
-			{
-				if(predicate(terms[i], terms[j]))
-					std::swap(terms[i], terms[j]);
-			}
-		}
-	}
+// Computes n!!
+template <typename IntegerType, typename RealType = std::size_t>
+constexpr RealType double_factorial(const IntegerType n) {
+    RealType result{1};
+    for (std::make_signed_t<IntegerType> i = n; i > 0; i -= 2) {
+        result *= i;
+    }
+    return result;
 }
+
+void wick_processor(const std::vector<Operator>& remaining,
+                    WickTermCollector& reciever_list,
+                    std::variant<WickTerm, Term> buffer) {
+    if (remaining.empty()) {
+        reciever_list.push_back(std::get<WickTerm>(buffer));
+        return;
+    }
+    for (std::size_t i = 1U; i < remaining.size(); ++i) {
+        if (std::holds_alternative<Term>(buffer)) {
+            WickTerm temp(std::get<Term>(buffer));
+            buffer = temp;
+        }
+        if (!(i & 1)) {
+            std::get<WickTerm>(buffer).multiplicity *= -1;
+        }
+        std::get<WickTerm>(buffer).temporary_operators.reserve(std::get<WickTerm>(buffer).temporary_operators.size() +
+                                                               2);
+        std::get<WickTerm>(buffer).temporary_operators.push_back(remaining[0]);
+        std::get<WickTerm>(buffer).temporary_operators.push_back(remaining[i]);
+
+        std::vector<Operator> copy_operators = remaining;
+        copy_operators.erase(copy_operators.begin() + i);
+        copy_operators.erase(copy_operators.begin());
+        wick_processor(copy_operators, reciever_list, buffer);
+
+        // delete last two elements, as they are to be updated in the next iteration
+        std::get<WickTerm>(buffer).temporary_operators.pop_back();
+        std::get<WickTerm>(buffer).temporary_operators.pop_back();
+        if (!(i & 1)) {
+            std::get<WickTerm>(buffer).multiplicity *= -1;
+        }
+    }
+}
+
+// Sorts the operators in 'term' according to Wick's theorem within 'temporary_operators'
+// Afterwards, these can be rewritten in terms of 'WickOperator's.
+WickTermCollector prepare_wick(const std::vector<Term>& terms) {
+    WickTermCollector prepared_wick;
+    const std::size_t estimated_size = std::accumulate(
+        terms.begin(), terms.end(), std::size_t{},
+        [](std::size_t current, const Term& term) { return current + double_factorial(term.get_operators().size()); });
+
+    prepared_wick.reserve(estimated_size);
+    for (const auto& term : terms) {
+        if (term.is_identity()) {
+            prepared_wick.push_back(WickTerm(term));
+        } else {
+            wick_processor(term.get_operators(), prepared_wick, term);
+        }
+    }
+
+    return prepared_wick;
+}
+
+WickTermCollector identify_wick_operators(const WickTerm& source,
+                                          const std::vector<WickOperatorTemplate>& operator_templates) {
+    WickTermCollector ret;
+    ret.push_back(source);
+    ret.back().temporary_operators.clear();
+
+    for (std::size_t i = 0U; i < source.temporary_operators.size(); i += 2U) {
+        std::vector<TemplateResult> template_results;
+        for (const auto& operator_template : operator_templates) {
+            auto template_result = operator_template.create_from_operators(source.temporary_operators[i],
+                                                                           source.temporary_operators[i + 1U]);
+            if (template_result) {
+                template_results.push_back(std::move(template_result));
+            }
+        }
+
+        const std::size_t current_size = ret.size();
+        const std::size_t number_additional_elements =
+            std::accumulate(template_results.begin(), template_results.end(), std::size_t{},
+                            [](std::size_t current, const TemplateResult& tr) { return current + tr.results.size(); });
+        if (number_additional_elements > 1U) {
+            duplicate_n_inplace(ret, number_additional_elements - 1U);
+        }
+
+        std::size_t template_result_it{};
+        std::size_t old_it{};
+        for (const auto& tr : template_results) {
+            old_it = template_result_it;
+            for (const auto& tr_result : tr.results) {
+                for (auto it = ret.begin(); it != ret.begin() + current_size; ++it) {
+                    (it + template_result_it * current_size)->include_template_result(tr_result);
+                }
+                ++template_result_it;
+            }
+            std::for_each(ret.begin() + old_it * current_size, ret.begin() + current_size * template_result_it,
+                          [&tr](WickTerm& ret_element) {
+                              if (!tr.momentum_delta.isOne())
+                                  ret_element.delta_momenta.push_back(tr.momentum_delta);
+                          });
+        }
+    }
+
+    return ret;
+}
+
+void wicks_theorem(const std::vector<Term>& terms,
+                   const std::vector<WickOperatorTemplate>& operator_templates,
+                   WickTermCollector& reciever) {
+    WickTermCollector prepared_wick = prepare_wick(terms);
+
+    for (auto& w_term : prepared_wick) {
+        append_if(reciever, identify_wick_operators(w_term, operator_templates), [](const WickTerm& wick) {
+            return !(is_always_zero(wick.delta_indizes) || is_always_zero(wick.delta_momenta));
+        });
+    }
+}
+
+void clear_etas(WickTermCollector& terms) {
+    for (auto it = terms.begin(); it != terms.end();) {
+        bool isEta = false;
+        for (const auto& op : it->operators) {
+            if (op.type == OperatorType::Eta) {
+                isEta = true;
+                break;
+            }
+        }
+        if (isEta) {
+            it = terms.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+void clean_wicks(
+    WickTermCollector& terms,
+    const std::vector<std::unique_ptr<WickSymmetry>>& symmetries /*= std::vector<std::unique_ptr<WickSymmetry>>{}*/) {
+    for (auto& term : terms) {
+        for (std::vector<Coefficient>::iterator it = term.coefficients.begin(); it != term.coefficients.end();) {
+            if (it->name == "") {
+                it = term.coefficients.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
+    for (WickTermCollector::iterator it = terms.begin(); it != terms.end();) {
+        if (!(it->resolve_deltas())) {
+            it = terms.erase(it);
+            continue;
+        }
+        it->discard_zero_momenta();
+        it->rename_sums();
+        it->sort();
+
+        /*
+        This function must be called before symmetries are applied!
+        Sometimes <o^dagger> = <o> is a symmetry, which would transform <o^dagger> <o> into <o><o>.
+        is_pauli_forbidden() transforms <o> back into the original operators and checks, whether its legal.
+        That is, if <o> = <c_-k c_k>, then
+        <o^dagger> <o> becomes <c_k^dagger c_-k^dagger c_-k c_k> which is finite.
+        Applyng the aforementioned symmetry gives
+        <o><o> = <c_-k c_k c_-k c_k> which would be Pauli forbidden. */
+        if (it->is_pauli_forbidden()) {
+            it = terms.erase(it);
+            continue;
+        }
+
+        for (const auto& symmetry : symmetries) {
+            symmetry->apply_to(*it);
+        }
+
+        for (auto jt = it->sums.spins.begin(); jt != it->sums.spins.end();) {
+            if (it->uses_index(*jt)) {
+                ++jt;
+            } else {
+                // We are assuming there are only spin indizes here (spin 1/2)
+                // If another kind of index arises I have to readress this section.
+                it->multiplicity *= 2;
+                jt = it->sums.spins.erase(jt);
+            }
+        }
+        for (auto& coeff : it->coefficients) {
+            coeff.apply_custom_symmetry();
+        }
+        ++it;
+    }
+
+    // Setup so that we always have a structure like delta_(l,k+something)
+    for (auto& term : terms) {
+        for (auto& delta : term.delta_momenta) {
+            assert(delta.first.momentum_list.size() == 1U);
+            int l_is = delta.first.is_used_at('l');
+            if (l_is == 0)
+                continue;
+
+            l_is = delta.second.is_used_at('l');
+            if (l_is == -1) {
+                std::cout << "################\n# Broken term\n";
+                std::cout << term << std::endl;
+                throw std::runtime_error("There is no l in the delta, but we need an l!");
+            }
+            const Momentum l_mom('l', delta.second.momentum_list[l_is].factor);
+            const Momentum remainder = delta.second - l_mom;
+            delta -= remainder;
+            std::swap(delta.first, delta.second);
+            if (delta.first.add_Q) {
+                delta.second.add_Q = !delta.second.add_Q;
+                delta.first.add_Q = false;
+            }
+        }
+    }
+    // remove duplicates
+    for (int i = 0; i < terms.size(); i++) {
+        for (int j = i + 1; j < terms.size(); j++) {
+            if (terms[i] == terms[j]) {
+                terms[i].multiplicity += terms[j].multiplicity;
+                terms.erase(terms.begin() + j);
+                --i;
+                break;
+            }
+        }
+    }
+    // removes any terms that have a 0 prefactor
+    for (auto it = terms.begin(); it != terms.end();) {
+        if (it->multiplicity == 0) {
+            it = terms.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    auto predicate = [](const WickTerm& left, const WickTerm& right) -> bool {
+        if (left.delta_momenta.empty() && right.delta_momenta.size() > 0) {
+            return true;
+        } else if (left.delta_momenta.size() > 0 && right.delta_momenta.size() > 0) {
+            if (left.delta_momenta.size() < right.delta_momenta.size()) {
+                return true;
+            } else if (left.delta_momenta.size() == right.delta_momenta.size()) {
+                if (left.delta_momenta[0].second.add_Q && !(right.delta_momenta[0].second.add_Q)) {
+                    return true;
+                } else if (!left.coefficients.empty() && right.coefficients[0].name < left.coefficients[0].name) {
+                    return true;
+                } else if ((!left.coefficients.empty() && right.coefficients[0].name == left.coefficients[0].name) ||
+                           left.coefficients.empty()) {
+                    if (!left.operators.empty() && right.operators.empty()) {
+                        return true;
+                    } else if ((!left.operators.empty() && !right.operators.empty()) &&
+                               left.operators.front().type < right.operators.front().type) {
+                        return true;
+                    }
+                }
+            }
+        } else if (left.delta_momenta.empty() && right.delta_momenta.empty()) {
+            if (left.coefficients.size() < right.coefficients.size()) {
+                return true;
+            } else if (!left.coefficients.empty() && !right.coefficients.empty()) {
+                if (right.coefficients[0].name < left.coefficients[0].name) {
+                    return true;
+                } else if (right.coefficients[0].name == left.coefficients[0].name) {
+                    if (left.operators.size() > right.operators.size()) {
+                        return true;
+                    } else if ((!left.operators.empty() && !right.operators.empty()) &&
+                               left.operators.front().type < right.operators.front().type) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    };
+
+    // Sort terms
+    for (std::size_t i = 0; i < terms.size(); i++) {
+        for (std::size_t j = i + 1; j < terms.size(); j++) {
+            if (predicate(terms[i], terms[j]))
+                std::swap(terms[i], terms[j]);
+        }
+    }
+}
+}  // namespace mrock::symbolic_operators
