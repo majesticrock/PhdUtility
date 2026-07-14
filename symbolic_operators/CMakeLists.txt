@@ -56,7 +56,7 @@ target_include_directories(
     mrock_symbolic_operators
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:${MROCK_INSTALL_INCLUDEDIR}>
 )
 
 include(

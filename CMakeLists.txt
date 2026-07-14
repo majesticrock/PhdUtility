@@ -41,13 +41,16 @@ option(MROCK_BUILD_IEOM
 #
 # Core interface target
 #
+set(MROCK_INSTALL_INCLUDEDIR
+    ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 add_library(mrock INTERFACE)
 add_library(mrock::mrock ALIAS mrock)
 
 target_include_directories(mrock INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    $<INSTALL_INTERFACE:${MROCK_INSTALL_INCLUDEDIR}>
     ${MROCK_EXTRA_INCLUDE_DIRS}
 )
 
