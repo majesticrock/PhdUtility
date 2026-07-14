@@ -35,11 +35,13 @@ add_library(
     sources/WickSymmetry.cpp
     sources/WickTerm.cpp
 )
-
 add_library(
     mrock::symbolic_operators
     ALIAS
     mrock_symbolic_operators
+)
+set_target_properties(mrock_symbolic_operators PROPERTIES
+    EXPORT_NAME symbolic_operators
 )
 
 target_link_libraries(

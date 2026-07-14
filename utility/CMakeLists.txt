@@ -8,11 +8,13 @@ find_dependency(ZLIB REQUIRED)
 find_dependency(Boost REQUIRED COMPONENTS iostreams)
 
 add_library(mrock_utility INTERFACE)
-
 add_library(
     mrock::utility
     ALIAS
     mrock_utility
+)
+set_target_properties(mrock_utility PROPERTIES
+    EXPORT_NAME utility
 )
 
 target_link_libraries(

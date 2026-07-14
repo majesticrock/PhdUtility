@@ -6,15 +6,14 @@ project(
     LANGUAGES CXX
 )
 
-add_library(
-    mrock_iEoM
-    INTERFACE
-)
-
+add_library(mrock_iEoM INTERFACE)
 add_library(
     mrock::iEoM
     ALIAS
     mrock_iEoM
+)
+set_target_properties(mrock_iEoM PROPERTIES
+    EXPORT_NAME iEoM
 )
 
 target_link_libraries(
