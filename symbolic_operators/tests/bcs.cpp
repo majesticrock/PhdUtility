@@ -8,7 +8,7 @@
  * analytical values.
  */
 
- // These includes provide all classes necessary to work with the library
+// These includes provide all classes necessary to work with the library
 #include <mrock/symbolic_operators/Commutation>
 #include <mrock/symbolic_operators/ExpectationValues>
 

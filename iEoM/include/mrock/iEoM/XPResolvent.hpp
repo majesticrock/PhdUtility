@@ -22,6 +22,8 @@
 
 #include <Eigen/Dense>
 
+#include <numbers>
+
 namespace mrock::iEoM {
 /**
  * @struct XPResolvent
@@ -413,7 +415,6 @@ private:
      *
      * @param solver A SelfAdjointEigenSolver containing the eigendecomposition of the system matrix.
      * @param qr A QR decomposition object used to solve linear systems for eigenvector transformation.
-     * @param n_zero The index offset indicating the number of zero/excluded eigenvalues.
      * @param n_non_zero The number of non-zero eigenvalues and corresponding eigenvectors to process.
      * @param transform_matrix The transformation matrix used for QR error checking (if enabled).
      *
@@ -423,7 +424,6 @@ private:
      * @return FullDiagData A structure containing:
      *         - first_eigenvectors: Transformed eigenvectors obtained via QR solve
      *         - eigenvalues: Square root (because the algorithm works in omega^2) of the non-zero eigenvalues
-     * 								(from index n_zero onward)
      *         - weights: Squared projections of the state onto the eigenvector subspace,
      *                    computed as |<u_j | N^{-1/2} L | state>|^2
      *
@@ -436,33 +436,55 @@ private:
     template <detail::ConstStateIterator iterator_type>
     FullDiagData set_full_diag_data(const Eigen::SelfAdjointEigenSolver<Matrix>& solver,
                                     const TransformQR& qr,
-                                    const std::size_t& n_zero,
                                     const std::size_t& n_non_zero,
                                     const Matrix& transform_matrix) const {
+        if (_internal.contains_negative(solver.eigenvalues())) {
+            if (_internal._negative_matrix_is_error) {
+                throw MatrixIsNegativeException<RealType>(solver.eigenvalues().minCoeff(), "in set_full_diag data");
+            } else {
+                std::cerr << "Warning: The dynamical matrix in set_full_diag_data is negative with min(ev) = "
+                          << solver.eigenvalues().minCoeff() << std::endl;
+            }
+        }
         FullDiagData data;
-        for (std::size_t i = 0U; i < n_residuals; ++i) {
-            Vector buffer = qr.solve(solver.eigenvectors().col(i + n_zero));
-            data.first_eigenvectors[i] = std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
-        }
-        data.eigenvalues = std::vector<RealType>(solver.eigenvalues().data() + n_zero,
-                                                 solver.eigenvalues().data() + solver.eigenvalues().size());
-        for (auto& ev : data.eigenvalues) {
-            ev = sqrt(ev);
-        }
-        for (iterator_type it = iterator_type::begin(starting_states); it != iterator_type::end(starting_states);
-             ++it) {
-            data.weights.emplace_back(std::vector<RealType>(n_non_zero, RealType{}));
-            Eigen::Map<Vector> weight_map(data.weights.back().data(), n_non_zero);
-            // state is already transformed; this line computes
-            // sum_j <u_j| transform_matrix | original_amplitude_state> = sum_j <u_j | N^{-1/2} L |
-            // original_amplitude_state> The analog also applies to phase states:  sum_j <u_j | N^{-1/2} L^+ |
-            // original_phase_state>
-            weight_map = solver.eigenvectors().rightCols(n_non_zero).adjoint() * it.state();
-            weight_map = weight_map.array().square();
 
-            const Vector nullspace_weights = solver.eigenvectors().leftCols(n_zero).adjoint() * it.state();
-            for (const auto& weight : nullspace_weights) {
-                data.weights.back()[0] += weight;
+        data.eigenvalues.reserve(n_non_zero);
+        data.weights.resize(total_size(starting_states));
+        for (auto& weight_vec : data.weights) {
+            weight_vec.reserve(n_non_zero);
+        }
+
+        int eigenvector_count{};
+        for (int i = 0; i < solver.eigenvalues().size(); ++i) {
+            const RealType eigen_val = std::sqrt(std::abs(solver.eigenvalues()(i)));
+
+            if (data.eigenvalues.empty() || std::abs(data.eigenvalues.back() - eigen_val) >=
+                                                std::numbers::sqrt2_v<RealType> * _internal._sqrt_precision) {
+                data.eigenvalues.emplace_back(eigen_val);
+                if (eigenvector_count < n_residuals) {
+                    Vector buffer = qr.solve(solver.eigenvectors().col(i));
+                    data.first_eigenvectors[eigenvector_count++] =
+                        std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
+                }
+
+                iterator_type it = iterator_type::begin(starting_states);
+                for (int state = 0; state < starting_states.size(); ++state) {
+                    // state is already transformed; this line computes
+                    // sum_j <u_j| transform_matrix | original_amplitude_state>
+                    //      = sum_j <u_j | N^{-1/2} L | original_amplitude_state>
+                    // The analog also applies to phase states:
+                    //      sum_j <u_j | N^{-1/2} L^+ | original_phase_state>
+                    data.weights[state].emplace_back(it.state().dot(solver.eigenvectors().col(i)));
+                    data.weights[state].back() *= data.weights[state].back();
+                    ++it;
+                }
+            } else {
+                iterator_type it = iterator_type::begin(starting_states);
+                for (int state = 0; state < starting_states.size(); ++state) {
+                    const auto buffer = it.state().dot(solver.eigenvectors().col(i));
+                    data.weights[state].back() += buffer * buffer;
+                    ++it;
+                }
             }
         }
         return data;
@@ -754,7 +776,7 @@ public:
             print_duration("Time for first QR decomp: ");
             const std::size_t n_zero = get_number_of_zero_eigenvalues(solver);
             const std::size_t n_non_zero = solver.eigenvalues().size() - n_zero;
-            return_data.first = set_full_diag_data<const_phase_it>(solver, qr, n_zero, n_non_zero, transform_matrix);
+            return_data.first = set_full_diag_data<const_phase_it>(solver, qr, n_non_zero, transform_matrix);
             if constexpr (check_qr) {
                 for (std::size_t i = 0U; i < n_residuals; ++i) {
                     Eigen::Map<Vector> _eigen(return_data.first.first_eigenvectors[i].data(),
@@ -781,8 +803,7 @@ public:
             const std::size_t n_non_zero = solver.eigenvalues().size() - n_zero;
 
             print_duration("Time for second QR decomp: ");
-            return_data.second =
-                set_full_diag_data<const_amplitude_it>(solver, qr, n_zero, n_non_zero, transform_matrix);
+            return_data.second = set_full_diag_data<const_amplitude_it>(solver, qr, n_non_zero, transform_matrix);
             if constexpr (check_qr) {
                 for (std::size_t i = 0U; i < n_residuals; ++i) {
                     Eigen::Map<Vector> _eigen(return_data.second.first_eigenvectors[i].data(),

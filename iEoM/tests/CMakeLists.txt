@@ -1,17 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(iEoM_tests)
 
-function(SET_COMPILER_FLAGS TARGET)
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-        target_compile_options(${TARGET} PRIVATE -Wall -Wno-sign-compare -O3)
-        if(MROCK_ENABLE_NATIVE_ARCH)
-            target_compile_options(${TARGET} PRIVATE -march=native)
-        endif()
-    else()
-        message(FATAL_ERROR "Unsupported compiler ${CMAKE_CXX_COMPILER_ID}. Only GCC/Clang are supported.")
-    endif()
-endfunction()
-
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)

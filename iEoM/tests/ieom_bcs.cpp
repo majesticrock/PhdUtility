@@ -185,12 +185,21 @@ std::array<std::string, N_lanczos> save_data(const std::vector<BCSTester::Resolv
 
 std::array<std::string, 3> save_data(const PhaseTester::FullDiagData& data, std::ofstream& out) {
     std::array<std::string, 3> lines;
-    // The complex phase of an eigenvector is arbitrary, so we can fix the gauge here
-    const double flip_sign = data.first_eigenvectors[0][0] < 0. ? -1. : 1.;
-    for (int i = 0; i < N_k; ++i) {
-        lines[0] += std::to_string(data.eigenvalues[i]) + " ";
-        lines[1] += std::to_string(data.weights.front()[i]) + " ";
-        lines[2] += std::to_string(flip_sign * data.first_eigenvectors[0][i]) + " ";
+    // A global constant does not matter for the property of the eigenoperator, since X=const*E
+    // still fulfills [H, [H, X]] = omega^2 X
+    const double max_operator_amplitude =
+        data.first_eigenvectors[0][0] > 0.
+            ? *std::max_element(data.first_eigenvectors[0].begin(), data.first_eigenvectors[0].end())
+            : *std::min_element(data.first_eigenvectors[0].begin(), data.first_eigenvectors[0].end());
+
+    for (const auto& ev : data.eigenvalues) {
+        lines[0] += std::to_string(ev) + " ";
+    }
+    for (const auto& weight : data.weights.front()) {
+        lines[1] += std::to_string(weight) + " ";
+    }
+    for (const auto& vector_element : data.first_eigenvectors[0]) {
+        lines[2] += std::to_string(vector_element / max_operator_amplitude) + " ";
     }
 
     for (auto& line : lines) {

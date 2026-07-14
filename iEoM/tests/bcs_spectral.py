@@ -97,10 +97,11 @@ ax.legend()
 
 dirname = os.path.dirname(__file__)
 filename = os.path.join(dirname, '../../build/iEoM/tests/bcs_goldstone_result.txt')
-ED_DATA = np.loadtxt(filename)
-EVS = ED_DATA[0]
-WEIGHTS = ED_DATA[1]
-AMPLITUDES = ED_DATA[2]
+with open(filename, "r") as f:
+    ED_DATA = [list(map(float, line.split())) for line in f]
+EVS         = np.array(ED_DATA[0])
+WEIGHTS     = np.array(ED_DATA[1])
+AMPLITUDES  = np.array(ED_DATA[2])
 
 fig_ed, ax_ed = plt.subplots(ncols=2, figsize=(2*FIG_X, 0.75*FIG_X), layout="constrained")
 ax_ed[0].set_xlabel(r"$\omega$")

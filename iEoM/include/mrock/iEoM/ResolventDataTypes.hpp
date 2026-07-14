@@ -2,7 +2,6 @@
 #define MROCK_IEOM_INCLUDE_MROCK_IEOM_RESOLVENTDATATYPES_HPP
 #include <array>
 #include <iostream>
-#include <list>
 #include <string>
 #include <vector>
 
@@ -155,7 +154,7 @@ template <class RealType, int n>
 struct FullDiagonalizationData {
     std::vector<RealType> eigenvalues;
     std::array<std::vector<RealType>, n> first_eigenvectors;
-    std::list<std::vector<RealType>> weights;
+    std::vector<std::vector<RealType>> weights;
 };
 
 #ifndef MROCK_IEOM_NO_NLOHMANN_JSON

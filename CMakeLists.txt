@@ -66,6 +66,8 @@ mrock_install(mrock)
 # Tests
 #
 
+include(${CMAKE_SOURCE_DIR}/cmake/DefaultCompilerFlags.cmake)
+
 if(BUILD_TESTING)
     set(UTIL_TESTS ON)
     set(SYM_OP_TESTS ON)
