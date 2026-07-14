@@ -1,9 +1,12 @@
 #include <iostream>
 #include <cmath>
 #include <iomanip>
-#include "../include/mrock/utility/Numerics/Integration/AdaptiveTrapezoidalRule.hpp"
-#include "../include/mrock/utility/Numerics/ErrorFunctors.hpp"
 #include <Eigen/Dense>
+#include <numbers>
+#include <algorithm>
+
+#include <mrock/utility/Numerics/Integration/AdaptiveTrapezoidalRule.hpp>
+#include <mrock/utility/Numerics/ErrorFunctors.hpp>
 
 using namespace mrock::utility::Numerics;
 using namespace mrock::utility::Numerics::Integration;
@@ -70,7 +73,7 @@ int main() {
     auto interval_func = [](double x) {
         return std::cos(x*x);
     };
-    const double interval_adaptive = adaptive.split_integrate<10>(interval_func, 0.0, 2.0 * M_PI, 100, max_error);
+    const double interval_adaptive = adaptive.split_integrate<10>(interval_func, 0.0, 2.0 * std::numbers::pi, 100, max_error);
     const double interval_analytical = 0.704681810414167278042914562159196134988380537626793;
     std::cout << "Integral with subintervals of cos(x^2) from 0 to 2pi: " << interval_adaptive << " (Analytical: " << interval_analytical << ")" << std::endl;
     if (error_func(interval_adaptive, interval_analytical) > max_error) {

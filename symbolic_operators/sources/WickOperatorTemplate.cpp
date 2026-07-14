@@ -2,11 +2,17 @@
 #include <mrock/symbolic_operators/Momentum.hpp>
 #include <mrock/symbolic_operators/KroneckerDelta.hpp>
 #include <mrock/symbolic_operators/KroneckerDeltaUtility.hpp>
+#include <mrock/symbolic_operators/Operator.hpp>
+#include <mrock/symbolic_operators/OperatorType.hpp>
+#include <mrock/symbolic_operators/WickOperator.hpp>
+#include <mrock/symbolic_operators/IndexWrapper.hpp>
+
 #include <algorithm>
 #include <iterator>
+#include <cassert>
 
 namespace mrock::symbolic_operators {
-	TemplateResult::TemplateResult(size_t initial_size, OperatorType operator_type, const Momentum& base_momentum)
+	TemplateResult::TemplateResult(std::size_t initial_size, OperatorType operator_type, const Momentum& base_momentum)
 		: results(initial_size)
 	{
 		for (auto& result : results)
@@ -17,8 +23,8 @@ namespace mrock::symbolic_operators {
 		}
 	}
 
-	size_t TemplateResult::create_branch() {
-		const size_t current_size{ results.size() };
+	std::size_t TemplateResult::create_branch() {
+		const std::size_t current_size{ results.size() };
 		results.reserve(2 * current_size);
 		std::copy_n(results.begin(), current_size, std::back_inserter(results));
 		return current_size;
@@ -47,7 +53,7 @@ namespace mrock::symbolic_operators {
 		result.results.front().op.is_daggered = left.is_daggered;
 		result.momentum_delta = make_delta(this->momentum_difference, momentum_diff);
 
-		for (size_t i = 0U; i < indexComparison.size(); ++i)
+		for (std::size_t i = 0U; i < indexComparison.size(); ++i)
 		{
 			if (indexComparison[i].any_identical) {
 				result.add_index_delta(make_delta(base.indizes[i], other.indizes[i]));
@@ -55,12 +61,12 @@ namespace mrock::symbolic_operators {
 					res.op.indizes.push_back(base.indizes[i]);
 					});
 				// c c can be swapped for the cost of a sign
-				const size_t previous_size{ result.create_branch() };
+				const std::size_t previous_size{ result.create_branch() };
 				result.operation_on_range([](TemplateResult::SingleResult& res) { res.factor *= -1; }, previous_size, previous_size);
 				result.operation_on_range([&other](TemplateResult::SingleResult& res) { res.op.momentum = other.momentum; }, previous_size, previous_size);
 			}
 			else {
-				const size_t previous_size{ result.create_branch() };
+				const std::size_t previous_size{ result.create_branch() };
 				result.add_index_delta_range(make_delta(base.indizes[i], indexComparison[i].base), 0U, previous_size);
 				result.add_index_delta_range(make_delta(other.indizes[i], indexComparison[i].other), 0U, previous_size);
 
@@ -86,7 +92,7 @@ namespace mrock::symbolic_operators {
 		result.results.front().op.is_daggered = false;
 		result.momentum_delta = make_delta(this->momentum_difference, momentum_diff);
 
-		for (size_t i = 0U; i < indexComparison.size(); ++i)
+		for (std::size_t i = 0U; i < indexComparison.size(); ++i)
 		{
 			if (indexComparison[i].any_identical) {
 				result.add_index_delta(make_delta(left.indizes[i], right.indizes[i]));
@@ -95,7 +101,7 @@ namespace mrock::symbolic_operators {
 					});
 			}
 			else {
-				const size_t previous_size{ result.create_branch() };
+				const std::size_t previous_size{ result.create_branch() };
 				result.add_index_delta_range(make_delta(left.indizes[i], indexComparison[i].base), 0U, previous_size);
 				result.add_index_delta_range(make_delta(right.indizes[i], indexComparison[i].other), 0U, previous_size);
 			}

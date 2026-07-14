@@ -274,7 +274,7 @@ namespace mrock::iEoM::detail {
          * @param i Zero-based block index.
          * @return Const reference to the requested block.
          */
-        inline const InternalBase& block(size_t i) const {
+        inline const InternalBase& block(std::size_t i) const {
             return blocks[i];
         }
         /**
@@ -283,7 +283,7 @@ namespace mrock::iEoM::detail {
          * @param i Zero-based block index.
          * @return Reference to the requested block.
          */
-        inline InternalBase& block(size_t i) {
+        inline InternalBase& block(std::size_t i) {
             return blocks[i];
         }
 
@@ -324,7 +324,7 @@ namespace mrock::iEoM::detail {
 #ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
-            for (size_t i = 0U; i < blocks.size(); ++i) {
+            for (std::size_t i = 0U; i < blocks.size(); ++i) {
                 this->blocks[i].applyOnTheLeft(other.blocks[i]);
             }
             return *this;
@@ -470,7 +470,7 @@ namespace mrock::iEoM::detail {
     BlockDiagonalMatrix<addition_result<_base, _other_base>> operator+(BlockDiagonalMatrix<_base> const& lhs, BlockDiagonalMatrix<_other_base> const& rhs) {
         typename base_traits<addition_result<_base, _other_base>>::mutable_vector new_blocks;
         new_blocks.reserve(lhs.blocks.size());
-        for (size_t i = 0U; i < lhs.blocks.size(); ++i) {
+        for (std::size_t i = 0U; i < lhs.blocks.size(); ++i) {
             new_blocks.push_back(lhs.blocks[i] + rhs.blocks[i]);
         }
         return BlockDiagonalMatrix<addition_result<_base, _other_base>>(std::move(new_blocks), lhs.blocks_begin);
@@ -489,7 +489,7 @@ namespace mrock::iEoM::detail {
     BlockDiagonalMatrix<substraction_result<_base, _other_base>> operator-(BlockDiagonalMatrix<_base> const& lhs, BlockDiagonalMatrix<_other_base> const& rhs) {
         typename base_traits<substraction_result<_base, _other_base>>::mutable_vector new_blocks;
         new_blocks.reserve(lhs.blocks.size());
-        for (size_t i = 0U; i < lhs.blocks.size(); ++i) {
+        for (std::size_t i = 0U; i < lhs.blocks.size(); ++i) {
             new_blocks.push_back(lhs.blocks[i] - rhs.blocks[i]);
         }
         return BlockDiagonalMatrix<substraction_result<_base, _other_base>>(std::move(new_blocks), lhs.blocks_begin);
@@ -508,7 +508,7 @@ namespace mrock::iEoM::detail {
     BlockDiagonalMatrix<multiplication_result<_base, _other_base>> operator*(BlockDiagonalMatrix<_base> const& lhs, BlockDiagonalMatrix<_other_base> const& rhs) {
         typename base_traits<multiplication_result<_base, _other_base>>::mutable_vector new_blocks;
         new_blocks.reserve(lhs.blocks.size());
-        for (size_t i = 0U; i < lhs.blocks.size(); ++i) {
+        for (std::size_t i = 0U; i < lhs.blocks.size(); ++i) {
             new_blocks.push_back(lhs.blocks[i] * rhs.blocks[i]);
         }
         return BlockDiagonalMatrix<multiplication_result<_base, _other_base>>(std::move(new_blocks), lhs.blocks_begin);

@@ -1,13 +1,34 @@
 #include <mrock/symbolic_operators/Wick.hpp>
 #include <mrock/symbolic_operators/KroneckerDeltaUtility.hpp>
 #include <mrock/symbolic_operators/detail/container_helper.hpp>
+#include <mrock/symbolic_operators/Coefficient.hpp>
+#include <mrock/symbolic_operators/Fractional.hpp>
+#include <mrock/symbolic_operators/KroneckerDelta.hpp>
+#include <mrock/symbolic_operators/Momentum.hpp>
+#include <mrock/symbolic_operators/MomentumSymbol.hpp>
+#include <mrock/symbolic_operators/Operator.hpp>
+#include <mrock/symbolic_operators/OperatorType.hpp>
+#include <mrock/symbolic_operators/SumContainer.hpp>
+#include <mrock/symbolic_operators/Term.hpp>
+#include <mrock/symbolic_operators/WickOperator.hpp>
+#include <mrock/symbolic_operators/WickOperatorTemplate.hpp>
+#include <mrock/symbolic_operators/WickSymmetry.hpp>
+#include <mrock/symbolic_operators/WickTerm.hpp>
+
+#include <cassert>
+#include <cstddef>
+#include <algorithm>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+#include <utility>
 #include <variant>
 #include <numeric>
 #include <type_traits>
 
 namespace mrock::symbolic_operators {
 	// Computes n!!
-	template <typename IntegerType, typename RealType = size_t>
+	template <typename IntegerType, typename RealType = std::size_t>
 	constexpr RealType double_factorial(const IntegerType n) {
 		RealType result{ 1 };
 		for (std::make_signed_t<IntegerType> i = n; i > 0; i -= 2) {
@@ -22,7 +43,7 @@ namespace mrock::symbolic_operators {
 			reciever_list.push_back(std::get<WickTerm>(buffer));
 			return;
 		}
-		for (size_t i = 1U; i < remaining.size(); ++i)
+		for (std::size_t i = 1U; i < remaining.size(); ++i)
 		{
 			if (std::holds_alternative<Term>(buffer)) {
 				WickTerm temp(std::get<Term>(buffer));
@@ -54,7 +75,7 @@ namespace mrock::symbolic_operators {
 	WickTermCollector prepare_wick(const std::vector<Term>& terms)
 	{
 		WickTermCollector prepared_wick;
-		const size_t estimated_size = std::accumulate(terms.begin(), terms.end(), size_t{}, [](size_t current, const Term& term) {
+		const std::size_t estimated_size = std::accumulate(terms.begin(), terms.end(), std::size_t{}, [](std::size_t current, const Term& term) {
 			return current + double_factorial(term.get_operators().size());
 			});
 
@@ -77,7 +98,7 @@ namespace mrock::symbolic_operators {
 		ret.push_back(source);
 		ret.back().temporary_operators.clear();
 
-		for (size_t i = 0U; i < source.temporary_operators.size(); i += 2U)
+		for (std::size_t i = 0U; i < source.temporary_operators.size(); i += 2U)
 		{
 			std::vector<TemplateResult> template_results;
 			for (const auto& operator_template : operator_templates) {
@@ -87,17 +108,17 @@ namespace mrock::symbolic_operators {
 				}
 			}
 
-			const size_t current_size = ret.size();
-			const size_t number_additional_elements = std::accumulate(template_results.begin(), template_results.end(), size_t{}, 
-				[](size_t current, const TemplateResult& tr) {
+			const std::size_t current_size = ret.size();
+			const std::size_t number_additional_elements = std::accumulate(template_results.begin(), template_results.end(), std::size_t{}, 
+				[](std::size_t current, const TemplateResult& tr) {
 					return current + tr.results.size();
 				});
 			if (number_additional_elements > 1U) {
 				duplicate_n_inplace(ret, number_additional_elements - 1U);
 			}
 
-			size_t template_result_it{};
-			size_t old_it{};
+			std::size_t template_result_it{};
+			std::size_t old_it{};
 			for (const auto& tr : template_results) {
 				old_it = template_result_it;
 				for (const auto& tr_result : tr.results) {
@@ -296,9 +317,9 @@ namespace mrock::symbolic_operators {
 		};
 
 		// Sort terms
-		for (size_t i = 0; i < terms.size(); i++)
+		for (std::size_t i = 0; i < terms.size(); i++)
 		{
-			for (size_t j = i + 1; j < terms.size(); j++)
+			for (std::size_t j = i + 1; j < terms.size(); j++)
 			{
 				if(predicate(terms[i], terms[j]))
 					std::swap(terms[i], terms[j]);

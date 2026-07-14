@@ -5,12 +5,26 @@
  * @brief Defines the WickTerm class and related functions.
  */
 
-#include <algorithm>
-
 #include "Term.hpp"
 #include "WickOperator.hpp"
 #include "WickOperatorTemplate.hpp"
 #include "detail/vector_macro.hpp"
+#include "OperatorType.hpp"
+#include "AbstractTerm.hpp"
+#include "Coefficient.hpp"
+#include "IndexWrapper.hpp"
+#include "KroneckerDelta.hpp"
+#include "Momentum.hpp"
+#include "MomentumSymbol.hpp"
+#include "Operator.hpp"
+#include "SumContainer.hpp"
+
+#include <algorithm>
+#include <cassert>
+#include <ostream>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 namespace mrock::symbolic_operators {
 	/**

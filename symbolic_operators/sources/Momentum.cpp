@@ -1,7 +1,12 @@
 #include <mrock/symbolic_operators/Momentum.hpp>
+#include <mrock/symbolic_operators/MomentumSymbol.hpp>
+#include <cmath>
 #include <cctype>
 #include <sstream>
 #include <string>
+#include <cstddef>
+#include <stdexcept>
+#include <utility>
 
 namespace mrock::symbolic_operators {
 	// Private function used in string expression constructor
@@ -25,9 +30,9 @@ namespace mrock::symbolic_operators {
 
 	void Momentum::sort()
 	{
-		for (size_t i = 0U; i < momentum_list.size(); ++i)
+		for (std::size_t i = 0U; i < momentum_list.size(); ++i)
 		{
-			for (size_t j = i + 1U; j < momentum_list.size(); ++j)
+			for (std::size_t j = i + 1U; j < momentum_list.size(); ++j)
 			{
 				// Comparing two chars is easy
 				if (momentum_list[i].name > momentum_list[j].name) {
@@ -57,7 +62,7 @@ namespace mrock::symbolic_operators {
 				throw std::invalid_argument("You are trying to replace a momentum with itself. This has undefined behaviour!");
 			}
 		}
-		for (size_t i = 0U; i < momentum_list.size(); ++i) {
+		for (std::size_t i = 0U; i < momentum_list.size(); ++i) {
 			if (momentum_list[i].name == replaceWhat) {
 				auto buffer = replaceWith;
 				buffer.multiply_by(momentum_list[i].factor);
@@ -106,10 +111,10 @@ namespace mrock::symbolic_operators {
 		if (this->add_Q != rhs.add_Q) return false;
 		if (this->momentum_list.size() != rhs.momentum_list.size()) return false;
 		bool foundOne = true;
-		for (size_t i = 0U; i < this->momentum_list.size(); ++i)
+		for (std::size_t i = 0U; i < this->momentum_list.size(); ++i)
 		{
 			foundOne = false;
-			for (size_t j = 0U; j < rhs.momentum_list.size(); ++j)
+			for (std::size_t j = 0U; j < rhs.momentum_list.size(); ++j)
 			{
 				if (this->momentum_list[i] == rhs.momentum_list[j]) {
 					foundOne = true;
@@ -125,10 +130,10 @@ namespace mrock::symbolic_operators {
 	{
 		this->add_Q = (rhs.add_Q != this->add_Q);
 		bool foundOne = false;
-		for (size_t i = 0U; i < rhs.momentum_list.size(); ++i)
+		for (std::size_t i = 0U; i < rhs.momentum_list.size(); ++i)
 		{
 			foundOne = false;
-			for (size_t j = 0U; j < this->momentum_list.size(); ++j)
+			for (std::size_t j = 0U; j < this->momentum_list.size(); ++j)
 			{
 				if (rhs.momentum_list[i].name == this->momentum_list[j].name) {
 					foundOne = true;
@@ -151,10 +156,10 @@ namespace mrock::symbolic_operators {
 	{
 		this->add_Q = (rhs.add_Q != this->add_Q);
 		bool foundOne = false;
-		for (size_t i = 0U; i < rhs.momentum_list.size(); ++i)
+		for (std::size_t i = 0U; i < rhs.momentum_list.size(); ++i)
 		{
 			foundOne = false;
-			for (size_t j = 0U; j < this->momentum_list.size(); ++j)
+			for (std::size_t j = 0U; j < this->momentum_list.size(); ++j)
 			{
 				if (rhs.momentum_list[i].name == this->momentum_list[j].name) {
 					foundOne = true;
@@ -203,7 +208,7 @@ namespace mrock::symbolic_operators {
 			if (it != momentum.momentum_list.begin() && it->factor > 0) {
 				os << "+";
 			}
-			if (abs(it->factor) != 1) {
+			if (std::abs(it->factor) != 1) {
 				os << it->factor;
 			}
 			else if (it->factor == -1) {
@@ -248,8 +253,8 @@ namespace mrock::symbolic_operators {
 	Momentum::Momentum(const std::string& expression, bool Q /* = false*/) : add_Q(Q)
 	{
 		if(expression != "0") {
-			size_t last = 0U;
-			size_t current = expression.find_first_of("+-", expression.front() == '+' || expression.front() == '-' ? 1U : 0U);
+			std::size_t last = 0U;
+			std::size_t current = expression.find_first_of("+-", expression.front() == '+' || expression.front() == '-' ? 1U : 0U);
 			do {
 				current = expression.find_first_of("+-", last + 1U);
 				this->momentum_list.push_back(identify_subexpression(expression.substr(last, current - last)));

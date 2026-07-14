@@ -50,7 +50,7 @@ namespace mrock::iEoM::detail {
          * @param vec Reference to the starting state container.
          * @param pos Initial position within the container.
          */
-        StateIteratorImpl(container_type& vec, size_t pos = 0U)
+        StateIteratorImpl(container_type& vec, std::size_t pos = 0U)
             : m_vec(vec), m_pos(pos) { skip_invalid(); }
         /**
          * @brief Create an iterator referring to the first valid state.
@@ -111,7 +111,7 @@ namespace mrock::iEoM::detail {
         }
     private:
         container_type& m_vec;
-        size_t m_pos;
+        std::size_t m_pos;
         /**
          * @brief Advance the position until a valid state is found.
          *

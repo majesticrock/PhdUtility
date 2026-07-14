@@ -6,6 +6,18 @@
  */
 
 #include "AbstractTerm.hpp"
+#include "Fractional.hpp"
+#include "MomentumSymbol.hpp"
+#include "Operator.hpp"
+#include "SumContainer.hpp"
+#include "IndexWrapper.hpp"
+#include "Coefficient.hpp"
+#include "Momentum.hpp"
+
+#include <iosfwd>
+#include <string>
+#include <utility>
+#include <vector>
 #include <algorithm>
 
 namespace mrock::symbolic_operators {

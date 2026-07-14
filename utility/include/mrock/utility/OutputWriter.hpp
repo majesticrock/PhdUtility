@@ -78,7 +78,7 @@ namespace mrock::utility {
 			if constexpr (std::is_floating_point_v<data_type>) {
 				check_data_for_NaN(data);
 			}
-			for (size_t i = 0U; i < data.size(); ++i)
+			for (std::size_t i = 0U; i < data.size(); ++i)
 			{
 				out << data[i];
 				if (i < data.size() - 1) {

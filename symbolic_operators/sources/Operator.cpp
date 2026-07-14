@@ -1,4 +1,7 @@
 #include <mrock/symbolic_operators/Operator.hpp>
+#include <mrock/symbolic_operators/IndexWrapper.hpp>
+#include <mrock/symbolic_operators/Momentum.hpp>
+#include <ostream>
 
 namespace mrock::symbolic_operators {
 	std::ostream& operator<<(std::ostream& os, const Operator& op)

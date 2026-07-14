@@ -1,6 +1,8 @@
-#include <string>
 #include <iostream>
-#include "../include/mrock/symbolic_operators/detail/string_helper.hpp"
+#include <string>
+#include <vector>
+#include <cstddef>
+#include <mrock/symbolic_operators/detail/string_helper.hpp>
 
 using namespace mrock::symbolic_operators;
 

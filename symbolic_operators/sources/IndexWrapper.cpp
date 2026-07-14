@@ -1,5 +1,4 @@
 #include <mrock/symbolic_operators/IndexWrapper.hpp>
-#include <cassert>
 
 namespace mrock::symbolic_operators {
 	void IndexWrapper::replace_index(Index target, Index replace_with) {

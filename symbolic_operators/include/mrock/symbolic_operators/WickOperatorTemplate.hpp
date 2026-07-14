@@ -6,9 +6,14 @@
  */
 
 #include "Operator.hpp"
+#include "OperatorType.hpp"
 #include "WickOperator.hpp"
 #include "KroneckerDelta.hpp"
-#include <optional>
+#include "IndexWrapper.hpp"
+#include "Momentum.hpp"
+
+#include <cstddef>
+#include <vector>
 #include <algorithm>
 
 namespace mrock::symbolic_operators {
@@ -84,7 +89,7 @@ namespace mrock::symbolic_operators {
 		 * @param operator_type The type of the operator.
 		 * @param base_momentum The base momentum.
 		 */
-		TemplateResult(size_t initial_size, OperatorType operator_type, const Momentum& base_momentum);
+		TemplateResult(std::size_t initial_size, OperatorType operator_type, const Momentum& base_momentum);
 
 		/**
 		 * @brief Creates a null TemplateResult.
@@ -102,8 +107,8 @@ namespace mrock::symbolic_operators {
 		 * @param n The number of elements in the range.
 		 */
 		template<class UnaryOperation>
-		void operation_on_range(const UnaryOperation& operation, size_t begin, size_t n) {
-			for (size_t i = begin; i < begin + n; ++i)
+		void operation_on_range(const UnaryOperation& operation, std::size_t begin, std::size_t n) {
+			for (std::size_t i = begin; i < begin + n; ++i)
 			{
 				operation(results[i]);
 			}
@@ -130,7 +135,7 @@ namespace mrock::symbolic_operators {
 		 * @param begin The beginning of the range.
 		 * @param n The number of elements in the range.
 		 */
-		inline void add_index_delta_range(const KroneckerDelta<Index>& index, size_t begin, size_t n);
+		inline void add_index_delta_range(const KroneckerDelta<Index>& index, std::size_t begin, std::size_t n);
 
 		/**
 		 * @brief Adds an index delta to each result.
@@ -142,9 +147,9 @@ namespace mrock::symbolic_operators {
 		/**
 		 * @brief Creates a branch in the results vector.
 		 * 
-		 * @return size_t The size of the current results vector.
+		 * @return std::size_t The size of the current results vector.
 		 */
-		size_t create_branch();
+		std::size_t create_branch();
 
 		/**
 		 * @brief Clears impossible results.
@@ -215,7 +220,7 @@ namespace mrock::symbolic_operators {
 			});
 	}
 
-	void TemplateResult::add_index_delta_range(const KroneckerDelta<Index>& index, size_t begin, size_t n) {
+	void TemplateResult::add_index_delta_range(const KroneckerDelta<Index>& index, std::size_t begin, std::size_t n) {
 		operation_on_range([&index](SingleResult& res) { res.index_deltas.push_back(index); }, begin, n);
 	}
 	void TemplateResult::add_index_delta(const KroneckerDelta<Index>& index) {

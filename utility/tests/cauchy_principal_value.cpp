@@ -1,7 +1,12 @@
 #define _USE_MATH_DEFINES
+#include <mrock/utility/Numerics/Integration/CauchyPrincipalValue.hpp>
+#include <mrock/utility/Numerics/Integration/GeneralizedPrincipalValue.hpp>
+
+#include <cstddef>
+#include <algorithm>
+#include <vector>
+#include <string>
 #include <cmath>
-#include "../include/mrock/utility/Numerics/Integration/CauchyPrincipalValue.hpp"
-#include "../include/mrock/utility/Numerics/Integration/GeneralizedPrincipalValue.hpp"
 #include <array>
 #include <iostream>
 

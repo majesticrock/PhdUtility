@@ -50,10 +50,10 @@ namespace mrock::iEoM::detail
 		static std::vector<vector_t> compute(const std::vector<vector_t>& vectors) {
 			auto buffer = vectors;
 			buffer.front().normalize();
-			for (size_t i = 1U; i < vectors.size(); ++i)
+			for (std::size_t i = 1U; i < vectors.size(); ++i)
 			{
 				buffer[i] = vectors[i];
-				for (size_t j = 0U; j < i; ++j)
+				for (std::size_t j = 0U; j < i; ++j)
 				{
 					buffer[i] -= projection(buffer[i], buffer[j]);
 				}
@@ -71,9 +71,9 @@ namespace mrock::iEoM::detail
 		 */
 		static std::vector<vector_t>& compute_and_overwrite(std::vector<vector_t>& vectors) {
 			vectors.front().normalize();
-			for (size_t i = 1U; i < vectors.size(); ++i)
+			for (std::size_t i = 1U; i < vectors.size(); ++i)
 			{
-				for (size_t j = 0U; j < i; ++j)
+				for (std::size_t j = 0U; j < i; ++j)
 				{
 					vectors[i] -= projection(vectors[i], vectors[j]);
 				}

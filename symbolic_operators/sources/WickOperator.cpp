@@ -1,5 +1,14 @@
 #include <mrock/symbolic_operators/WickOperator.hpp>
 #include <mrock/symbolic_operators/detail/string_helper.hpp>
+#include <mrock/symbolic_operators/IndexWrapper.hpp>
+#include <mrock/symbolic_operators/Momentum.hpp>
+#include <mrock/symbolic_operators/Operator.hpp>
+#include <mrock/symbolic_operators/OperatorType.hpp>
+
+#include <algorithm>
+#include <map>
+#include <stdexcept>
+#include <utility>
 #include <cassert>
 
 namespace mrock::symbolic_operators {

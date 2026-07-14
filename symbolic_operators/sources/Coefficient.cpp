@@ -1,5 +1,12 @@
 #include <mrock/symbolic_operators/Coefficient.hpp>
+#include <mrock/symbolic_operators/IndexWrapper.hpp>
+#include <mrock/symbolic_operators/Momentum.hpp>
+#include <mrock/symbolic_operators/MomentumSymbol.hpp>
+#include <mrock/symbolic_operators/MomentumList.hpp>
 #include <mrock/symbolic_operators/detail/string_helper.hpp>
+#include <map>                                              
+#include <ostream>                                          
+#include <utility>                                          
 
 namespace mrock::symbolic_operators {
 	void Coefficient::invert_momentum(const MomentumSymbol::name_type what) {

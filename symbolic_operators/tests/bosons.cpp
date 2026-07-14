@@ -13,6 +13,11 @@
  */
 
 #include "compare_test.hpp"
+
+#include <mrock/symbolic_operators/Term.hpp>
+#include <mrock/symbolic_operators/Wick.hpp>
+
+#include <vector>
 #include <string>
 #include <iostream>
 #include <filesystem>

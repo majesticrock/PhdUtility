@@ -6,8 +6,13 @@
  */
 
 #include "Momentum.hpp"
+#include "MomentumSymbol.hpp"
 #include "detail/vector_macro.hpp"
+
 #include <algorithm>
+#include <initializer_list>
+#include <ostream>
+#include <vector> 
 
 namespace mrock::symbolic_operators {
 

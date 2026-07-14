@@ -1,4 +1,4 @@
-#include "../include/mrock/utility/Numerics/hypergeometric_2F1.hpp"
+#include <mrock/utility/Numerics/hypergeometric_2F1.hpp>
 
 #include <iostream>
 #include <iomanip>

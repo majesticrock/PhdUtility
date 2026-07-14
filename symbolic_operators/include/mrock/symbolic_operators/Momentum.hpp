@@ -7,36 +7,40 @@
 
 #include <algorithm>
 #include <vector>
-#include <utility>
+#include <string>
+#include <ostream>
 
 #include "detail/vector_macro.hpp"
 #include "MomentumSymbol.hpp"
 
-namespace mrock::symbolic_operators {
+namespace mrock::symbolic_operators
+{
 	/**
 	 * @struct Momentum
 	 * @brief Represents a collection of momentum symbols with associated operations.
-	 * 
-	 * This class represents momenta. It includes addition and substraction operators as well as a \c bool \c add_Q. 
+	 *
+	 * This class represents momenta. It includes addition and substraction operators as well as a \c bool \c add_Q.
 	 * \f$Q\f$ is defined as \f$(\pi, \pi, \cdots)\f$, i.e., \f$n Q = 0\f$ for all even \f$n\f$.
-	 * Besides the normal operators in which you specify the class members, 
-	 * you can also pass a string like "3k+l-p" to the constructor to create that specific momentum. 
+	 * Besides the normal operators in which you specify the class members,
+	 * you can also pass a string like "3k+l-p" to the constructor to create that specific momentum.
 	 * If you want to add \f$Q\f$ here, you can do so by passing \c true to the same constructor as a second argument.
 	 */
-	struct Momentum {
+	struct Momentum
+	{
 		std::vector<MomentumSymbol> momentum_list; ///< List of momentum symbols.
-		bool add_Q{}; ///< Flag indicating additional property \f$Q\f$. \f$Q\f$ is a special momentum with the property \f$2Q = 0\f$. Remeber that momenta are only defined in the first Brillouin zone.
+		bool add_Q{};							   ///< Flag indicating additional property \f$Q\f$. \f$Q\f$ is a special momentum with the property \f$2Q = 0\f$. Remeber that momenta are only defined in the first Brillouin zone.
 
-		/**
+		/**cl
 		 * @brief Serialization function for Boost.
 		 * @tparam Archive Type of the archive.
 		 * @param ar Archive to serialize to/from.
 		 * @param version Version of the serialization.
 		 */
-		template<class Archive>
-		void serialize(Archive& ar, const unsigned int version) {
-			ar& momentum_list;
-			ar& add_Q;
+		template <class Archive>
+		void serialize(Archive &ar, const unsigned int version)
+		{
+			ar & momentum_list;
+			ar & add_Q;
 		}
 
 		/**
@@ -65,21 +69,21 @@ namespace mrock::symbolic_operators {
 		 * @param _momenta List of momentum symbols.
 		 * @param Q Additional property Q.
 		 */
-		explicit Momentum(const std::vector<MomentumSymbol>& _momenta, bool Q = false);
+		explicit Momentum(const std::vector<MomentumSymbol> &_momenta, bool Q = false);
 
 		/**
 		 * @brief Constructs a Momentum with a single symbol.
 		 * @param momentum_symbol The momentum symbol.
 		 * @param Q Additional property Q.
 		 */
-		explicit Momentum(MomentumSymbol const& momentum_symbol, bool Q = false);
+		explicit Momentum(MomentumSymbol const &momentum_symbol, bool Q = false);
 
 		/**
 		 * @brief Constructs a Momentum from a string expression.
 		 * @param expression String representing the momentum expression.
 		 * @param Q Additional property Q.
 		 */
-		Momentum(const std::string& expression, bool Q = false);
+		Momentum(const std::string &expression, bool Q = false);
 
 		/**
 		 * @brief Deleted constructor to prevent usage.
@@ -101,14 +105,14 @@ namespace mrock::symbolic_operators {
 		 * @brief Adds another Momentum in place.
 		 * @param rhs The other Momentum.
 		 */
-		void add_in_place(const Momentum& rhs);
+		void add_in_place(const Momentum &rhs);
 
 		/**
 		 * @brief Replaces occurrences of a specific momentum with another Momentum.
 		 * @param replaceWhat Name of the momentum to replace.
 		 * @param replaceWith The Momentum to replace with.
 		 */
-		void replace_occurances(const MomentumSymbol::name_type replaceWhat, const Momentum& replaceWith);
+		void replace_occurances(const MomentumSymbol::name_type replaceWhat, const Momentum &replaceWith);
 
 		/**
 		 * @brief Removes entries with a zero prefactor.
@@ -196,35 +200,35 @@ namespace mrock::symbolic_operators {
 		 * @param rhs The other Momentum.
 		 * @return True if equal, false otherwise.
 		 */
-		bool operator==(const Momentum& rhs) const;
+		bool operator==(const Momentum &rhs) const;
 
 		/**
 		 * @brief Inequality operator.
 		 * @param rhs The other Momentum.
 		 * @return True if not equal, false otherwise.
 		 */
-		inline bool operator!=(const Momentum& rhs) const;
+		inline bool operator!=(const Momentum &rhs) const;
 
 		/**
 		 * @brief Adds another Momentum to this one.
 		 * @param rhs The other Momentum.
 		 * @return Reference to this Momentum.
 		 */
-		Momentum& operator+=(const Momentum& rhs);
+		Momentum &operator+=(const Momentum &rhs);
 
 		/**
 		 * @brief Subtracts another Momentum from this one.
 		 * @param rhs The other Momentum.
 		 * @return Reference to this Momentum.
 		 */
-		Momentum& operator-=(const Momentum& rhs);
+		Momentum &operator-=(const Momentum &rhs);
 
 		/**
 		 * @brief Multiplies this Momentum by an integer factor.
 		 * @param rhs The factor.
 		 * @return Reference to this Momentum.
 		 */
-		inline Momentum& operator*=(const int rhs);
+		inline Momentum &operator*=(const int rhs);
 
 		MROCK_VECTOR_WRAPPER_FILL_MEMBERS(MomentumSymbol, momentum_list);
 	};
@@ -235,7 +239,7 @@ namespace mrock::symbolic_operators {
 	 * @param rhs The right-hand side Momentum.
 	 * @return True if lhs is ordered before rhs, false otherwise.
 	 */
-	bool momentum_order(const Momentum& lhs, const Momentum& rhs);
+	bool momentum_order(const Momentum &lhs, const Momentum &rhs);
 
 	/**
 	 * @brief Adds two Momentum objects.
@@ -243,7 +247,8 @@ namespace mrock::symbolic_operators {
 	 * @param rhs The right-hand side Momentum.
 	 * @return The result of the addition.
 	 */
-	inline Momentum operator+(Momentum lhs, const Momentum& rhs) {
+	inline Momentum operator+(Momentum lhs, const Momentum &rhs)
+	{
 		lhs += rhs;
 		return lhs;
 	}
@@ -254,7 +259,8 @@ namespace mrock::symbolic_operators {
 	 * @param rhs The right-hand side Momentum.
 	 * @return The result of the subtraction.
 	 */
-	inline Momentum operator-(Momentum lhs, const Momentum& rhs) {
+	inline Momentum operator-(Momentum lhs, const Momentum &rhs)
+	{
 		lhs -= rhs;
 		return lhs;
 	}
@@ -265,7 +271,8 @@ namespace mrock::symbolic_operators {
 	 * @param rhs The factor.
 	 * @return The result of the multiplication.
 	 */
-	inline Momentum operator*(Momentum lhs, const int rhs) {
+	inline Momentum operator*(Momentum lhs, const int rhs)
+	{
 		lhs *= rhs;
 		return lhs;
 	}
@@ -276,7 +283,8 @@ namespace mrock::symbolic_operators {
 	 * @param rhs The Momentum.
 	 * @return The result of the multiplication.
 	 */
-	inline Momentum operator*(const int lhs, Momentum rhs) {
+	inline Momentum operator*(const int lhs, Momentum rhs)
+	{
 		rhs *= lhs;
 		return rhs;
 	}
@@ -286,7 +294,8 @@ namespace mrock::symbolic_operators {
 	 * @param rhs The Momentum.
 	 * @return The negated Momentum.
 	 */
-	inline Momentum operator-(Momentum rhs) {
+	inline Momentum operator-(Momentum rhs)
+	{
 		rhs.flip_momentum();
 		return rhs;
 	}
@@ -297,7 +306,7 @@ namespace mrock::symbolic_operators {
 	 * @param rhs The right-hand side Momentum.
 	 * @return True if lhs is greater than rhs, false otherwise.
 	 */
-	bool operator>(const Momentum& lhs, const Momentum& rhs);
+	bool operator>(const Momentum &lhs, const Momentum &rhs);
 
 	/**
 	 * @brief Compares two Momentum objects for less-than ordering.
@@ -305,7 +314,7 @@ namespace mrock::symbolic_operators {
 	 * @param rhs The right-hand side Momentum.
 	 * @return True if lhs is less than rhs, false otherwise.
 	 */
-	bool operator<(const Momentum& lhs, const Momentum& rhs);
+	bool operator<(const Momentum &lhs, const Momentum &rhs);
 
 	/**
 	 * @brief Outputs a Momentum to an output stream.
@@ -313,55 +322,73 @@ namespace mrock::symbolic_operators {
 	 * @param momentum The Momentum.
 	 * @return The output stream.
 	 */
-	std::ostream& operator<<(std::ostream& os, const Momentum& momentum);
-
+	std::ostream &operator<<(std::ostream &os, const Momentum &momentum);
 
 	// Inline definitions
-	Momentum& Momentum::operator*=(const int rhs) {
-		if (!(rhs & 1)) {
+	Momentum &Momentum::operator*=(const int rhs)
+	{
+		if (!(rhs & 1))
+		{
 			this->add_Q = false;
 		}
-		for (auto& m : momentum_list) {
+		for (auto &m : momentum_list)
+		{
 			m.factor *= rhs;
 		}
 		return *this;
 	}
-	void Momentum::multiply_by(int factor) {
+	void Momentum::multiply_by(int factor)
+	{
 		(*this) *= factor;
 	}
-	void Momentum::flip_momentum() {
+	void Momentum::flip_momentum()
+	{
 		(*this) *= -1;
 	}
-	bool Momentum::differs_only_in_Q(Momentum rhs) const {
-		if (rhs.add_Q == this->add_Q) return false;
+	bool Momentum::differs_only_in_Q(Momentum rhs) const
+	{
+		if (rhs.add_Q == this->add_Q)
+			return false;
 		rhs.add_Q = this->add_Q;
 		return (*this == rhs);
 	}
-	bool Momentum::is_zero() const {
-		if(add_Q) return false;
+	bool Momentum::is_zero() const
+	{
+		if (add_Q)
+			return false;
 		return momentum_list.empty();
 	}
-	bool Momentum::uses(const MomentumSymbol::name_type what) const noexcept {
+	bool Momentum::uses(const MomentumSymbol::name_type what) const noexcept
+	{
 		return is_used_at(what) != -1;
 	}
-	bool Momentum::first_momentum_is_negative() const {
-		if (momentum_list.empty()) return false;
+	bool Momentum::first_momentum_is_negative() const
+	{
+		if (momentum_list.empty())
+			return false;
 		return momentum_list.front().factor < 0;
 	}
-	bool Momentum::first_momentum_is(const MomentumSymbol::name_type what) const {
-		if (momentum_list.empty()) return false;
+	bool Momentum::first_momentum_is(const MomentumSymbol::name_type what) const
+	{
+		if (momentum_list.empty())
+			return false;
 		return momentum_list.front().name == what;
 	}
-	bool Momentum::last_momentum_is_negative() const {
-		if (momentum_list.empty()) return false;
+	bool Momentum::last_momentum_is_negative() const
+	{
+		if (momentum_list.empty())
+			return false;
 		return momentum_list.back().factor < 0;
 	}
-	bool Momentum::last_momentum_is(const MomentumSymbol::name_type what) const {
-		if (momentum_list.empty()) return false;
+	bool Momentum::last_momentum_is(const MomentumSymbol::name_type what) const
+	{
+		if (momentum_list.empty())
+			return false;
 		return momentum_list.back().name == what;
 	}
-	bool Momentum::operator!=(const Momentum& rhs) const {
+	bool Momentum::operator!=(const Momentum &rhs) const
+	{
 		return !(*this == rhs);
 	}
 } // namespace mrock::symbolic_operators
-#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_MOMENTUM_HPP
+#endif // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_MOMENTUM_HPP

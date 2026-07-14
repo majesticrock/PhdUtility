@@ -47,8 +47,8 @@ namespace mrock::iEoM {
 	     * @brief Returns the number of state vectors that are present.
 	     * @return 0, 1, or 2 depending on which state vectors are non-empty.
 	     */
-	    inline size_t size() const noexcept {
-	        return static_cast<size_t>(contains_amplitude_state()) + static_cast<size_t>(contains_phase_state());
+	    inline std::size_t size() const noexcept {
+	        return static_cast<std::size_t>(contains_amplitude_state()) + static_cast<std::size_t>(contains_phase_state());
 	    }
 
 	    /**

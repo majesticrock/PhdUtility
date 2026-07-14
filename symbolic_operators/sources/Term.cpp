@@ -1,6 +1,20 @@
 #include <mrock/symbolic_operators/Term.hpp>
-#include <mrock/symbolic_operators/KroneckerDeltaUtility.hpp>
 #include <mrock/symbolic_operators/detail/container_helper.hpp>
+#include <mrock/symbolic_operators/AbstractTerm.hpp>
+#include <mrock/symbolic_operators/Coefficient.hpp>
+#include <mrock/symbolic_operators/IndexWrapper.hpp>
+#include <mrock/symbolic_operators/KroneckerDelta.hpp>
+#include <mrock/symbolic_operators/Momentum.hpp>
+#include <mrock/symbolic_operators/MomentumList.hpp>
+#include <mrock/symbolic_operators/Fractional.hpp>
+#include <mrock/symbolic_operators/MomentumSymbol.hpp>
+#include <mrock/symbolic_operators/Operator.hpp>
+#include <mrock/symbolic_operators/SumContainer.hpp>
+
+#include <cassert>
+#include <cstddef>
+#include <compare>
+#include <iostream>
 #include <sstream>
 #include <stdexcept>
 
@@ -87,11 +101,11 @@ namespace mrock::symbolic_operators {
 				}
 			}
 		}
-		size_t new_n;
-		size_t n = operators.size();
+		std::size_t new_n;
+		std::size_t n = operators.size();
 		while (n > 1U) {
 			new_n = 0U;
-			for (size_t i = 1U; i < n; ++i)
+			for (std::size_t i = 1U; i < n; ++i)
 			{
 				if (operators[i].is_daggered != operators[i - 1].is_daggered) continue;
 				if (operators[i].is_fermion != operators[i - 1].is_fermion) continue;
@@ -134,7 +148,7 @@ namespace mrock::symbolic_operators {
 		n = operators.size();
 		while (n > 1U) {
 			new_n = 0U;
-			for (size_t i = 1U; i < n; ++i)
+			for (std::size_t i = 1U; i < n; ++i)
 			{
 				if (operators[i].is_daggered != operators[i - 1].is_daggered) continue;
 				if (operators[i].first_index() != operators[i - 1].first_index()) continue;
@@ -193,7 +207,7 @@ namespace mrock::symbolic_operators {
 	}
 
 	bool Term::is_normal_ordered() const {
-		for	(size_t i = 1U; i < operators.size(); ++i) {
+		for	(std::size_t i = 1U; i < operators.size(); ++i) {
 			if (operators[i - 1].is_fermion == operators[i].is_fermion) {
 				if(!operators[i - 1].is_daggered && operators[i].is_daggered) {
 					return false;
@@ -345,12 +359,12 @@ namespace mrock::symbolic_operators {
 		for (int t = 0; t < terms.size();) {
 		normal_order_outerLoop:
 			if (t >= terms.size()) break;
-			size_t n = terms[t].operators.size();
-			size_t new_n{};
+			std::size_t n = terms[t].operators.size();
+			std::size_t new_n{};
 			// First sort so that the bosons are upfront
 			while (n > 1U) {
 				new_n = 0U;
-				for (size_t i = 1U; i < terms[t].operators.size(); ++i)
+				for (std::size_t i = 1U; i < terms[t].operators.size(); ++i)
 				{
 					if (terms[t].operators[i - 1].is_fermion && !terms[t].operators[i].is_fermion) {
 						new_n = i;
@@ -364,7 +378,7 @@ namespace mrock::symbolic_operators {
 			new_n = 0U;
 			while (n > 1U) {
 				new_n = 0U;
-				for (size_t i = 1U; i < terms[t].operators.size(); ++i)
+				for (std::size_t i = 1U; i < terms[t].operators.size(); ++i)
 				{
 					if (!terms[t].operators[i - 1].is_fermion && terms[t].operators[i].is_fermion) continue;
 					if (!(terms[t].operators[i - 1].is_daggered) && (terms[t].operators[i].is_daggered)) {
@@ -564,10 +578,10 @@ namespace mrock::symbolic_operators {
 			lhs.clear();
 			return lhs;
 		};
-		const size_t n = lhs.size();
+		const std::size_t n = lhs.size();
 		duplicate_n_inplace(lhs, rhs.size() - 1U);
-		for (size_t l = 0U; l < n; ++l) {
-			for (size_t r = 0U; r < rhs.size(); ++r) {
+		for (std::size_t l = 0U; l < n; ++l) {
+			for (std::size_t r = 0U; r < rhs.size(); ++r) {
 				lhs[l + r * n] *= rhs[r];
 			}
 		}
@@ -613,9 +627,9 @@ namespace mrock::symbolic_operators {
 		clear_duplicates(terms);
 		
 		// Sort terms
-		for (size_t i = 0; i < terms.size(); i++)
+		for (std::size_t i = 0; i < terms.size(); i++)
 		{
-			for (size_t j = i + 1; j < terms.size(); j++)
+			for (std::size_t j = i + 1; j < terms.size(); j++)
 			{
 				if (terms[i].sums.momenta.empty() && terms[j].sums.momenta.size() > 0) {
 					std::swap(terms[i], terms[j]);
@@ -677,7 +691,7 @@ namespace mrock::symbolic_operators {
 
 	std::string to_string_without_prefactor(const std::vector<Term>& terms) {
 		std::string ret = "";
-		for (size_t i = 0U; i < terms.size(); i++)
+		for (std::size_t i = 0U; i < terms.size(); i++)
 		{
 			if (terms[i].multiplicity < 0) {
 				ret += "-";

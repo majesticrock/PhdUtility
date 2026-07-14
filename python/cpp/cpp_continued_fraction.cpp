@@ -13,7 +13,7 @@
 
 #define MROCK_CF_INIT(result_dims) py::buffer_info buf_x = x.request(); \
     std::complex<double>* __restrict ptr_x = static_cast<std::complex<double>*>(buf_x.ptr); \
-    const size_t n_x = buf_x.size; \
+    const std::size_t n_x = buf_x.size; \
     std::vector<std::complex<double>> terminator_data = data.with_terminator ? detail::terminator_vector(ptr_x, n_x, data) : std::vector<std::complex<double>>(n_x, std::complex<double>{0.,0.}); \
     \
     py_array_cmplx result( result_dims ); \
@@ -80,10 +80,10 @@ namespace detail {
     }
 
     // Only the real part of x is considered
-    inline std::vector<std::complex<double>> terminator_vector(const std::complex<double>* ptr_x, const size_t n_x, ContinuedFractionData const& data)
+    inline std::vector<std::complex<double>> terminator_vector(const std::complex<double>* ptr_x, const std::size_t n_x, ContinuedFractionData const& data)
     {
         std::vector<std::complex<double>> ret(n_x);
-        for (size_t i = 0U; i < n_x; ++i) {
+        for (std::size_t i = 0U; i < n_x; ++i) {
             ret[i] = terminator_impl(ptr_x[i].real(), data);
         }
         return ret;
@@ -119,9 +119,9 @@ namespace detail {
 
     inline void raw_denominator(ContinuedFractionData const& data, 
         const std::complex<double>* __restrict ptr_x, const std::complex<double>* __restrict ptr_terminator, 
-        std::complex<double>* __restrict ptr_result, const size_t n_x)
+        std::complex<double>* __restrict ptr_result, const std::size_t n_x)
     {
-        for (size_t i = 0U; i < n_x; ++i) {
+        for (std::size_t i = 0U; i < n_x; ++i) {
             const std::complex<double> x_squared{ ptr_x[i] * ptr_x[i] };
             ptr_result[i] = x_squared - data.A_ptr[data.termination_index] - data.b_infinity_squared * ptr_terminator[i];
             for (int k = data.termination_index - 1; k >= 0; --k) {
@@ -153,7 +153,7 @@ py_array_cmplx denominator(const py_array_cmplx& x, ContinuedFractionData const&
     MROCK_CF_INIT(n_x);
     detail::raw_denominator(data, ptr_x, terminator_data.data(), ptr_result, n_x);
 
-    for (size_t i = 0U; i < n_x; ++i) {
+    for (std::size_t i = 0U; i < n_x; ++i) {
         ptr_result[i] /= data.B_ptr[0];
     }
     return result;
@@ -164,7 +164,7 @@ py_array_cmplx continued_fraction(const py_array_cmplx& x, ContinuedFractionData
     MROCK_CF_INIT(n_x);
     detail::raw_denominator(data, ptr_x, terminator_data.data(), ptr_result, n_x);
 
-    for (size_t i = 0U; i < n_x; ++i) {
+    for (std::size_t i = 0U; i < n_x; ++i) {
         ptr_result[i] = data.B_ptr[0] / ptr_result[i];
     }
     return result;
@@ -175,18 +175,18 @@ py_array_cmplx continued_fraction_varied_depth(const py_array_cmplx& x,
 {
     py::buffer_info buf_shift_range = shift_range.request();
     int* __restrict ptr_shift_range = static_cast<int*>(buf_shift_range.ptr);
-    const size_t n_shift_range = buf_shift_range.size;
+    const std::size_t n_shift_range = buf_shift_range.size;
 
     MROCK_CF_INIT({n_shift_range M_KOMMA n_x});
 
     std::vector<std::complex<double>> x_squared_data(n_x);
-    for (size_t i = 0U; i < n_x; ++i) {
+    for (std::size_t i = 0U; i < n_x; ++i) {
         x_squared_data[i]  = ptr_x[i] * ptr_x[i];
     }
 
-    for (size_t r = 0U; r < n_shift_range; ++r) {
+    for (std::size_t r = 0U; r < n_shift_range; ++r) {
         const int current_termination_index = data.termination_index + ptr_shift_range[r];
-        for (size_t i = 0U; i < n_x; ++i) {
+        for (std::size_t i = 0U; i < n_x; ++i) {
             ptr_result[r * n_x + i] = (ptr_x[i] * ptr_x[i]) - data.A_ptr[current_termination_index] -  data.b_infinity_squared * terminator_data[i];
             for (int k = current_termination_index - 1; k >= 0; --k) {
                 ptr_result[r * n_x + i] = x_squared_data[i] - data.A_ptr[k] - data.B_ptr[k+1] / ptr_result[r * n_x + i];
@@ -199,7 +199,7 @@ py_array_cmplx continued_fraction_varied_depth(const py_array_cmplx& x,
 }
 
 // Does not really work for Goldstone peaks
-std::list<std::pair<double, double>> classify_bound_states(ContinuedFractionData const& data, const size_t n_scan, 
+std::list<std::pair<double, double>> classify_bound_states(ContinuedFractionData const& data, const std::size_t n_scan, 
     const double weight_domega, int root_tol_bits, const std::uintmax_t max_iter)
 {
     if (root_tol_bits > 26) root_tol_bits = 26;
@@ -254,7 +254,7 @@ std::list<std::pair<double, double>> classify_bound_states(ContinuedFractionData
     double f_center{minimize_function(dz)};
     double f_right;
 
-    for (size_t i = 2U; i < n_scan; ++i) {
+    for (std::size_t i = 2U; i < n_scan; ++i) {
         f_right = minimize_function(i * dz);
         
         if (f_left > f_center && f_right > f_center) {

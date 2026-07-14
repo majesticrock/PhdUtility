@@ -1,8 +1,28 @@
 #include <mrock/symbolic_operators/WickTerm.hpp>
-#include <mrock/symbolic_operators/KroneckerDeltaUtility.hpp>
 #include <mrock/symbolic_operators/detail/string_helper.hpp>
-#include <cctype>
+#include <mrock/symbolic_operators/Fractional.hpp>
+#include <mrock/symbolic_operators/MomentumList.hpp>
+#include <mrock/symbolic_operators/OperatorType.hpp>
+#include <mrock/symbolic_operators/Term.hpp>
+#include <mrock/symbolic_operators/WickOperator.hpp>
+#include <mrock/symbolic_operators/WickOperatorTemplate.hpp>
+#include <mrock/symbolic_operators/detail/container_helper.hpp>
+#include <mrock/symbolic_operators/AbstractTerm.hpp>
+#include <mrock/symbolic_operators/Coefficient.hpp>
+#include <mrock/symbolic_operators/IndexWrapper.hpp>
+#include <mrock/symbolic_operators/KroneckerDelta.hpp>
+#include <mrock/symbolic_operators/Momentum.hpp>
+#include <mrock/symbolic_operators/MomentumSymbol.hpp>
+#include <mrock/symbolic_operators/Operator.hpp>
+#include <mrock/symbolic_operators/SumContainer.hpp>
+
+#include <cstddef>
 #include <cassert>
+#include <cctype>
+#include <compare>
+#include <map>
+#include <ostream>
+#include <utility>
 
 #define LEFT temporary_operators[i]
 #define RIGHT temporary_operators[i + 1]
@@ -55,14 +75,14 @@ namespace mrock::symbolic_operators {
 		*  operators must be "o:type{Momentum_expression;index1,index2,...}(^+)"
 		*/
 
-		size_t pos{};
+		std::size_t pos{};
 		if (std::isdigit(expression.front()) || expression.front() == '-' || expression.front() == '+') {
 			pos = expression.find(' ');
 			if (pos != std::string::npos) {
 				this->multiplicity = std::stoi(expression.substr(0U, pos));
 			}
 		}
-		size_t new_pos{};
+		std::size_t new_pos{};
 		++pos;
 		while (new_pos != std::string::npos) {
 			new_pos = expression.find(' ', pos);
@@ -73,12 +93,12 @@ namespace mrock::symbolic_operators {
 
 	// Member functions
 	void WickTerm::string_parser(std::string&& expression) {
-		size_t forward_pos{ expression.find(' ') };
+		std::size_t forward_pos{ expression.find(' ') };
 		if (forward_pos == std::string::npos)
 			forward_pos = expression.size();
 
 		const std::string sub = expression.substr(0U, forward_pos);
-		const size_t sub_delimiter = sub.find(':');
+		const std::size_t sub_delimiter = sub.find(':');
 
 		if (sub_delimiter == std::string::npos)
 			throw std::invalid_argument("Did not find ':' in " + expression);
@@ -298,8 +318,8 @@ namespace mrock::symbolic_operators {
 			append_vector(transformed_operators, wick_op.to_operator_expression());
 		}
 
-		for (size_t i=0U; i < transformed_operators.size(); ++i) {
-			for (size_t j=i+1; j < transformed_operators.size(); ++j) {
+		for (std::size_t i=0U; i < transformed_operators.size(); ++i) {
+			for (std::size_t j=i+1; j < transformed_operators.size(); ++j) {
 				if (transformed_operators[i] == transformed_operators[j]) {
 					return true;
 				}

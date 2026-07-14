@@ -75,7 +75,7 @@ namespace mrock::utility {
 
 	// This function assumes that the number of elements of <data> is divisible by linebreak
 	template <typename vector_type, typename data_type = typename vector_type::value_type>
-	void save_data(const vector_type& data, size_t linebreak, const std::string& filename,
+	void save_data(const vector_type& data, std::size_t linebreak, const std::string& filename,
 		const std::vector<std::string>& comments = std::vector<std::string>())
 	{
 		if (linebreak == 0) {
@@ -97,7 +97,7 @@ namespace mrock::utility {
 			// and can thereby be used with the standard operator<< overloading
 			std::ostringstream oss;
 			write_comments(oss, comments);
-			for (size_t n = 0; n < data.size(); n += linebreak)
+			for (std::size_t n = 0; n < data.size(); n += linebreak)
 			{
 				vector_type part_vec(data.begin() + n, data.begin() + n + linebreak);
 				ow.append_line(part_vec, oss);
@@ -158,7 +158,7 @@ namespace mrock::utility {
 
 	// This function assumes that the number of elements of <data> is divisible by linebreak
 	template <typename vector_type, typename data_type = typename vector_type::value_type>
-	void save_data(const vector_type& data, size_t linebreak, const std::string& filename,
+	void save_data(const vector_type& data, std::size_t linebreak, const std::string& filename,
 		const std::vector<std::string>& comments)
 	{
 		if (linebreak == 0U) {
@@ -173,7 +173,7 @@ namespace mrock::utility {
 			OutputWriter<std::ofstream, vector_type, data_type> ow;
 			write_comments(out, comments);
 
-			for (size_t n = linebreak; n < data.size(); n += linebreak)
+			for (std::size_t n = linebreak; n < data.size(); n += linebreak)
 			{
 				vector_type part_vec(data.begin() + n - linebreak, data.begin() + n);
 				ow.append_line(part_vec, out);

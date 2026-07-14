@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <map>
+#include <string>
 
 namespace mrock::symbolic_operators {
 	/**

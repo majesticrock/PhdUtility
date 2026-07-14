@@ -66,7 +66,7 @@ namespace mrock::utility {
 			std::string s;
 			while (std::getline(f, s)) {
 				if (s[0] == '#') continue;
-				size_t pos = s.find(" ");
+				std::size_t pos = s.find(" ");
 				std::string name = s.substr(0, pos);
 				std::string content = s.substr(pos + 1);
 
@@ -125,7 +125,7 @@ namespace mrock::utility {
 
 			std::string s = contents[i];
 			std::vector<int> result;
-			size_t pos = 0;
+			std::size_t pos = 0;
 			bool done = false;
 			while (!done) {
 				result.push_back(std::stoi(s, &pos));
@@ -155,7 +155,7 @@ namespace mrock::utility {
 
 			std::string s = contents[i];
 			std::vector<double> result;
-			size_t pos = 0;
+			std::size_t pos = 0;
 			bool done = false;
 			while (!done) {
 				result.push_back(std::stod(s, &pos));
@@ -186,7 +186,7 @@ namespace mrock::utility {
 			std::vector<std::string> result;
 			bool done = false;
 			while (!done) {
-				size_t pos2 = s.find(" ");
+				std::size_t pos2 = s.find(" ");
 				if (pos2 == std::string::npos) {
 					std::string content = s;
 					result.push_back(content);

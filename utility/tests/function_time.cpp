@@ -1,6 +1,5 @@
-#include "../include/mrock/utility/function_time.hpp"
+#include <mrock/utility/function_time.hpp>
 #include <cmath>
-#include <iostream>
 
 double test_cos(double x, int N) {
     double y{};

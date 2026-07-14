@@ -5,13 +5,16 @@
  * @brief Defines the Coefficient structure used in symbolic operators.
  */
 
-#include <optional>
-#include <functional>
+#include <algorithm>
 #include <cassert>
-
-#include "Operator.hpp"
+#include <functional>
+#include <optional>
+#include <string>
+#include <vector>
 #include "IndexWrapper.hpp"
+#include "Momentum.hpp"
 #include "MomentumList.hpp"
+#include "MomentumSymbol.hpp"
 
 namespace mrock::symbolic_operators {
 

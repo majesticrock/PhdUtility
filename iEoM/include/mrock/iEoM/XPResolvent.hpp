@@ -280,7 +280,7 @@ namespace mrock::iEoM {
 		 * To compute the Hermitian solver part use plus_index = 0 and minus_index = 1.
 		 * To compute the anti-Hermitian solver part use plus_index = 1 and minus_index = 0.
 		 */
-		template <size_t plus_index, size_t minus_index, class StateTransformPolicy>
+		template <std::size_t plus_index, std::size_t minus_index, class StateTransformPolicy>
 		void compute_solver_matrix_impl(const std::array<detail::matrix_wrapper<Matrix>, 2>& k_solutions, 
 			Matrix& solver_matrix, StateTransformPolicy&& transform) 
 		{
@@ -328,7 +328,7 @@ namespace mrock::iEoM {
 		 *
 		 * Uses the standard state transform path for phase and amplitude states.
 		 */
-		template <size_t plus_index, size_t minus_index>
+		template <std::size_t plus_index, std::size_t minus_index>
 		void compute_solver_matrix(const std::array<detail::matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix) 
 		{
 			compute_solver_matrix_impl<plus_index, minus_index>(k_solutions, solver_matrix,
@@ -355,7 +355,7 @@ namespace mrock::iEoM {
 		 *
 		 * Uses a precomputed transformation matrix to update the solver state vectors.
 		 */
-		template <size_t plus_index, size_t minus_index>
+		template <std::size_t plus_index, std::size_t minus_index>
 		void compute_solver_matrix(const std::array<detail::matrix_wrapper<Matrix>, 2>& k_solutions, Matrix& solver_matrix, Matrix& transform_matrix) 
 		{
 			compute_transform = true;
@@ -391,8 +391,8 @@ namespace mrock::iEoM {
 		 * @note This function assumes eigenvalues are sorted in ascending order, which Eigen does by default.
 		 * @note The precision threshold is obtained from _internal._precision.
 		 */
-		size_t get_number_of_zero_eigenvalues(const Eigen::SelfAdjointEigenSolver<Matrix>& solver) const noexcept {
-			size_t n_zero{};
+		std::size_t get_number_of_zero_eigenvalues(const Eigen::SelfAdjointEigenSolver<Matrix>& solver) const noexcept {
+			std::size_t n_zero{};
 			while (n_zero < solver.eigenvalues().size() && solver.eigenvalues()(n_zero) < _internal._precision) {
 				++n_zero;
 			}
@@ -432,10 +432,10 @@ namespace mrock::iEoM {
 		 */
 		template<detail::ConstStateIterator iterator_type>
 		FullDiagData set_full_diag_data(const Eigen::SelfAdjointEigenSolver<Matrix>& solver, const TransformQR& qr, 
-			const size_t& n_zero, const size_t& n_non_zero, const Matrix& transform_matrix) const
+			const std::size_t& n_zero, const std::size_t& n_non_zero, const Matrix& transform_matrix) const
 		{
 			FullDiagData data;
-			for (size_t i = 0U; i < n_residuals; ++i){
+			for (std::size_t i = 0U; i < n_residuals; ++i){
 				Vector buffer = qr.solve(solver.eigenvectors().col(i + n_zero));
 				data.first_eigenvectors[i] = std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
 			}
@@ -726,11 +726,11 @@ namespace mrock::iEoM {
 				print_duration("Time for first ED: ");
 				TransformQR qr(transform_matrix); 
 				print_duration("Time for first QR decomp: ");
-				const size_t n_zero = get_number_of_zero_eigenvalues(solver);
-				const size_t n_non_zero = solver.eigenvalues().size() - n_zero;
+				const std::size_t n_zero = get_number_of_zero_eigenvalues(solver);
+				const std::size_t n_non_zero = solver.eigenvalues().size() - n_zero;
 				return_data.first = set_full_diag_data<const_phase_it>(solver, qr, n_zero, n_non_zero, transform_matrix);
 				if constexpr (check_qr) {
-					for (size_t i = 0U; i < n_residuals; ++i) {
+					for (std::size_t i = 0U; i < n_residuals; ++i) {
 						Eigen::Map<Vector> _eigen(return_data.first.first_eigenvectors[i].data(), return_data.first.first_eigenvectors[i].size());
 						const auto reconstructed = transform_matrix * _eigen;
 						std::cout << "|solve_matrix * reconstructed eigenvector - eigenvalue * reconstructed eigenvector| = " 
@@ -747,13 +747,13 @@ namespace mrock::iEoM {
 				solver.compute(solver_matrix);
 				print_duration("Time for second ED: ");
 				TransformQR qr(transform_matrix); 
-				const size_t n_zero = get_number_of_zero_eigenvalues(solver);
-				const size_t n_non_zero = solver.eigenvalues().size() - n_zero;
+				const std::size_t n_zero = get_number_of_zero_eigenvalues(solver);
+				const std::size_t n_non_zero = solver.eigenvalues().size() - n_zero;
 
 				print_duration("Time for second QR decomp: ");
 				return_data.second = set_full_diag_data<const_amplitude_it>(solver, qr, n_zero, n_non_zero, transform_matrix);
 				if constexpr (check_qr) {
-					for (size_t i = 0U; i < n_residuals; ++i) {
+					for (std::size_t i = 0U; i < n_residuals; ++i) {
 						Eigen::Map<Vector> _eigen(return_data.second.first_eigenvectors[i].data(), return_data.second.first_eigenvectors[i].size());
 						const auto reconstructed = transform_matrix * _eigen;
 						std::cout << "|solve_matrix * reconstructed eigenvector - eigenvalue * reconstructed eigenvector| = " 

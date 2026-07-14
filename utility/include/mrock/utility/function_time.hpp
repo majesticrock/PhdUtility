@@ -3,8 +3,6 @@
 #include <chrono>
 #include <iostream>
 #include <utility>
-#include <functional>
-#include <type_traits>
 
 namespace mrock::utility {
 	using clock = std::chrono::high_resolution_clock;

@@ -30,6 +30,7 @@ target_link_libraries(bcs_test PRIVATE mrock::symbolic_operators)
 
 add_executable(string_helper_test string_helper.cpp)
 SET_COMPILER_FLAGS(string_helper_test)
+target_link_libraries(string_helper_test PRIVATE mrock::symbolic_operators)
 
 enable_testing()
 

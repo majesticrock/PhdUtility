@@ -5,6 +5,8 @@
  * @brief Functions for applying Wick's theorem and manipulating Wick terms.
  */
 
+#include "Term.hpp"
+#include "WickOperatorTemplate.hpp"
 #include "WickTerm.hpp"
 #include "WickSymmetry.hpp"
 #include <vector>

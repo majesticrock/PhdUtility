@@ -6,9 +6,11 @@
  */
 
 #include "SymbolicSum.hpp"
-#include "detail/container_helper.hpp"
 #include "IndexWrapper.hpp"
 #include "MomentumSymbol.hpp"
+
+#include <ostream>
+#include <vector> 
 
 namespace mrock::symbolic_operators {
 	/**

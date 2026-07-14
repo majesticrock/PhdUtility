@@ -1,15 +1,21 @@
 #define MROCK_IEOM_NO_NLOHMANN_JSON
 
-#include "../include/mrock/iEoM/XPResolvent.hpp"
-#include "bcs_result.hpp"
+#include "bcs_result.hpp" 
 
-#include <cmath>
-#include <numbers>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <string>
+#include <algorithm>
 #include <array>
+#include <cmath>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <list>
+#include <numbers>
+#include <string>
+#include <vector>
+
+#include <mrock/iEoM/XPResolvent.hpp>
+#include <mrock/iEoM/ResolventDataTypes.hpp>
+#include <mrock/iEoM/XPStartingState.hpp>
 
 using namespace mrock::iEoM;
 

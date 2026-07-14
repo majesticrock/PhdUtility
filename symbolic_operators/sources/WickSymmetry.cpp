@@ -1,5 +1,9 @@
 #include <mrock/symbolic_operators/WickSymmetry.hpp>
 #include <mrock/symbolic_operators/WickTerm.hpp>
+#include <mrock/symbolic_operators/IndexWrapper.hpp>
+#include <mrock/symbolic_operators/Momentum.hpp>
+#include <mrock/symbolic_operators/MomentumSymbol.hpp>
+#include <mrock/symbolic_operators/WickOperator.hpp>
 
 namespace mrock::symbolic_operators{
     void SpinSymmetry::apply_to(WickTerm& term) const

@@ -21,6 +21,7 @@
  */
 
 #include <vector>
+#include <cstddef>
 
 #define MROCK_VECTOR_WRAPPER_FILL_MEMBERS(_T, _vector_name) using value_type = typename std::vector<_T>::value_type; \
 		using allocator_type = typename std::vector<_T>::allocator_type; \
@@ -35,10 +36,10 @@
 		using reverse_iterator = typename std::vector<_T>::reverse_iterator; \
 		using constreverse_iterator = typename std::vector<_T>::const_reverse_iterator; \
 		\
-		inline reference operator[](size_t i) { \
+		inline reference operator[](size_type i) { \
 			return _vector_name[i]; \
 		}; \
-		inline const_reference operator[](size_t i) const { \
+		inline const_reference operator[](size_type i) const { \
 			return _vector_name[i]; \
 		}; \
  		\
@@ -70,7 +71,7 @@
 		inline bool empty() const noexcept { \
 			return _vector_name.empty(); \
 		} \
-		inline size_t size() const noexcept { \
+		inline size_type size() const noexcept { \
 			return _vector_name.size(); \
 		} \
  		\

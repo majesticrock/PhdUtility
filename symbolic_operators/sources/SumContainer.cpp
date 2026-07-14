@@ -1,4 +1,5 @@
 #include <mrock/symbolic_operators/SumContainer.hpp>
+#include <mrock/symbolic_operators/detail/container_helper.hpp>
 
 namespace mrock::symbolic_operators {
     SumContainer &mrock::symbolic_operators::SumContainer::append(const SumContainer &other)

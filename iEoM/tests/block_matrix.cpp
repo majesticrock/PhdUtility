@@ -1,4 +1,9 @@
-#include "../include/mrock/iEoM/detail/PivotToBlockStructure.hpp"
+#include <mrock/iEoM/detail/PivotToBlockStructure.hpp>
+#include <mrock/iEoM/detail/BlockDiagonalMatrix.hpp>
+
+#include <algorithm>
+#include <utility>
+#include <vector>
 #include <iostream>
 #include <chrono>
 

@@ -26,7 +26,7 @@ namespace mrock::utility::Numerics::Roots {
 		template<class FunctionType>
 		RealType compute(const FunctionType& func, VectorType& x0, const unsigned int MAX_ITER = 200)
 		{
-			const size_t DIM = x0.rows();
+			const std::size_t DIM = x0.rows();
 			// You may play around with EPS_X and EPS_F to your desire
 			// EPS_X is the minimum distance between x_i and x_i+1
 			// EPS_F is the minimum f(x)

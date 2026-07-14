@@ -53,7 +53,7 @@ namespace mrock::symbolic_operators {
  * @return The number of characters removed from `input`.
  */
 	template<class StringType, class ForwardIt = typename StringType::iterator>
-	size_t remove_escape_characters(StringType& input, std::add_const_t<typename StringType::value_type> escape = '\\') {
+	std::size_t remove_escape_characters(StringType& input, std::add_const_t<typename StringType::value_type> escape = '\\') {
 		assert(!(input.size() == 1U && input.back() == escape) && "The last character of the string must not be an escape character!");
 		assert(!(input.size() > 1U && input.back() == escape && *(input.end() - 2) != escape) && "The last character of the string must not be an escape character!");
 		
@@ -69,7 +69,7 @@ namespace mrock::symbolic_operators {
 			*first++ = std::move(*i++);
 		}
 	}
-	    size_t n_removed = input.end() - first;
+	    std::size_t n_removed = input.end() - first;
 		input.erase(first, input.end());
 		return n_removed;
 	}
@@ -88,11 +88,11 @@ namespace mrock::symbolic_operators {
  * @return The position of the unescaped symbol, or `StringType::npos` if none found.
  */
 	template<class StringType>
-	size_t find_skip_escaped(const StringType& input, std::add_const_t<typename StringType::value_type> symbol, size_t start = 0U, 
+	std::size_t find_skip_escaped(const StringType& input, std::add_const_t<typename StringType::value_type> symbol, std::size_t start = 0U, 
 		std::add_const_t<typename StringType::value_type> escape = '\\') 
 	{
 		while (start < input.size()) {
-			size_t pos = input.find(symbol, start);
+			std::size_t pos = input.find(symbol, start);
 			if(pos == StringType::npos) return StringType::npos;
 			
 			if (pos > 0 && input[pos - 1] == escape) {
@@ -126,8 +126,8 @@ namespace mrock::symbolic_operators {
 		std::vector<StringType> elements;
 	
 		// Find the positions of the braces
-		size_t startPos = find_skip_escaped(input, left_delimiter , 0U, escape);
-		size_t endPos   = find_skip_escaped(input, right_delimiter, 0U, escape);
+		std::size_t startPos = find_skip_escaped(input, left_delimiter , 0U, escape);
+		std::size_t endPos   = find_skip_escaped(input, right_delimiter, 0U, escape);
 	
 		// Check if both braces are found
 		if (startPos != StringType::npos && endPos != StringType::npos && startPos < endPos) {

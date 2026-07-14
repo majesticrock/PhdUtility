@@ -82,7 +82,7 @@ namespace mrock::iEoM {
 		 */
 		void compute(const EigenMatrixType& toSolve, const EigenMatrixType& symplectic, int maxIter)
 		{
-			const size_t matrix_size = toSolve.rows();
+			const std::size_t matrix_size = toSolve.rows();
 			maxIter = std::min(maxIter, static_cast<int>(matrix_size));
 
 			if (toSolve.rows() != toSolve.cols()) {
@@ -111,7 +111,7 @@ namespace mrock::iEoM {
 			betas.reserve(maxIter);
 
 			betas.push_back(1);
-			size_t iterNum{};
+			std::size_t iterNum{};
 			bool goOn = true;
 			EigenVectorType buffer;
 			while (goOn) {
@@ -158,7 +158,7 @@ namespace mrock::iEoM {
 		 */
 		void compute(const EigenMatrixType& toSolve, int maxIter)
 		{
-			const size_t matrix_size = toSolve.rows();
+			const std::size_t matrix_size = toSolve.rows();
 			maxIter = std::min(maxIter, static_cast<int>(matrix_size));
 
 			if (toSolve.rows() != toSolve.cols()) {
@@ -183,7 +183,7 @@ namespace mrock::iEoM {
 			betas.reserve(maxIter);
 
 			betas.push_back(1);
-			size_t iterNum{};
+			std::size_t iterNum{};
 			bool goOn = true;
 			EigenVectorType buffer;
 
@@ -207,7 +207,7 @@ namespace mrock::iEoM {
 					goOn = false;
 				}
 			}
-			for (size_t i = 0U; i < alphas.size(); ++i)
+			for (std::size_t i = 0U; i < alphas.size(); ++i)
 			{
 				res.a_i.push_back(alphas[i]);
 				res.b_i.push_back(betas[i + 1] * betas[i + 1]);
@@ -258,7 +258,7 @@ namespace mrock::iEoM {
 			betas.reserve(maxIter);
 
 			betas.push_back(1);
-			size_t  iterNum{};
+			std::size_t  iterNum{};
 			bool goOn = true;
 			EigenVectorType buffer;
 			while (goOn) {
@@ -287,7 +287,7 @@ namespace mrock::iEoM {
 					goOn = false;
 				}
 			}
-			for (size_t i = 0U; i < alphas.size(); ++i)
+			for (std::size_t i = 0U; i < alphas.size(); ++i)
 			{
 				res.a_i.push_back(alphas[i]);
 				res.b_i.push_back(betas[i + 1]);
@@ -305,7 +305,7 @@ namespace mrock::iEoM {
 		 */
 		void compute_with_reorthogonalization(const EigenMatrixType& toSolve, int maxIter)
 		{
-			const size_t matrix_size = toSolve.rows();
+			const std::size_t matrix_size = toSolve.rows();
 			maxIter = std::min(maxIter, static_cast<int>(matrix_size));
 
 			if (toSolve.rows() != toSolve.cols()) {
@@ -328,7 +328,7 @@ namespace mrock::iEoM {
 			betas.reserve(maxIter);
 
 			betas.push_back(1);
-			size_t iterNum{};
+			std::size_t iterNum{};
 			bool goOn = true;
 			EigenVectorType buffer;
 			while (goOn) {
@@ -357,7 +357,7 @@ namespace mrock::iEoM {
 					goOn = false;
 				}
 			}
-			for (size_t i = 0U; i < alphas.size(); ++i)
+			for (std::size_t i = 0U; i < alphas.size(); ++i)
 			{
 				res.a_i.push_back(alphas[i]);
 				res.b_i.push_back(betas[i + 1] * betas[i + 1]);
@@ -382,7 +382,7 @@ namespace mrock::iEoM {
 		ResidualInformation<RealType, n_residuals> compute_with_residuals(const EigenMatrixType& toSolve, int maxIter)
 		{
 			static_assert(isComplex == false, "Residual computation not implemented for complex types yet!");
-			const size_t matrix_size = toSolve.rows();
+			const std::size_t matrix_size = toSolve.rows();
 			maxIter = std::min(maxIter, static_cast<int>(matrix_size));
 
 			if (toSolve.rows() != toSolve.cols()) {
@@ -487,7 +487,7 @@ namespace mrock::iEoM {
 					goOn = false;
 				}
 			}
-			for (size_t i = 0U; i < alphas.size(); ++i)
+			for (std::size_t i = 0U; i < alphas.size(); ++i)
 			{
 				res.a_i.push_back(alphas[i]);
 				res.b_i.push_back(betas[i + 1] * betas[i + 1]);

@@ -44,7 +44,7 @@ namespace mrock::utility::BinaryIO {
 			std::cerr << "Could not open file stream in readSerializedVector - " << filename << std::endl;
 			return reader;
 		}
-		size_t vector_size;
+		std::size_t vector_size;
 		read_to_variable(vector_size, reader);
 		destination.resize(vector_size);
 		readToVector(destination, reader);

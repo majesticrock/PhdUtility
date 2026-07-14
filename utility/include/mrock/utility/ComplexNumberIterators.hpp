@@ -95,7 +95,7 @@ namespace mrock::utility {
         return RealPartIterator<T>(ptr);
     }
     template<typename T>
-    RealPartIterator<T> make_real_part_iterator_end(std::complex<T> const * ptr, std::size_t length) {
+    RealPartIterator<T> make_real_part_iterator_end(std::complex<T> const * ptr, std::std::size_t length) {
         return RealPartIterator<T>(ptr + length);
     }
     template<typename T>
@@ -103,7 +103,7 @@ namespace mrock::utility {
         return ImagPartIterator<T>(ptr);
     }
     template<typename T>
-    ImagPartIterator<T> make_imag_part_iterator_end(std::complex<T> const * ptr, std::size_t length) {
+    ImagPartIterator<T> make_imag_part_iterator_end(std::complex<T> const * ptr, std::std::size_t length) {
         return ImagPartIterator<T>(ptr + length);
     }
 

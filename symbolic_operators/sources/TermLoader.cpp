@@ -1,10 +1,15 @@
-#include <mrock/symbolic_operators/TermLoader.hpp>
 #include <mrock/symbolic_operators/SerializationHeaders.hpp>
+#include <mrock/symbolic_operators/TermLoader.hpp>
+#include <mrock/symbolic_operators/WickTerm.hpp>
 
-#include <fstream>
-#include <filesystem>
 #include <boost/archive/binary_iarchive.hpp>
 
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <stdexcept>
+#include <fstream>
+#include <filesystem>
 
 namespace mrock::symbolic_operators {
 	void TermLoader::load(std::string const& folder, bool use_XP, int n_terms, int start_at/*=0*/) {

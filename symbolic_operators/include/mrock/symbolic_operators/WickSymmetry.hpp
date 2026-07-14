@@ -6,8 +6,10 @@
  */
 
 #include "OperatorType.hpp"
+#include "WickOperator.hpp"
 #include "WickTerm.hpp"
-#include <type_traits>
+
+#include <vector>
 
 namespace mrock::symbolic_operators {
 

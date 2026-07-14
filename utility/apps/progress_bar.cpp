@@ -6,7 +6,7 @@
  * Run with ./progress_bar.o
  */
 
-#include "../include/mrock/utility/progress_bar.hpp"
+#include "<mrock/utility/progress_bar.hpp"
 #include <chrono>
 #include <thread>
 #include <omp.h>

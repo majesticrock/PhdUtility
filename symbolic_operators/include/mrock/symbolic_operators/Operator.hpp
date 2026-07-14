@@ -5,8 +5,11 @@
  * @brief Defines the Operator struct and related functions for symbolic operators.
  */
 
+#include <ostream>
 #include <cassert>
+#include <vector>
 
+#include "MomentumSymbol.hpp"
 #include "Momentum.hpp"
 #include "IndexWrapper.hpp"
 

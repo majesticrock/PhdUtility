@@ -1,4 +1,8 @@
 #include <mrock/symbolic_operators/MomentumList.hpp>
+#include <mrock/symbolic_operators/Momentum.hpp>
+#include <mrock/symbolic_operators/MomentumSymbol.hpp>
+#include <cstddef>
+#include <ostream>
 
 namespace mrock::symbolic_operators {
 	void MomentumList::replace_occurances(const MomentumSymbol::name_type replaceWhat, const Momentum& replaceWith) {
@@ -22,7 +26,7 @@ namespace mrock::symbolic_operators {
 	std::ostream& operator<<(std::ostream& os, const MomentumList& momenta) {
 		if (momenta.empty()) return os;
 		os << "( ";
-		for (size_t i = 0U; i < momenta.size(); ++i)
+		for (std::size_t i = 0U; i < momenta.size(); ++i)
 		{
 			os << momenta[i];
 			if (i + 1U < momenta.size()) {
@@ -47,7 +51,7 @@ namespace mrock::symbolic_operators {
 	MomentumList::MomentumList(std::initializer_list<char> init)
 		: momenta{ std::vector<Momentum>(init.size()) }
 	{
-		for (size_t i = 0U; i < init.size(); i++)
+		for (std::size_t i = 0U; i < init.size(); i++)
 		{
 			this->momenta[i] = Momentum(init.begin()[i]);
 		}

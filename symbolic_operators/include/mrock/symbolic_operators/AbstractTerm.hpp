@@ -355,7 +355,7 @@ namespace mrock::symbolic_operators {
     template<class tOperatorType>
     void AbstractTerm<tOperatorType>::rename_sums()
 	{
-		for (size_t i = 0U; i < sums.momenta.size(); ++i)
+		for (std::size_t i = 0U; i < sums.momenta.size(); ++i)
 		{
 			if (i >= N_BUFFER) {
 				std::cerr << "More than " << N_BUFFER << "momenta, time to implement this..." << std::endl;
@@ -372,7 +372,7 @@ namespace mrock::symbolic_operators {
 			sums.momenta[i] = name_list[i];
 		}
 
-		for (size_t i = 0U; i < sums.momenta.size(); ++i)
+		for (std::size_t i = 0U; i < sums.momenta.size(); ++i)
 		{
 			for (auto& op : operators) {
 				op.momentum.replace_occurances(buffer_list[i], Momentum(name_list[i]));

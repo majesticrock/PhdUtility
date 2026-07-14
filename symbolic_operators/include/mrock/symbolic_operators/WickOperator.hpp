@@ -5,12 +5,15 @@
  * @brief Defines the WickOperator structure used in symbolic operators.
  */
 
-#include <iostream>
-#include <vector>
+#include "MomentumSymbol.hpp"
 #include "Momentum.hpp"
 #include "IndexWrapper.hpp"
 #include "OperatorType.hpp"
 #include "Operator.hpp"
+
+#include <iostream>
+#include <vector>
+#include <string>
 
 namespace mrock::symbolic_operators {
 

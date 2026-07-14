@@ -8,13 +8,19 @@
  */
 
 #include <cmath>
-#include <numbers>
 #include <algorithm>
-#include <numeric>
+#include <array>
+#include <functional>
+#include <iomanip>
 #include <iostream>
 #include <map>
+#include <memory>
+#include <numbers>
+#include <numeric>
+#include <optional>
 #include <stdexcept>
-#include <iomanip>
+#include <string>
+#include <vector>
 
 #include <mrock/symbolic_operators/Term.hpp>
 #include <mrock/symbolic_operators/Wick.hpp>
@@ -116,7 +122,7 @@ double evaluate_wick_operators(const std::vector<WickOperator>& operators, const
 }
 
 /* 
-The logic for computing an expression already uses that the overall structre is known. 
+The logic for computing an expression already uses that the overall structure is known. 
 You can always do that in practice, since you can always just compute the Wick expressions (with the library)
 and have a look at them. 
 If you would rather implement a general handler, feel free to do so though. */
