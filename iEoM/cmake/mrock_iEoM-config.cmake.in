@@ -3,3 +3,5 @@
 include(
     "${CMAKE_CURRENT_LIST_DIR}/mrock_iEoM-targets.cmake"
 )
+
+set(mrock_iEoM_FOUND TRUE)
