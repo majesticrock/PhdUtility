@@ -10,8 +10,11 @@
 
 #include <chrono>
 #include <cstdlib>
-#include <omp.h>
 #include <thread>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 // from https://en.cppreference.com/w/cpp/numeric/random/rand
 unsigned bounded_rand(unsigned range) {
@@ -28,7 +31,9 @@ int main() {
     std::cout << std::endl;
 
     std::vector<float> progresses(16);
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
     for (int n = 0; n < 16; ++n) {
         for (int i = 0; i < 100; ++i) {
             progresses[n] = i / 100.f;

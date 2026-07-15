@@ -78,7 +78,7 @@ struct XPStartingState {
  * @return Number of states with a non-empty phase_state.
  */
 template <class RealType>
-auto phase_size(std::vector<XPStartingState<RealType>> const& states) {
+int phase_size(std::vector<XPStartingState<RealType>> const& states) {
     return std::count_if(states.begin(), states.end(),
                          [](const XPStartingState<RealType>& state) { return state.contains_phase_state(); });
 }
@@ -90,7 +90,7 @@ auto phase_size(std::vector<XPStartingState<RealType>> const& states) {
  * @return Number of states with a non-empty amplitude_state.
  */
 template <class RealType>
-auto amplitude_size(std::vector<XPStartingState<RealType>> const& states) {
+int amplitude_size(std::vector<XPStartingState<RealType>> const& states) {
     return std::count_if(states.begin(), states.end(),
                          [](const XPStartingState<RealType>& state) { return state.contains_amplitude_state(); });
 }

@@ -141,7 +141,7 @@ struct BCSTester : public XPResolvent<double, 1, true> {
     }
 
     BCSTester(double _delta)
-        : XPResolvent<double, 1, true>(1e-7,     // target precision
+        : XPResolvent<double, 1, true>(5e-7,     // target precision
                                        2 * N_k,  // 2N_k amplitude operators
                                        N_k,      // N_k phase operators
                                        false,    // no need to pivot

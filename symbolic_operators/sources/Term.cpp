@@ -366,7 +366,7 @@ void Term::transform_momentum_sum(const MomentumSymbol::name_type what,
 }
 
 void normal_order(std::vector<Term>& terms) {
-    for (int t = 0; t < terms.size();) {
+    for (std::size_t t = 0U; t < terms.size();) {
     normal_order_outerLoop:
         if (t >= terms.size())
             break;
@@ -416,7 +416,7 @@ void normal_order(std::vector<Term>& terms) {
                         new_term.delta_indizes.push_back(
                             make_delta(new_term.operators[i - 1].first_index(), new_term.operators[i].first_index()));
                     }
-                    for (int c = 1; c < new_term.operators[i - 1].indizes.size(); c++) {
+                    for (std::size_t c = 1; c < new_term.operators[i - 1].indizes.size(); c++) {
                         // if the indizes are not the same we emplace a delta
                         // otherwise no action is required
                         if (new_term.operators[i - 1].indizes[c] != new_term.operators[i].indizes[c]) {
@@ -659,8 +659,8 @@ void clean_up(std::vector<Term>& terms) {
 
 void clear_duplicates(std::vector<Term>& terms) {
     // remove duplicates
-    for (int i = 0; i < terms.size(); i++) {
-        for (int j = i + 1; j < terms.size(); j++) {
+    for (std::size_t i = 0; i < terms.size(); i++) {
+        for (std::size_t j = i + 1; j < terms.size(); j++) {
             if (terms[i] == terms[j]) {
                 terms[i].multiplicity += terms[j].multiplicity;
                 terms.erase(terms.begin() + j);

@@ -200,7 +200,7 @@ double evaluate_expression(const WickTerm& term, const std::array<double, N>& ks
     return value;
 };
 
-int main(int argc, char** argv) {
+int main() {
     // Setup a Momentum object representing 'k'
     const Momentum base_k = Momentum('k');
 
@@ -235,7 +235,7 @@ int main(int argc, char** argv) {
                the momenta to bring all coefficients to the same notation. */
                 coeff.momenta.sort();
             })),
-        SumContainer{MomentumSum({'p', 'q'})}, /* The term contains a sum over the momenta q and p*/
+        SumContainer{MomentumSum({'p', 'q'}), IndexSum{}}, /* The term contains a sum over the momenta q and p*/
         std::vector<Operator>({/* The term has 4 operators: c_(q,up)^dagger c_(-q,down)^dagger c_(-p,down) c_(p,up) */
                                c_k_dagger.with_momentum('q'), c_minus_k_dagger.with_momentum('q'),
                                c_minus_k.with_momentum('p'), c_k.with_momentum('p')}));

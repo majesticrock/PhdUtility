@@ -10,6 +10,7 @@
 #include "Momentum.hpp"
 #include "detail/defines_arithmetic_operators.hpp"
 
+#include <cstddef>
 #include <concepts>
 
 namespace mrock::symbolic_operators {
@@ -24,8 +25,8 @@ namespace mrock::symbolic_operators {
 template <LinearlyCombinable T>
     requires std::default_initializable<T>
 void remove_delta_squared(std::vector<KroneckerDelta<T>>& deltas) {
-    for (int i = 0; i < deltas.size(); i++) {
-        for (int j = i + 1; j < deltas.size(); j++) {
+    for (std::size_t i = 0U; i < deltas.size(); i++) {
+        for (std::size_t j = i + 1; j < deltas.size(); j++) {
             const T buffer = (deltas[i].first - deltas[i].second) - (deltas[j].first - deltas[j].second);
             if (buffer == T()) {
                 deltas.erase(deltas.begin() + j);
@@ -37,8 +38,8 @@ void remove_delta_squared(std::vector<KroneckerDelta<T>>& deltas) {
 
 template <class T>
 void remove_delta_squared(std::vector<KroneckerDelta<T>>& deltas) {
-    for (int i = 0; i < deltas.size(); i++) {
-        for (int j = i + 1; j < deltas.size(); j++) {
+    for (std::size_t i = 0U; i < deltas.size(); i++) {
+        for (std::size_t j = i + 1; j < deltas.size(); j++) {
             if (deltas[i] == deltas[j]) {
                 deltas.erase(deltas.begin() + j);
                 --i;

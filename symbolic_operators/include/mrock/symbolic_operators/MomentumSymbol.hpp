@@ -49,7 +49,7 @@ struct MomentumSymbol {
          * @param version The version of the serialization.
          */
         template <class Archive>
-        void serialize(Archive& ar, const unsigned int version) {
+        void serialize(Archive& ar, [[maybe_unused]] const unsigned int version) {
             ar & _n;
         }
 
@@ -91,7 +91,7 @@ struct MomentumSymbol {
      * @param version The version of the serialization.
      */
     template <class Archive>
-    void serialize(Archive& ar, const unsigned int version) {
+    void serialize(Archive& ar, [[maybe_unused]] const unsigned int version) {
         ar & factor;
         ar & name;
     }

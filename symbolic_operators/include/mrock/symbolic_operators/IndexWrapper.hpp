@@ -136,7 +136,7 @@ struct IndexWrapper {
      * @param version The version of the serialization.
      */
     template <class Archive>
-    void serialize(Archive& ar, const unsigned int version) {
+    void serialize(Archive& ar, [[maybe_unused]] const unsigned int version) {
         ar& this->indizes;
     }
 

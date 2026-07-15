@@ -4,14 +4,15 @@
 #include <array>
 #include <chrono>
 #include <list>
-
-#ifndef _OPENMP
-#define MROCK_IEOM_DO_NOT_PARALLELIZE
-#endif
+#include <numbers>
 
 #ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
+#ifndef _OPENMP
+#define MROCK_IEOM_DO_NOT_PARALLELIZE
+#else
 #include <omp.h>
-#endif
+#endif // ifndef _OPENMP
+#endif // ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 
 #include "Resolvent.hpp"
 #include "XPStartingState.hpp"
@@ -21,8 +22,6 @@
 #include "detail/xp_internal.hpp"
 
 #include <Eigen/Dense>
-
-#include <numbers>
 
 namespace mrock::iEoM {
 /**
@@ -395,12 +394,12 @@ private:
      * @note This function assumes eigenvalues are sorted in ascending order, which Eigen does by default.
      * @note The precision threshold is obtained from _internal._precision.
      */
-    std::size_t get_number_of_zero_eigenvalues(const Eigen::SelfAdjointEigenSolver<Matrix>& solver) const noexcept {
-        std::size_t n_zero{};
+    Eigen::Index get_number_of_zero_eigenvalues(const Eigen::SelfAdjointEigenSolver<Matrix>& solver) const noexcept {
+        Eigen::Index n_zero{};
         while (n_zero < solver.eigenvalues().size() && solver.eigenvalues()(n_zero) < _internal._precision) {
             ++n_zero;
         }
-        if (n_zero > 0U)
+        if (n_zero > 0)
             --n_zero;  // Keep one vector from the nullspace
         return n_zero;
     }
@@ -436,8 +435,7 @@ private:
     template <detail::ConstStateIterator iterator_type>
     FullDiagData set_full_diag_data(const Eigen::SelfAdjointEigenSolver<Matrix>& solver,
                                     const TransformQR& qr,
-                                    const std::size_t& n_non_zero,
-                                    const Matrix& transform_matrix) const {
+                                    const std::size_t& n_non_zero) const {
         if (_internal.contains_negative(solver.eigenvalues())) {
             if (_internal._negative_matrix_is_error) {
                 throw MatrixIsNegativeException<RealType>(solver.eigenvalues().minCoeff(), "in set_full_diag data");
@@ -455,7 +453,7 @@ private:
         }
 
         int eigenvector_count{};
-        for (int i = 0; i < solver.eigenvalues().size(); ++i) {
+        for (Eigen::Index i = 0; i < solver.eigenvalues().size(); ++i) {
             const RealType eigen_val = std::sqrt(std::abs(solver.eigenvalues()(i)));
 
             if (data.eigenvalues.empty() || std::abs(data.eigenvalues.back() - eigen_val) >=
@@ -468,7 +466,7 @@ private:
                 }
 
                 iterator_type it = iterator_type::begin(starting_states);
-                for (int state = 0; state < starting_states.size(); ++state) {
+                for (std::size_t state = 0U; state < starting_states.size(); ++state) {
                     // state is already transformed; this line computes
                     // sum_j <u_j| transform_matrix | original_amplitude_state>
                     //      = sum_j <u_j | N^{-1/2} L | original_amplitude_state>
@@ -480,7 +478,7 @@ private:
                 }
             } else {
                 iterator_type it = iterator_type::begin(starting_states);
-                for (int state = 0; state < starting_states.size(); ++state) {
+                for (std::size_t state = 0; state < starting_states.size(); ++state) {
                     const auto buffer = it.state().dot(solver.eigenvectors().col(i));
                     data.weights[state].back() += buffer * buffer;
                     ++it;
@@ -722,7 +720,7 @@ public:
         }
 
         // No need to do anything if there are no starting states for the amplitude channel
-        if (amplitude_size(starting_states) > 0U) {
+        if (amplitude_size(starting_states) > 0) {
             compute_solver_matrix<1, 0>(k_solutions, solver_matrix, transform_matrix);
             TransformQR qr(transform_matrix);  // Curly braces to free memory after usage
             print_duration("Time for second QR decomp: ");
@@ -767,7 +765,7 @@ public:
         std::pair<FullDiagData, FullDiagData> return_data;
 
         // No need to do anything if there are no starting states for the phase channel
-        if (phase_size(starting_states) > 0U) {
+        if (phase_size(starting_states) > 0) {
             compute_solver_matrix<0, 1>(k_solutions, solver_matrix, transform_matrix);
             set_begin();
             solver.compute(solver_matrix);
@@ -776,7 +774,7 @@ public:
             print_duration("Time for first QR decomp: ");
             const std::size_t n_zero = get_number_of_zero_eigenvalues(solver);
             const std::size_t n_non_zero = solver.eigenvalues().size() - n_zero;
-            return_data.first = set_full_diag_data<const_phase_it>(solver, qr, n_non_zero, transform_matrix);
+            return_data.first = set_full_diag_data<const_phase_it>(solver, qr, n_non_zero);
             if constexpr (check_qr) {
                 for (std::size_t i = 0U; i < n_residuals; ++i) {
                     Eigen::Map<Vector> _eigen(return_data.first.first_eigenvectors[i].data(),
@@ -793,7 +791,7 @@ public:
         }
 
         // No need to do anything if there are no starting states for the amplitude channel
-        if (amplitude_size(starting_states) > 0U) {
+        if (amplitude_size(starting_states) > 0) {
             compute_solver_matrix<1, 0>(k_solutions, solver_matrix, transform_matrix);
             set_begin();
             solver.compute(solver_matrix);
@@ -803,7 +801,7 @@ public:
             const std::size_t n_non_zero = solver.eigenvalues().size() - n_zero;
 
             print_duration("Time for second QR decomp: ");
-            return_data.second = set_full_diag_data<const_amplitude_it>(solver, qr, n_non_zero, transform_matrix);
+            return_data.second = set_full_diag_data<const_amplitude_it>(solver, qr, n_non_zero);
             if constexpr (check_qr) {
                 for (std::size_t i = 0U; i < n_residuals; ++i) {
                     Eigen::Map<Vector> _eigen(return_data.second.first_eigenvectors[i].data(),

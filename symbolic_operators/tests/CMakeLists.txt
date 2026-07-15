@@ -1,25 +1,34 @@
+# symbolic_operators/tests/CMakeLists.txt
 cmake_minimum_required(VERSION 3.16)
 project(symbolic_operatorsTests)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 add_executable(continuum_test continuum.cpp)
-SET_COMPILER_FLAGS(continuum_test)
-target_link_libraries(continuum_test PRIVATE mrock::symbolic_operators)
+mrock_set_build_options(continuum_test)
+target_link_libraries(continuum_test 
+    PRIVATE 
+        mrock::symbolic_operators 
+)
 
 add_executable(bosons_test bosons.cpp)
-SET_COMPILER_FLAGS(bosons_test)
-target_link_libraries(bosons_test PRIVATE mrock::symbolic_operators)
+mrock_set_build_options(bosons_test)
+target_link_libraries(bosons_test 
+    PRIVATE 
+        mrock::symbolic_operators 
+)
 
 add_executable(bcs_test bcs.cpp)
-SET_COMPILER_FLAGS(bcs_test)
-target_link_libraries(bcs_test PRIVATE mrock::symbolic_operators)
+mrock_set_build_options(bcs_test)
+target_link_libraries(bcs_test 
+    PRIVATE 
+        mrock::symbolic_operators 
+)
 
 add_executable(string_helper_test string_helper.cpp)
-SET_COMPILER_FLAGS(string_helper_test)
-target_link_libraries(string_helper_test PRIVATE mrock::symbolic_operators)
+mrock_set_build_options(string_helper_test)
+target_link_libraries(string_helper_test 
+    PRIVATE 
+        mrock::symbolic_operators 
+)
 
 enable_testing()
 

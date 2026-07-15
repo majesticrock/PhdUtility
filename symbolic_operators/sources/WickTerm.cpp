@@ -222,8 +222,8 @@ void WickTerm::sort() {
         }
     }
 
-    for (int i = 0U; i < operators.size(); ++i) {
-        for (int j = i + 1U; j < operators.size(); ++j) {
+    for (std::size_t i = 0U; i < operators.size(); ++i) {
+        for (std::size_t j = i + 1U; j < operators.size(); ++j) {
             if (operators[i].type > operators[j].type) {
                 std::swap(operators[i], operators[j]);
             } else if (operators[i].type == operators[j].type) {
@@ -322,6 +322,81 @@ bool WickTerm::is_pauli_forbidden() const {
     }
 
     return false;
+}
+
+int WickTerm::which_operator_depends_on(const MomentumSymbol::name_type momentum) const noexcept {
+    for (std::size_t i = 0U; i < operators.size(); ++i) {
+        if (operators[i].depends_on(momentum))
+            return i;
+    }
+    return -1;
+}
+
+bool WickTerm::uses_index(const Index index) const noexcept {
+    for (const auto& op : operators) {
+        if (op.uses_index(index))
+            return true;
+    }
+    for (const auto& coeff : coefficients) {
+        if (coeff.uses_index(index))
+            return true;
+    }
+    return false;
+}
+
+bool WickTerm::includes_type(const OperatorType operator_type) const {
+    return std::any_of(this->operators.begin(), this->operators.end(),
+                       [operator_type](const WickOperator& op) { return op.type == operator_type; });
+}
+bool WickTerm::has_single_coefficient() const noexcept {
+    return this->coefficients.size() == 1U;
+}
+bool WickTerm::is_bilinear() const noexcept {
+    return this->operators.size() == 1U;
+}
+bool WickTerm::is_quartic() const noexcept {
+    return this->operators.size() == 2U;
+}
+double WickTerm::get_factor() const noexcept {
+    return static_cast<double>(this->multiplicity);
+}
+const Coefficient& WickTerm::get_first_coefficient() const {
+    assert(!(this->coefficients.empty()));
+    return this->coefficients.front();
+}
+bool WickTerm::handled() const noexcept {
+    if (this->temporary_operators.empty())
+        return true;
+    return !(this->operators.empty());
+}
+
+bool operator==(const WickOperator& lhs, const WickOperator& rhs) {
+    if (lhs.type != rhs.type)
+        return false;
+    if (lhs.is_daggered != rhs.is_daggered)
+        return false;
+    if (lhs.momentum != rhs.momentum)
+        return false;
+    return (lhs.indizes == rhs.indizes);
+}
+bool operator!=(const WickOperator& lhs, const WickOperator& rhs) {
+    return !(lhs == rhs);
+}
+bool operator==(const WickTerm& lhs, const WickTerm& rhs) {
+    if (lhs.coefficients != rhs.coefficients)
+        return false;
+    if (lhs.sums != rhs.sums)
+        return false;
+    if (lhs.delta_indizes != rhs.delta_indizes)
+        return false;
+    if (lhs.delta_momenta != rhs.delta_momenta)
+        return false;
+    if (lhs.operators != rhs.operators)
+        return false;
+    return true;
+}
+bool operator!=(const WickTerm& lhs, const WickTerm& rhs) {
+    return !(lhs == rhs);
 }
 
 // Operator overloads

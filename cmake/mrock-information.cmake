@@ -1,3 +1,4 @@
+# mrock-information.cmake
 function(run_command RESULT_VAR)
     execute_process(
         COMMAND ${ARGN}
@@ -36,5 +37,5 @@ configure_file(
     @ONLY
 )
 
-include(${CMAKE_CURRENT_LIST_DIR}/mrock-message.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/mrock_message.cmake)
 mrock_message("Generated metadata header file.")

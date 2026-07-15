@@ -182,7 +182,7 @@ struct BlockDiagonalMatrix {
 #ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
-        for (int i = 0; i < other.blocks.size(); ++i) {
+        for (std::size_t i = 0U; i < other.blocks.size(); ++i) {
             this->blocks[i] = other.blocks[i].eval();
         }
     }
@@ -201,7 +201,7 @@ struct BlockDiagonalMatrix {
 #ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
-        for (int i = 0; i < other.blocks.size(); ++i) {
+        for (std::size_t i = 0U; i < other.blocks.size(); ++i) {
             this->blocks[i] = other.blocks[i].eval();
         }
         return *this;
@@ -217,7 +217,7 @@ struct BlockDiagonalMatrix {
 #ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
-        for (int i = 0; i < blocks.size(); ++i) {
+        for (std::size_t i = 0U; i < blocks.size(); ++i) {
             ret.block(blocks_begin[i], blocks_begin[i], blocks[i].rows(), blocks[i].cols()) = blocks[i];
         }
         return ret;
@@ -233,7 +233,7 @@ struct BlockDiagonalMatrix {
 #ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
-        for (int i = 0; i < this->blocks.size(); ++i) {
+        for (std::size_t i = 0U; i < this->blocks.size(); ++i) {
             new_blocks[i] = this->blocks[i].eval();
         }
         return BlockDiagonalMatrix<eval_result>(std::move(new_blocks), blocks_begin);
@@ -343,7 +343,7 @@ struct BlockDiagonalMatrix {
 #ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
-        for (int i = 0; i < blocks.size(); ++i) {
+        for (std::size_t i = 0U; i < blocks.size(); ++i) {
             this->blocks[i] += rhs.blocks[i];
         }
         return *this;
@@ -361,7 +361,7 @@ struct BlockDiagonalMatrix {
 #ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
-        for (int i = 0; i < blocks.size(); ++i) {
+        for (std::size_t i = 0U; i < blocks.size(); ++i) {
             this->blocks[i] -= rhs.blocks[i];
         }
         return *this;
@@ -379,7 +379,7 @@ struct BlockDiagonalMatrix {
 #ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
-        for (int i = 0; i < blocks.size(); ++i) {
+        for (std::size_t i = 0U; i < blocks.size(); ++i) {
             this->blocks[i] *= rhs.blocks[i];
         }
         return *this;
@@ -399,7 +399,7 @@ struct BlockDiagonalMatrix {
 #ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
-        for (int i = 0; i < blocks.size(); ++i) {
+        for (std::size_t i = 0U; i < blocks.size(); ++i) {
             this->blocks[i] += rhs.diagonal().segment(this->blocks_begin[i], this->blocks[i].rows()).asDiagonal();
         }
         return *this;
@@ -419,7 +419,7 @@ struct BlockDiagonalMatrix {
 #ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
-        for (int i = 0; i < blocks.size(); ++i) {
+        for (std::size_t i = 0U; i < blocks.size(); ++i) {
             this->blocks[i] -= rhs.diagonal().segment(this->blocks_begin[i], this->blocks[i].rows()).asDiagonal();
         }
         return *this;
@@ -439,7 +439,7 @@ struct BlockDiagonalMatrix {
 #ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
-        for (int i = 0; i < blocks.size(); ++i) {
+        for (std::size_t i = 0U; i < blocks.size(); ++i) {
             this->blocks[i] *= rhs.diagonal().segment(this->blocks_begin[i], this->blocks[i].rows()).asDiagonal();
         }
         return *this;
@@ -529,7 +529,7 @@ EigenMatrixType operator*(EigenMatrixType basic_matrix, const BlockDiagonalMatri
 #ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
-    for (int i = 0; i < block_matrix.blocks.size(); ++i) {
+    for (std::size_t i = 0U; i < block_matrix.blocks.size(); ++i) {
         basic_matrix.block(0, block_matrix.blocks_begin[i], basic_matrix.rows(), block_matrix.blocks[i].cols())
             .applyOnTheRight(block_matrix.blocks[i]);
     }
@@ -550,7 +550,7 @@ EigenMatrixType operator*(const BlockDiagonalMatrix<_base>& block_matrix, EigenM
 #ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
-    for (int i = 0; i < block_matrix.blocks.size(); ++i) {
+    for (std::size_t i = 0U; i < block_matrix.blocks.size(); ++i) {
         basic_matrix.block(block_matrix.blocks_begin[i], 0, block_matrix.blocks[i].rows(), basic_matrix.cols())
             .applyOnTheLeft(block_matrix.blocks[i]);
     }
@@ -578,7 +578,7 @@ BlockDiagonalMatrix<addition_result<_matrix_base, diagonal_segment_type<__matrix
     Eigen::DiagonalWrapper<__matrix__> const& rhs) {
     typename base_traits<addition_result<_matrix_base, diagonal_segment_type<__matrix__>>>::mutable_vector new_blocks;
     new_blocks.reserve(lhs.blocks.size());
-    for (int i = 0; i < lhs.blocks.size(); ++i) {
+    for (std::size_t i = 0U; i < lhs.blocks.size(); ++i) {
         new_blocks.push_back(lhs.blocks[i] +
                              rhs.diagonal().segment(lhs.blocks_begin[i], lhs.blocks[i].rows()).asDiagonal());
     }
@@ -604,7 +604,7 @@ BlockDiagonalMatrix<substraction_result<_matrix_base, diagonal_segment_type<__ma
     typename base_traits<substraction_result<_matrix_base, diagonal_segment_type<__matrix__>>>::mutable_vector
         new_blocks;
     new_blocks.reserve(lhs.blocks.size());
-    for (int i = 0; i < lhs.blocks.size(); ++i) {
+    for (std::size_t i = 0U; i < lhs.blocks.size(); ++i) {
         new_blocks.push_back(lhs.blocks[i] -
                              rhs.diagonal().segment(lhs.blocks_begin[i], lhs.blocks[i].rows()).asDiagonal());
     }
@@ -630,7 +630,7 @@ BlockDiagonalMatrix<multiplication_result<_matrix_base, diagonal_segment_type<__
     typename base_traits<multiplication_result<_matrix_base, diagonal_segment_type<__matrix__>>>::mutable_vector
         new_blocks;
     new_blocks.reserve(lhs.blocks.size());
-    for (int i = 0; i < lhs.blocks.size(); ++i) {
+    for (std::size_t i = 0U; i < lhs.blocks.size(); ++i) {
         new_blocks.push_back(lhs.blocks[i] *
                              rhs.diagonal().segment(lhs.blocks_begin[i], lhs.blocks[i].rows()).asDiagonal());
     }

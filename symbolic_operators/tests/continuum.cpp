@@ -26,7 +26,7 @@
 
 using namespace mrock::symbolic_operators;
 
-int main(int argc, char** argv) {
+int main(int argc, [[maybe_unused]] char** argv) {
     const std::string COMPARE_DIR = "../../../symbolic_operators/tests/correct_continuum/";
     // Setup a momentum object representing k. This is later reused to define the electron operators.
     const Momentum base_k = Momentum('k');
@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 
     // Setup the phonon-mediated pairing term: -sum_{q,p} g(q,p) c^\dagger_{q,up} c^\dagger_{-q,down} c_{-p,down}
     // c_{p,up}. The operators are created from the previously defined base operators and then assigned new momenta.
-    const Term H_Ph(-1, Coefficient("g", MomentumList({'q', 'p'})), SumContainer{MomentumSum({'q', 'p'})},
+    const Term H_Ph(-1, Coefficient("g", MomentumList({'q', 'p'})), SumContainer{MomentumSum({'q', 'p'}), IndexSum{}},
                     std::vector<Operator>({c_k_dagger.with_momentum('q'), c_minus_k_dagger.with_momentum('q'),
                                            c_minus_k.with_momentum('p'), c_k.with_momentum('p')}));
 

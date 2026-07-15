@@ -244,8 +244,8 @@ void clean_wicks(
         }
     }
     // remove duplicates
-    for (int i = 0; i < terms.size(); i++) {
-        for (int j = i + 1; j < terms.size(); j++) {
+    for (std::size_t i = 0U; i < terms.size(); i++) {
+        for (std::size_t  j = i + 1; j < terms.size(); j++) {
             if (terms[i] == terms[j]) {
                 terms[i].multiplicity += terms[j].multiplicity;
                 terms.erase(terms.begin() + j);

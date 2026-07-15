@@ -36,7 +36,7 @@ struct Momentum {
      * @param version Version of the serialization.
      */
     template <class Archive>
-    void serialize(Archive& ar, const unsigned int version) {
+    void serialize(Archive& ar, [[maybe_unused]] const unsigned int version) {
         ar & momentum_list;
         ar & add_Q;
     }

@@ -105,7 +105,7 @@ public:
         betas.reserve(maxIter);
 
         betas.push_back(1);
-        std::size_t iterNum{};
+        int iterNum{};
         bool goOn = true;
         EigenVectorType buffer;
         while (goOn) {
@@ -175,7 +175,7 @@ public:
         betas.reserve(maxIter);
 
         betas.push_back(1);
-        std::size_t iterNum{};
+        int iterNum{};
         bool goOn = true;
         EigenVectorType buffer;
 
@@ -250,7 +250,7 @@ public:
         betas.reserve(maxIter);
 
         betas.push_back(1);
-        std::size_t iterNum{};
+        int iterNum{};
         bool goOn = true;
         EigenVectorType buffer;
         while (goOn) {
@@ -318,7 +318,7 @@ public:
         betas.reserve(maxIter);
 
         betas.push_back(1);
-        std::size_t iterNum{};
+        int iterNum{};
         bool goOn = true;
         EigenVectorType buffer;
         while (goOn) {
@@ -330,7 +330,7 @@ public:
             } else {
                 alphas.push_back(basis_vectors.back().dot(buffer));
             }
-            if (iterNum > 0U) {
+            if (iterNum > 0) {
                 currentSolution =
                     buffer - (alphas.back() * basis_vectors.back() + betas.back() * basis_vectors[iterNum]);
             } else {
@@ -412,7 +412,7 @@ public:
             } else {
                 alphas.push_back(basis_vectors.back().dot(buffer));
             }
-            if (iterNum > 0U) {
+            if (iterNum > 0) {
                 currentSolution =
                     buffer - (alphas.back() * basis_vectors.back() + betas.back() * basis_vectors[iterNum]);
             } else {

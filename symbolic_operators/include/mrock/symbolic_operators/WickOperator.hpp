@@ -35,7 +35,7 @@ struct WickOperator {
      * @param version The version of the serialization.
      */
     template <class Archive>
-    void serialize(Archive& ar, const unsigned int version) {
+    void serialize(Archive& ar, [[maybe_unused]] const unsigned int version) {
         ar & type;
         ar & is_daggered;
         ar & momentum;

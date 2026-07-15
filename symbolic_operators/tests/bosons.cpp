@@ -28,7 +28,7 @@ const std::string end_align = "\\end{align*}\n";
 const std::string file_names[2] = {"first_commutation.bin", "second_commutation.bin"};
 const std::string COMPARE_DIR = "../../../symbolic_operators/tests/correct_bosons/";
 
-int main(int argc, char** argv) {
+int main(int argc, [[maybe_unused]] char** argv) {
     bool is_baseline = (argc > 1) || !(std::filesystem::exists(COMPARE_DIR));
 
     // Define the Hamiltonian terms. Each Term is built from a prefactor, a coefficient,
@@ -64,10 +64,10 @@ int main(int argc, char** argv) {
 
     // The second target is a sum of two bosonic operator strings, each carrying a momentum shift.
     const std::vector<Term> to_commute_2{
-        Term(1, SumContainer{MomentumSum{'q'}},
+        Term(1, SumContainer{MomentumSum{'q'}, IndexSum{}},
              std::vector<Operator>({Operator::Boson(Momentum("l+q"), Index::TypeA, true),
                                     Operator::Boson(Momentum("l"), Index::TypeA, false)})),
-        Term(1, SumContainer{MomentumSum{'q'}},
+        Term(1, SumContainer{MomentumSum{'q'}, IndexSum{}},
              std::vector<Operator>({Operator::Boson(Momentum("l-q"), Index::TypeB, true),
                                     Operator::Boson(Momentum("l"), Index::TypeB, false)}))};
 

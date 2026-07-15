@@ -3,6 +3,7 @@
 
 #include "CauchyPrincipalValue.hpp"
 
+#include <cassert>
 #include <algorithm>
 #include <iostream>
 #include <limits>
@@ -108,7 +109,7 @@ public:
                                                                            Real lower,
                                                                            Real upper,
                                                                            RandomAccessContainer const& singularities) {
-        int n = 0;
+        typename RandomAccessContainer::size_type n{0};
         while (singularities[n] < lower) {
             ++n;
         }

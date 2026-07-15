@@ -5,6 +5,9 @@
 
 #include <Eigen/Dense>
 
+#include <vector>
+#include <cstddef>
+
 namespace mrock::iEoM::detail {
 /**
  * @brief Compute a permutation that groups zero off-diagonal blocks.
@@ -29,9 +32,9 @@ Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic> pivot_to_block_structur
         return matrix.coeffRef(P.indices()(i), P.indices()(j));
     };
 
-    for (int i = 0; i < matrix.rows(); ++i) {
+    for (Eigen::Index i = 0; i < matrix.rows(); ++i) {
         int offset = 1;
-        for (int j = i + 1; j < matrix.cols(); ++j) {
+        for (Eigen::Index j = i + 1; j < matrix.cols(); ++j) {
             if (abs(permuted_matrix_element(i, j)) > epsilon) {
                 P.applyTranspositionOnTheRight(j, i + offset);
                 ++offset;
@@ -94,7 +97,7 @@ struct matrix_wrapper {
 #ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
-        for (int i = 0; i < blocks.size(); ++i) {
+        for (std::size_t i = 0; i < blocks.size(); ++i) {
             Eigen::SelfAdjointEigenSolver<MatrixType> solver(
                 toSolve.block(blocks[i].position, blocks[i].position, blocks[i].size, blocks[i].size));
             solution.eigenvalues.segment(blocks[i].position, blocks[i].size) = solver.eigenvalues();
@@ -207,7 +210,7 @@ struct matrix_wrapper<BlockDiagonalMatrix<detail::MatrixN<Number>>,
 #ifdef MROCK_IEOM_PARALLELIZE_BLOCKMATRIX
 #pragma omp parallel for
 #endif
-        for (int i = 0; i < toSolve.blocks.size(); ++i) {
+        for (std::size_t i = 0; i < toSolve.blocks.size(); ++i) {
             Eigen::SelfAdjointEigenSolver<detail::MatrixN<Number>> solver(toSolve.blocks[i]);
             solution.eigenvectors.blocks[i] = solver.eigenvectors();
             solution.eigenvalues.segment(toSolve.blocks_begin[i], toSolve.blocks[i].rows()) = solver.eigenvalues();

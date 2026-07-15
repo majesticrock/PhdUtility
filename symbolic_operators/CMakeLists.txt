@@ -1,3 +1,4 @@
+# symbolic_operators/CMakeLists.txt
 cmake_minimum_required(VERSION 3.16)
 
 project(
@@ -43,6 +44,8 @@ add_library(
 set_target_properties(mrock_symbolic_operators PROPERTIES
     EXPORT_NAME symbolic_operators
 )
+
+mrock_set_build_options(mrock_symbolic_operators)
 
 target_link_libraries(
     mrock_symbolic_operators

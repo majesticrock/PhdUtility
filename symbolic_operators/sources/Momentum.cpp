@@ -87,7 +87,7 @@ void Momentum::flip_single(const MomentumSymbol::name_type momentum) {
 }
 
 int Momentum::is_used_at(const MomentumSymbol::name_type value) const noexcept {
-    for (int i = 0; i < momentum_list.size(); ++i) {
+    for (std::size_t i = 0U; i < momentum_list.size(); ++i) {
         if (momentum_list[i].name == value)
             return i;
     }

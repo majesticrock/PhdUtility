@@ -54,7 +54,7 @@ struct Fractional {
      * @param version Archive version number.
      */
     template <class Archive>
-    void serialize(Archive& ar, const unsigned int version) {
+    void serialize(Archive& ar, [[maybe_unused]] const unsigned int version) {
         ar & numerator;
         ar & denominator;
     }

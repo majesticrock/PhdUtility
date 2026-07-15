@@ -26,7 +26,7 @@ namespace mrock::utility {
  * @param args The arguments to be passed to the exception's constructor.
  */
 template <class exception, class... Args>
-void throw_exception(bool condition, Args&&... args) {
+void throw_exception([[maybe_unused]] bool condition, [[maybe_unused]] Args&&... args) {
 #ifndef NDEBUG
     if (condition) {
         throw exception(std::forward<Args>(args)...);

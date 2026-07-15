@@ -21,6 +21,7 @@ stderr*
 *.pyd
 *.so
 */docs/*
+cmake/mrock-user.cmake
 
 !CMakeLists.txt
 

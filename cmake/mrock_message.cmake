@@ -1,3 +1,4 @@
+# mrock_message.cmake
 include_guard()
 
 function(mrock_message MSG)

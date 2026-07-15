@@ -110,7 +110,7 @@ public:
      * @param version The version of the serialization.
      */
     template <class Archive>
-    void serialize(Archive& ar, const unsigned int version) {
+    void serialize(Archive& ar, [[maybe_unused]] const unsigned int version) {
         ar & multiplicity;
         ar & coefficients;
         ar & sums;
@@ -162,7 +162,7 @@ public:
      * @return true if the term includes the operator type.
      * @return false otherwise.
      */
-    inline bool includes_type(const OperatorType operator_type) const;
+    bool includes_type(const OperatorType operator_type) const;
 
     /**
      * @brief Checks if the term has a single coefficient.
@@ -170,7 +170,7 @@ public:
      * @return true if the term has a single coefficient.
      * @return false otherwise.
      */
-    inline bool has_single_coefficient() const noexcept;
+    bool has_single_coefficient() const noexcept;
 
     /**
      * @brief Checks if the term uses a specific index.
@@ -179,7 +179,7 @@ public:
      * @return true if the term uses the index.
      * @return false otherwise.
      */
-    inline bool uses_index(const Index index) const noexcept;
+    bool uses_index(const Index index) const noexcept;
 
     /**
      * @brief Checks if the term is bilinear.
@@ -187,7 +187,7 @@ public:
      * @return true if the term is bilinear.
      * @return false otherwise.
      */
-    inline bool is_bilinear() const noexcept;
+    bool is_bilinear() const noexcept;
 
     /**
      * @brief Checks if the term is quartic.
@@ -195,14 +195,14 @@ public:
      * @return true if the term is quartic.
      * @return false otherwise.
      */
-    inline bool is_quartic() const noexcept;
+    bool is_quartic() const noexcept;
 
     /**
      * @brief Returns the multiplicity as a double.
      *
      * @return double The multiplicity as a double.
      */
-    inline double get_factor() const noexcept;
+    double get_factor() const noexcept;
 
     /**
      * @brief Returns the position of the first operator that depends on a specific momentum.
@@ -210,14 +210,14 @@ public:
      * @param momentum The momentum to check.
      * @return int The position of the first operator that depends on the momentum, or -1 if none.
      */
-    inline int which_operator_depends_on(const MomentumSymbol::name_type momentum) const noexcept;
+    int which_operator_depends_on(const MomentumSymbol::name_type momentum) const noexcept;
 
     /**
      * @brief Returns the first coefficient in the term.
      *
      * @return const Coefficient& The first coefficient.
      */
-    inline const Coefficient& get_first_coefficient() const;
+    const Coefficient& get_first_coefficient() const;
 
     /**
      * @brief Checks if the term has been handled.
@@ -225,7 +225,7 @@ public:
      * @return true if the term has been handled.
      * @return false otherwise.
      */
-    inline bool handled() const noexcept;
+    bool handled() const noexcept;
 
     /**
      * @brief Resolves the Kronecker deltas in the term ( calls \c resolve_momentum_deltas() and \c
@@ -276,7 +276,7 @@ public:
  * @return true if the two WickOperator objects are equal.
  * @return false otherwise.
  */
-inline bool operator==(const WickOperator& lhs, const WickOperator& rhs);
+bool operator==(const WickOperator& lhs, const WickOperator& rhs);
 
 /**
  * @brief Inequality operator for WickOperator.
@@ -286,7 +286,7 @@ inline bool operator==(const WickOperator& lhs, const WickOperator& rhs);
  * @return true if the two WickOperator objects are not equal.
  * @return false otherwise.
  */
-inline bool operator!=(const WickOperator& lhs, const WickOperator& rhs);
+bool operator!=(const WickOperator& lhs, const WickOperator& rhs);
 
 /**
  * @brief Equality operator for WickTerm.
@@ -296,7 +296,7 @@ inline bool operator!=(const WickOperator& lhs, const WickOperator& rhs);
  * @return true if the two WickTerm objects are equal.
  * @return false otherwise.
  */
-inline bool operator==(const WickTerm& lhs, const WickTerm& rhs);
+bool operator==(const WickTerm& lhs, const WickTerm& rhs);
 
 /**
  * @brief Inequality operator for WickTerm.
@@ -306,7 +306,7 @@ inline bool operator==(const WickTerm& lhs, const WickTerm& rhs);
  * @return true if the two WickTerm objects are not equal.
  * @return false otherwise.
  */
-inline bool operator!=(const WickTerm& lhs, const WickTerm& rhs);
+bool operator!=(const WickTerm& lhs, const WickTerm& rhs);
 
 /**
  * @class WickTermCollector
@@ -323,7 +323,7 @@ struct WickTermCollector {
     std::vector<WickTerm> terms;  ///< The collected \c WickTerm objects
 
     template <class Archive>
-    void serialize(Archive& ar, const unsigned int version) {
+    void serialize(Archive& ar, [[maybe_unused]] const unsigned int version) {
         ar & terms;
     };
 
@@ -488,78 +488,5 @@ public:
      */
     const WickTerm& which_term() const noexcept { return this->_term; };
 };
-
-// Inline definitions
-inline bool WickTerm::includes_type(const OperatorType operator_type) const {
-    return std::any_of(this->operators.begin(), this->operators.end(),
-                       [operator_type](const WickOperator& op) { return op.type == operator_type; });
-}
-inline bool WickTerm::has_single_coefficient() const noexcept {
-    return this->coefficients.size() == 1U;
-}
-inline bool WickTerm::uses_index(const Index index) const noexcept {
-    for (const auto& op : operators) {
-        if (op.uses_index(index))
-            return true;
-    }
-    for (const auto& coeff : coefficients) {
-        if (coeff.uses_index(index))
-            return true;
-    }
-    return false;
-}
-inline bool WickTerm::is_bilinear() const noexcept {
-    return this->operators.size() == 1U;
-}
-inline bool WickTerm::is_quartic() const noexcept {
-    return this->operators.size() == 2U;
-}
-inline double WickTerm::get_factor() const noexcept {
-    return static_cast<double>(this->multiplicity);
-}
-inline int WickTerm::which_operator_depends_on(const MomentumSymbol::name_type momentum) const noexcept {
-    for (int i = 0U; i < operators.size(); ++i) {
-        if (operators[i].depends_on(momentum))
-            return i;
-    }
-    return -1;
-}
-inline const Coefficient& WickTerm::get_first_coefficient() const {
-    assert(!(this->coefficients.empty()));
-    return this->coefficients.front();
-}
-inline bool WickTerm::handled() const noexcept {
-    if (this->temporary_operators.empty())
-        return true;
-    return !(this->operators.empty());
-}
-inline bool operator==(const WickOperator& lhs, const WickOperator& rhs) {
-    if (lhs.type != rhs.type)
-        return false;
-    if (lhs.is_daggered != rhs.is_daggered)
-        return false;
-    if (lhs.momentum != rhs.momentum)
-        return false;
-    return (lhs.indizes == rhs.indizes);
-}
-inline bool operator!=(const WickOperator& lhs, const WickOperator& rhs) {
-    return !(lhs == rhs);
-}
-inline bool operator==(const WickTerm& lhs, const WickTerm& rhs) {
-    if (lhs.coefficients != rhs.coefficients)
-        return false;
-    if (lhs.sums != rhs.sums)
-        return false;
-    if (lhs.delta_indizes != rhs.delta_indizes)
-        return false;
-    if (lhs.delta_momenta != rhs.delta_momenta)
-        return false;
-    if (lhs.operators != rhs.operators)
-        return false;
-    return true;
-}
-inline bool operator!=(const WickTerm& lhs, const WickTerm& rhs) {
-    return !(lhs == rhs);
-}
 }  // namespace mrock::symbolic_operators
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICKTERM_HPP

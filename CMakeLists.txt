@@ -1,3 +1,4 @@
+# ./CMakeLists.txt
 cmake_minimum_required(VERSION 3.16)
 
 project(mrock VERSION 3.0.0 LANGUAGES CXX)
@@ -6,21 +7,24 @@ set(MROCK_VERSION ${PROJECT_VERSION})
 include(GNUInstallDirs)
 include(CTest)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
 
-option(MROCK_ENABLE_NATIVE_ARCH
-    "Enable architecture-specific optimization flags such as -march=native"
-    OFF
+#
+# Default project options
+#
+
+set(MROCK_EXTRA_INCLUDE_DIRS
+    ""
+    CACHE STRING
+    "Additional include directories for mrock (semicolon-separated)"
 )
 
-set(MROCK_EXTRA_INCLUDE_DIRS "" CACHE STRING
-    "Additional include directories for mrock"
+set(MROCK_ARCH
+    ""
+    CACHE STRING
+    "Architecture passed to compiler as -march=<arch> (empty disables)"
 )
 
 option(MROCK_BUILD_UTILITY
@@ -39,18 +43,44 @@ option(MROCK_BUILD_IEOM
 )
 
 #
+# Cmake includes
+#
+
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/mrock_message.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/mrock_install.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/mrock_build_options.cmake)
+
+#
+# Custom user config
+#
+
+set(MROCK_USER_CONFIG
+    "${CMAKE_SOURCE_DIR}/cmake/mrock-user.cmake"
+    CACHE FILEPATH
+    "Path to user-specific mrock CMake configuration"
+)
+
+if(EXISTS "${MROCK_USER_CONFIG}")
+    mrock_message("Loading user configuration: ${MROCK_USER_CONFIG}")
+    include("${MROCK_USER_CONFIG}")
+else()
+    mrock_message("No user configuration at ${MROCK_USER_CONFIG}")
+endif()
+
+#
 # Core interface target
 #
-set(MROCK_INSTALL_INCLUDEDIR
-    ${CMAKE_INSTALL_INCLUDEDIR}
-)
 
 add_library(mrock INTERFACE)
 add_library(mrock::mrock ALIAS mrock)
 
+target_compile_features(mrock INTERFACE cxx_std_20)
+
+mrock_message("EXTRA INCLUDES: ${MROCK_EXTRA_INCLUDE_DIRS}")
+
 target_include_directories(mrock INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
-    $<INSTALL_INTERFACE:${MROCK_INSTALL_INCLUDEDIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     ${MROCK_EXTRA_INCLUDE_DIRS}
 )
 
@@ -58,15 +88,11 @@ target_include_directories(mrock INTERFACE
 # Install core package
 #
 
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/mrock_install.cmake)
-
 mrock_install(mrock)
 
 #
 # Tests
 #
-
-include(${CMAKE_SOURCE_DIR}/cmake/DefaultCompilerFlags.cmake)
 
 if(BUILD_TESTING)
     set(UTIL_TESTS ON)

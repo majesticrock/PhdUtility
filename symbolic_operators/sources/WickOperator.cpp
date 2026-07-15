@@ -48,6 +48,7 @@ std::vector<Operator> WickOperator::to_operator_expression() const {
     switch (this->type) {
         case OperatorType::Eta:
             result[0].momentum.add_Q = true;
+            [[fallthrough]];
         case OperatorType::SC:
             result[0].momentum.flip_momentum();
             result[0].indizes.insert(result[0].indizes.begin(), Index::SpinDown);
@@ -62,6 +63,7 @@ std::vector<Operator> WickOperator::to_operator_expression() const {
 
         case OperatorType::CDW:
             result[0].momentum.add_Q = true;
+            [[fallthrough]];
         case OperatorType::Number:
             if (this->is_daggered) {
                 std::swap(result[0], result[1]);

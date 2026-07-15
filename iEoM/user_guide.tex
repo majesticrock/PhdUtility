@@ -406,7 +406,7 @@ struct BCSTester : public XPResolvent<double /* ... */> {
     void create_starting_states() override { /* ... */ }
     
     BCSTester( /* ... */ ) 
-        : XPResolvent<double /* ... */>(1e-7, // target precision
+        : XPResolvent<double /* ... */>(5e-7, // target precision
              2*N_k, // 2N_k amplitude operators
              N_k, // N_k phase operators
              false, // no need to pivot
@@ -415,7 +415,7 @@ struct BCSTester : public XPResolvent<double /* ... */> {
         { /* ... */ }
 };
 \end{lstlisting}
-The \code{1e-7} means that the target precision of the algorithm is $10^{-7}$.
+The \code{5e-7} means that the target precision of the algorithm is $5 \times 10^{-7}$.
 Note that the algorithm involves square roots.
 Thus, a precision higher than the square root of machine precision is meaningless.
 

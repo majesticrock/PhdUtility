@@ -67,7 +67,7 @@ public:
      * @param version The version.
      */
     template <class Archive>
-    void serialize(Archive& ar, const unsigned int version) {
+    void serialize(Archive& ar, [[maybe_unused]] const unsigned int version) {
         ar & coefficients;
         ar & sums;
         ar & operators;
