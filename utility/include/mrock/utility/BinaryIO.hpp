@@ -2,6 +2,7 @@
 #define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_BINARYIO_HPP
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <vector>
 
 namespace mrock::utility::BinaryIO {

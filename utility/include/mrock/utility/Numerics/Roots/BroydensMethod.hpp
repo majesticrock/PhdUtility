@@ -1,15 +1,16 @@
-#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_ROOTS_BROYDENSMETHODEIGEN_HPP
-#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_ROOTS_BROYDENSMETHODEIGEN_HPP
+#ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_ROOTS_BROYDENSMETHOD_HPP
+#define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_ROOTS_BROYDENSMETHOD_HPP
 
 #include <Eigen/Dense>
 
 #include <complex>
 #include <cstring>
+#include <limits>
 #include <type_traits>
 
 namespace mrock::utility::Numerics::Roots {
 template <typename RealType, int t_vector_size>
-class BroydensMethodEigen {
+class BroydensMethod {
     static_assert(std::is_floating_point<RealType>::value, "You're data type must be a floating point number");
 
     using MatrixType = Eigen::Matrix<RealType, t_vector_size, t_vector_size>;
@@ -26,8 +27,8 @@ class BroydensMethodEigen {
 public:
     // the function must have the following signature void func(const VectorType& input, VectorType& output)
     template <class FunctionType>
-    RealType compute(const FunctionType& func, VectorType& x0, const unsigned int MAX_ITER = 200) {
-        const std::size_t DIM = x0.rows();
+    RealType compute(const FunctionType& func, VectorType& x0, const int MAX_ITER = 200) {
+        const Eigen::Index DIM = x0.rows();
         // You may play around with EPS_X and EPS_F to your desire
         // EPS_X is the minimum distance between x_i and x_i+1
         // EPS_F is the minimum f(x)
@@ -47,7 +48,11 @@ public:
         jacobian.setIdentity(DIM, DIM);
         func(x0, F_new);
 
-        while (diff_x > EPS_X && diff_F > EPS_F && iter_num++ <= MAX_ITER && F_new.norm() > EPS_F) {
+        while ((diff_x > EPS_X) 
+            && (diff_F > EPS_F) 
+            && (iter_num++ <= MAX_ITER) 
+            && (F_new.norm() > EPS_F)) 
+        {
             delta_x.noalias() = -jacobian * F_new;
             x0 += delta_x;
             diff_x = delta_x.norm();
@@ -77,12 +82,12 @@ public:
 };
 
 template <typename RealType, int t_vector_size>
-class BroydensMethodEigen<std::complex<RealType>, t_vector_size> {
+class BroydensMethod<std::complex<RealType>, t_vector_size> {
     static constexpr Eigen::Index double_size = t_vector_size == Eigen::Dynamic ? Eigen::Dynamic : 2 * t_vector_size;
     using VectorType = Eigen::Vector<std::complex<RealType>, t_vector_size>;
     using RealVector = Eigen::Vector<RealType, double_size>;
 
-    using RealSolver = BroydensMethodEigen<RealType, t_vector_size>;
+    using RealSolver = BroydensMethod<RealType, t_vector_size>;
 
     RealSolver _solver;
 
@@ -113,4 +118,4 @@ public:
     void free_memory() { _solver.free_memory(); }
 };
 }  // namespace mrock::utility::Numerics::Roots
-#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_ROOTS_BROYDENSMETHODEIGEN_HPP
+#endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_ROOTS_BROYDENSMETHOD_HPP

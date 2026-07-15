@@ -5,7 +5,7 @@
  * @brief Provides the BroydenSolver template class for self-consistency computations using Broyden's method.
  */
 
-#include "../Numerics/Roots/BroydensMethodEigen.hpp"
+#include "../Numerics/Roots/BroydensMethod.hpp"
 #include "IterativeSolver.hpp"
 
 namespace mrock::utility::Selfconsistency {
@@ -29,7 +29,7 @@ private:
     using ParameterVector = typename _parent::ParameterVector;
     using RealType = typename _parent::RealType;
 
-    mrock::utility::Numerics::Roots::BroydensMethodEigen<DataType, -1> broyden_solver;
+    mrock::utility::Numerics::Roots::BroydensMethod<DataType, -1> broyden_solver;
 
 public:
     /**

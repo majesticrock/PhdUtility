@@ -53,7 +53,7 @@ For the header files, this works as utility: Add `~/usr/local` to your include p
 Afterwards, however, you need to link against the precompiled library! How to do so depends on your compiler.
 It is easy to achieve this, if you are using cmake:
 - Add `~/usr/local` to your cmake path.
-- Use `find_package(mrock REQUIRED)` or `find_dependency(mrock REQUIRED)`
+- Use `find_package(mrock REQUIRED)`
 - Use `target_include_directories(YourProject PRIVATE ${mrock_INCLUDE_DIRS})`
 - Use `target_link_libraries(YourProject PRIVATE ${mrock_LIBRARIES})`
 - You are done!

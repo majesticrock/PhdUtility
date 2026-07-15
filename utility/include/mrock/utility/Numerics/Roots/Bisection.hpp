@@ -1,10 +1,13 @@
 #ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_ROOTS_BISECTION_HPP
 #define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_NUMERICS_ROOTS_BISECTION_HPP
+
 #include <cmath>
 #include <iostream>
 #include <limits>
 #include <string>
 #include <utility>
+#include <stdexcept>
+#include <typeinfo>
 
 namespace mrock::utility::Numerics::Roots {
 class NoRootException : public std::invalid_argument {

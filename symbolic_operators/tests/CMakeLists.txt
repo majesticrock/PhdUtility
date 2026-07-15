@@ -1,5 +1,5 @@
 # symbolic_operators/tests/CMakeLists.txt
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.30)
 project(symbolic_operatorsTests)
 
 add_executable(continuum_test continuum.cpp)

@@ -12,14 +12,8 @@ add_library(mrock_iEoM_extra_options INTERFACE)
 # OpenMP
 #
 
-find_package(OpenMP CONFIG QUIET HINTS $ENV{MKLROOT})
+find_package(OpenMP QUIET)
 if (OpenMP_FOUND)
-    set(USE_OpenMP ON CACHE BOOL "Use OpenMP" FORCE)
-else()
-    set(USE_OpenMP OFF CACHE BOOL "Use OpenMP" FORCE)
-endif()
-
-if (USE_OpenMP)
     mrock_message("Configuring target mrock_iEoM to use OpenMP")
     target_link_libraries(mrock_iEoM_extra_options INTERFACE OpenMP::OpenMP_CXX)
 else()

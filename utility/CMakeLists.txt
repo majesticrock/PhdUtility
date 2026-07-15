@@ -1,12 +1,10 @@
 # utility/CMakeLists.txt
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.30)
 
 project(mrock_utility VERSION ${MROCK_VERSION} LANGUAGES CXX)
 
-include(CMakeFindDependencyMacro)
-
-find_dependency(ZLIB REQUIRED)
-find_dependency(Boost REQUIRED COMPONENTS iostreams)
+find_package(ZLIB REQUIRED)
+find_package(Boost REQUIRED COMPONENTS iostreams)
 
 add_library(mrock_utility INTERFACE)
 add_library(

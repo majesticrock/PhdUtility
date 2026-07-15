@@ -1,5 +1,5 @@
 # iEoM/CMakeLists.txt
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.30)
 
 project(
     mrock_iEoM
