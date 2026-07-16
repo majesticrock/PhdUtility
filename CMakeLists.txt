@@ -89,6 +89,12 @@ target_include_directories(mrock INTERFACE
 #
 
 mrock_install(mrock)
+install(
+    FILES 
+        "${CMAKE_CURRENT_LIST_DIR}/cmake/mrock-information.cmake"
+        "${CMAKE_CURRENT_LIST_DIR}/cmake/info.h.in"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/mrock"
+)
 
 #
 # Tests
@@ -121,6 +127,10 @@ endif()
 #
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/mrock-information.cmake)
+mrock_generate_information_header(
+    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/generated/mrock/info.h"
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+)
 
 install(
     FILES ${MROCK_INFO_HEADER}

@@ -1,41 +1,110 @@
-# mrock-information.cmake
-function(run_command RESULT_VAR)
+# cmake/mrock-information.cmake
+include_guard(GLOBAL)
+
+function(_mrock_run_command RESULT_VAR WORKING_DIRECTORY)
     execute_process(
         COMMAND ${ARGN}
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        OUTPUT_VARIABLE ${RESULT_VAR}
-        ERROR_VARIABLE ERROR_VAR
+        WORKING_DIRECTORY "${WORKING_DIRECTORY}"
+        OUTPUT_VARIABLE _mrock_output
+        ERROR_VARIABLE _mrock_error
         OUTPUT_STRIP_TRAILING_WHITESPACE
-        RESULT_VARIABLE RETURN_CODE
+        ERROR_STRIP_TRAILING_WHITESPACE
+        RESULT_VARIABLE _mrock_return_code
     )
-    if(NOT RETURN_CODE EQUAL 0)
+
+    if(NOT _mrock_return_code EQUAL 0)
         message(WARNING "Error running command: ${ARGN}")
-        message(WARNING "Error: ${ERROR_VAR}")
-        message(WARNING "Command failed with return code: ${RETURN_CODE}")
+        message(WARNING "Error: ${_mrock_error}")
+        message(WARNING "Command failed with return code: ${_mrock_return_code}")
     endif()
-    set(${RESULT_VAR} "${${RESULT_VAR}}" PARENT_SCOPE)
+
+    set(${RESULT_VAR} "${_mrock_output}" PARENT_SCOPE)
 endfunction()
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../build_header)
-set(MROCK_INFO_HEADER ${CMAKE_CURRENT_BINARY_DIR}/../build_header/info.h)
 
-run_command(MROCK_GIT_COMMIT_VERSION git describe --always --dirty)
-run_command(MROCK_GIT_COMMIT_NAME git log -1 --format=%s)
-run_command(MROCK_GIT_COMMIT_DATE git log -1 --format=%cd)
-run_command(MROCK_MAKE_DATE "date")
-run_command(MROCK_HOSTNAME "hostname")
+function(mrock_generate_information_header)
+    set(options)
+    set(one_value_args
+        OUTPUT
+        TEMPLATE
+        WORKING_DIRECTORY
+    )
+    set(multi_value_args)
 
-run_command(_MROCK_COMPILER_VERSION ${CMAKE_CXX_COMPILER} --version | sed 1q)
-string(REPLACE "\n" ";" _MROCK_COMPILER_VERSION_LINES "${_MROCK_COMPILER_VERSION}")
-list(GET _MROCK_COMPILER_VERSION_LINES 0 MROCK_COMPILER_VERSION)
-unset(_MROCK_COMPILER_VERSION)
-unset(_MROCK_COMPILER_VERSION_LINES)
+    cmake_parse_arguments(
+        MROCK_INFO
+        "${options}"
+        "${one_value_args}"
+        "${multi_value_args}"
+        ${ARGN}
+    )
 
-configure_file(
-    ${CMAKE_CURRENT_LIST_DIR}/info.h.in
-    ${MROCK_INFO_HEADER}
-    @ONLY
-)
+    if(NOT MROCK_INFO_WORKING_DIRECTORY)
+        set(MROCK_INFO_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+    endif()
 
-include(${CMAKE_CURRENT_LIST_DIR}/mrock_message.cmake)
-mrock_message("Generated metadata header file.")
+    if(NOT MROCK_INFO_OUTPUT)
+        set(MROCK_INFO_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/generated/mrock/info.h")
+    endif()
+
+    if(NOT MROCK_INFO_TEMPLATE)
+        set(MROCK_INFO_TEMPLATE "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/info.h.in")
+    endif()
+
+    if(NOT EXISTS "${MROCK_INFO_TEMPLATE}")
+        message(FATAL_ERROR
+            "mrock information header template not found: ${MROCK_INFO_TEMPLATE}"
+        )
+    endif()
+
+    get_filename_component(_mrock_info_output_dir "${MROCK_INFO_OUTPUT}" DIRECTORY)
+    file(MAKE_DIRECTORY "${_mrock_info_output_dir}")
+
+    _mrock_run_command(
+        MROCK_GIT_COMMIT_VERSION
+        "${MROCK_INFO_WORKING_DIRECTORY}"
+        git describe --always --dirty
+    )
+
+    _mrock_run_command(
+        MROCK_GIT_COMMIT_NAME
+        "${MROCK_INFO_WORKING_DIRECTORY}"
+        git log -1 --format=%s
+    )
+
+    _mrock_run_command(
+        MROCK_GIT_COMMIT_DATE
+        "${MROCK_INFO_WORKING_DIRECTORY}"
+        git log -1 --format=%cd
+    )
+
+    string(TIMESTAMP MROCK_MAKE_DATE "%Y-%m-%d %H:%M:%S %z")
+
+    cmake_host_system_information(
+        RESULT MROCK_HOSTNAME
+        QUERY HOSTNAME
+    )
+
+    if(CMAKE_CXX_COMPILER)
+        _mrock_run_command(
+            _MROCK_COMPILER_VERSION
+            "${MROCK_INFO_WORKING_DIRECTORY}"
+            "${CMAKE_CXX_COMPILER}" --version
+        )
+
+        string(REPLACE "\n" ";" _MROCK_COMPILER_VERSION_LINES "${_MROCK_COMPILER_VERSION}")
+        list(GET _MROCK_COMPILER_VERSION_LINES 0 MROCK_COMPILER_VERSION)
+    else()
+        set(MROCK_COMPILER_VERSION "unknown")
+    endif()
+
+    configure_file(
+        "${MROCK_INFO_TEMPLATE}"
+        "${MROCK_INFO_OUTPUT}"
+        @ONLY
+    )
+
+    set(MROCK_INFO_HEADER "${MROCK_INFO_OUTPUT}" PARENT_SCOPE)
+
+    message(STATUS "Generated mrock metadata header: ${MROCK_INFO_OUTPUT}")
+endfunction()

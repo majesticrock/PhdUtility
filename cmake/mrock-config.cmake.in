@@ -2,9 +2,8 @@
 
 include(CMakeFindDependencyMacro)
 
-include(
-    "${CMAKE_CURRENT_LIST_DIR}/mrock-targets.cmake"
-)
+include("${CMAKE_CURRENT_LIST_DIR}/mrock-targets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/mrock-information.cmake")
 
 set(mrock_AVAILABLE_COMPONENTS
     utility
