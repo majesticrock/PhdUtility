@@ -28,6 +28,8 @@ function(mrock_generate_information_header)
         OUTPUT
         TEMPLATE
         WORKING_DIRECTORY
+        OUT_HEADER
+        OUT_INCLUDE_DIR
     )
     set(multi_value_args)
 
@@ -44,7 +46,7 @@ function(mrock_generate_information_header)
     endif()
 
     if(NOT MROCK_INFO_OUTPUT)
-        set(MROCK_INFO_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/generated/mrock/info.h")
+        set(MROCK_INFO_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/generated/include/mrock/info.h")
     endif()
 
     if(NOT MROCK_INFO_TEMPLATE)
@@ -59,6 +61,9 @@ function(mrock_generate_information_header)
 
     get_filename_component(_mrock_info_output_dir "${MROCK_INFO_OUTPUT}" DIRECTORY)
     file(MAKE_DIRECTORY "${_mrock_info_output_dir}")
+
+    get_filename_component(_mrock_generated_include_dir "${MROCK_INFO_OUTPUT}" DIRECTORY)
+    get_filename_component(_mrock_generated_include_dir "${_mrock_generated_include_dir}" DIRECTORY)
 
     _mrock_run_command(
         MROCK_GIT_COMMIT_VERSION
@@ -105,6 +110,15 @@ function(mrock_generate_information_header)
     )
 
     set(MROCK_INFO_HEADER "${MROCK_INFO_OUTPUT}" PARENT_SCOPE)
+    set(MROCK_INFO_INCLUDE_DIR "${_mrock_generated_include_dir}" PARENT_SCOPE)
+
+    if(MROCK_INFO_OUT_HEADER)
+        set(${MROCK_INFO_OUT_HEADER} "${MROCK_INFO_OUTPUT}" PARENT_SCOPE)
+    endif()
+
+    if(MROCK_INFO_OUT_INCLUDE_DIR)
+        set(${MROCK_INFO_OUT_INCLUDE_DIR} "${_mrock_generated_include_dir}" PARENT_SCOPE)
+    endif()
 
     message(STATUS "Generated mrock metadata header: ${MROCK_INFO_OUTPUT}")
 endfunction()
