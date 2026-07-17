@@ -1,16 +1,15 @@
+#include <mrock/utility/BinaryIO.hpp>
+
 #include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include <mrock/utility/BinaryIO.hpp>
-
-#define FAIL_IF_NOT(cond)                                      \
-    if (!(cond)) {                                             \
-        std::cerr << "FAILED: " #cond                          \
-                  << " at line " << __LINE__ << std::endl;     \
-        return 1;                                              \
+#define FAIL_IF_NOT(cond)                                                      \
+    if (!(cond)) {                                                             \
+        std::cerr << "FAILED: " #cond << " at line " << __LINE__ << std::endl; \
+        return 1;                                                              \
     }
 
 int main() {

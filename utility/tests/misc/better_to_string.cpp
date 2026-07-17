@@ -1,14 +1,13 @@
+#include <mrock/utility/better_to_string.hpp>
+
 #include <iostream>
 #include <string>
 #include <utility>
 
-#include <mrock/utility/better_to_string.hpp>
-
-#define FAIL_IF_NOT(cond)                                      \
-    if (!(cond)) {                                             \
-        std::cerr << "FAILED: " #cond                          \
-                  << " at line " << __LINE__ << std::endl;     \
-        return 1;                                              \
+#define FAIL_IF_NOT(cond)                                                      \
+    if (!(cond)) {                                                             \
+        std::cerr << "FAILED: " #cond << " at line " << __LINE__ << std::endl; \
+        return 1;                                                              \
     }
 
 int main() {

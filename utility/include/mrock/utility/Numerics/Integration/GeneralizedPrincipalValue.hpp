@@ -3,8 +3,8 @@
 
 #include "CauchyPrincipalValue.hpp"
 
-#include <cassert>
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 #include <limits>
 

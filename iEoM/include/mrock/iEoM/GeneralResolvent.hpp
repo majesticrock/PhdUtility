@@ -9,8 +9,8 @@
 #define MROCK_IEOM_DO_NOT_PARALLELIZE
 #else
 #include <omp.h>
-#endif // ifndef _OPENMP
-#endif // ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
+#endif  // ifndef _OPENMP
+#endif  // ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 
 #include "Resolvent.hpp"
 #include "detail/PivotToBlockStructure.hpp"

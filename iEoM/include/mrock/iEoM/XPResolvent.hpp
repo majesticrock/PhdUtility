@@ -5,14 +5,15 @@
 #include <chrono>
 #include <list>
 #include <numbers>
+#include <type_traits>
 
 #ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 #ifndef _OPENMP
 #define MROCK_IEOM_DO_NOT_PARALLELIZE
 #else
 #include <omp.h>
-#endif // ifndef _OPENMP
-#endif // ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
+#endif  // ifndef _OPENMP
+#endif  // ifndef MROCK_IEOM_DO_NOT_PARALLELIZE
 
 #include "Resolvent.hpp"
 #include "XPStartingState.hpp"
@@ -436,6 +437,9 @@ private:
     FullDiagData set_full_diag_data(const Eigen::SelfAdjointEigenSolver<Matrix>& solver,
                                     const TransformQR& qr,
                                     const std::size_t& n_non_zero) const {
+        static_assert(std::is_same_v<iterator_type, detail::ConstAmplitudeIterator<RealType>> ||
+                      (std::is_same_v<iterator_type, detail::ConstPhaseIterator<RealType>>));
+
         if (_internal.contains_negative(solver.eigenvalues())) {
             if (_internal._negative_matrix_is_error) {
                 throw MatrixIsNegativeException<RealType>(solver.eigenvalues().minCoeff(), "in set_full_diag data");
@@ -447,7 +451,12 @@ private:
         FullDiagData data;
 
         data.eigenvalues.reserve(n_non_zero);
-        data.weights.resize(total_size(starting_states));
+        if constexpr (std::is_same_v<iterator_type, detail::ConstAmplitudeIterator<RealType>>) {
+            data.weights.resize(amplitude_size(starting_states));
+        } else {
+            data.weights.resize(phase_size(starting_states));
+        }
+
         for (auto& weight_vec : data.weights) {
             weight_vec.reserve(n_non_zero);
         }
@@ -465,23 +474,22 @@ private:
                         std::vector<RealType>(buffer.data(), buffer.data() + buffer.size());
                 }
 
-                iterator_type it = iterator_type::begin(starting_states);
-                for (std::size_t state = 0U; state < starting_states.size(); ++state) {
+                for (iterator_type it = iterator_type::begin(starting_states);
+                     it != iterator_type::end(starting_states); ++it) {
+                    const auto state_index = it.get_state_number();
                     // state is already transformed; this line computes
                     // sum_j <u_j| transform_matrix | original_amplitude_state>
                     //      = sum_j <u_j | N^{-1/2} L | original_amplitude_state>
                     // The analog also applies to phase states:
                     //      sum_j <u_j | N^{-1/2} L^+ | original_phase_state>
-                    data.weights[state].emplace_back(it.state().dot(solver.eigenvectors().col(i)));
-                    data.weights[state].back() *= data.weights[state].back();
-                    ++it;
+                    data.weights[state_index].emplace_back(it.state().dot(solver.eigenvectors().col(i)));
+                    data.weights[state_index].back() *= data.weights[state_index].back();
                 }
             } else {
-                iterator_type it = iterator_type::begin(starting_states);
-                for (std::size_t state = 0; state < starting_states.size(); ++state) {
+                for (iterator_type it = iterator_type::begin(starting_states);
+                     it != iterator_type::end(starting_states); ++it) {
                     const auto buffer = it.state().dot(solver.eigenvectors().col(i));
-                    data.weights[state].back() += buffer * buffer;
-                    ++it;
+                    data.weights[it.get_state_number()].back() += buffer * buffer;
                 }
             }
         }

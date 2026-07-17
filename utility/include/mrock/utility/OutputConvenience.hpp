@@ -23,6 +23,7 @@ void save_data(const vector_type& data,
                const std::string& filename,
                const std::vector<std::string>& comments = std::vector<std::string>()) {
     // create file
+    std::cout << "Saving data to " << filename << std::endl;
     std::ofstream ofile(filename, std::ios_base::out | std::ios_base::binary);
     if (ofile.is_open()) {
         boost::iostreams::filtering_ostream out;
@@ -47,6 +48,7 @@ void save_data(const std::vector<vector_type>& data,
                const std::string& filename,
                const std::vector<std::string>& comments = std::vector<std::string>()) {
     // create file
+    std::cout << "Saving data to " << filename << std::endl;
     std::ofstream ofile(filename, std::ios_base::out | std::ios_base::binary);
     if (ofile.is_open()) {
         boost::iostreams::filtering_ostream out;
@@ -87,6 +89,7 @@ void save_data(const vector_type& data,
         return;
     }
     // create file
+    std::cout << "Saving data to " << filename << std::endl;
     std::ofstream ofile(filename, std::ios_base::out | std::ios_base::binary);
     if (ofile.is_open()) {
         boost::iostreams::filtering_ostream out;
@@ -110,7 +113,8 @@ void save_data(const vector_type& data,
     }
 };
 
-inline void saveString(const std::string& text, const std::string& filename) {
+inline void save_string(const std::string& text, const std::string& filename) {
+    std::cout << "Saving data to " << filename << std::endl;
     std::ofstream ofile(filename, std::ios_base::out | std::ios_base::binary);
     if (ofile.is_open()) {
         boost::iostreams::filtering_ostream out;
@@ -128,6 +132,7 @@ template <typename vector_type, typename data_type = typename vector_type::value
 void save_data(const vector_type& data,
                const std::string& filename,
                const std::vector<std::string>& comments = std::vector<std::string>()) {
+    std::cout << "Saving data to " << filename << std::endl;
     std::ofstream out(filename);
     if (out.is_open()) {
         OutputWriter<std::ofstream, vector_type, data_type> ow;
@@ -142,6 +147,7 @@ template <typename vector_type, typename data_type = typename vector_type::value
 void save_data(const std::vector<vector_type>& data,
                const std::string& filename,
                const std::vector<std::string>& comments = std::vector<std::string>()) {
+    std::cout << "Saving data to " << filename << std::endl;
     std::ofstream out(filename);
     if (out.is_open()) {
         OutputWriter<std::ofstream, vector_type, data_type> ow;
@@ -163,6 +169,7 @@ void save_data(const vector_type& data,
         std::cerr << "The numbe rof data elements is not divisible by linebreak!" << std::endl;
         return;
     }
+    std::cout << "Saving data to " << filename << std::endl;
     std::ofstream out(filename);
     if (out.is_open()) {
         OutputWriter<std::ofstream, vector_type, data_type> ow;
@@ -185,7 +192,8 @@ void save_data(const vector_type& first,
     save_data(std::vector<vector_type>{first, second}, filename, comments);
 };
 
-inline void saveString(const std::string& text, const std::string& filename) {
+inline void save_string(const std::string& text, const std::string& filename) {
+    std::cout << "Saving data to " << filename << std::endl;
     std::ofstream out(filename);
     if (out.is_open()) {
         out << text;

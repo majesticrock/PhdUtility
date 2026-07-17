@@ -5,8 +5,8 @@
 
 #include <Eigen/Dense>
 
-#include <vector>
 #include <cstddef>
+#include <vector>
 
 namespace mrock::iEoM::detail {
 /**

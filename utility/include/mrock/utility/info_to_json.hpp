@@ -6,9 +6,9 @@
 #include <string>
 
 #if defined(_MSVC_LANG)
-    #define MROCK_INFO_CXX_STANDARD_VALUE _MSVC_LANG
+#define MROCK_INFO_CXX_STANDARD_VALUE _MSVC_LANG
 #else
-    #define MROCK_INFO_CXX_STANDARD_VALUE __cplusplus
+#define MROCK_INFO_CXX_STANDARD_VALUE __cplusplus
 #endif
 
 namespace mrock::utility {

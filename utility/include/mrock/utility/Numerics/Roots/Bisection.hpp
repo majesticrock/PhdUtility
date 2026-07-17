@@ -4,10 +4,10 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
-#include <string>
-#include <utility>
 #include <stdexcept>
+#include <string>
 #include <typeinfo>
+#include <utility>
 
 namespace mrock::utility::Numerics::Roots {
 class NoRootException : public std::invalid_argument {

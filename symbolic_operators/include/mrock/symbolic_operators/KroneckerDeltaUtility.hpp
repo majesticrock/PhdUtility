@@ -10,8 +10,8 @@
 #include "Momentum.hpp"
 #include "detail/defines_arithmetic_operators.hpp"
 
-#include <cstddef>
 #include <concepts>
+#include <cstddef>
 
 namespace mrock::symbolic_operators {
 

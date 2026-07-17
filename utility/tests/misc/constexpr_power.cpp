@@ -1,14 +1,13 @@
+#include <mrock/utility/constexpr_power.hpp>
+
 #include <cmath>
 #include <iostream>
 #include <type_traits>
 
-#include <mrock/utility/constexpr_power.hpp>
-
-#define FAIL_IF_NOT(cond)                                      \
-    if (!(cond)) {                                             \
-        std::cerr << "FAILED: " #cond                          \
-                  << " at line " << __LINE__ << std::endl;     \
-        return 1;                                              \
+#define FAIL_IF_NOT(cond)                                                      \
+    if (!(cond)) {                                                             \
+        std::cerr << "FAILED: " #cond << " at line " << __LINE__ << std::endl; \
+        return 1;                                                              \
     }
 
 int main() {

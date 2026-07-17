@@ -1,15 +1,14 @@
+#include <mrock/utility/Numerics/Interpolation.hpp>
+
 #include <array>
 #include <cmath>
 #include <iostream>
 #include <vector>
 
-#include <mrock/utility/Numerics/Interpolation.hpp>
-
-#define FAIL_IF_NOT(cond)                                      \
-    if (!(cond)) {                                             \
-        std::cerr << "FAILED: " #cond                          \
-                  << " at line " << __LINE__ << std::endl;     \
-        return 1;                                              \
+#define FAIL_IF_NOT(cond)                                                      \
+    if (!(cond)) {                                                             \
+        std::cerr << "FAILED: " #cond << " at line " << __LINE__ << std::endl; \
+        return 1;                                                              \
     }
 
 int main() {
@@ -107,13 +106,7 @@ int main() {
     {
         std::cout << "Test 6: constexpr linear interpolation\n";
 
-        constexpr double y = linearly_interpolate(
-            0.25,
-            0.0,
-            1.0,
-            0.0,
-            8.0
-        );
+        constexpr double y = linearly_interpolate(0.25, 0.0, 1.0, 0.0, 8.0);
 
         static_assert(y == 2.0, "constexpr linear interpolation failed");
 

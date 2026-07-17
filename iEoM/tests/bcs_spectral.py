@@ -110,7 +110,7 @@ ax_ed[0].set_ylabel(r"$A_\mathrm{Phase} (\omega)$")
 ax_ed[1].set_xlabel(r"$k / \pi$")
 ax_ed[1].set_ylabel(r"$\psi_k / \max |\psi_k|$")
 
-omegas = omegas = np.linspace(0., 4.5, 5000, dtype=complex) + 3e-2j
+omegas = np.linspace(0., 4.5, 5000, dtype=complex) + 3e-2j
 ks = np.linspace(-1, 1, len(AMPLITUDES))
 spectral_phase = np.array([ np.sum(WEIGHTS / (z**2 - EVS**2)) for z in omegas])
 

@@ -1,10 +1,10 @@
+#include <mrock/utility/Numerics/Roots/Bisection.hpp>
+
 #include <cassert>
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
 #include <typeinfo>
-
-#include <mrock/utility/Numerics/Roots/Bisection.hpp>
 
 int main() {
     using mrock::utility::Numerics::Roots::bisection;
@@ -12,9 +12,7 @@ int main() {
 
     {
         // Test 1: Root of x^2 - 2 is sqrt(2)
-        auto f = [](double x) {
-            return x * x - 2.0;
-        };
+        auto f = [](double x) { return x * x - 2.0; };
 
         double root = bisection(f, 0.0, 2.0, 1e-12, 100);
 
@@ -26,9 +24,7 @@ int main() {
 
     {
         // Test 2: Root of sin(x) in interval [3, 4] is pi
-        auto f = [](double x) {
-            return std::sin(x);
-        };
+        auto f = [](double x) { return std::sin(x); };
 
         double root = bisection(f, 3.0, 4.0, 1e-12, 100);
 
@@ -40,9 +36,7 @@ int main() {
 
     {
         // Test 3: Root at interval boundary
-        auto f = [](double x) {
-            return x - 5.0;
-        };
+        auto f = [](double x) { return x - 5.0; };
 
         double root = bisection(f, 5.0, 10.0, 1e-12, 100);
 
@@ -53,9 +47,7 @@ int main() {
 
     {
         // Test 4: No root in interval should throw
-        auto f = [](double x) {
-            return x * x + 1.0;
-        };
+        auto f = [](double x) { return x * x + 1.0; };
 
         try {
             double root = bisection(f, -1.0, 1.0, 1e-12, 100);

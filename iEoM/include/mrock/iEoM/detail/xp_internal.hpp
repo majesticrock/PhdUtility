@@ -102,6 +102,27 @@ public:
             return m_vec[m_pos].amplitude_state;
     }
 
+    /**
+     * @brief Returns the number of the current state, while skipping invalid states
+     * Example: Let there be 3 types of starting states, but only the first and the last have
+     * a phase state. Then, we have a phase iterator object that points to the last state,
+     * and ask it \c get_state_number()
+     * It will count: 0 ( \c begin() ), [1 skip because there is no phase state], 1 (pointing to the last element)
+     * and return 1.
+     * Note that m_pos will contain 2 and is thus different than the result of this function.
+     *
+     * @return The number of the current state, while skipping invalid states
+     */
+    std::size_t get_state_number() const {
+        std::size_t n{};
+        StateIteratorImpl init = StateIteratorImpl::begin(m_vec);
+        while (init != *this) {
+            ++init;
+            ++n;
+        }
+        return n;
+    }
+
 private:
     container_type& m_vec;
     std::size_t m_pos;

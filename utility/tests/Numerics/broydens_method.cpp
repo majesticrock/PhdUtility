@@ -1,17 +1,15 @@
+#include <Eigen/Dense>
+#include <mrock/utility/Numerics/Roots/BroydensMethod.hpp>
+
 #include <cmath>
 #include <complex>
 #include <iostream>
 #include <limits>
 
-#include <Eigen/Dense>
-
-#include <mrock/utility/Numerics/Roots/BroydensMethod.hpp>
-
-#define FAIL_IF_NOT(cond)                                      \
-    if (!(cond)) {                                             \
-        std::cerr << "FAILED: " #cond                          \
-                  << " at line " << __LINE__ << std::endl;     \
-        return 1;                                              \
+#define FAIL_IF_NOT(cond)                                                      \
+    if (!(cond)) {                                                             \
+        std::cerr << "FAILED: " #cond << " at line " << __LINE__ << std::endl; \
+        return 1;                                                              \
     }
 
 int main() {
@@ -25,8 +23,7 @@ int main() {
         Eigen::Matrix<double, 1, 1> x;
         x(0) = 1.0;
 
-        auto f = [](const Eigen::Matrix<double, 1, 1>& input,
-                    Eigen::Matrix<double, 1, 1>& output) {
+        auto f = [](const Eigen::Matrix<double, 1, 1>& input, Eigen::Matrix<double, 1, 1>& output) {
             output(0) = input(0) * input(0) - 2.0;
         };
 
@@ -51,8 +48,7 @@ int main() {
         Eigen::Vector2d target;
         target << 1.0, -2.0;
 
-        auto f = [&target](const Eigen::Vector2d& input,
-                           Eigen::Vector2d& output) {
+        auto f = [&target](const Eigen::Vector2d& input, Eigen::Vector2d& output) {
             // Root is input == target
             output = input - target;
         };
@@ -80,8 +76,7 @@ int main() {
         Eigen::VectorXcd target(1);
         target(0) = Complex{1.0, -2.0};
 
-        auto f = [&target](const Eigen::VectorXcd& input,
-                           Eigen::VectorXcd& output) {
+        auto f = [&target](const Eigen::VectorXcd& input, Eigen::VectorXcd& output) {
             // Root is input == target
             output = input - target;
         };

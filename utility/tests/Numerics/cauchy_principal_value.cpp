@@ -31,10 +31,10 @@ Real printer(Real ana, Real num, std::string const& algorithm) {
 
 template <int N = 60>
 result_set_A get_numerics(Real a, Real b, Real c) {
-    auto f1 = []([[maybe_unused]] Real x) { return 1.; }; // 1/(x-c)
-    auto f2 = [](Real x) { return 1. / (x * x); };        // 1 / (x^2 * (x - c))
-    auto f3 = [](Real x) { return std::exp(-x); };        // e^(-x) / (x - c)
-    auto f4 = [](Real x) { return std::exp(x); };         // e^(x) / (x - c)
+    auto f1 = []([[maybe_unused]] Real x) { return 1.; };  // 1/(x-c)
+    auto f2 = [](Real x) { return 1. / (x * x); };         // 1 / (x^2 * (x - c))
+    auto f3 = [](Real x) { return std::exp(-x); };         // e^(-x) / (x - c)
+    auto f4 = [](Real x) { return std::exp(x); };          // e^(x) / (x - c)
 
     return {mrock::utility::Numerics::Integration::CauchyPrincipalValue<Real, N>::cauchy_principal_value(f1, a, b, c),
             mrock::utility::Numerics::Integration::CauchyPrincipalValue<Real, N>::cauchy_principal_value(f2, a, b, c),

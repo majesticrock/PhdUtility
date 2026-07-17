@@ -48,11 +48,7 @@ public:
         jacobian.setIdentity(DIM, DIM);
         func(x0, F_new);
 
-        while ((diff_x > EPS_X) 
-            && (diff_F > EPS_F) 
-            && (iter_num++ <= MAX_ITER) 
-            && (F_new.norm() > EPS_F)) 
-        {
+        while ((diff_x > EPS_X) && (diff_F > EPS_F) && (iter_num++ <= MAX_ITER) && (F_new.norm() > EPS_F)) {
             delta_x.noalias() = -jacobian * F_new;
             x0 += delta_x;
             diff_x = delta_x.norm();

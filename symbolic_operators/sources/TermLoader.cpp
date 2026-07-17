@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -15,6 +16,8 @@ void TermLoader::load(std::string const& folder, bool use_XP, int n_terms, int s
     M.resize(n_terms * n_terms);
     N.resize(n_terms * n_terms);
     const int name_offset = (start_at < 0) ? 0 : start_at;
+
+    std::cout << "Loading Wick expression from " << folder << std::endl;
 
     for (int i = 0; i < n_terms; i++) {
         for (int j = 0; j < n_terms; j++) {

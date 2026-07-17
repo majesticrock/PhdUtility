@@ -1,18 +1,17 @@
+#include <mrock/utility/ComplexNumberIterators.hpp>
+
 #include <algorithm>
-#include <complex>
 #include <compare>
+#include <complex>
 #include <cstddef>
 #include <iostream>
 #include <numeric>
 #include <vector>
 
-#include <mrock/utility/ComplexNumberIterators.hpp>
-
-#define FAIL_IF_NOT(cond)                                      \
-    if (!(cond)) {                                             \
-        std::cerr << "FAILED: " #cond                          \
-                  << " at line " << __LINE__ << std::endl;     \
-        return 1;                                              \
+#define FAIL_IF_NOT(cond)                                                      \
+    if (!(cond)) {                                                             \
+        std::cerr << "FAILED: " #cond << " at line " << __LINE__ << std::endl; \
+        return 1;                                                              \
     }
 
 int main() {
@@ -20,12 +19,7 @@ int main() {
 
     using Complex = std::complex<double>;
 
-    std::vector<Complex> data{
-        {1.0, 10.0},
-        {2.0, 20.0},
-        {3.0, 30.0},
-        {4.0, 40.0}
-    };
+    std::vector<Complex> data{{1.0, 10.0}, {2.0, 20.0}, {3.0, 30.0}, {4.0, 40.0}};
 
     {
         std::cout << "Test 1: real-part iterator from vector\n";
