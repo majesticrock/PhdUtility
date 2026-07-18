@@ -85,6 +85,7 @@ CURRENT_MROCK_BUILD_IEOM="ON"
 CURRENT_BUILD_TESTING="ON"
 CURRENT_MROCK_EXTRA_INCLUDE_DIRS=""
 CURRENT_CMAKE_INSTALL_PREFIX=""
+CURRENT_CMAKE_PREFIX_PATH=""
 
 read_user_config_defaults() {
     if [[ ! -f "${USER_CONFIG}" ]]; then
@@ -110,6 +111,7 @@ set(MROCK_BUILD_IEOM ON CACHE BOOL "" FORCE)
 set(BUILD_TESTING ON CACHE BOOL "" FORCE)
 set(MROCK_EXTRA_INCLUDE_DIRS "" CACHE STRING "" FORCE)
 set(CMAKE_INSTALL_PREFIX "" CACHE PATH "" FORCE)
+set(CMAKE_PREFIX_PATH "" CACHE STRING "" FORCE)
 
 include("${user_config_escaped}")
 
@@ -120,6 +122,7 @@ foreach(var IN ITEMS
     BUILD_TESTING
     MROCK_EXTRA_INCLUDE_DIRS
     CMAKE_INSTALL_PREFIX
+    CMAKE_PREFIX_PATH
 )
     if(DEFINED \${var})
         message("MROCK_DUMP:\${var}=[\${\${var}}]")
@@ -158,6 +161,9 @@ while IFS= read -r line; do
             CMAKE_INSTALL_PREFIX)
                 CURRENT_CMAKE_INSTALL_PREFIX="${value}"
                 ;;
+            CMAKE_PREFIX_PATH)
+                CURRENT_CMAKE_PREFIX_PATH="${value}"
+                ;;
         esac
     fi
 done < <(cmake -P "${tmp}" 2>&1)
@@ -178,8 +184,16 @@ generate_user_config_block() {
     local extra_include_dirs_escaped
     extra_include_dirs_escaped="$(cmake_escape_string "${MROCK_EXTRA_INCLUDE_DIRS}")"
 
-    local install_prefix_escaped
-    install_prefix_escaped="$(cmake_escape_string "${INSTALL_PREFIX}")"
+    local install_prefix_line=""
+
+    if [[ -n "${INSTALL_PREFIX}" ]]; then
+        local install_prefix_escaped
+        install_prefix_escaped="$(cmake_escape_string "${INSTALL_PREFIX}")"
+
+        install_prefix_line="set(CMAKE_INSTALL_PREFIX \"${install_prefix_escaped}\" CACHE PATH \"Install prefix\" FORCE)"
+    else
+        install_prefix_line="# CMAKE_INSTALL_PREFIX intentionally not set; using mrock default"
+    fi
 
     cat <<EOF
 ${BEGIN_MARKER}
@@ -193,7 +207,7 @@ set(MROCK_BUILD_IEOM ${BUILD_IEOM} CACHE BOOL "Build the iEoM component" FORCE)
 
 set(BUILD_TESTING ${BUILD_TESTING} CACHE BOOL "Build tests" FORCE)
 
-set(CMAKE_INSTALL_PREFIX "${install_prefix_escaped}" CACHE PATH "Install prefix" FORCE)
+${install_prefix_line}
 
 set(MROCK_EXTRA_INCLUDE_DIRS "${extra_include_dirs_escaped}" CACHE STRING "Additional include directories for mrock, semicolon-separated" FORCE)
 ${END_MARKER}
@@ -224,6 +238,10 @@ write_user_config_if_needed() {
     fi
 
     if [[ "${INSTALL_PREFIX}" != "${CURRENT_CMAKE_INSTALL_PREFIX}" ]]; then
+        changed="ON"
+    fi
+
+    if [[ "${CMAKE_PREFIX_PATH_VALUE}" != "${CURRENT_CMAKE_PREFIX_PATH}" ]]; then
         changed="ON"
     fi
 
@@ -371,6 +389,45 @@ if ask_yes_no "Install after build?" Y; then
 fi
 
 ###############################################################################
+# CMAKE_PREFIX_PATH
+###############################################################################
+
+CMAKE_PREFIX_PATH_VALUE="${CURRENT_CMAKE_PREFIX_PATH}"
+
+echo
+if [[ -n "${CURRENT_CMAKE_PREFIX_PATH}" ]]; then
+    echo "Current CMAKE_PREFIX_PATH:"
+    echo "  ${CURRENT_CMAKE_PREFIX_PATH}"
+else
+    echo "Current CMAKE_PREFIX_PATH: <none>"
+fi
+
+if ask_yes_no "Add entries to CMAKE_PREFIX_PATH?" N; then
+    echo
+    echo "Enter CMake package prefixes one by one."
+    echo "Examples:"
+    echo "  /opt/some-library"
+    echo "  \$HOME/.local"
+    echo "  /usr/local"
+    echo
+    echo "Leave empty to finish."
+
+    while true; do
+        read -rp "CMAKE_PREFIX_PATH entry: " PREFIX_DIR
+
+        if [[ -z "${PREFIX_DIR}" ]]; then
+            break
+        fi
+
+        if [[ -n "${CMAKE_PREFIX_PATH_VALUE}" ]]; then
+            CMAKE_PREFIX_PATH_VALUE="${CMAKE_PREFIX_PATH_VALUE};${PREFIX_DIR}"
+        else
+            CMAKE_PREFIX_PATH_VALUE="${PREFIX_DIR}"
+        fi
+    done
+fi
+
+###############################################################################
 # Extra include directories
 ###############################################################################
 
@@ -428,8 +485,12 @@ CMAKE_ARGS=(
     -DMROCK_BUILD_IEOM="${BUILD_IEOM}"
     -DBUILD_TESTING="${BUILD_TESTING}"
     "-DMROCK_EXTRA_INCLUDE_DIRS=${MROCK_EXTRA_INCLUDE_DIRS}"
-    "-DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}"
+    "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH_VALUE}"
 )
+
+if [[ -n "${INSTALL_PREFIX}" ]]; then
+    CMAKE_ARGS+=("-DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}")
+fi
 
 cmake "${CMAKE_ARGS[@]}"
 

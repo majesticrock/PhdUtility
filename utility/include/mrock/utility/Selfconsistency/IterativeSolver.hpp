@@ -20,9 +20,9 @@ namespace mrock::utility::Selfconsistency {
  * @brief Precision constants for different real types.
  */
 template <class RealType>
-constexpr RealType PRECISION = 1e2 * std::numeric_limits<RealType>::epsilon();
+inline constexpr RealType PRECISION = 1e2 * std::numeric_limits<RealType>::epsilon();
 template <>
-constexpr float PRECISION<float> = 1e1f * std::numeric_limits<float>::epsilon();
+inline constexpr float PRECISION<float> = 1e1f * std::numeric_limits<float>::epsilon();
 
 /**
  * @brief Struct to define debug policies for the iterative solver.
@@ -31,9 +31,9 @@ struct DebugPolicy {
     bool convergenceWarning{true};
     bool printSteps{false};
 };
-constexpr DebugPolicy WarnNoConvergence{true, false};
-constexpr DebugPolicy NoWarning{false, false};
-constexpr DebugPolicy PrintEverything{true, true};
+inline constexpr DebugPolicy WarnNoConvergence{true, false};
+inline constexpr DebugPolicy NoWarning{false, false};
+inline constexpr DebugPolicy PrintEverything{true, true};
 
 /**
  * @brief Struct to hold convergence information.

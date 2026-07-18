@@ -76,7 +76,7 @@ std::complex<double> terminator_impl(const double& x, ContinuedFractionData cons
     const double p{x_squared - data.a_infinity};
     const double radicant{p * p - 4. * data.b_infinity_squared};
     const std::complex<double> root =
-        radicant >= 0.0 ? std::complex<double>{sqrt(radicant), 0.0} : std::complex<double>{0.0, sqrt(abs(radicant))};
+        radicant >= 0.0 ? std::complex<double>{sqrt(radicant), 0.0} : std::complex<double>{0.0, std::sqrt(abs(radicant))};
     if (x_squared > data.getRoot(static_cast<int>(x <= 0))) {
         return (p - root) / (2. * data.b_infinity_squared);
     } else {
@@ -102,7 +102,7 @@ inline std::vector<std::complex<double>> terminator_vector(const std::complex<do
 inline double subgap_real_denominator(ContinuedFractionData const& data, const double x_squared) {
     const double p{x_squared - data.a_infinity};
     const double terminator_value =
-        data.with_terminator ? (p + sqrt(p * p - 4. * data.b_infinity_squared)) / (2. * data.b_infinity_squared)
+        data.with_terminator ? (p + std::sqrt(p * p - 4. * data.b_infinity_squared)) / (2. * data.b_infinity_squared)
                              : double{};
 
     double ret = x_squared - data.A_ptr[data.termination_index] - data.b_infinity_squared * terminator_value;
@@ -115,7 +115,7 @@ inline double subgap_real_denominator(ContinuedFractionData const& data, const d
 inline double single_imaginary_part(ContinuedFractionData const& data, const std::complex<double>& x_squared) {
     const double p{x_squared.real() - data.a_infinity};
     const double terminator_value =
-        data.with_terminator ? (p + sqrt(p * p - 4. * data.b_infinity_squared)) / (2. * data.b_infinity_squared)
+        data.with_terminator ? (p + std::sqrt(p * p - 4. * data.b_infinity_squared)) / (2. * data.b_infinity_squared)
                              : double{};
 
     std::complex<double> ret =

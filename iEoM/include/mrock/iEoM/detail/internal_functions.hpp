@@ -118,9 +118,9 @@ struct iEoM_internal {
                 if constexpr (option == iEoM_operation::INVERSE) {
                     ev = 1. / ev;
                 } else if constexpr (option == iEoM_operation::SQRT) {
-                    ev = sqrt(ev);
+                    ev = std::sqrt(ev);
                 } else if constexpr (option == iEoM_operation::INVERSE_SQRT) {
-                    ev = 1. / sqrt(ev);
+                    ev = 1. / std::sqrt(ev);
                 }
             }
         }

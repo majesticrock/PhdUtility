@@ -6,7 +6,7 @@
  * Run with ./progress_bar.o
  */
 
-#include "<mrock/utility/progress_bar.hpp"
+#include <mrock/utility/progress_bar.hpp>
 
 #include <chrono>
 #include <cstdlib>
@@ -37,9 +37,11 @@ int main() {
     for (int n = 0; n < 16; ++n) {
         for (int i = 0; i < 100; ++i) {
             progresses[n] = i / 100.f;
+#ifdef _OPENMP
             if (omp_get_thread_num() == 0) {
                 mrock::utility::multi_progress_bar(16, progresses);
             }
+#endif
             std::this_thread::sleep_for(std::chrono::milliseconds(60U + bounded_rand(120U)));
         }
     }

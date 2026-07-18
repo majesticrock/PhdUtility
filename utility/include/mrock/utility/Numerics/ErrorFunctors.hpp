@@ -31,7 +31,7 @@ struct scalar_error {
         using std::abs;
         if constexpr (compute_relative_error) {
             const double abs_new = abs(_new);
-            return (abs_new > sqrt(std::numeric_limits<RealType>::epsilon()) ? abs(_new - _old) / abs_new
+            return (abs_new > std::sqrt(std::numeric_limits<RealType>::epsilon()) ? abs(_new - _old) / abs_new
                                                                              : abs(_new - _old));
         } else {
             return abs(_new - _old);
@@ -59,7 +59,7 @@ private:
      * @return error_type The norm of the vector.
      */
     static error_type norm(const vector_type& vec) {
-        return sqrt(std::transform_reduce(vec.begin(), vec.end(), vec.begin(), error_type{}));
+        return std::sqrt(std::transform_reduce(vec.begin(), vec.end(), vec.begin(), error_type{}));
     }
 
 public:
@@ -73,7 +73,7 @@ public:
     error_type operator()(const vector_type& _new, const vector_type& _old) const {
         if constexpr (compute_relative_error) {
             const error_type abs_new = norm(_new);
-            return (abs_new > sqrt(std::numeric_limits<error_type>::epsilon()) ? norm(_new - _old) / abs_new
+            return (abs_new > std::sqrt(std::numeric_limits<error_type>::epsilon()) ? norm(_new - _old) / abs_new
                                                                                : norm(_new - _old) / _new.size());
         } else {
             return norm(_new - _old) / static_cast<error_type>(_new.size());
@@ -113,7 +113,7 @@ struct vector_elementwise_error {
                                                                  using std::abs;
                                                                  return abs(val);
                                                              });
-            return (abs_new > sqrt(std::numeric_limits<error_type>::epsilon()) ? abs_diff / abs_new
+            return (abs_new > std::sqrt(std::numeric_limits<error_type>::epsilon()) ? abs_diff / abs_new
                                                                                : abs_diff / _new.size());
         } else {
             return abs_diff / static_cast<error_type>(_new.size());

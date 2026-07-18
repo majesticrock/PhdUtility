@@ -514,7 +514,7 @@ private:
      *         - eigenvalues: Square roots of the computed eigenvalues
      *
      * @note If check_qr is true at compile-time, outputs the residual error ||AX - B|| for each eigenvector.
-     * @note Eigenvalues are assumed to be in z^2 form and are converted to z via sqrt().
+     * @note Eigenvalues are assumed to be in z^2 form and are converted to z via std::sqrt().
      */
     ResidualData set_residual_data(Resolvent<Matrix, Vector>& resolvent,
                                    int n_lanczos_iterations,
@@ -532,7 +532,7 @@ private:
         }
         for (auto& ev : residual_info.eigenvalues) {
             // The eigenvalue is in z^2
-            ev = sqrt(ev);
+            ev = std::sqrt(ev);
         }
         return residual_info;
     }

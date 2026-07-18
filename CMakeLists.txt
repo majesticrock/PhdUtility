@@ -4,6 +4,22 @@ cmake_minimum_required(VERSION 3.30)
 project(mrock VERSION 3.0.0 LANGUAGES CXX)
 set(MROCK_VERSION ${PROJECT_VERSION})
 
+get_filename_component(
+    MROCK_DEFAULT_INSTALL_PREFIX
+    "${CMAKE_CURRENT_LIST_DIR}/../.mrock"
+    ABSOLUTE
+)
+
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(
+        CMAKE_INSTALL_PREFIX
+        "${MROCK_DEFAULT_INSTALL_PREFIX}"
+        CACHE PATH
+        "Install prefix"
+        FORCE
+    )
+endif()
+
 include(GNUInstallDirs)
 include(CTest)
 
@@ -67,13 +83,22 @@ else()
     mrock_message("No user configuration at ${MROCK_USER_CONFIG}")
 endif()
 
-#
-# Set local settings and set the default build type as Release
-#
+# Assert that a empty prefix path will still work (defaults to ../.mrock/)
+if(CMAKE_INSTALL_PREFIX STREQUAL "")
+    set(
+        CMAKE_INSTALL_PREFIX
+        "${MROCK_DEFAULT_INSTALL_PREFIX}"
+        CACHE PATH
+        "Install prefix"
+        FORCE
+    )
+endif()
 
-list(APPEND CMAKE_PREFIX_PATH "$ENV{HOME}/usr/local")
-set(Boost_DIR /usr/lib64/openmpi/lib/cmake/Boost-1.78.0)
+mrock_message("Install prefix is '${CMAKE_INSTALL_PREFIX}'.")
 
+#
+# Set the default build type as Release
+#
 set(default_build_type "Release")
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE

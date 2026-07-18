@@ -96,7 +96,7 @@ public:
         }
         res.b_i.push_back(abs(norm_buffer));
 
-        second /= sqrt(res.b_i.back());
+        second /= std::sqrt(res.b_i.back());
         basis_vectors.push_back(first);
         basis_vectors.push_back(second);
 
@@ -121,7 +121,7 @@ public:
 
             currentSolution =
                 (buffer - (alphas.back() * basis_vectors.back())) - (betas.back() * basis_vectors[iterNum]);
-            norm_buffer = sqrt(currentSolution.dot(symplectic * currentSolution));
+            norm_buffer = std::sqrt(currentSolution.dot(symplectic * currentSolution));
             if constexpr (isComplex) {
                 assertm(abs(norm_buffer.imag()) < 1e-6, "Second norm in loop is complex!");
             }
@@ -166,7 +166,7 @@ public:
         resolvent_data res;
         res.b_i.push_back(second.squaredNorm());
 
-        second /= sqrt(res.b_i.back());
+        second /= std::sqrt(res.b_i.back());
         basis_vectors.push_back(first);
         basis_vectors.push_back(second);
 
@@ -241,7 +241,7 @@ public:
         }
         res.b_i.push_back(abs(norm_buffer));
 
-        second /= sqrt(res.b_i.back());
+        second /= std::sqrt(res.b_i.back());
         basis_vectors.push_back(first);
         basis_vectors.push_back(second);
 
@@ -266,7 +266,7 @@ public:
 
             currentSolution =
                 (buffer - (alphas.back() * basis_vectors.back())) - (betas.back() * basis_vectors[iterNum]);
-            norm_buffer = sqrt(currentSolution.dot(symplectic * currentSolution));
+            norm_buffer = std::sqrt(currentSolution.dot(symplectic * currentSolution));
             if constexpr (isComplex) {
                 assertm(abs(norm_buffer.imag()) < 1e-6, "Second norm in loop is complex!");
             }
@@ -310,7 +310,7 @@ public:
         resolvent_data res;
         res.b_i.push_back(second.squaredNorm());
 
-        second /= sqrt(res.b_i.back());
+        second /= std::sqrt(res.b_i.back());
         basis_vectors.push_back(second);
 
         std::vector<RealType> alphas, betas;
@@ -385,7 +385,7 @@ public:
         resolvent_data res;
         res.b_i.push_back(second.squaredNorm());
 
-        second /= sqrt(res.b_i.back());
+        second /= std::sqrt(res.b_i.back());
         basis_vectors.push_back(second);
 
         std::vector<RealType> alphas, betas;
