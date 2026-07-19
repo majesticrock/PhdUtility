@@ -22,11 +22,10 @@ def naming_scheme(Ts, Us, Vs):
 def naming_scheme_tuples(tuples):
     for T, U, V in tuples:
         yield f"T={T}/U={U}/V={V}"
-## Example usage
-#import numpy as np
-#
-#Ts = 1
-#Us = 4
+
+### Example usage
+#Ts = [1, 2, 3]
+#Us = [4, 5]
 #Vs = 8
 #
 #for T, U, V in iterate_containers(Ts, Us, Vs):

@@ -15,7 +15,7 @@ build*/
 *.csv
 stdout*
 stderr*
-*/__pycache__/*
+**/__pycache__
 *.bin
 *.egg-info
 *.pyd
