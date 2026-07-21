@@ -1,64 +1,44 @@
-This project contains various general functionality that I require(d) during my PhD.
-The structure is the following:
+# mrock - umbrella library
 
-## python:
-Contains various python scripts.
-The most relevant script are the continued_fraction scripts and the cpp_continued_fraction within the cpp subfolder.
-They work in unison to efficiently evaluate the continued fractions occurring in the iEoM formalism.
+mrock is an umbrella C++20 project that bundles three subprojects: iEoM, symbolic_operators, and utility, and provides a common header/interface target and build integration. 
 
-### Prerequisites
-- pybind11 
-- pip
+## Requirements
 
-### Installation
-- Go to `python/cpp`
-- Type `pip install .`
+The project requires
+- C++20 toolchain
+- Eigen
+optional/recommended dependencies used by the subprojects are
+- OpenMP
+- nlohmann/json
+- Boost
+- CMake 3.30 or newer 
+See the subproject READMEs for exact details. 
 
-To use the other scripts, add the folder to your include path.
+## Build & install
 
-## utility
-Contains various C++ functionality, ranging from meta-programming to numerics and a config file reader.
-Its heart is the iEoM implementation in Numerics/iEoM.
+You can build using the provided Makefile (targets include configure, build, test, install, clean) which wraps CMake, or call CMake directly as described in the top-level CMakeLists. 
 
-### Prerequisites
-- Eigen (for some of the code) https://eigen.tuxfamily.org/index.php?title=Main_Page or https://libeigen.gitlab.io/eigen/docs-nightly/GettingStarted.html
-- Boost (for some of the code) https://www.boost.org/
-- Cmake (for installation) https://cmake.org/
+An interactive installer script, test_and_install.sh, is provided to help configure component selection, extra include paths, tests, and the install prefix; the script will configure, build, optionally run tests, and optionally install the project. 
 
-### Installation
-From the repository root, run the WSL-compatible build script:
+## Configuration options
 
-```sh
-bash ./scripts/build_and_test.sh
-```
+Component toggles (MROCK_BUILD_UTILITY, MROCK_BUILD_SYMBOLIC_OPERATORS, MROCK_BUILD_IEOM) default to ON and can be changed via CMake or the installer script, and you can pass extra include directories or CMAKE_PREFIX_PATH to locate external dependencies. 
 
-This configures, builds, runs the tests, and installs the project into the local `install/` directory under the repository root. The build is portable and does not assume a machine-specific installation prefix or CPU target.
+The build system uses a default install prefix (../.mrock relative to the source) unless you set CMAKE_INSTALL_PREFIX. 
 
-### Usage
-This section is header-only. Therefore, you can simply add `~/usr/local` to your include path and use `#include <mrock/utility/Numerics/iEoM/XPResolvent.hpp>`.
+## Documentation & examples
 
-## symbolic_operators
-Contains the functionality for commuting bosonic and fermionic creation and annihilation operators.
-A rather detailed documentation is provided within the folder.
+Detailed user guides for iEoM and symbolic_operators are provided as user_guide.tex.txt and user_guide_symop.tex.txt, and the utility subproject overview is in README_utility.md.txt. 
 
-###  Prerequisites
-- Boost (iostreams and serialization, if you want to serialize the output)
-- Cmake
+Example tests and small demos live under each subproject's tests directory and are exercised by the top-level test and install flow. 
 
-### Installation
-Same as utility.
+## Quick start
 
-### Usage
-For the header files, this works as utility: Add `~/usr/local` to your include path then include what you need, e.g., `#include <mrock/symbolic_operators/Term.hpp>`.
-Afterwards, however, you need to link against the precompiled library! How to do so depends on your compiler.
-It is easy to achieve this, if you are using cmake:
-- Add `~/usr/local` to your cmake path.
-- Use `find_package(mrock REQUIRED)`
-- Use `target_include_directories(YourProject PRIVATE ${mrock_INCLUDE_DIRS})`
-- Use `target_link_libraries(YourProject PRIVATE ${mrock_LIBRARIES})`
-- You are done!
+- Configure & build via Makefile:
+- make configure; make build; make test; make install. 
+- Or use the installer script:
+- ./test_and_install.sh (follow prompts). 
+- Or run CMake directly:
+- cmake -S . -B build && cmake --build build --parallel. 
 
-The recipe without cmake is not tested, but should look something like this:
-```sh
-g++ -I ~/usr/local/include -L ~/usr/local/lib -lmrock_symbolic_operators -o your_binary your_source.cpp
-```
+For API details and class-level documentation, consult the subproject user guides referenced above. 
