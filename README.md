@@ -50,3 +50,17 @@ By default it writes the header (e.g., `generated/include/mrock/info.h`) from a 
 The header defines a namespaced `info` struct with constexpr string fields such as `GIT_COMMIT_VERSION`, `GIT_COMMIT_NAME`, `GIT_COMMIT_DATE`, `MAKE_DATE`, and `CXX_COMPILER` that you can include and read at runtime.
 If git or other probes fail during generation, the function prints a warning and leaves fallback values (e.g., `"unknown"`), allowing the build to continue.
 Invoke the generator via `mrock_generate_information_header` at configure time and include the produced header in your code to access `mrock::info::...` identifiers.
+
+
+## Related publications
+
+The contents of the `mrock` library were used extensively in my doctoral thesis (not yet published) and in the following publications
+ 
+- Collective excitations in competing phases in two and three dimensions, J. Althüser & G. S. Uhrig, 
+ 		Physical Review B 109, 205153 (2024), https://doi.org/10.1103/PhysRevB.109.205153
+- Collective modes in superconductors including Coulomb repulsion, J. Althüser & G. S. Uhrig, 
+ 		SciPost Physics 19, 067 (2025) https://doi.org/10.21468/SciPostPhys.19.3.067
+- Enhanced Superconductivity in Proximity to Peaks in Densities of States, J. Althüser, I. M. Eremin & G. S. Uhrig,
+ 		(preprint) arXiv:2512.11451 (2025) https://doi.org/10.48550/arXiv.2512.11451
+- Secondary Collective Excitations in Intermediate to Strong-Coupling Superconductors, J. Althüser & G. S. Uhrig, 
+ 		(preprint) arXiv:2605.20059 (2026) https://doi.org/10.48550/arXiv.2605.20059

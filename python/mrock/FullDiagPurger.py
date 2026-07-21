@@ -476,8 +476,6 @@ class FullDiagPurger:
         if which < len(self.amplitude_eigenvectors):
             pc = np.sum(self.amplitude_eigenvectors[which][:self.N]**2)
             n  = np.sum(self.amplitude_eigenvectors[which][self.N:]**2)
-            #print(f"Pair creation integral: {pc}\nOccupation integral: {n}")
-            #print(f"Combined: {pc + n}")
             return pc, n
         else:
             raise ValueError(f"Requested integral for amplitude mode {which}, but only {len(self.amplitude_eigenvectors)} available.")
