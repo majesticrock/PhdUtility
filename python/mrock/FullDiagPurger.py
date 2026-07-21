@@ -11,17 +11,23 @@ The main entry point is :class:`FullDiagPurger`.
 
 import numpy as np
 
-PEAK_DIFF_TOL = 0.004
+import numpy as np
+
+DEFAULT_PEAK_DIFF_TOL = 0.004
+DEFAULT_ARTIFACT_WEIGHT_CUTOFF = 1e-16
+DEFAULT_WEAK_PEAK_WEIGHT_CUTOFF = 1e-8
 
 
-def _fill_temporaries(eigenvalues, weights, first_eigenvectors, continuum_edge):
+def _fill_temporaries(
+    eigenvalues,
+    weights,
+    first_eigenvectors,
+    continuum_edge,
+    peak_diff_tol=DEFAULT_PEAK_DIFF_TOL,
+    artifact_weight_cutoff=DEFAULT_ARTIFACT_WEIGHT_CUTOFF,
+    weak_peak_weight_cutoff=DEFAULT_WEAK_PEAK_WEIGHT_CUTOFF,
+):
     """Filter and merge candidate bound-state peaks below the continuum edge.
-
-    This helper iterates through eigenvalues, spectral weights, and first
-    eigenvectors and keeps only physically relevant candidate peaks. Peaks above
-    the continuum edge or with negligible weight are discarded. Nearby peaks
-    closer than :data:`PEAK_DIFF_TOL` are treated as the same peak, and only the
-    one with the larger weight is retained.
 
     Parameters
     ----------
@@ -34,34 +40,39 @@ def _fill_temporaries(eigenvalues, weights, first_eigenvectors, continuum_edge):
     continuum_edge : float
         Lower continuum boundary. Eigenvalues greater than or equal to this
         value are discarded.
+    peak_diff_tol : float, default=DEFAULT_PEAK_DIFF_TOL
+        Maximum eigenvalue distance for two peaks to be treated as the same
+        peak.
+    artifact_weight_cutoff : float, default=DEFAULT_ARTIFACT_WEIGHT_CUTOFF
+        Weights below this value are discarded as numerical artifacts.
+    weak_peak_weight_cutoff : float, default=DEFAULT_WEAK_PEAK_WEIGHT_CUTOFF
+        After at least one peak has been accepted, additional peaks below this
+        weight are skipped.
 
     Returns
     -------
     tuple[list, list, list]
         Tuple ``(temp_evs, temp_weights, temp_vectors)`` containing filtered
         eigenvalues, weights, and eigenvectors.
-
-    Notes
-    -----
-    Weights below ``1e-16`` are considered numerical artifacts and discarded.
-    After at least one peak has been accepted, additional peaks with weights
-    below ``1e-8`` are skipped.
     """
     temp_evs = []
     temp_weights = []
     temp_vectors = []
+
     for ev, weight, vector in zip(eigenvalues, weights, first_eigenvectors):
-        # if the weight is less than machine epsilon, it's an artifact
-        if ev >= continuum_edge or weight < 1e-16:
+        # Discard continuum states and numerical artifacts.
+        if ev >= continuum_edge or weight < artifact_weight_cutoff:
             continue
+
         if len(temp_evs) == 0:
             temp_evs.append(ev)
             temp_weights.append(weight)
             temp_vectors.append(vector)
         else:
-            if weight < 1e-8:
+            if weight < weak_peak_weight_cutoff:
                 continue
-            if abs(ev - temp_evs[-1]) > PEAK_DIFF_TOL:
+
+            if abs(ev - temp_evs[-1]) > peak_diff_tol:
                 temp_evs.append(ev)
                 temp_weights.append(weight)
                 temp_vectors.append(vector)
@@ -69,80 +80,36 @@ def _fill_temporaries(eigenvalues, weights, first_eigenvectors, continuum_edge):
                 temp_evs[-1] = ev
                 temp_weights[-1] = weight
                 temp_vectors[-1] = vector
-    return temp_evs, temp_weights, temp_vectors
 
+    return temp_evs, temp_weights, temp_vectors
 
 class FullDiagPurger:
     """Post-process the operator amplitudes of the amplitude and phase modes.
 
-    The class filters raw full-diagonalization output, separates amplitude and
-    phase modes, identifies nearly degenerate amplitude-phase pairs, and stores
-    weaker members of such pairs as ``glimmering`` modes.
-    
-    These ``glimmering`` modes appear because any energy eigenvalue is present in
-    both channels. If the system exhibits particle-hole symmetry, the amplitude modes'
-    weights in the phase channel vanishes, and vice versa. If the system does not
-    exhibit this symmetry, the weights in the ``wrong`` channel are nonzero, but 
-    typically smaller than the weights in the ``correct`` channel.
-    This fact is used to assign any given mode to either the amplitude or phase 
-    channel, and to store the weaker companion mode.
-
     Parameters
     ----------
     system_data : mapping
-        Dictionary-like object containing full-diagonalization data. Expected
-        keys include:
-
-        - ``"amplitude.eigenvalues"``
-        - ``"amplitude.weights"``
-        - ``"amplitude.first_eigenvectors"``
-        - ``"phase.eigenvalues"``
-        - ``"phase.weights"``
-        - ``"phase.first_eigenvectors"``
-        - ``"continuum_boundaries"``
-
+        Dictionary-like object containing full-diagonalization data.
     epsilon_space : array-like
         Energy or momentum grid used for plotting eigenvector components.
-
-    Attributes
-    ----------
-    epsilon_space : array-like
-        Grid associated with the eigenvector components.
-    N : int
-        Length of ``epsilon_space``.
-    amplitude_eigenvalues : numpy.ndarray
-        Filtered amplitude-mode eigenvalues.
-    amplitude_weights : numpy.ndarray
-        Filtered amplitude-mode weights.
-    amplitude_eigenvectors : numpy.ndarray
-        Filtered amplitude-mode eigenvectors.
-    phase_eigenvalues : numpy.ndarray
-        Filtered phase-mode eigenvalues.
-    phase_weights : numpy.ndarray
-        Filtered phase-mode weights.
-    phase_eigenvectors : numpy.ndarray
-        Filtered phase-mode eigenvectors.
-    glimmering_amplitude_eigenvalues : numpy.ndarray
-        Weaker amplitude-mode eigenvalues from near-degenerate doublets.
-    glimmering_amplitude_weights : numpy.ndarray
-        Weaker amplitude-mode weights from near-degenerate doublets.
-    glimmering_amplitude_eigenvectors : numpy.ndarray
-        Weaker amplitude-mode eigenvectors from near-degenerate doublets.
-    glimmering_phase_eigenvalues : numpy.ndarray
-        Weaker phase-mode eigenvalues from near-degenerate doublets.
-    glimmering_phase_weights : numpy.ndarray
-        Weaker phase-mode weights from near-degenerate doublets.
-    glimmering_phase_eigenvectors : numpy.ndarray
-        Weaker phase-mode eigenvectors from near-degenerate doublets.
-
-    Notes
-    -----
-    Eigenvectors are sign-normalized after filtering. Amplitude eigenvectors
-    are flipped if the sum over their first ``N`` components is negative, while
-    phase eigenvectors are flipped if their total sum is negative.
+    peak_diff_tol : float, default=DEFAULT_PEAK_DIFF_TOL
+        Maximum eigenvalue distance for two peaks to be treated as identical
+        or as a near-degenerate amplitude-phase doublet.
+    artifact_weight_cutoff : float, default=DEFAULT_ARTIFACT_WEIGHT_CUTOFF
+        Weights below this value are discarded as numerical artifacts.
+    weak_peak_weight_cutoff : float, default=DEFAULT_WEAK_PEAK_WEIGHT_CUTOFF
+        After at least one peak has been accepted in a channel, additional
+        candidate peaks with weights below this value are skipped.
     """
 
-    def __init__(self, system_data, epsilon_space):
+    def __init__(
+        self,
+        system_data,
+        epsilon_space,
+        peak_diff_tol=DEFAULT_PEAK_DIFF_TOL,
+        artifact_weight_cutoff=DEFAULT_ARTIFACT_WEIGHT_CUTOFF,
+        weak_peak_weight_cutoff=DEFAULT_WEAK_PEAK_WEIGHT_CUTOFF,
+    ):
         """Initialize the purger and process full-diagonalization data.
 
         Parameters
@@ -153,33 +120,60 @@ class FullDiagPurger:
         epsilon_space : array-like
             Grid used for plotting and for splitting amplitude eigenvectors
             into two components of length ``N``.
+        peak_diff_tol : float, default=DEFAULT_PEAK_DIFF_TOL
+            Maximum eigenvalue distance for merging nearby peaks and detecting
+            amplitude-phase doublets.
+        artifact_weight_cutoff : float, default=DEFAULT_ARTIFACT_WEIGHT_CUTOFF
+            Weights below this value are discarded as numerical artifacts.
+        weak_peak_weight_cutoff : float, default=DEFAULT_WEAK_PEAK_WEIGHT_CUTOFF
+            After at least one peak has been accepted in a channel, additional
+            candidate peaks with weights below this value are skipped.
         """
         temp_amplitude_evs, temp_amplitude_weights, temp_amplitude_vectors = _fill_temporaries(
-            system_data["amplitude.eigenvalues"], 
-            system_data["amplitude.weights"][0], 
+            system_data["amplitude.eigenvalues"],
+            system_data["amplitude.weights"][0],
             system_data["amplitude.first_eigenvectors"],
-            system_data["continuum_boundaries"][0]
+            system_data["continuum_boundaries"][0],
+            peak_diff_tol=peak_diff_tol,
+            artifact_weight_cutoff=artifact_weight_cutoff,
+            weak_peak_weight_cutoff=weak_peak_weight_cutoff,
         )
+
         temp_phase_evs, temp_phase_weights, temp_phase_vectors = _fill_temporaries(
-            system_data["phase.eigenvalues"], 
-            system_data["phase.weights"][0], 
+            system_data["phase.eigenvalues"],
+            system_data["phase.weights"][0],
             system_data["phase.first_eigenvectors"],
-            system_data["continuum_boundaries"][0]
+            system_data["continuum_boundaries"][0],
+            peak_diff_tol=peak_diff_tol,
+            artifact_weight_cutoff=artifact_weight_cutoff,
+            weak_peak_weight_cutoff=weak_peak_weight_cutoff,
         )
+
         self.epsilon_space = epsilon_space
         self.N = len(epsilon_space)
-        
+
+        self.peak_diff_tol = peak_diff_tol
+        self.artifact_weight_cutoff = artifact_weight_cutoff
+        self.weak_peak_weight_cutoff = weak_peak_weight_cutoff
+
         doublets = []
         for i, a_ev in enumerate(temp_amplitude_evs):
             for j, p_ev in enumerate(temp_phase_evs):
-                if abs(a_ev - p_ev) < PEAK_DIFF_TOL:
+                if abs(a_ev - p_ev) < peak_diff_tol:
                     doublets.append((i, j))
 
-        correct_amplitude_indices = [ i for i in range(len(temp_amplitude_evs)) if all(i != dt[0] for dt in doublets) ]
-        correct_phase_indices = [ j for j in range(len(temp_phase_evs)) if all(j != dt[1] for dt in doublets) ]
+        correct_amplitude_indices = [
+            i for i in range(len(temp_amplitude_evs))
+            if all(i != dt[0] for dt in doublets)
+        ]
+        correct_phase_indices = [
+            j for j in range(len(temp_phase_evs))
+            if all(j != dt[1] for dt in doublets)
+        ]
+
         glimmering_amplitude_indices = []
         glimmering_phase_indices = []
-        
+
         for doublet in doublets:
             a_i, p_i = doublet
             if temp_amplitude_weights[a_i] < temp_phase_weights[p_i]:
@@ -188,41 +182,65 @@ class FullDiagPurger:
             else:
                 correct_amplitude_indices.append(a_i)
                 glimmering_phase_indices.append(p_i)
-        
+
         correct_amplitude_indices.sort()
         correct_phase_indices.sort()
-        
-        self.amplitude_eigenvalues  = np.array([ temp_amplitude_evs[i]     for i in correct_amplitude_indices ])
-        self.amplitude_weights      = np.array([ temp_amplitude_weights[i] for i in correct_amplitude_indices ])
-        self.amplitude_eigenvectors = np.array([ temp_amplitude_vectors[i] for i in correct_amplitude_indices ])
-        
-        self.phase_eigenvalues  = np.array([ temp_phase_evs[i]     for i in correct_phase_indices ])
-        self.phase_weights      = np.array([ temp_phase_weights[i] for i in correct_phase_indices ])
-        self.phase_eigenvectors = np.array([ temp_phase_vectors[i] for i in correct_phase_indices ])
-        
+
+        self.amplitude_eigenvalues = np.array([
+            temp_amplitude_evs[i] for i in correct_amplitude_indices
+        ])
+        self.amplitude_weights = np.array([
+            temp_amplitude_weights[i] for i in correct_amplitude_indices
+        ])
+        self.amplitude_eigenvectors = np.array([
+            temp_amplitude_vectors[i] for i in correct_amplitude_indices
+        ])
+
+        self.phase_eigenvalues = np.array([
+            temp_phase_evs[i] for i in correct_phase_indices
+        ])
+        self.phase_weights = np.array([
+            temp_phase_weights[i] for i in correct_phase_indices
+        ])
+        self.phase_eigenvectors = np.array([
+            temp_phase_vectors[i] for i in correct_phase_indices
+        ])
+
         for i in range(len(self.amplitude_eigenvectors)):
             if np.sum(self.amplitude_eigenvectors[i][:self.N]) < 0:
                 self.amplitude_eigenvectors[i] *= -1
+
         for i in range(len(self.phase_eigenvectors)):
             if np.sum(self.phase_eigenvectors[i]) < 0:
                 self.phase_eigenvectors[i] *= -1
-        
-        
-                
+
         glimmering_amplitude_indices.sort()
         glimmering_phase_indices.sort()
-        
-        self.glimmering_amplitude_eigenvalues  = np.array([ temp_amplitude_evs[i]     for i in glimmering_amplitude_indices ])
-        self.glimmering_amplitude_weights      = np.array([ temp_amplitude_weights[i] for i in glimmering_amplitude_indices ])
-        self.glimmering_amplitude_eigenvectors = np.array([ temp_amplitude_vectors[i] for i in glimmering_amplitude_indices ])
-        
-        self.glimmering_phase_eigenvalues  = np.array([ temp_phase_evs[i]     for i in glimmering_phase_indices ])
-        self.glimmering_phase_weights      = np.array([ temp_phase_weights[i] for i in glimmering_phase_indices ]) 
-        self.glimmering_phase_eigenvectors = np.array([ temp_phase_vectors[i] for i in glimmering_phase_indices ])
-        
+
+        self.glimmering_amplitude_eigenvalues = np.array([
+            temp_amplitude_evs[i] for i in glimmering_amplitude_indices
+        ])
+        self.glimmering_amplitude_weights = np.array([
+            temp_amplitude_weights[i] for i in glimmering_amplitude_indices
+        ])
+        self.glimmering_amplitude_eigenvectors = np.array([
+            temp_amplitude_vectors[i] for i in glimmering_amplitude_indices
+        ])
+
+        self.glimmering_phase_eigenvalues = np.array([
+            temp_phase_evs[i] for i in glimmering_phase_indices
+        ])
+        self.glimmering_phase_weights = np.array([
+            temp_phase_weights[i] for i in glimmering_phase_indices
+        ])
+        self.glimmering_phase_eigenvectors = np.array([
+            temp_phase_vectors[i] for i in glimmering_phase_indices
+        ])
+
         for i in range(len(self.glimmering_amplitude_eigenvectors)):
             if np.sum(self.glimmering_amplitude_eigenvectors[i][:self.N]) < 0:
                 self.glimmering_amplitude_eigenvectors[i] *= -1
+
         for i in range(len(self.glimmering_phase_eigenvectors)):
             if np.sum(self.glimmering_phase_eigenvectors[i]) < 0:
                 self.glimmering_phase_eigenvectors[i] *= -1

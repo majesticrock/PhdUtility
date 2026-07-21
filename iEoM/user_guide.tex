@@ -81,12 +81,12 @@
 Valid installations of
 \begin{itemize}
   \item C++ 20 and a functioning compiler (tested with g++ 13.3.0 on WSL and g++ 11.5.0 on Red Hat)
+  \item (recommended) CMake 3.30 or newer (tested with version 3.31.8) \\ --- https://cmake.org/ \\ --- used for easy installation running of tests
   \item Eigen (tested with version 3.4.1) \\ --- https://gitlab.com/libeigen/eigen
   \item (recommended) OpenMP \\ --- https://www.openmp.org/ \\ --- used for parallelization of the algorithms.
         If it is not desired, certain preprocessor flags must be set, cf. \cref{sec:parallel}.
   \item (recommended) nlohmann/json (tested with version 3.11.3) \\ --- https://json.nlohmann.me/  \\ --- https://github.com/nlohmann/json \\ --- The output of the algorithms can be converted into \code{nlohmann::json} objects.
   If nlohmann/json is not available, a preprocessor flag must be set, cf. \cref{sec:parallel}.
-  \item (recommended) CMake 3.30 or newer (tested with version 3.31.8) \\ --- https://cmake.org/ \\ --- used for easy installation running of tests
   \item (optional) BLAS and/or LAPACK: Eigen can delegate certain tasks (such as matrix diagonalization) to those libraries, which can be parallelized and be faster. Read the Eigen documentation for details.
 \end{itemize}
 

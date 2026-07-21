@@ -83,6 +83,20 @@ else()
     mrock_message("No user configuration at ${MROCK_USER_CONFIG}")
 endif()
 
+set(MROCK_EXTRA_INCLUDE_DIRS "~/usr/local/include" CACHE STRING
+    "Additional include directories for mrock, semicolon-separated")
+# Do not use FORCE if the user should be able to override it.
+
+set(MROCK_EXTRA_INCLUDE_DIRS_NORMALIZED "")
+
+foreach(dir IN LISTS MROCK_EXTRA_INCLUDE_DIRS)
+    file(REAL_PATH "${dir}" dir_normalized
+         BASE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+         EXPAND_TILDE)
+
+    list(APPEND MROCK_EXTRA_INCLUDE_DIRS_NORMALIZED "${dir_normalized}")
+endforeach()
+
 # Assert that a empty prefix path will still work (defaults to ../.mrock/)
 if(CMAKE_INSTALL_PREFIX STREQUAL "")
     set(
@@ -118,12 +132,12 @@ add_library(mrock::mrock ALIAS mrock)
 
 target_compile_features(mrock INTERFACE cxx_std_20)
 
-mrock_message("EXTRA INCLUDES: ${MROCK_EXTRA_INCLUDE_DIRS}")
+mrock_message("EXTRA INCLUDES: ${MROCK_EXTRA_INCLUDE_DIRS_NORMALIZED}")
 
 target_include_directories(mrock INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    ${MROCK_EXTRA_INCLUDE_DIRS}
+    ${MROCK_EXTRA_INCLUDE_DIRS_NORMALIZED}
 )
 
 #

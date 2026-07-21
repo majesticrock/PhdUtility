@@ -1,6 +1,6 @@
 # mrock - umbrella library
 
-mrock is an umbrella C++20 project that bundles three subprojects: iEoM, symbolic_operators, and utility, and provides a common header/interface target and build integration. 
+mrock is an umbrella C++20 project that bundles three subprojects: `iEoM`, `symbolic_operators`, and `utility`, and provides a common header/interface target and build integration. 
 
 ## Requirements
 
@@ -22,13 +22,13 @@ An interactive installer script, test_and_install.sh, is provided to help config
 
 ## Configuration options
 
-Component toggles (MROCK_BUILD_UTILITY, MROCK_BUILD_SYMBOLIC_OPERATORS, MROCK_BUILD_IEOM) default to ON and can be changed via CMake or the installer script, and you can pass extra include directories or CMAKE_PREFIX_PATH to locate external dependencies. 
+Component toggles (`MROCK_BUILD_UTILITY`, `MROCK_BUILD_SYMBOLIC_OPERATORS`, `MROCK_BUILD_IEOM`) default to `ON` and can be changed via CMake or the installer script, and you can pass extra include directories or CMAKE_PREFIX_PATH to locate external dependencies. 
 
-The build system uses a default install prefix (../.mrock relative to the source) unless you set CMAKE_INSTALL_PREFIX. 
+The build system uses a default install prefix (../.mrock relative to the source) unless you set `CMAKE_INSTALL_PREFIX`. 
 
 ## Documentation & examples
 
-Detailed user guides for iEoM and symbolic_operators are provided as user_guide.tex.txt and user_guide_symop.tex.txt, and the utility subproject overview is in README_utility.md.txt. 
+User guides for `iEoM` and `symbolic_operators`, as well as the `utility` subproject overview are provided in the respective directory.
 
 Example tests and small demos live under each subproject's tests directory and are exercised by the top-level test and install flow. 
 
@@ -42,3 +42,11 @@ Example tests and small demos live under each subproject's tests directory and a
 - cmake -S . -B build && cmake --build build --parallel. 
 
 For API details and class-level documentation, consult the subproject user guides referenced above. 
+
+### Metadata header
+
+A CMake function generates a small metadata header embedding git, build, and system information at configure time.
+By default it writes the header (e.g., `generated/include/mrock/info.h`) from a template and exposes variables with the generated paths for CMake and installation.
+The header defines a namespaced `info` struct with constexpr string fields such as `GIT_COMMIT_VERSION`, `GIT_COMMIT_NAME`, `GIT_COMMIT_DATE`, `MAKE_DATE`, and `CXX_COMPILER` that you can include and read at runtime.
+If git or other probes fail during generation, the function prints a warning and leaves fallback values (e.g., `"unknown"`), allowing the build to continue.
+Invoke the generator via `mrock_generate_information_header` at configure time and include the produced header in your code to access `mrock::info::...` identifiers.
