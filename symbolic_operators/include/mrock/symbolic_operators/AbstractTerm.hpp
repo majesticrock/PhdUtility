@@ -126,6 +126,11 @@ public:
         : multiplicity{_multiplicity}, operators{_operators} {};
 
     /**
+     * @brief Virtual destructor.
+     */
+    virtual ~AbstractTerm() = default;
+
+    /**
      * @brief Resolves the Kronecker deltas of the momenta in the term.
      * @return True if successful, false otherwise.
      */

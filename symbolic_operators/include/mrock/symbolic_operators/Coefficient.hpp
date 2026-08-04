@@ -189,20 +189,20 @@ struct Coefficient {
      * @param index The index to check.
      * @return True if the index is used, false otherwise.
      */
-    inline bool uses_index(const Index index) const noexcept;
+    bool uses_index(const Index index) const noexcept;
 
     /**
      * @brief Checks if the coefficient depends on momentum.
      * @return True if it depends on momentum, false otherwise.
      */
-    inline bool depends_on_momentum() const noexcept;
+    bool depends_on_momentum() const noexcept;
 
     /**
      * @brief Checks if the coefficient depends on a specific momentum.
      * @param momentum The momentum to check.
      * @return True if it depends on the momentum, false otherwise.
      */
-    inline bool depends_on(const MomentumSymbol::name_type momentum) const noexcept;
+    bool depends_on(const MomentumSymbol::name_type momentum) const noexcept;
 
     /**
      * @brief Checks if the coefficient depends on two momenta, e.g, k-l.
@@ -210,19 +210,19 @@ struct Coefficient {
      * l)
      * @return True if it depends on two momenta, false otherwise.
      */
-    inline bool depends_on_two_momenta() const noexcept;
+    bool depends_on_two_momenta() const noexcept;
 
     /**
      * @brief Toggles the daggered state of the operator.
      * @return A reference to *this
      */
-    inline Coefficient& hermitian_conjugate_inplace();
+    Coefficient& hermitian_conjugate_inplace();
 
     /**
      * @brief Creates hermitian conjugate of this as a new object.
      * @return Returns the new object.
      */
-    inline Coefficient hermitian_conjugate() const;
+    Coefficient hermitian_conjugate() const;
 
     /**
      * @brief Inverts the momentum of the coefficient.
@@ -253,20 +253,28 @@ struct Coefficient {
 };
 
 /**
+ * @brief Outputs a coefficient to a stream.
+ * @param os The output stream.
+ * @param coeff The coefficient.
+ * @return The output stream.
+ */
+std::ostream& operator<<(std::ostream& os, const Coefficient& coeff);
+
+/**
+ * @brief Outputs a vector of coefficients to a stream.
+ * @param os The output stream.
+ * @param coeffs The coefficients.
+ * @return The output stream.
+ */
+std::ostream& operator<<(std::ostream& os, const std::vector<Coefficient>& coeffs);
+
+/**
  * @brief Equality operator for Coefficient.
  * @param lhs The left-hand side Coefficient.
  * @param rhs The right-hand side Coefficient.
  * @return True if the coefficients are equal, false otherwise.
  */
-inline bool operator==(const Coefficient& lhs, const Coefficient& rhs) {
-    if (lhs.name != rhs.name)
-        return false;
-    if (lhs.momenta != rhs.momenta)
-        return false;
-    if (lhs.is_daggered != rhs.is_daggered)
-        return false;
-    return (lhs.indizes == rhs.indizes);
-}
+bool operator==(const Coefficient& lhs, const Coefficient& rhs);
 
 /**
  * @brief Inequality operator for Coefficient.
@@ -278,44 +286,5 @@ inline bool operator!=(const Coefficient& lhs, const Coefficient& rhs) {
     return !(lhs == rhs);
 }
 
-// Inline definitions
-bool Coefficient::uses_index(const Index index) const noexcept {
-    for (const auto& idx : indizes) {
-        if (idx == index)
-            return true;
-    }
-    return false;
-}
-bool Coefficient::depends_on_momentum() const noexcept {
-    if (this->momenta.empty())
-        return false;
-    return std::any_of(this->momenta.begin(), this->momenta.end(),
-                       [](const Momentum& momentum) { return !momentum.momentum_list.empty(); });
-}
-bool Coefficient::depends_on(const MomentumSymbol::name_type momentum) const noexcept {
-    if (this->momenta.empty())
-        return false;
-    return std::any_of(this->momenta.begin(), this->momenta.end(),
-                       [momentum](const Momentum& mom) { return mom.uses(momentum); });
-}
-// This function determines whether the coefficient depends on something like k-l
-// Currently, this only makes sense if the coefficient does not depend on
-bool Coefficient::depends_on_two_momenta() const noexcept {
-    assert(momenta.size() == 1U);
-    return this->momenta.front().momentum_list.size() == 2U;
-}
-Coefficient& Coefficient::hermitian_conjugate_inplace() {
-    if (is_real) {
-        is_daggered = false;
-        return *this;
-    }
-    is_daggered = !is_daggered;
-    return *this;
-}
-Coefficient Coefficient::hermitian_conjugate() const {
-    Coefficient copy(*this);
-    copy.hermitian_conjugate_inplace();
-    return copy;
-}
 }  // namespace mrock::symbolic_operators
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_COEFFICIENT_HPP

@@ -81,24 +81,6 @@ Coefficient Coefficient::parse_interaction_string(const std::string& expression)
     return ret;
 }
 
-std::ostream& operator<<(std::ostream& os, const Coefficient& coeff) {
-    os << coeff.name;
-    if (!coeff.indizes.empty()) {
-        os << "_{ " << coeff.indizes << "}";
-    }
-    if (coeff.is_daggered) {
-        os << "^*";
-    }
-    os << coeff.momenta << " ";
-    return os;
-}
-std::ostream& operator<<(std::ostream& os, const std::vector<Coefficient>& coeffs) {
-    for (auto& coeff : coeffs) {
-        os << coeff << " ";
-    }
-    return os;
-}
-
 Coefficient::Coefficient(const std::string& _name)
     : name(_name), momenta(), indizes(), Q_changes_sign(false), is_daggered(false) {}
 
@@ -179,4 +161,78 @@ Coefficient Coefficient::Constant(const std::string& name,
     ret.is_real = is_real;
     return ret;
 }
+
+bool Coefficient::uses_index(const Index index) const noexcept {
+    for (const auto& idx : indizes) {
+        if (idx == index)
+            return true;
+    }
+    return false;
+}
+
+bool Coefficient::depends_on_momentum() const noexcept {
+    if (this->momenta.empty())
+        return false;
+    return std::any_of(this->momenta.begin(), this->momenta.end(),
+                       [](const Momentum& momentum) { return !momentum.momentum_list.empty(); });
+}
+
+bool Coefficient::depends_on(const MomentumSymbol::name_type momentum) const noexcept {
+    if (this->momenta.empty())
+        return false;
+    return std::any_of(this->momenta.begin(), this->momenta.end(),
+                       [momentum](const Momentum& mom) { return mom.uses(momentum); });
+}
+
+// This function determines whether the coefficient depends on something like k-l
+// Currently, this only makes sense if the coefficient does not depend on
+bool Coefficient::depends_on_two_momenta() const noexcept {
+    assert(momenta.size() == 1U);
+    return this->momenta.front().momentum_list.size() == 2U;
+}
+
+Coefficient& Coefficient::hermitian_conjugate_inplace() {
+    if (is_real) {
+        is_daggered = false;
+        return *this;
+    }
+    is_daggered = !is_daggered;
+    return *this;
+}
+
+Coefficient Coefficient::hermitian_conjugate() const {
+    Coefficient copy(*this);
+    copy.hermitian_conjugate_inplace();
+    return copy;
+}
+
+std::ostream& operator<<(std::ostream& os, const Coefficient& coeff) {
+    os << coeff.name;
+    if (!coeff.indizes.empty()) {
+        os << "_{ " << coeff.indizes << "}";
+    }
+    if (coeff.is_daggered) {
+        os << "^*";
+    }
+    os << coeff.momenta << " ";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const std::vector<Coefficient>& coeffs) {
+    for (auto& coeff : coeffs) {
+        os << coeff << " ";
+    }
+    return os;
+}
+
+bool operator==(const Coefficient& lhs, const Coefficient& rhs) {
+    if (lhs.name != rhs.name)
+        return false;
+    if (lhs.momenta != rhs.momenta)
+        return false;
+    if (lhs.is_daggered != rhs.is_daggered)
+        return false;
+    return (lhs.indizes == rhs.indizes);
+}
+
 }  // namespace mrock::symbolic_operators

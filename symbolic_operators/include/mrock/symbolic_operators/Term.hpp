@@ -471,22 +471,6 @@ inline std::vector<Term> operator*(std::vector<Term> lhs, const std::vector<Term
 }
 
 /**
- * @brief Outputs a coefficient to a stream.
- * @param os The output stream.
- * @param coeff The coefficient.
- * @return The output stream.
- */
-std::ostream& operator<<(std::ostream& os, const Coefficient& coeff);
-
-/**
- * @brief Outputs a vector of coefficients to a stream.
- * @param os The output stream.
- * @param coeffs The coefficients.
- * @return The output stream.
- */
-std::ostream& operator<<(std::ostream& os, const std::vector<Coefficient>& coeffs);
-
-/**
  * @brief Outputs a vector of terms to a stream.
  * @param os The output stream.
  * @param terms The terms.
