@@ -4,15 +4,19 @@ mrock is an umbrella C++20 project that bundles three subprojects: `iEoM`, `symb
 
 ## Requirements
 
-The project requires
+See the subproject READMEs for exact details. 
+
+### Mandatory
+
 - C++20 toolchain
 - Eigen
-optional/recommended dependencies used by the subprojects are
+
+### Optional or recommended
+
 - OpenMP
 - nlohmann/json
 - Boost
 - CMake 3.30 or newer 
-See the subproject READMEs for exact details. 
 
 ## Build & install
 

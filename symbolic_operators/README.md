@@ -46,4 +46,4 @@ The example builds a Hamiltonian, computes symbolic expressions such as commutat
 
 ## More Information
 
-For the complete API overview, class attributes, Wick-contraction setup, symmetry handling, and the full example workflow, see `user_guide_symop`. 
+For the complete API overview, class attributes, Wick-contraction setup, symmetry handling, and the full example workflow, see `SymbolicOperators_User_Guide.pdf`. 

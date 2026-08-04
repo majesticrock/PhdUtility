@@ -77,6 +77,7 @@ Used to gauge the errors of numerical methods.
 
 ### hypergeometric_2F1.hpp
 Computes the hypergeometric 2F1 function, see https://en.wikipedia.org/wiki/Hypergeometric_function or https://functions.wolfram.com/HypergeometricFunctions/Hypergeometric2F1/
+
 This is used in `LatticeCUT` to evaluate certain densities of states.
 
 ### Interpolation.hpp

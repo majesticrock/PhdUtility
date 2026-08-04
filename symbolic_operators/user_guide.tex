@@ -138,8 +138,8 @@ This class is used for hopping amplitudes, interactions, and similar objects tha
 The attributes are
 \begin{itemize}
   \item The coefficient name, stored in \code{name}
-  \item The list of momenta, stored in \code{\classlink{MomentumList} momenta}
-  \item The index wrapper, stored in \code{\classlink{IndexWrapper} indizes}
+  \item The list of momenta, stored in \tokencode{\classlink{MomentumList} momenta}
+  \item The index wrapper, stored in \tokencode{\classlink{IndexWrapper} indizes}
   \item An optional custom symmetry callback, stored in \code{custom_symmetry}
   \item Symmetry flags such as \code{inversion_symmetry}, \code{is_symmetrized_interaction}, \code{Q_changes_sign}, \code{is_real}, and \code{is_daggered}
 \end{itemize}
@@ -207,7 +207,7 @@ The attributes are
 
 \class{Momentum} represents a symbolic momentum expression as a collection of \class{MomentumSymbol} objects.
 It supports addition and subtraction-like algebra, the optional inclusion of the special momentum $Q$, and helper functions for sorting, flipping, and removing contributions.
-Strings such as \code{\"3k+l-p\"} can also be parsed into a momentum object. The attributes are
+Strings such as \code{"3k+l-p"} can also be parsed into a momentum object. The attributes are
 \begin{itemize}
   \item The list of momentum symbols, stored in \code{momentum_list}
   \item The flag indicating whether the special momentum $Q$ is present, stored in \code{add_Q}

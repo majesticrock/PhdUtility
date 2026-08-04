@@ -3,7 +3,7 @@
 Small Python package for post-processing simulation data generated with the iEoM library.  
 It loads resolvent data, evaluates continued fractions, computes spectral densities, classifies bound states, and provides helpers for plotting and filtering full-diagonalization data.
 
-For details, see the accompanying TeX documentation.
+For details, see the accompanying documentation in `iEoM_Python_User_Guide.pdf`.
 
 ## Requirements
 

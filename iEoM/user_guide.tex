@@ -299,7 +299,7 @@ It is useful whenever the problem does not decompose into the block structure of
 This class is less fleshed out than \class{XPResolvent}.
 It implements only the algorithm of Ref.\footnoteref{prb} in \code{compute_collective_modes()} and the check whether $\mathcal{M}$ is positive semi-definite in \code{dynamic_matrix_is_negative()}.
 
-It is a class template with a parameter \code{NumberType} that must be a scalar type (for example, \code{std::complex<double>} or \code{double}).
+It is a class template with a parameter \code{NumberType} that must be a scalar type (for example, \code{double} or \code{std::complex<double>}).
 The class stores the dynamical matrix in \code{M} ($\mathcal{M}$) and the norm matrix in \code{N} ($\mathcal{N}$). 
 As mentioned above, the user must derive from this class and implement the following three functions
 \begin{itemize}

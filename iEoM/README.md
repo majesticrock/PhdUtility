@@ -51,10 +51,10 @@ Define `MROCK_IEOM_NO_NLOHMANN_JSON` if `nlohmann/json` is unavailable.
 
 ## Example
 
-A worked BCS example is available in `tests/ieom_bcs.cpp`. 
+An example is available in `tests/ieom_bcs.cpp`. 
 
 The accompanying Python script `tests/bcs_spectral.py` evaluates spectral functions from the computed continued-fraction data. 
 
 ## More Information
 
-For full mathematical background, API details, class templates, preprocessor flags, and the complete BCS walkthrough, see `user_guide`. 
+For full mathematical background, API details, class templates, preprocessor flags, and the complete BCS walkthrough, see `iEoM_User_Guide.pdf`. 
