@@ -6,8 +6,8 @@
 #include <mrock/symbolic_operators/WickTerm.hpp>
 
 namespace mrock::symbolic_operators {
-void SpinSymmetry::apply_to(WickTerm& term) const {
-    for (auto& op : term.operators) {
+void SpinSymmetry::apply_to(std::vector<WickOperator>& operator_vector) const {
+    for (auto& op : operator_vector) {
         for (auto& idx : op.indizes) {
             if (idx == Index::SpinDown)
                 idx = Index::SpinUp;
@@ -15,8 +15,8 @@ void SpinSymmetry::apply_to(WickTerm& term) const {
     }
 }
 
-void InversionSymmetry::apply_to(WickTerm& term) const {
-    for (auto& op : term.operators) {
+void InversionSymmetry::apply_to(std::vector<WickOperator>& operator_vector) const {
+    for (auto& op : operator_vector) {
         if (!op.momentum.momentum_list.empty() && op.momentum.momentum_list[0].factor < 0) {
             op.momentum.flip_momentum();
         }

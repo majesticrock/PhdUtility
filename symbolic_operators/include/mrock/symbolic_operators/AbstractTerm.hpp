@@ -12,6 +12,7 @@
 #include "SumContainer.hpp"
 
 #include <vector>
+#include <functional>
 
 namespace mrock::symbolic_operators {
 /**
@@ -36,6 +37,46 @@ protected:
                                                                       'v', 'w', 'x', 'y', 'z'};
     constexpr static MomentumSymbol::name_type buffer_list[N_BUFFER] = {':', ';', '|', '?', '!', '.',
                                                                         '-', '_', '+', '/', '='};
+
+    virtual void replace_each_momentum(const MomentumSymbol::name_type replaceWhat, const Momentum& replaceWith, 
+        std::function<bool(std::vector<KroneckerDelta<Momentum>>::iterator)> skip = [](auto) { return false; })
+    {
+        for (auto& op : operators) {
+            op.momentum.replace_occurances(replaceWhat, replaceWith);
+        }
+        for (auto& coeff : coefficients) {
+            coeff.momenta.replace_occurances(replaceWhat, replaceWith);
+        }
+        for (std::vector<KroneckerDelta<Momentum>>::iterator it = delta_momenta.begin(); it != delta_momenta.end(); ++it) {
+            if (skip(it)) {
+                continue;
+            }
+            it->first.replace_occurances(replaceWhat, replaceWith);
+            it->second.replace_occurances(replaceWhat, replaceWith);
+        }
+    }
+
+    virtual void replace_each_index(Index target, Index replace_with, 
+        std::function<bool(std::vector<KroneckerDelta<Index>>::iterator)> skip = [](auto) { return false; }) 
+    {
+        for (auto& op : operators) {
+            op.indizes.replace_index(target, replace_with);
+        }
+        for (auto& coeff : coefficients) {
+            coeff.indizes.replace_index(target, replace_with);
+        }
+        for (std::vector<KroneckerDelta<Index>>::iterator it = delta_indizes.begin(); it != delta_indizes.end(); ++it) {
+            if (skip(it)) {
+                continue;
+            }
+            if (it->first == target) {
+                it->first = replace_with;
+            }
+            if (it->second == target) {
+                it->second = replace_with;
+            }
+        }
+    }
 
 public:
     IntFractional multiplicity;             ///< Multiplicity of the term.
@@ -131,6 +172,11 @@ public:
     virtual ~AbstractTerm() = default;
 
     /**
+     * @brief Discard momenta that are zero (k+0=k)
+     */
+    void discard_zero_momenta();
+
+    /**
      * @brief Resolves the Kronecker deltas of the momenta in the term.
      * @return True if successful, false otherwise.
      */
@@ -190,6 +236,16 @@ public:
 
 // Implementations
 template <class tOperatorType>
+void AbstractTerm<tOperatorType>::discard_zero_momenta() {
+    for (auto& op : operators) {
+        op.momentum.remove_zeros();
+    }
+    for (auto& coeff : coefficients) {
+        coeff.momenta.remove_zeros();
+    }
+}
+
+template <class tOperatorType>
 bool AbstractTerm<tOperatorType>::resolve_momentum_deltas() {
     if (is_always_zero(delta_momenta))
         return false;
@@ -244,18 +300,7 @@ bool AbstractTerm<tOperatorType>::resolve_momentum_deltas() {
         }
 
         // Replace set the delta everywhere, e.g., delta_{k,l+q} would replace each k with l+q
-        for (auto& coeff : coefficients) {
-            coeff.momenta.replace_occurances(delta_it->second.front().name, delta_it->first);
-        }
-        for (auto& op : operators) {
-            op.momentum.replace_occurances(delta_it->second.front().name, delta_it->first);
-        }
-        for (auto delta_it2 = delta_momenta.begin(); delta_it2 != delta_momenta.end(); ++delta_it2) {
-            if (delta_it2 == delta_it)
-                continue;
-            delta_it2->first.replace_occurances(delta_it->second.front().name, delta_it->first);
-            delta_it2->second.replace_occurances(delta_it->second.front().name, delta_it->first);
-        }
+        replace_each_momentum(delta_it->second.front().name, delta_it->first, [&delta_it](auto it) { return it == delta_it; });
 
         if (found_sum) {
             delta_it = delta_momenta.erase(delta_it);
@@ -336,23 +381,7 @@ bool AbstractTerm<tOperatorType>::resolve_index_deltas() {
         if (delta_it->first == delta_it->second)
             continue;
 
-        for (auto& op : operators) {
-            op.indizes.replace_index(to_resolve, change_to);
-        }
-        for (auto& coeff : coefficients) {
-            coeff.indizes.replace_index(to_resolve, change_to);
-        }
-
-        for (auto delta_it2 = delta_indizes.begin(); delta_it2 != delta_indizes.end(); ++delta_it2) {
-            if (delta_it2 == delta_it)
-                continue;
-            if (delta_it2->first == to_resolve) {
-                delta_it2->first = change_to;
-            }
-            if (delta_it2->second == to_resolve) {
-                delta_it2->second = change_to;
-            }
-        }
+        replace_each_index(to_resolve, change_to, [&delta_it](auto it) { return it == delta_it; });
 
         if (found_sum) {
             sums.spins.erase(sum_it);
@@ -380,32 +409,18 @@ void AbstractTerm<tOperatorType>::rename_sums() {
         if (sums.momenta[i] == name_list[i])
             continue;
 
-        for (auto& op : operators) {
-            op.momentum.replace_occurances(sums.momenta[i], Momentum(buffer_list[i]));
-        }
-        for (auto& coeff : coefficients) {
-            coeff.momenta.replace_occurances(sums.momenta[i], Momentum(buffer_list[i]));
-        }
+        replace_each_momentum(sums.momenta[i], Momentum(buffer_list[i]), [](auto) { return true; });
         sums.momenta[i] = name_list[i];
     }
 
     for (std::size_t i = 0U; i < sums.momenta.size(); ++i) {
-        for (auto& op : operators) {
-            op.momentum.replace_occurances(buffer_list[i], Momentum(name_list[i]));
-        }
-        for (auto& coeff : coefficients) {
-            coeff.momenta.replace_occurances(buffer_list[i], Momentum(name_list[i]));
-        }
+        replace_each_momentum(buffer_list[i], Momentum(name_list[i]), [](auto) { return true; });
     }
 
-    if (sums.spins.size() == 1U && sums.spins.front() == Index::SigmaPrime) {
+    if (sums.spins.size() == 1U && sums.spins.front() != Index::Sigma) {
+        Index old_sum = sums.spins.front();
         sums.spins.front() = Index::Sigma;
-        for (auto& op : operators) {
-            op.indizes.replace_index(Index::SigmaPrime, Index::Sigma);
-        }
-        for (auto& coeff : coefficients) {
-            coeff.indizes.replace_index(Index::SigmaPrime, Index::Sigma);
-        }
+        replace_each_index(old_sum, Index::Sigma, [](auto) { return true; });
     }
 }
 

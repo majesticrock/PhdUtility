@@ -96,6 +96,12 @@
     inline void push_back(value_type&& element) {                                   \
         _vector_name.push_back(std::move(element));                                 \
     }                                                                               \
+    inline void emplace_back(const value_type& element) {                           \
+        _vector_name.emplace_back(element);                                         \
+    }                                                                               \
+    inline void emplace_back(value_type&& element) {                                \
+        _vector_name.emplace_back(std::move(element));                              \
+    }                                                                               \
     inline void reserve(size_type new_capacity) {                                   \
         _vector_name.reserve(new_capacity);                                         \
     }                                                                               \

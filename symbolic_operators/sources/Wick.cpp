@@ -200,7 +200,7 @@ void clean_wicks(
         }
 
         for (const auto& symmetry : symmetries) {
-            symmetry->apply_to(*it);
+            symmetry->apply_to(it->operators);
         }
 
         for (auto jt = it->sums.spins.begin(); jt != it->sums.spins.end();) {

@@ -112,6 +112,26 @@ struct WickOperator {
 };
 
 /**
+ * @brief Equality operator for WickOperator.
+ *
+ * @param lhs The left-hand side WickOperator.
+ * @param rhs The right-hand side WickOperator.
+ * @return true if the two WickOperator objects are equal.
+ * @return false otherwise.
+ */
+bool operator==(const WickOperator& lhs, const WickOperator& rhs);
+
+/**
+ * @brief Inequality operator for WickOperator.
+ *
+ * @param lhs The left-hand side WickOperator.
+ * @param rhs The right-hand side WickOperator.
+ * @return true if the two WickOperator objects are not equal.
+ * @return false otherwise.
+ */
+bool operator!=(const WickOperator& lhs, const WickOperator& rhs);
+
+/**
  * @brief Stream insertion operator for WickOperator.
  *
  * @param os The output stream.

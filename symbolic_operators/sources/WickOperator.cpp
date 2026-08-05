@@ -79,6 +79,20 @@ std::vector<Operator> WickOperator::to_operator_expression() const {
     return result;
 }
 
+bool operator==(const WickOperator& lhs, const WickOperator& rhs) {
+    if (lhs.type != rhs.type)
+        return false;
+    if (lhs.is_daggered != rhs.is_daggered)
+        return false;
+    if (lhs.momentum != rhs.momentum)
+        return false;
+    return (lhs.indizes == rhs.indizes);
+}
+
+bool operator!=(const WickOperator& lhs, const WickOperator& rhs) {
+    return !(lhs == rhs);
+}
+
 std::ostream& operator<<(std::ostream& os, const WickOperator& op) {
     os << "\\langle " << op.type << "_{ " << op.momentum << ", ";
     for (const auto& index : op.indizes) {

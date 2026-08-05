@@ -230,11 +230,6 @@ public:
     bool resolve_deltas();
 
     /**
-     * @brief Discards zero momenta in the term.
-     */
-    void discard_zero_momenta();
-
-    /**
      * @brief Sorts the term.
      */
     void sort();

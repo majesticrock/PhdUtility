@@ -81,15 +81,6 @@ bool Term::resolve_deltas() {
     return true;
 }
 
-void Term::discard_zero_momenta() {
-    for (auto& op : operators) {
-        op.momentum.remove_zeros();
-    }
-    for (auto& coeff : coefficients) {
-        coeff.momenta.remove_zeros();
-    }
-}
-
 void Term::sort() {
     for (auto& coeff : coefficients) {
         for (auto& momentum : coeff.momenta) {

@@ -240,11 +240,6 @@ public:
     void rename_sums();
 
     /**
-     * @brief Discards zero momenta in the term.
-     */
-    void discard_zero_momenta();
-
-    /**
      * @brief Sorts the elements in the term.
      */
     void sort();
@@ -267,26 +262,6 @@ public:
      */
     bool is_pauli_forbidden() const;
 };  // WickTerm
-
-/**
- * @brief Equality operator for WickOperator.
- *
- * @param lhs The left-hand side WickOperator.
- * @param rhs The right-hand side WickOperator.
- * @return true if the two WickOperator objects are equal.
- * @return false otherwise.
- */
-bool operator==(const WickOperator& lhs, const WickOperator& rhs);
-
-/**
- * @brief Inequality operator for WickOperator.
- *
- * @param lhs The left-hand side WickOperator.
- * @param rhs The right-hand side WickOperator.
- * @return true if the two WickOperator objects are not equal.
- * @return false otherwise.
- */
-bool operator!=(const WickOperator& lhs, const WickOperator& rhs);
 
 /**
  * @brief Equality operator for WickTerm.
@@ -313,6 +288,8 @@ bool operator!=(const WickTerm& lhs, const WickTerm& rhs);
  * @brief A wrapper for a vector of WickTerm objects.
  */
 struct WickTermCollector {
+    std::vector<WickTerm> terms;  ///< The collected \c WickTerm objects
+
     /**
      * @brief Serializes the WickTermCollector object.
      *
@@ -320,8 +297,6 @@ struct WickTermCollector {
      * @param ar The archive object.
      * @param version The version of the serialization.
      */
-    std::vector<WickTerm> terms;  ///< The collected \c WickTerm objects
-
     template <class Archive>
     void serialize(Archive& ar, [[maybe_unused]] const unsigned int version) {
         ar & terms;

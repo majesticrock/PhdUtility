@@ -181,15 +181,6 @@ void WickTerm::rename_sums() {
     discard_zero_momenta();
 }
 
-void WickTerm::discard_zero_momenta() {
-    for (auto& op : operators) {
-        op.momentum.remove_zeros();
-    }
-    for (auto& coeff : coefficients) {
-        coeff.momenta.remove_zeros();
-    }
-}
-
 void WickTerm::sort() {
     for (auto& delta : delta_momenta) {
         if (delta.first.momentum_list.size() == 1 && delta.second.momentum_list.size() == 1) {
@@ -370,18 +361,6 @@ bool WickTerm::handled() const noexcept {
     return !(this->operators.empty());
 }
 
-bool operator==(const WickOperator& lhs, const WickOperator& rhs) {
-    if (lhs.type != rhs.type)
-        return false;
-    if (lhs.is_daggered != rhs.is_daggered)
-        return false;
-    if (lhs.momentum != rhs.momentum)
-        return false;
-    return (lhs.indizes == rhs.indizes);
-}
-bool operator!=(const WickOperator& lhs, const WickOperator& rhs) {
-    return !(lhs == rhs);
-}
 bool operator==(const WickTerm& lhs, const WickTerm& rhs) {
     if (lhs.coefficients != rhs.coefficients)
         return false;

@@ -2,12 +2,11 @@
 #define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICKSYMMETRY_HPP
 /**
  * @file WickSymmetry.hpp
- * @brief Defines symmetries for Wick terms.
+ * @brief Defines symmetries for Wick operators.
  */
 
 #include "OperatorType.hpp"
 #include "WickOperator.hpp"
-#include "WickTerm.hpp"
 
 #include <vector>
 
@@ -19,7 +18,7 @@ namespace mrock::symbolic_operators {
  *
  * There may be some symmetries that simplify your results, e.g., \f$ \langle O^\dagger \rangle = \langle O \rangle \f$.
  * These symmetries can be implemented by inheriting from the \c WickSymmetry class
- * and defining the member function \c virtual \c void \c apply_to(WickTerm& \c term) \c const.
+ * and defining the member function \c virtual \c void \c apply_to(std::vector<WickOperator>& \c operators) \c const.
  * Then create a \c std::vector<std::unique_ptr<WickSymmetry>> \c symmetries
  * and make use of polymorphism by calling \c clean_wicks(wicks,symmetries).
  * There are the following predefined symmetry operations:
@@ -44,9 +43,9 @@ struct WickSymmetry {
     /**
      * @brief Applies the symmetry to a Wick term.
      *
-     * @param term The Wick term to apply the symmetry to.
+     * @param operator_vector The vector of Wick operators to apply the symmetry to.
      */
-    virtual void apply_to(WickTerm& term) const = 0;
+    virtual void apply_to(std::vector<WickOperator>& operator_vector) const = 0;
 
     /**
      * @brief Virtual destructor for WickSymmetry.
@@ -62,9 +61,9 @@ struct SpinSymmetry : public WickSymmetry {
     /**
      * @brief Applies the spin symmetry to a Wick term.
      *
-     * @param term The Wick term to apply the symmetry to.
+     * @param operator_vector The vector of Wick operators to apply the symmetry to.
      */
-    void apply_to(WickTerm& term) const override;
+    void apply_to(std::vector<WickOperator>& operator_vector) const override;
 };
 
 /**
@@ -75,9 +74,9 @@ struct InversionSymmetry : public WickSymmetry {
     /**
      * @brief Applies the inversion symmetry to a Wick term.
      *
-     * @param term The Wick term to apply the symmetry to.
+     * @param operator_vector The vector of Wick operators to apply the symmetry to.
      */
-    void apply_to(WickTerm& term) const override;
+    void apply_to(std::vector<WickOperator>& operator_vector) const override;
 };
 
 /**
@@ -91,10 +90,10 @@ struct PhaseSymmetry : public WickSymmetry {
     /**
      * @brief Applies the phase symmetry to a Wick term.
      *
-     * @param term The Wick term to apply the symmetry to.
+     * @param operator_vector The vector of Wick operators to apply the symmetry to.
      */
-    void apply_to(WickTerm& term) const override {
-        for (auto& op : term.operators) {
+    void apply_to(std::vector<WickOperator>& operator_vector) const override {
+        for (auto& op : operator_vector) {
             auto equals_op = [&op](OperatorType comp) { return op.type == comp; };
             if ((equals_op(operators) || ...)) {
                 op.is_daggered = false;
