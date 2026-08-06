@@ -232,6 +232,23 @@ public:
      * @param value The momentum value to remove.
      */
     void remove_momentum_contribution(const MomentumSymbol::name_type value);
+
+    /**
+     * @brief Renames momenta in the term.
+     * @param what The momentum to rename.
+     * @param to The new momentum.
+     */
+    void rename_momenta(const MomentumSymbol::name_type what, const MomentumSymbol::name_type to);
+
+    /**
+     * @brief Transforms a momentum sum in the term.
+     * @param what The momentum to transform.
+     * @param to The new momentum.
+     * @param new_sum_index The new sum index.
+     */
+    void transform_momentum_sum(const MomentumSymbol::name_type what,
+                                const Momentum to,
+                                const MomentumSymbol::name_type new_sum_index);
 };
 
 // Implementations
@@ -471,6 +488,37 @@ void AbstractTerm<tOperatorType>::remove_momentum_contribution(const MomentumSym
         delta.second.remove_contribution(value);
     }
     std::erase_if(sums.momenta.summations, [&](const MomentumSymbol::name_type sum_idx) { return sum_idx == value; });
+}
+
+template <class tOperatorType>
+void AbstractTerm<tOperatorType>::transform_momentum_sum(const MomentumSymbol::name_type what,
+                                                        const Momentum to,
+                                                        const MomentumSymbol::name_type new_sum_index) {
+    auto pos = std::find(sums.momenta.begin(), sums.momenta.end(), what);
+    if (pos == sums.momenta.end()) {
+        throw std::invalid_argument(
+            "You are trying to perform a sum transformation on a momentum that is not being summed over!");
+    } else {
+        *pos = new_sum_index;
+    }
+
+    replace_each_momentum(what, to, [](auto) { return true; });
+}
+
+template <class tOperatorType>
+void AbstractTerm<tOperatorType>::rename_momenta(const MomentumSymbol::name_type what, const MomentumSymbol::name_type to) {
+    if (what == to)
+        return;
+    for (auto& mom_sum : sums.momenta) {
+        if (mom_sum == to) {
+            throw std::invalid_argument("You are replacing a momentum sum with an index that already exists!");
+        }
+        if (mom_sum == what) {
+            mom_sum = to;
+        }
+    }
+
+    replace_each_momentum(what, Momentum(to));
 }
 }  // namespace mrock::symbolic_operators
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_ABSTRACTTERM_HPP

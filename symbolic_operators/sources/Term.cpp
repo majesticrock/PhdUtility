@@ -301,59 +301,10 @@ void Term::rename_indizes(Index what, Index to) {
     }
 }
 
-void Term::rename_momenta(const MomentumSymbol::name_type what, const MomentumSymbol::name_type to) {
-    if (what == to)
-        return;
-    for (auto& mom_sum : sums.momenta) {
-        if (mom_sum == to) {
-            throw std::invalid_argument("You are replacing a momentum sum with an index that already exists!");
-        }
-        if (mom_sum == what) {
-            mom_sum = to;
-        }
-    }
-    for (auto& coeff : coefficients) {
-        for (auto& mom : coeff.momenta) {
-            mom.replace_occurances(what, Momentum(to));
-        }
-    }
-    for (auto& op : operators) {
-        op.momentum.replace_occurances(what, Momentum(to));
-    }
-    for (auto& delta : delta_momenta) {
-        if (delta.first.uses(what)) {
-            delta.first.replace_occurances(what, Momentum(to));
-        }
-        if (delta.second.uses(what)) {
-            delta.second.replace_occurances(what, Momentum(to));
-        }
-    }
-}
-
 void Term::swap_momenta(const MomentumSymbol::name_type a, const MomentumSymbol::name_type b) {
     this->rename_momenta(a, '_');
     this->rename_momenta(b, a);
     this->rename_momenta('_', b);
-}
-
-void Term::transform_momentum_sum(const MomentumSymbol::name_type what,
-                                  const Momentum to,
-                                  const MomentumSymbol::name_type new_sum_index) {
-    auto pos = std::find(sums.momenta.begin(), sums.momenta.end(), what);
-    if (pos == sums.momenta.end()) {
-        throw std::invalid_argument(
-            "You are trying to perform a sum transformation on a momentum that is not being summed over!");
-    } else {
-        *pos = new_sum_index;
-    }
-    for (auto& coeff : coefficients) {
-        for (auto& mom : coeff.momenta) {
-            mom.replace_occurances(what, to);
-        }
-    }
-    for (auto& op : operators) {
-        op.momentum.replace_occurances(what, to);
-    }
 }
 
 void normal_order(std::vector<Term>& terms) {

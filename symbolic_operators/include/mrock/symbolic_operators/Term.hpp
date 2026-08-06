@@ -273,28 +273,11 @@ public:
     void rename_indizes(const Index what, const Index to);
 
     /**
-     * @brief Renames momenta in the term.
-     * @param what The momentum to rename.
-     * @param to The new momentum.
-     */
-    void rename_momenta(const MomentumSymbol::name_type what, const MomentumSymbol::name_type to);
-
-    /**
      * @brief Swaps two momenta in the term.
      * @param a The first momentum.
      * @param b The second momentum.
      */
     void swap_momenta(const MomentumSymbol::name_type a, const MomentumSymbol::name_type b);
-
-    /**
-     * @brief Transforms a momentum sum in the term.
-     * @param what The momentum to transform.
-     * @param to The new momentum.
-     * @param new_sum_index The new sum index.
-     */
-    void transform_momentum_sum(const MomentumSymbol::name_type what,
-                                const Momentum to,
-                                const MomentumSymbol::name_type new_sum_index);
 
     /**
      * @brief Normal orders the terms by using the canoncical (anti-)commutation relations

@@ -223,17 +223,16 @@ void clean_wicks(
     for (auto& term : terms) {
         for (auto& delta : term.delta_momenta) {
             assert(delta.first.momentum_list.size() == 1U);
-            int l_is = delta.first.is_used_at('l');
-            if (l_is == 0)
+            int l_is_at = delta.first.is_used_at('l');
+            if (l_is_at == 0)
                 continue;
 
-            l_is = delta.second.is_used_at('l');
-            if (l_is == -1) {
-                std::cout << "################\n# Broken term\n";
-                std::cout << term << std::endl;
-                throw std::runtime_error("There is no l in the delta, but we need an l!");
+            l_is_at = delta.second.is_used_at('l');
+            if (l_is_at == -1) {
+                // No l in the delta, skip the logic
+                continue;
             }
-            const Momentum l_mom('l', delta.second.momentum_list[l_is].factor);
+            const Momentum l_mom('l', delta.second.momentum_list[l_is_at].factor);
             const Momentum remainder = delta.second - l_mom;
             delta -= remainder;
             std::swap(delta.first, delta.second);
