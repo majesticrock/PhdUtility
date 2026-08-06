@@ -85,5 +85,20 @@ void append_if(Vector& target, Vector&& source, const UnaryPred& predicate) {
     std::copy_if(std::make_move_iterator(source.begin()), std::make_move_iterator(source.end()),
                  std::back_inserter(target), predicate);
 }
+
+/**
+ * @brief Checks whether \c val is in \c vec
+ * 
+ * @tparam Vector Container type
+ * @tparam value_type The type of the value for the comparisons
+ * @param vec The container to check
+ * @param val The value to search for
+ * 
+ * @return Returns true if \c val is in \c vec and false otherwise.
+ */
+template <class Vector, class value_type>
+bool exists_in(const Vector& vec, const value_type& val) {
+    return (std::find(vec.begin(), vec.end(), val) != vec.end());
+}
 }  // namespace mrock::symbolic_operators
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_CONTAINER_HELPER_HPP

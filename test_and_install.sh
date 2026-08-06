@@ -86,6 +86,27 @@ CURRENT_BUILD_TESTING="ON"
 CURRENT_MROCK_EXTRA_INCLUDE_DIRS=""
 CURRENT_CMAKE_INSTALL_PREFIX=""
 CURRENT_CMAKE_PREFIX_PATH=""
+USE_DEFAULTS="OFF"
+
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --default)
+                USE_DEFAULTS="ON"
+                shift
+                ;;
+            -h|--help)
+                echo "Usage: $0 [--default]"
+                exit 0
+                ;;
+            *)
+                echo "Unknown option: $1" >&2
+                echo "Usage: $0 [--default]" >&2
+                exit 1
+                ;;
+        esac
+    done
+}
 
 read_user_config_defaults() {
     if [[ ! -f "${USER_CONFIG}" ]]; then
@@ -305,7 +326,24 @@ write_user_config_if_needed() {
 # Main
 ###############################################################################
 
+parse_args "$@"
 read_user_config_defaults
+
+if [[ "${USE_DEFAULTS}" == "ON" ]]; then
+    BUILD_UTILITY="${CURRENT_MROCK_BUILD_UTILITY}"
+    BUILD_SYMBOLIC_OPERATORS="${CURRENT_MROCK_BUILD_SYMBOLIC_OPERATORS}"
+    BUILD_IEOM="${CURRENT_MROCK_BUILD_IEOM}"
+    BUILD_TESTING="${CURRENT_BUILD_TESTING}"
+    INSTALL_PREFIX="${CURRENT_CMAKE_INSTALL_PREFIX}"
+    CMAKE_PREFIX_PATH_VALUE="${CURRENT_CMAKE_PREFIX_PATH}"
+    MROCK_EXTRA_INCLUDE_DIRS="${CURRENT_MROCK_EXTRA_INCLUDE_DIRS}"
+    if [[ "${BUILD_TESTING}" == "ON" ]]; then
+        RUN_TESTS="ON"
+    else
+        RUN_TESTS="OFF"
+    fi
+    DO_INSTALL="ON"
+fi
 
 echo
 echo "=================================="
@@ -319,148 +357,154 @@ echo
 # Components
 ###############################################################################
 
-if ask_yes_no "Build utility?" "$(default_letter "${CURRENT_MROCK_BUILD_UTILITY}")"; then
-    BUILD_UTILITY="ON"
-else
-    BUILD_UTILITY="OFF"
-fi
-
-if ask_yes_no "Build symbolic_operators?" "$(default_letter "${CURRENT_MROCK_BUILD_SYMBOLIC_OPERATORS}")"; then
-    BUILD_SYMBOLIC_OPERATORS="ON"
-else
-    BUILD_SYMBOLIC_OPERATORS="OFF"
-fi
-
-if ask_yes_no "Build iEoM?" "$(default_letter "${CURRENT_MROCK_BUILD_IEOM}")"; then
-    BUILD_IEOM="ON"
-else
-    BUILD_IEOM="OFF"
-fi
-
-if [[ "${BUILD_UTILITY}" == "OFF" &&
-      "${BUILD_SYMBOLIC_OPERATORS}" == "OFF" &&
-      "${BUILD_IEOM}" == "OFF" ]]; then
-    echo
-    echo "Nothing selected."
-    exit 1
-fi
-
-###############################################################################
-# Tests
-###############################################################################
-
-if ask_yes_no "Build tests?" "$(default_letter "${CURRENT_BUILD_TESTING}")"; then
-    BUILD_TESTING="ON"
-else
-    BUILD_TESTING="OFF"
-fi
-
-RUN_TESTS="OFF"
-
-if [[ "${BUILD_TESTING}" == "ON" ]]; then
-    if ask_yes_no "Run tests after build?" Y; then
-        RUN_TESTS="ON"
+if [[ "${USE_DEFAULTS}" == "OFF" ]]; then
+    if ask_yes_no "Build utility?" "$(default_letter "${CURRENT_MROCK_BUILD_UTILITY}")"; then
+        BUILD_UTILITY="ON"
+    else
+        BUILD_UTILITY="OFF"
     fi
-else
-    echo "Tests are disabled, so ctest will not be run."
-fi
 
-###############################################################################
-# Install
-###############################################################################
+    if ask_yes_no "Build symbolic_operators?" "$(default_letter "${CURRENT_MROCK_BUILD_SYMBOLIC_OPERATORS}")"; then
+        BUILD_SYMBOLIC_OPERATORS="ON"
+    else
+        BUILD_SYMBOLIC_OPERATORS="OFF"
+    fi
 
-INSTALL_PREFIX="${CURRENT_CMAKE_INSTALL_PREFIX}"
+    if ask_yes_no "Build iEoM?" "$(default_letter "${CURRENT_MROCK_BUILD_IEOM}")"; then
+        BUILD_IEOM="ON"
+    else
+        BUILD_IEOM="OFF"
+    fi
 
-echo
-if [[ -n "${CURRENT_CMAKE_INSTALL_PREFIX}" ]]; then
-    echo "Current install prefix: ${CURRENT_CMAKE_INSTALL_PREFIX}"
-else
-    echo "Current install prefix: <CMake default>"
-fi
+    if [[ "${BUILD_UTILITY}" == "OFF" &&
+          "${BUILD_SYMBOLIC_OPERATORS}" == "OFF" &&
+          "${BUILD_IEOM}" == "OFF" ]]; then
+        echo
+        echo "Nothing selected."
+        exit 1
+    fi
 
-if ask_yes_no "Change install prefix?" N; then
-    read -rp "Install prefix, leave empty for CMake default: " INSTALL_PREFIX
-fi
+    ###############################################################################
+    # Tests
+    ###############################################################################
 
-DO_INSTALL="OFF"
+    if ask_yes_no "Build tests?" "$(default_letter "${CURRENT_BUILD_TESTING}")"; then
+        BUILD_TESTING="ON"
+    else
+        BUILD_TESTING="OFF"
+    fi
 
-if ask_yes_no "Install after build?" Y; then
-    DO_INSTALL="ON"
-fi
+    RUN_TESTS="OFF"
 
-###############################################################################
-# CMAKE_PREFIX_PATH
-###############################################################################
-
-CMAKE_PREFIX_PATH_VALUE="${CURRENT_CMAKE_PREFIX_PATH}"
-
-echo
-if [[ -n "${CURRENT_CMAKE_PREFIX_PATH}" ]]; then
-    echo "Current CMAKE_PREFIX_PATH:"
-    echo "  ${CURRENT_CMAKE_PREFIX_PATH}"
-else
-    echo "Current CMAKE_PREFIX_PATH: <none>"
-fi
-
-if ask_yes_no "Add entries to CMAKE_PREFIX_PATH?" N; then
-    echo
-    echo "Enter CMake package prefixes one by one."
-    echo "Examples:"
-    echo "  /opt/some-library"
-    echo "  \$HOME/.local"
-    echo "  /usr/local"
-    echo
-    echo "Leave empty to finish."
-
-    while true; do
-        read -rp "CMAKE_PREFIX_PATH entry: " PREFIX_DIR
-
-        if [[ -z "${PREFIX_DIR}" ]]; then
-            break
+    if [[ "${BUILD_TESTING}" == "ON" ]]; then
+        if ask_yes_no "Run tests after build?" Y; then
+            RUN_TESTS="ON"
         fi
+    else
+        echo "Tests are disabled, so ctest will not be run."
+    fi
 
-        if [[ -n "${CMAKE_PREFIX_PATH_VALUE}" ]]; then
-            CMAKE_PREFIX_PATH_VALUE="${CMAKE_PREFIX_PATH_VALUE};${PREFIX_DIR}"
-        else
-            CMAKE_PREFIX_PATH_VALUE="${PREFIX_DIR}"
-        fi
-    done
-fi
+    ###############################################################################
+    # Install
+    ###############################################################################
 
-###############################################################################
-# Extra include directories
-###############################################################################
-
-MROCK_EXTRA_INCLUDE_DIRS="${CURRENT_MROCK_EXTRA_INCLUDE_DIRS}"
-
-echo
-if [[ -n "${CURRENT_MROCK_EXTRA_INCLUDE_DIRS}" ]]; then
-    echo "Current custom include directories:"
-    echo "  ${CURRENT_MROCK_EXTRA_INCLUDE_DIRS}"
-else
-    echo "Current custom include directories: <none>"
-fi
-
-if ask_yes_no "Replace custom include directories?" N; then
-    MROCK_EXTRA_INCLUDE_DIRS=""
+    INSTALL_PREFIX="${CURRENT_CMAKE_INSTALL_PREFIX}"
 
     echo
-    echo "Enter include directories one by one."
-    echo "Leave empty to finish."
+    if [[ -n "${CURRENT_CMAKE_INSTALL_PREFIX}" ]]; then
+        echo "Current install prefix: ${CURRENT_CMAKE_INSTALL_PREFIX}"
+    else
+        echo "Current install prefix: <CMake default>"
+    fi
 
-    while true; do
-        read -rp "Include directory: " INCLUDE_DIR
+    if ask_yes_no "Change install prefix?" N; then
+        read -rp "Install prefix, leave empty for CMake default: " INSTALL_PREFIX
+    fi
 
-        if [[ -z "${INCLUDE_DIR}" ]]; then
-            break
-        fi
+    DO_INSTALL="OFF"
 
-        if [[ -n "${MROCK_EXTRA_INCLUDE_DIRS}" ]]; then
-            MROCK_EXTRA_INCLUDE_DIRS="${MROCK_EXTRA_INCLUDE_DIRS};${INCLUDE_DIR}"
-        else
-            MROCK_EXTRA_INCLUDE_DIRS="${INCLUDE_DIR}"
-        fi
-    done
+    if ask_yes_no "Install after build?" Y; then
+        DO_INSTALL="ON"
+    fi
+
+    ###############################################################################
+    # CMAKE_PREFIX_PATH
+    ###############################################################################
+
+    CMAKE_PREFIX_PATH_VALUE="${CURRENT_CMAKE_PREFIX_PATH}"
+
+    echo
+    if [[ -n "${CURRENT_CMAKE_PREFIX_PATH}" ]]; then
+        echo "Current CMAKE_PREFIX_PATH:"
+        echo "  ${CURRENT_CMAKE_PREFIX_PATH}"
+    else
+        echo "Current CMAKE_PREFIX_PATH: <none>"
+    fi
+
+    if ask_yes_no "Add entries to CMAKE_PREFIX_PATH?" N; then
+        echo
+        echo "Enter CMake package prefixes one by one."
+        echo "Examples:"
+        echo "  /opt/some-library"
+        echo "  \$HOME/.local"
+        echo "  /usr/local"
+        echo
+        echo "Leave empty to finish."
+
+        while true; do
+            read -rp "CMAKE_PREFIX_PATH entry: " PREFIX_DIR
+
+            if [[ -z "${PREFIX_DIR}" ]]; then
+                break
+            fi
+
+            if [[ -n "${CMAKE_PREFIX_PATH_VALUE}" ]]; then
+                CMAKE_PREFIX_PATH_VALUE="${CMAKE_PREFIX_PATH_VALUE};${PREFIX_DIR}"
+            else
+                CMAKE_PREFIX_PATH_VALUE="${PREFIX_DIR}"
+            fi
+        done
+    fi
+
+    ###############################################################################
+    # Extra include directories
+    ###############################################################################
+
+    MROCK_EXTRA_INCLUDE_DIRS="${CURRENT_MROCK_EXTRA_INCLUDE_DIRS}"
+
+    echo
+    if [[ -n "${CURRENT_MROCK_EXTRA_INCLUDE_DIRS}" ]]; then
+        echo "Current custom include directories:"
+        echo "  ${CURRENT_MROCK_EXTRA_INCLUDE_DIRS}"
+    else
+        echo "Current custom include directories: <none>"
+    fi
+
+    if ask_yes_no "Replace custom include directories?" N; then
+        MROCK_EXTRA_INCLUDE_DIRS=""
+
+        echo
+        echo "Enter include directories one by one."
+        echo "Leave empty to finish."
+
+        while true; do
+            read -rp "Include directory: " INCLUDE_DIR
+
+            if [[ -z "${INCLUDE_DIR}" ]]; then
+                break
+            fi
+
+            if [[ -n "${MROCK_EXTRA_INCLUDE_DIRS}" ]]; then
+                MROCK_EXTRA_INCLUDE_DIRS="${MROCK_EXTRA_INCLUDE_DIRS};${INCLUDE_DIR}"
+            else
+                MROCK_EXTRA_INCLUDE_DIRS="${INCLUDE_DIR}"
+            fi
+        done
+    fi
+fi
+
+if [[ "${USE_DEFAULTS}" == "ON" ]]; then
+    echo "Using default option values."
 fi
 
 ###############################################################################

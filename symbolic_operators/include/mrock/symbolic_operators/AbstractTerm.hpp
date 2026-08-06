@@ -5,6 +5,7 @@
  * @brief Defines the AbstractTerm structure, which serves as a parent to both \c Term and \c WickTerm.
  */
 
+#include "detail/container_helper.hpp"
 #include "Coefficient.hpp"
 #include "Fractional.hpp"
 #include "KroneckerDelta.hpp"
@@ -38,45 +39,33 @@ protected:
     constexpr static MomentumSymbol::name_type buffer_list[N_BUFFER] = {':', ';', '|', '?', '!', '.',
                                                                         '-', '_', '+', '/', '='};
 
-    virtual void replace_each_momentum(const MomentumSymbol::name_type replaceWhat, const Momentum& replaceWith, 
-        std::function<bool(std::vector<KroneckerDelta<Momentum>>::iterator)> skip = [](auto) { return false; })
+    virtual void for_each_momentum_except_deltas(const std::function<void(Momentum&)>& f) 
     {
         for (auto& op : operators) {
-            op.momentum.replace_occurances(replaceWhat, replaceWith);
+            f(op.momentum);
         }
         for (auto& coeff : coefficients) {
-            coeff.momenta.replace_occurances(replaceWhat, replaceWith);
-        }
-        for (std::vector<KroneckerDelta<Momentum>>::iterator it = delta_momenta.begin(); it != delta_momenta.end(); ++it) {
-            if (skip(it)) {
-                continue;
+            for (auto& momentum : coeff.momenta) {
+                f(momentum);
             }
-            it->first.replace_occurances(replaceWhat, replaceWith);
-            it->second.replace_occurances(replaceWhat, replaceWith);
         }
     }
 
-    virtual void replace_each_index(Index target, Index replace_with, 
-        std::function<bool(std::vector<KroneckerDelta<Index>>::iterator)> skip = [](auto) { return false; }) 
+    virtual void for_each_index_except_deltas(const std::function<void(IndexWrapper&)>& f) 
     {
         for (auto& op : operators) {
-            op.indizes.replace_index(target, replace_with);
+            f(op.indizes);
         }
         for (auto& coeff : coefficients) {
-            coeff.indizes.replace_index(target, replace_with);
-        }
-        for (std::vector<KroneckerDelta<Index>>::iterator it = delta_indizes.begin(); it != delta_indizes.end(); ++it) {
-            if (skip(it)) {
-                continue;
-            }
-            if (it->first == target) {
-                it->first = replace_with;
-            }
-            if (it->second == target) {
-                it->second = replace_with;
-            }
+            f(coeff.indizes);
         }
     }
+
+    void replace_each_momentum(const MomentumSymbol::name_type replaceWhat, const Momentum& replaceWith, 
+        std::function<bool(std::vector<KroneckerDelta<Momentum>>::iterator)> skip = [](auto) { return false; });
+
+    void replace_each_index(Index target, Index replace_with, 
+        std::function<bool(std::vector<KroneckerDelta<Index>>::iterator)> skip = [](auto) { return false; });
 
 public:
     IntFractional multiplicity;             ///< Multiplicity of the term.
@@ -249,9 +238,57 @@ public:
     void transform_momentum_sum(const MomentumSymbol::name_type what,
                                 const Momentum to,
                                 const MomentumSymbol::name_type new_sum_index);
+
+    /**
+     * @brief Restructures the momentum summations so that a given \c current momentum is turned into \c should_be
+     * 
+     * @param current The current state of the momentum to target
+     * @param should_be The desired final state; constructed via \c Momentum(should_be)
+     * @param do_not_use Optionally provide a vector of symbols that should not be used for the transformation
+     * The idea is, if you already ordered 'q', you probably do not want to destroy what you already achieved.
+     * So you can pass 'q' as \c do_not_use and the algorithm will skip it.
+     */
+    void redistribute_momenta(const Momentum& current, const MomentumSymbol::name_type& should_be,
+        const std::vector<MomentumSymbol::name_type>& do_not_use = {});
 };
 
 // Implementations
+template <class tOperatorType>
+void AbstractTerm<tOperatorType>::replace_each_momentum(const MomentumSymbol::name_type replaceWhat, const Momentum& replaceWith, 
+    std::function<bool(std::vector<KroneckerDelta<Momentum>>::iterator)> skip)
+{
+    for_each_momentum_except_deltas([&replaceWhat, &replaceWith](Momentum& momentum){
+        momentum.replace_occurances(replaceWhat, replaceWith);
+    });
+    for (std::vector<KroneckerDelta<Momentum>>::iterator it = delta_momenta.begin(); it != delta_momenta.end(); ++it) {
+        if (skip(it)) {
+            continue;
+        }
+        it->first.replace_occurances(replaceWhat, replaceWith);
+        it->second.replace_occurances(replaceWhat, replaceWith);
+    }
+}
+
+template <class tOperatorType>
+void AbstractTerm<tOperatorType>::replace_each_index(Index target, Index replace_with, 
+    std::function<bool(std::vector<KroneckerDelta<Index>>::iterator)> skip) 
+{
+    for_each_index_except_deltas([&target, &replace_with](IndexWrapper& indizes) {
+        indizes.replace_index(target, replace_with);
+    });
+    for (std::vector<KroneckerDelta<Index>>::iterator it = delta_indizes.begin(); it != delta_indizes.end(); ++it) {
+        if (skip(it)) {
+            continue;
+        }
+        if (it->first == target) {
+            it->first = replace_with;
+        }
+        if (it->second == target) {
+            it->second = replace_with;
+        }
+    }
+}
+
 template <class tOperatorType>
 void AbstractTerm<tOperatorType>::discard_zero_momenta() {
     for (auto& op : operators) {
@@ -458,12 +495,9 @@ const std::vector<tOperatorType>& AbstractTerm<tOperatorType>::get_operators() c
 
 template <class tOperatorType>
 void AbstractTerm<tOperatorType>::invert_momentum(const MomentumSymbol::name_type what) {
-    for (auto& coeff : coefficients) {
-        coeff.invert_momentum(what);
-    }
-    for (auto& op : operators) {
-        op.momentum.flip_single(what);
-    }
+    for_each_momentum_except_deltas([what](Momentum& momentum){
+        momentum.flip_single(what);
+    });
 }
 
 template <class tOperatorType>
@@ -519,6 +553,36 @@ void AbstractTerm<tOperatorType>::rename_momenta(const MomentumSymbol::name_type
     }
 
     replace_each_momentum(what, Momentum(to));
+}
+
+template <class tOperatorType>
+void AbstractTerm<tOperatorType>::redistribute_momenta(const Momentum& current, const MomentumSymbol::name_type& should_be,
+    const std::vector<MomentumSymbol::name_type>& do_not_use)
+{
+    if (current != Momentum(should_be)) {
+        std::size_t i=0;
+        MomentumSymbol::name_type transformer = current[i].name;
+
+        while (!sums.momenta.is_summed_over(transformer) || exists_in(do_not_use, transformer)) {
+            if (++i >= current.size()) {
+                throw std::invalid_argument("There is no summation that would allow the desired transformation!");
+            }
+            transformer = current[i].name;
+            
+        }
+
+        if (current[i].factor < 0) {
+            invert_momentum_sum(transformer);
+        }
+        Momentum target = -current;
+        target += Momentum(transformer);
+        target += Momentum('?');
+
+        transform_momentum_sum(transformer, target, '?');
+
+        rename_momenta(should_be, transformer);
+        rename_momenta('?', should_be);
+    }
 }
 }  // namespace mrock::symbolic_operators
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_ABSTRACTTERM_HPP
