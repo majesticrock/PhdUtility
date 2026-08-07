@@ -149,6 +149,23 @@ public:
     WickTerm(const WickTerm& base, const TemplateResult::SingleResult& result);
 
     /**
+     * @brief Constructs a Term with a summation over momenta and spins and multiple coefficients and Kronecker deltas
+     *
+     * @param _multiplicity The multiplicity of the term
+     * @param _sums The sums
+     * @param _coefficients The coefficients
+     * @param _operators The operators
+     * @param _delta_momenta The Kronecker deltas for the momenta
+     * @param _delta_indizes The Kronecker deltas for the indizes
+     */
+    WickTerm(const IntFractional& _multiplicity,
+             const std::vector<Coefficient>& _coefficients,
+             const SumContainer& _sums,
+             const std::vector<KroneckerDelta<Momentum>>& _delta_momenta,
+             const std::vector<KroneckerDelta<Index>>& _delta_indizes,
+             const std::vector<WickOperator>& _operators);
+
+    /**
      * @brief Constructs a WickTerm object from a string expression.
      *
      * @param expression The string expression.
