@@ -240,9 +240,9 @@ public:
                                 const MomentumSymbol::name_type new_sum_index);
 
     /**
-     * @brief Restructures the momentum summations so that a given \c current momentum is turned into \c should_be
+     * @brief Restructures the momentum summations so that a given \c current Momentum is turned into \c should_be
      * 
-     * @param current The current state of the momentum to target
+     * @param current The current state of the Momentum to target
      * @param should_be The desired final state; constructed via \c Momentum(should_be)
      * @param do_not_use Optionally provide a vector of symbols that should not be used for the transformation
      * The idea is, if you already ordered 'q', you probably do not want to destroy what you already achieved.
@@ -250,6 +250,26 @@ public:
      */
     void redistribute_momenta(const Momentum& current, const MomentumSymbol::name_type& should_be,
         const std::vector<MomentumSymbol::name_type>& do_not_use = {});
+
+    /**
+     * @brief Renames all occuring \c what to \c to
+     * 
+     * @param what The Index to look for.
+     * @param to The Index that \c what should be changed to.
+     */
+    void rename_indizes(const Index what, const Index to);
+
+    /**
+     * @brief Restructures the inedx summations so that a given \c current Index is turned into \c should_be
+     * 
+     * @param current The current state of the Index to target
+     * @param should_be The desired final state
+     * @param do_not_use Optionally provide a vector of symbols that should not be used for the transformation
+     * The idea is, if you already ordered 'sigma', you probably do not want to destroy what you already achieved.
+     * So you can pass 'sigma' as \c do_not_use and the algorithm will skip it.
+     */
+    void redistribute_indizes(const Index current, const Index should_be,
+        const std::vector<Index>& do_not_use = {});
 };
 
 // Implementations
@@ -432,9 +452,14 @@ bool AbstractTerm<tOperatorType>::resolve_index_deltas() {
             }
         }
 
-        if (delta_it->first == delta_it->second)
+        if(remove_delta_is_one(delta_indizes)) {
+            delta_it = delta_indizes.begin();
             continue;
-
+        }
+        if(remove_delta_squared(delta_indizes)) {
+            delta_it = delta_indizes.begin();
+            continue;
+        }
         replace_each_index(to_resolve, change_to, [&delta_it](auto it) { return it == delta_it; });
 
         if (found_sum) {
@@ -471,10 +496,14 @@ void AbstractTerm<tOperatorType>::rename_sums() {
         replace_each_momentum(buffer_list[i], Momentum(name_list[i]), [](auto) { return true; });
     }
 
-    if (sums.spins.size() == 1U && sums.spins.front() != Index::Sigma) {
-        Index old_sum = sums.spins.front();
-        sums.spins.front() = Index::Sigma;
-        replace_each_index(old_sum, Index::Sigma, [](auto) { return true; });
+    std::sort(sums.spins.begin(), sums.spins.end());
+    for (std::size_t i=0U; i < sums.spins.size(); ++i){
+        const Index should_be = static_cast<Index>(static_cast<std::size_t>(Index::Sigma) + i);
+        if (static_cast<std::size_t>(sums.spins[i]) != static_cast<std::size_t>(should_be)) {
+            const Index old_sum = sums.spins[i];
+            sums.spins[i] = should_be;
+            replace_each_index(old_sum, should_be, [](auto) { return true; });
+        }
     }
 }
 
@@ -559,30 +588,65 @@ template <class tOperatorType>
 void AbstractTerm<tOperatorType>::redistribute_momenta(const Momentum& current, const MomentumSymbol::name_type& should_be,
     const std::vector<MomentumSymbol::name_type>& do_not_use)
 {
-    if (current != Momentum(should_be)) {
-        std::size_t i=0;
-        MomentumSymbol::name_type transformer = current[i].name;
+    if (current == Momentum(should_be)) return;
 
-        while (!sums.momenta.is_summed_over(transformer) || exists_in(do_not_use, transformer)) {
-            if (++i >= current.size()) {
-                throw std::invalid_argument("There is no summation that would allow the desired transformation!");
-            }
-            transformer = current[i].name;
-            
+    std::size_t i=0;
+    MomentumSymbol::name_type transformer = current[i].name;
+
+    while (!sums.momenta.is_summed_over(transformer) || exists_in(do_not_use, transformer)) {
+        if (++i >= current.size()) {
+            throw std::invalid_argument("There is no summation that would allow the desired momentum transformation!");
         }
+        transformer = current[i].name;
+        
+    }
 
-        if (current[i].factor < 0) {
-            invert_momentum_sum(transformer);
+    if (current[i].factor < 0) {
+        invert_momentum_sum(transformer);
+    }
+    Momentum target = -current;
+    target += Momentum(transformer);
+    target += Momentum('?');
+
+    transform_momentum_sum(transformer, target, '?');
+
+    rename_momenta(should_be, transformer);
+    rename_momenta('?', should_be);
+}
+
+template <class tOperatorType>
+void AbstractTerm<tOperatorType>::rename_indizes(const Index what, const Index to)
+{
+    if (what == to) return;
+
+    for (auto& index_sum : sums.spins) {
+        if (index_sum == to) {
+            throw std::invalid_argument("You are replacing an index sum with an index that already exists!");
         }
-        Momentum target = -current;
-        target += Momentum(transformer);
-        target += Momentum('?');
+        if (index_sum == what) {
+            index_sum = to;
+        }
+    }
 
-        transform_momentum_sum(transformer, target, '?');
+    replace_each_index(what, to);
+}
 
-        rename_momenta(should_be, transformer);
-        rename_momenta('?', should_be);
+template <class tOperatorType>
+void AbstractTerm<tOperatorType>::redistribute_indizes(const Index current, const Index should_be,
+        const std::vector<Index>& do_not_use)
+{
+    if (current == should_be) return;
+    if (exists_in(do_not_use, current)) return;
+
+    if (sums.spins.is_summed_over(current)) {
+        rename_indizes(should_be, Index::PlaceHolderIndex);
+        rename_indizes(current, should_be);
+        rename_indizes(Index::PlaceHolderIndex, current);
+    }
+    else {
+        throw std::invalid_argument("There is no summation that would allow the desired index transformation!");
     }
 }
+
 }  // namespace mrock::symbolic_operators
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_ABSTRACTTERM_HPP

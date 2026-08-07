@@ -1,6 +1,24 @@
 #include <mrock/symbolic_operators/IndexWrapper.hpp>
 
 namespace mrock::symbolic_operators {
+Index& operator++(Index& index) {
+    return index = static_cast<Index>(static_cast<index_base>(index) + 1);
+}
+Index operator++(Index& index, int) {
+    Index tmp(index);
+    ++index;
+    return tmp;
+}
+
+Index& operator--(Index& index) {
+    return index = static_cast<Index>(static_cast<index_base>(index) - 1);
+}
+Index operator--(Index& index, int) {
+    Index tmp(index);
+    --index;
+    return tmp;
+}
+
 void IndexWrapper::replace_index(Index target, Index replace_with) {
     for (auto& index : indizes) {
         if (index == target) {

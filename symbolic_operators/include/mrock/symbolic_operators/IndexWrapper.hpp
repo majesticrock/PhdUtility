@@ -60,9 +60,56 @@ enum class Index : index_base {
     /* The ascii symbols continue here, but have no special name */
     char_a = 97,
     /* The ascii symbols continue here, but have no special name */
+    PlaceHolderIndex = 253, /* Designed as an internal placeholder. Should not be directly used */
     UndefinedIndex = 254,
     NoIndex = 255
 };
+
+/**
+ * @brief Pre-increment operator for Index.
+ *
+ * Advances the given Index value to the next valid index and returns
+ * a reference to the incremented value.
+ *
+ * @param index The Index value to increment.
+ * @return A reference to the incremented Index.
+ */
+Index& operator++(Index& index);
+
+/**
+ * @brief Post-increment operator for Index.
+ *
+ * Advances the given Index value to the next valid index and returns
+ * the original value prior to incrementing.
+ *
+ * @param index The Index value to increment.
+ * @param unused A dummy int parameter to distinguish post-increment.
+ * @return The original Index value before incrementing.
+ */
+Index operator++(Index& index, int);
+
+/**
+ * @brief Pre-decrement operator for Index.
+ *
+ * Moves the given Index value to the previous valid index and returns
+ * a reference to the decremented value.
+ *
+ * @param index The Index value to decrement.
+ * @return A reference to the decremented Index.
+ */
+Index& operator--(Index& index);
+
+/**
+ * @brief Post-decrement operator for Index.
+ *
+ * Moves the given Index value to the previous valid index and returns
+ * the original value prior to decrementing.
+ *
+ * @param index The Index value to decrement.
+ * @param unused A dummy int parameter to distinguish post-decrement.
+ * @return The original Index value before decrementing.
+ */
+Index operator--(Index& index, int);
 
 /**
  * @brief Converts a character to an Index.
@@ -165,6 +212,13 @@ struct IndexWrapper {
      * @param _indizes The vector of Index values to initialize with.
      */
     IndexWrapper(std::vector<Index>&& _indizes) : indizes(std::move(_indizes)){};
+
+    /**
+     * @brief Constructs an IndexWrapper with an initializer list
+     * 
+     * @param ilist the initializer list
+     */
+    IndexWrapper(std::initializer_list<Index> ilist) : indizes(ilist) {};
 
     MROCK_VECTOR_WRAPPER_FILL_MEMBERS(Index, indizes);
 

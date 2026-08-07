@@ -21,45 +21,67 @@ namespace mrock::symbolic_operators {
  *
  * @tparam T The LinearlyCombinable (defines + and -) type of the elements.
  * @param deltas The vector of KroneckerDelta objects.
+ * 
+ * @return Returns true if changes were made and false otherwise
  */
 template <LinearlyCombinable T>
     requires std::default_initializable<T>
-void remove_delta_squared(std::vector<KroneckerDelta<T>>& deltas) {
+bool remove_delta_squared(std::vector<KroneckerDelta<T>>& deltas) {
+    bool changed{};
     for (std::size_t i = 0U; i < deltas.size(); i++) {
         for (std::size_t j = i + 1; j < deltas.size(); j++) {
             const T buffer = (deltas[i].first - deltas[i].second) - (deltas[j].first - deltas[j].second);
             if (buffer == T()) {
                 deltas.erase(deltas.begin() + j);
+                changed = true;
                 break;
             }
         }
     }
+    return changed;
 }
 
+/**
+ * @brief Removes squared KroneckerDelta objects from the vector. Note that delta_{a,b}^N = delta_{a,b}.
+ *
+ * @tparam T The type of the elements.
+ * @param deltas The vector of KroneckerDelta objects.
+ * 
+ * @return Returns true if changes were made and false otherwise
+ */
 template <class T>
-void remove_delta_squared(std::vector<KroneckerDelta<T>>& deltas) {
+bool remove_delta_squared(std::vector<KroneckerDelta<T>>& deltas) {
+    bool changed{};
     for (std::size_t i = 0U; i < deltas.size(); i++) {
         for (std::size_t j = i + 1; j < deltas.size(); j++) {
             if (deltas[i] == deltas[j]) {
                 deltas.erase(deltas.begin() + j);
+                changed = true;
                 --i;
                 break;
             }
         }
     }
+    return changed;
 }
 
 /**
- * @brief Removes KroneckerDelta objects that are one from the vector. Note that delta_{a,a} = 1.
+ * @brief Removes KroneckerDelta objects that are equal to unity from the vector. 
+ * Note that delta_{a,a} = 1.
  *
  * @tparam T The type of the elements.
  * @param deltas The vector of KroneckerDelta objects.
+ * 
+ * @return Returns true if changes were made and false otherwise
  */
 template <class T>
-void remove_delta_is_one(std::vector<KroneckerDelta<T>>& deltas) {
+bool remove_delta_is_one(std::vector<KroneckerDelta<T>>& deltas) {
+    const auto old_end = deltas.end();
     auto new_end =
         std::remove_if(deltas.begin(), deltas.end(), [](const KroneckerDelta<T>& delta) { return delta.isOne(); });
     deltas.erase(new_end, deltas.end());
+
+    return (old_end != deltas.end());
 }
 
 /**

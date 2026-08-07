@@ -13,7 +13,7 @@ namespace mrock::symbolic_operators {
 void Coefficient::invert_momentum(const MomentumSymbol::name_type what) {
     for (auto& mom : momenta) {
         if (this->inversion_symmetry && mom.size() == 1U) {
-            // If the coefficient is translationally invariant, i.e., c(k) = c(-k),
+            // If the coefficient is symmetric under inversion, i.e., c(k) = c(-k),
             // we want to make sure that the momentum is always positive
             if (mom.front().factor > 0)
                 continue;
@@ -38,6 +38,16 @@ void Coefficient::use_symmetric_interaction_inversion() {
         }
     }
 }
+
+void Coefficient::use_inversion_symmetry() 
+{
+    for (auto& momentum : momenta) {
+        if (momentum.front().factor < 0) {
+            momentum.flip_momentum();
+        }
+    }
+}
+
 
 void Coefficient::remove_momentum_contribution(const MomentumSymbol::name_type value) {
     for (auto& mom : momenta) {

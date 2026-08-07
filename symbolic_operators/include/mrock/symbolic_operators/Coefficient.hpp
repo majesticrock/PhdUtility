@@ -241,6 +241,11 @@ struct Coefficient {
     void use_symmetric_interaction_inversion();
 
     /**
+     * @brief Utilizes V(k,q,...) = V(-k,q,...) = V(k,-q,...) = etc
+     */
+    void use_inversion_symmetry();
+
+    /**
      * @brief Removes a momentum contribution from the coefficient.
      * @param value The momentum value to remove.
      */
