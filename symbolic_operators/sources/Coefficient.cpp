@@ -55,7 +55,7 @@ void Coefficient::remove_momentum_contribution(const MomentumSymbol::name_type v
     }
 }
 
-void Coefficient::apply_custom_symmetry() {
+void Coefficient::use_custom_symmetry() {
     if (custom_symmetry.has_value()) {
         custom_symmetry.value()(*this);
     }

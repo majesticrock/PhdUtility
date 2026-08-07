@@ -254,7 +254,7 @@ struct Coefficient {
     /**
      * @brief Applies the custom symmetry function if it exists.
      */
-    void apply_custom_symmetry();
+    void use_custom_symmetry();
 };
 
 /**

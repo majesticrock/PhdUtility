@@ -214,7 +214,7 @@ void clean_wicks(
             }
         }
         for (auto& coeff : it->coefficients) {
-            coeff.apply_custom_symmetry();
+            coeff.use_custom_symmetry();
         }
         ++it;
     }
