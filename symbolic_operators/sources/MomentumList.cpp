@@ -24,6 +24,16 @@ void MomentumList::flip_single(const MomentumSymbol::name_type momentum) {
     }
 }
 
+int MomentumList::factor_of_first_occurance(const MomentumSymbol::name_type search_for) {
+    for (const Momentum& momentum : this->momenta) {
+        int pos = momentum.is_used_at(search_for);
+        if (pos < 0) continue;
+        
+        return momentum[pos].factor;
+    }
+    return 0;
+}
+
 std::ostream& operator<<(std::ostream& os, const MomentumList& momenta) {
     if (momenta.empty())
         return os;

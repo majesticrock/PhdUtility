@@ -260,7 +260,7 @@ public:
     void rename_indizes(const Index what, const Index to);
 
     /**
-     * @brief Restructures the inedx summations so that a given \c current Index is turned into \c should_be
+     * @brief Restructures the index summations so that a given \c current Index is turned into \c should_be
      * 
      * @param current The current state of the Index to target
      * @param should_be The desired final state
@@ -588,7 +588,7 @@ template <class tOperatorType>
 void AbstractTerm<tOperatorType>::redistribute_momenta(const Momentum& current, const MomentumSymbol::name_type& should_be,
     const std::vector<MomentumSymbol::name_type>& do_not_use)
 {
-    if (current == Momentum(should_be)) return;
+    if (current == Momentum(should_be) || current.empty()) return;
 
     std::size_t i=0;
     MomentumSymbol::name_type transformer = current[i].name;

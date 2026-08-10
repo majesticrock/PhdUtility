@@ -149,6 +149,38 @@ std::ostream& operator<<(std::ostream& os, const WickOperator& op);
  */
 std::ostream& operator<<(std::ostream& os, const std::vector<WickOperator>& ops);
 
+/**
+ * @brief Compares two WickOperator objects for greater-than ordering.
+ * @param lhs The left-hand side WickOperator.
+ * @param rhs The right-hand side WickOperator.
+ * @return True if lhs is greater than rhs, false otherwise.
+ */
+bool operator>(const WickOperator& lhs, const WickOperator& rhs);
+
+/**
+ * @brief Compares two WickOperator objects for less-than ordering.
+ * @param lhs The left-hand side WickOperator.
+ * @param rhs The right-hand side WickOperator.
+ * @return True if lhs is less than rhs, false otherwise.
+ */
+bool operator<(const WickOperator& lhs, const WickOperator& rhs);
+
+/**
+ * @brief Compares two WickOperator objects for greater-or-equal ordering.
+ * @param lhs The left-hand side WickOperator.
+ * @param rhs The right-hand side WickOperator.
+ * @return True if lhs is greater than or equal to rhs, false otherwise.
+ */
+bool operator>=(const WickOperator& lhs, const WickOperator& rhs);
+
+/**
+ * @brief Compares two WickOperator objects for less-or-equal ordering.
+ * @param lhs The left-hand side WickOperator.
+ * @param rhs The right-hand side WickOperator.
+ * @return True if lhs is less than or equal to rhs, false otherwise.
+ */
+bool operator<=(const WickOperator& lhs, const WickOperator& rhs);
+
 // Inline definitions
 bool WickOperator::uses_index(const Index index) const noexcept {
     for (const auto& idx : this->indizes) {

@@ -41,10 +41,9 @@ void Coefficient::use_symmetric_interaction_inversion() {
 
 void Coefficient::use_inversion_symmetry() 
 {
+    if (!this->inversion_symmetry) return;
     for (auto& momentum : momenta) {
-        if (momentum.front().factor < 0) {
-            momentum.flip_momentum();
-        }
+        momentum.flip_momentum();
     }
 }
 
@@ -140,12 +139,22 @@ Coefficient Coefficient::RealInversionSymmetric(
     ret.custom_symmetry = custom_symmetry;
     return ret;
 }
-Coefficient Coefficient::RealInteraction(
-    const std::string& name,
-    const MomentumList& momenta,
-    const std::optional<std::function<void(Coefficient&)>>& custom_symmetry /* = std::nullopt */) {
+Coefficient Coefficient::RealInteraction(const std::string& name,
+                                         const MomentumList& momenta,
+                                         const std::optional<std::function<void(Coefficient&)>>& custom_symmetry /* = std::nullopt */) {
     assert(momenta.size() == 3U);
     Coefficient ret(name, momenta, {}, false, false);
+    ret.is_symmetrized_interaction = true;
+    ret.custom_symmetry = custom_symmetry;
+    return ret;
+}
+
+Coefficient Coefficient::RealInteraction(const std::string& name,
+                                         const MomentumList& momenta,
+                                         const IndexWrapper& _indizes,
+                                         const std::optional<std::function<void(Coefficient&)>>& custom_symmetry) {
+    assert(momenta.size() == 3U);
+    Coefficient ret(name, momenta, _indizes, false, false);
     ret.is_symmetrized_interaction = true;
     ret.custom_symmetry = custom_symmetry;
     return ret;

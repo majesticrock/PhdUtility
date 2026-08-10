@@ -310,6 +310,22 @@ bool operator>(const Momentum& lhs, const Momentum& rhs);
 bool operator<(const Momentum& lhs, const Momentum& rhs);
 
 /**
+ * @brief Compares two Momentum objects for greater-or-equal ordering.
+ * @param lhs The left-hand side Momentum.
+ * @param rhs The right-hand side Momentum.
+ * @return True if lhs is greater than or equal to rhs, false otherwise.
+ */
+bool operator>=(const Momentum& lhs, const Momentum& rhs);
+
+/**
+ * @brief Compares two Momentum objects for less-or-equal ordering.
+ * @param lhs The left-hand side Momentum.
+ * @param rhs The right-hand side Momentum.
+ * @return True if lhs is less than or equal to rhs, false otherwise.
+ */
+bool operator<=(const Momentum& lhs, const Momentum& rhs);
+
+/**
  * @brief Outputs a Momentum to an output stream.
  * @param os The output stream.
  * @param momentum The Momentum.

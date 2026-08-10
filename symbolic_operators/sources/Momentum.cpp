@@ -211,23 +211,31 @@ std::ostream& operator<<(std::ostream& os, const Momentum& momentum) {
 }
 
 bool operator>(const Momentum& lhs, const Momentum& rhs) {
-    if (lhs.momentum_list == rhs.momentum_list)
-        return false;
-    if (rhs.momentum_list.empty())
-        return true;
-    if (lhs.momentum_list.empty())
-        return false;
-    return lhs.momentum_list.front() > rhs.momentum_list.front();
+    return !(lhs <= rhs);
 }
 
 bool operator<(const Momentum& lhs, const Momentum& rhs) {
-    if (lhs.momentum_list == rhs.momentum_list)
-        return false;
-    if (lhs.momentum_list.empty())
-        return true;
-    if (rhs.momentum_list.empty())
-        return false;
-    return lhs.momentum_list.front() < rhs.momentum_list.front();
+    if (lhs.momentum_list == rhs.momentum_list) return false;
+    
+    if (lhs.momentum_list.size() < rhs.momentum_list.size()) return true;
+    if (lhs.momentum_list.size() > rhs.momentum_list.size()) return false;
+
+    for (std::size_t i=0U; i < lhs.momentum_list.size(); ++i) {
+        if (lhs.momentum_list[i].name < rhs.momentum_list[i].name) return true;
+        if (lhs.momentum_list[i].name > rhs.momentum_list[i].name) return false;
+    }
+    
+    return false;
+}
+
+bool operator>=(const Momentum& lhs, const Momentum& rhs)
+{
+    return (lhs > rhs || lhs == rhs);
+}
+
+bool operator<=(const Momentum& lhs, const Momentum& rhs)
+{
+    return (lhs < rhs || lhs == rhs);
 }
 
 Momentum::Momentum(const char value, int plus_minus /* = 1 */, bool Q /* = false */)

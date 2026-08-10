@@ -138,6 +138,20 @@ struct Coefficient {
         const std::optional<std::function<void(Coefficient&)>>& custom_symmetry = std::nullopt);
 
     /**
+     * @brief Generates a real Coefficient with V(k, k', q) = V(k', k, -q).
+     * @param name The name of the coefficient.
+     * @param momenta The list of momenta.
+     * @param _indizes The indizes of the coefficient
+     * @param custom_symmetry Optional custom symmetry function.
+     * @return A real interaction Coefficient.
+     */
+    static Coefficient RealInteraction(
+        const std::string& name,
+        const MomentumList& momenta,
+        const IndexWrapper& _indizes,
+        const std::optional<std::function<void(Coefficient&)>>& custom_symmetry = std::nullopt);
+
+    /**
      * @brief Generates a Coefficient as they occur on a honeycomb lattice.
      * @param name The name of the coefficient.
      * @param momentum The momentum.

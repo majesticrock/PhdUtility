@@ -106,6 +106,8 @@ public:
      */
     void flip_single(const MomentumSymbol::name_type momentum);
 
+    int factor_of_first_occurance(const MomentumSymbol::name_type search_for);
+
     MROCK_VECTOR_WRAPPER_FILL_MEMBERS(Momentum, momenta);
 
     inline auto operator<=>(const MomentumList& rhs) const = default;
