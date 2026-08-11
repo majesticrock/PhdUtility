@@ -2,6 +2,7 @@
 #include <mrock/symbolic_operators/MomentumList.hpp>
 #include <mrock/symbolic_operators/MomentumSymbol.hpp>
 
+#include <algorithm>
 #include <cstddef>
 #include <ostream>
 
@@ -22,6 +23,17 @@ void MomentumList::flip_single(const MomentumSymbol::name_type momentum) {
     for (auto& mom : momenta) {
         mom.flip_single(momentum);
     }
+}
+
+bool MomentumList::uses(const MomentumSymbol::name_type what) const noexcept {
+    for(const auto& momentum : momenta) {
+        if(momentum.uses(what)) return true;
+    }
+    return false;
+}
+
+void MomentumList::sort() {
+    std::sort(this->begin(), this->end());
 }
 
 int MomentumList::factor_of_first_occurance(const MomentumSymbol::name_type search_for) {

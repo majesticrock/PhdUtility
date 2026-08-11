@@ -126,6 +126,16 @@ inline void save_string(const std::string& text, const std::string& filename) {
         std::cerr << "Could not open output filestream for file: " << filename << std::endl;
     }
 }
+
+inline void save_string_raw(const std::string& text, const std::string& filename) {
+    std::cout << "Saving data to " << filename << std::endl;
+    std::ofstream out(filename);
+    if (out.is_open()) {
+        out << text;
+    } else {
+        std::cerr << "Could not open output filestream for file: " << filename << std::endl;
+    }
+}
 #else   // End using boost
         // Provides an easy-to-use method that uses std::ofstream to write <data> to <filename> in plain text
 template <typename vector_type, typename data_type = typename vector_type::value_type>

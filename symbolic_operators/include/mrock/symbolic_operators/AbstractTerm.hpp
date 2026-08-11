@@ -61,12 +61,6 @@ protected:
         }
     }
 
-    void replace_each_momentum(const MomentumSymbol::name_type replaceWhat, const Momentum& replaceWith, 
-        std::function<bool(std::vector<KroneckerDelta<Momentum>>::iterator)> skip = [](auto) { return false; });
-
-    void replace_each_index(Index target, Index replace_with, 
-        std::function<bool(std::vector<KroneckerDelta<Index>>::iterator)> skip = [](auto) { return false; });
-
 public:
     IntFractional multiplicity;             ///< Multiplicity of the term.
     std::vector<Coefficient> coefficients;  ///< Coefficients of the term.
@@ -159,6 +153,26 @@ public:
      * @brief Virtual destructor.
      */
     virtual ~AbstractTerm() = default;
+
+    /**
+     * @brief Replaces a momentum symbol everywhere in the term.
+     *
+     * @param replaceWhat The momentum symbol to replace.
+     * @param replaceWith The momentum expression that replaces the symbol.
+     * @param skip A predicate that skips specific momentum Kronecker deltas during replacement.
+     */
+    void replace_each_momentum(const MomentumSymbol::name_type replaceWhat, const Momentum& replaceWith, 
+        std::function<bool(std::vector<KroneckerDelta<Momentum>>::iterator)> skip = [](auto) { return false; });
+
+    /**
+     * @brief Replaces an index everywhere in the term.
+     *
+     * @param target The index to replace.
+     * @param replace_with The index that replaces the target.
+     * @param skip A predicate that skips specific index Kronecker deltas during replacement.
+     */
+    void replace_each_index(Index target, Index replace_with, 
+        std::function<bool(std::vector<KroneckerDelta<Index>>::iterator)> skip = [](auto) { return false; });
 
     /**
      * @brief Discard momenta that are zero (k+0=k)

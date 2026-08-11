@@ -242,25 +242,8 @@ void clean_wicks(
             }
         }
     }
-    // remove duplicates
-    for (std::size_t i = 0U; i < terms.size(); i++) {
-        for (std::size_t j = i + 1; j < terms.size(); j++) {
-            if (terms[i] == terms[j]) {
-                terms[i].multiplicity += terms[j].multiplicity;
-                terms.erase(terms.begin() + j);
-                --i;
-                break;
-            }
-        }
-    }
-    // removes any terms that have a 0 prefactor
-    for (auto it = terms.begin(); it != terms.end();) {
-        if (it->multiplicity == 0) {
-            it = terms.erase(it);
-        } else {
-            ++it;
-        }
-    }
+    
+    terms.combine_duplicates();
 
     auto predicate = [](const WickTerm& left, const WickTerm& right) -> bool {
         if (left.delta_momenta.empty() && right.delta_momenta.size() > 0) {

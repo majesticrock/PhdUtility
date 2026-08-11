@@ -220,17 +220,7 @@ void WickTerm::sort() {
         }
     }
 
-    for (std::size_t i = 0U; i < operators.size(); ++i) {
-        for (std::size_t j = i + 1U; j < operators.size(); ++j) {
-            if (operators[i].type > operators[j].type) {
-                std::swap(operators[i], operators[j]);
-            } else if (operators[i].type == operators[j].type) {
-                if (momentum_order(operators[i].momentum, operators[j].momentum)) {
-                    std::swap(operators[i], operators[j]);
-                }
-            }
-        }
-    }
+    std::sort(operators.begin(), operators.end());
 
     for (auto& coeff : coefficients) {
         for (auto& momentum : coeff.momenta) {
@@ -454,4 +444,27 @@ WickTermCollector& operator-=(WickTermCollector& lhs, const WickTermCollector& r
     }
     return lhs;
 }
+
+void WickTermCollector::combine_duplicates() {
+    // remove duplicates
+    for (std::size_t i = 0U; i < this->size(); i++) {
+        for (std::size_t j = i + 1; j < this->size(); j++) {
+            if (terms[i] == terms[j]) {
+                terms[i].multiplicity += terms[j].multiplicity;
+                this->erase(this->begin() + j);
+                --i;
+                break;
+            }
+        }
+    }
+    // removes any terms that have a 0 prefactor
+    for (auto it = this->begin(); it != this->end();) {
+        if (it->multiplicity == 0) {
+            it = this->erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
 }  // namespace mrock::symbolic_operators

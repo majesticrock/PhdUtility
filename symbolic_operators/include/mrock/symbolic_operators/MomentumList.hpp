@@ -9,7 +9,6 @@
 #include "MomentumSymbol.hpp"
 #include "detail/vector_macro.hpp"
 
-#include <algorithm>
 #include <initializer_list>
 #include <ostream>
 #include <vector>
@@ -86,7 +85,14 @@ public:
     /**
      * @brief Sorts the Momentum objects in the list.
      */
-    inline void sort();
+    void sort();
+
+    /**
+     * @brief Checks if a specific momentum is used.
+     * @param what Name of the momentum.
+     * @return True if used, false otherwise.
+     */
+    bool uses(const MomentumSymbol::name_type what) const noexcept;
 
     /**
      * @brief Replaces occurrences of a specific MomentumSymbol name with a given Momentum object.
@@ -133,9 +139,6 @@ void MomentumList::multiply_by(int factor) {
 }
 void MomentumList::flip_momentum() {
     (*this) *= -1;
-}
-void MomentumList::sort() {
-    std::sort(this->begin(), this->end());
 }
 }  // namespace mrock::symbolic_operators
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_MOMENTUMLIST_HPP

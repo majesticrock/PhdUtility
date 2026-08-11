@@ -58,8 +58,12 @@ enum class Index : index_base {
     TypeB = 66,
     TypeC = 67,
     /* The ascii symbols continue here, but have no special name */
+    TypeZ = 90,
     char_a = 97,
     /* The ascii symbols continue here, but have no special name */
+    char_z = 122,
+    Parallel = 150,
+    AntiParallel = 151,
     PlaceHolderIndex = 253, /* Designed as an internal placeholder. Should not be directly used */
     UndefinedIndex = 254,
     NoIndex = 255

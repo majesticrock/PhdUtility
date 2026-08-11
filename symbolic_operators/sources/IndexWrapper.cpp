@@ -43,6 +43,13 @@ std::ostream& operator<<(std::ostream& os, const Index index) {
             os << "\\sigma'";
             break;
 
+        case Index::Parallel:
+            os << "\\parallel";
+            break;
+        case Index::AntiParallel:
+            os << "\\uparrow\\downarrow";
+            break;
+
         case Index::UndefinedIndex:
             os << "UNDEFINED INDEX";
             break;

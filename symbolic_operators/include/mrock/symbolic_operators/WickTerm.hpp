@@ -319,6 +319,8 @@ struct WickTermCollector {
         ar & terms;
     };
 
+    void combine_duplicates();
+
     MROCK_VECTOR_WRAPPER_FILL_MEMBERS(WickTerm, terms);
 };
 
