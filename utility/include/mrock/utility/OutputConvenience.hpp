@@ -211,6 +211,10 @@ inline void save_string(const std::string& text, const std::string& filename) {
         std::cerr << "Could not open output filestream for file: " << filename << std::endl;
     }
 }
+
+inline void save_string_raw(const std::string& text, const std::string& filename) {
+    save_string(text, filename);
+}
 #endif  // End not using boost
 }  // namespace mrock::utility
 #endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_OUTPUTCONVENIENCE_HPP
