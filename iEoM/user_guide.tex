@@ -124,8 +124,8 @@ In particular, if all relevant expectation values are real, large blocks of zero
     \underline{\underline{0}} & \mathcal{K}_-
   \end{pmatrix}\qquad\qquad \mathcal{N} = \begin{pmatrix}
     \underline{\underline{0}} & \mathcal{L} \\
-    \mathcal{L}^\dagger & \underline{\underline{0}}.
-  \end{pmatrix}
+    \mathcal{L}^\dagger & \underline{\underline{0}}
+  \end{pmatrix}.
 \end{equation}
 The diagonal blocks correspond to the Hermitian ($X$) and anti-Hermitian ($P$) type operators, respectively.
 The off-diagonal blocks mix them.
@@ -345,7 +345,7 @@ A \class{ResolventDataWrapper} groups several \class{ResolventData} objects unde
 \subsubsection{ResidualInformation}
 \label{class:ResidualInformation}
 
-Additionally, it has the template parameter \code{int n}, which specifies the number of eigenvectors to compute.
+This class template's parameter \code{int n} specifies the number of eigenvectors to store.
 It contains various \code{std::array} objects of size \code{n}:
 \begin{itemize}
     \item \code{eigenvalues}: the lowest \code{n} eigenvalues,
@@ -360,7 +360,7 @@ It contains various \code{std::array} objects of size \code{n}:
 \subsubsection{FullDiagonalizationData}
 \label{class:FullDiagonalizationData}
 
-Additionally, it has the template parameter \code{int n}, which specifies how many eigenvectors to store.
+This class template's parameter \code{int n} specifies how many eigenvectors to store.
 It contains three attributes
 \begin{itemize}
     \item \code{std::vector<RealType> eigenvalues}: all eigenvalues of the matrix that was solved
