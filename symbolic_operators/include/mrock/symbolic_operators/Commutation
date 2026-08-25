@@ -12,6 +12,7 @@
 #include "mrock/symbolic_operators/Operator.hpp"
 #include "mrock/symbolic_operators/SumContainer.hpp"
 #include "mrock/symbolic_operators/Term.hpp"
+#include "TermCollector.hpp"
 #include "mrock/symbolic_operators/detail/container_helper.hpp"
 
 #endif // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_COMMUTATION

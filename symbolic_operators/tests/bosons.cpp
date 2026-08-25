@@ -51,7 +51,7 @@ int main(int argc, [[maybe_unused]] char** argv) {
                                   std::vector<Operator>({Operator::Boson(Momentum('K'), Index::Sigma, true),
                                                          Operator::Boson(Momentum('K'), Index::Sigma, false)}));
 
-    const std::vector<Term> hamiltonian{hopping, hopping.hermitian_conjugate(), bogo, bogo.hermitian_conjugate(),
+    const TermCollector hamiltonian{hopping, hopping.hermitian_conjugate(), bogo, bogo.hermitian_conjugate(),
                                         chemical_potential};
 
     std::cout << begin_align << "H =" << hamiltonian << end_align << std::endl;
@@ -63,7 +63,7 @@ int main(int argc, [[maybe_unused]] char** argv) {
                                                       Operator::Boson(Momentum('l', -1), Index::TypeB, true)}));
 
     // The second target is a sum of two bosonic operator strings, each carrying a momentum shift.
-    const std::vector<Term> to_commute_2{
+    const TermCollector to_commute_2{
         Term(1, SumContainer{MomentumSum{'K'}, IndexSum{}},
              std::vector<Operator>({Operator::Boson(Momentum("l+K"), Index::TypeA, true),
                                     Operator::Boson(Momentum("l"), Index::TypeA, false)})),
@@ -72,14 +72,14 @@ int main(int argc, [[maybe_unused]] char** argv) {
                                     Operator::Boson(Momentum("l"), Index::TypeB, false)}))};
 
     // Compute the commutators
-    std::vector<Term> result_1 = commutator(hamiltonian, to_commute_1);
-    clean_up(result_1);
-    std::vector<Term> result_2 = commutator(hamiltonian, to_commute_2);
-    clean_up(result_2);
+    TermCollector result_1 = commutator(hamiltonian, to_commute_1);
+    result_1.clean_up();
+    TermCollector result_2 = commutator(hamiltonian, to_commute_2);
+    result_2.clean_up();
 
     std::cout << begin_align << "[H, " << to_commute_1.to_string_without_prefactor() << "] = " << result_1 << end_align
               << std::endl;
-    std::cout << begin_align << "[H, " << to_string_without_prefactor(to_commute_2) << "]  = " << result_2 << end_align
+    std::cout << begin_align << "[H, " << to_commute_2.to_string_without_prefactor() << "] = " << result_2 << end_align
               << std::endl;
 
     // Define tester

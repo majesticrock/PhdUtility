@@ -87,6 +87,30 @@ void append_if(Vector& target, Vector&& source, const UnaryPred& predicate) {
 }
 
 /**
+ * @brief Prepends the contents of a source container to a target container.
+ *
+ * @tparam Vector Container type supporting `insert()` and iterators.
+ * @param target Destination container.
+ * @param source Source container whose elements are copied.
+ */
+template <class Vector>
+void prepend_vector(Vector& target, const Vector& source) {
+    target.insert(target.begin(), source.begin(), source.end());
+}
+
+/**
+ * @brief Prepends the contents of a source container to a target container using move semantics.
+ *
+ * @tparam Vector Container type supporting `insert()` and move iterators.
+ * @param target Destination container.
+ * @param source Source container whose elements are moved.
+ */
+template <class Vector>
+void prepend_vector(Vector& target, Vector&& source) {
+    target.insert(target.begin(), std::make_move_iterator(source.begin()), std::make_move_iterator(source.end()));
+}
+
+/**
  * @brief Checks whether \c val is in \c vec
  * 
  * @tparam Vector Container type

@@ -31,7 +31,7 @@ namespace mrock::symbolic_operators {
  * @class WickTerm
  * @brief A class representing a term consisting of expectation values, represented via WickOperator objects.
  *
- * Prerequisite: The terms you want to apply Wick's theorem on are saved in an \c std::vector<Term>.
+ * Prerequisite: The terms you want to apply Wick's theorem on are saved in an \c TermCollector.
  *
  * Applying Wick's theorem often involves omiting certain expecation values because you know them to be 0 for symmtry
  * reasons. Therefore the class \c WickOperatorTemplate exists. Here, you specify, which kind of expectation values will
@@ -63,12 +63,12 @@ namespace mrock::symbolic_operators {
  * \code
  * WickTermCollector wicks;
  * wicks_theorem(terms, templates, wicks);
- * clean_wicks(wicks);
+ * wicks.clean_up();
  * \endcode
- * Similar to how we worked with the Term class and commutators, it is strongly recommended to call clean_wicks() after
+ * Similar to how we worked with the Term class and commutators, it is strongly recommended to call \c WickTermCollector::clean_up() after
  * applying Wick's theorem.
  *
- * clean_wicks() will also make use of polymorphism to apply symmetries to the term, e.g., inversion symmetry.
+ * \c clean_up() will also make use of polymorphism to apply symmetries to the term, e.g., inversion symmetry.
  * For details, see \c WickSymmetry.
  *
  * You can print the the result to the console or utilize boost's serialization to load it later (or within another
@@ -89,7 +89,7 @@ namespace mrock::symbolic_operators {
  * or if you want to use this code of the iEoM, there is the class \c TermLoader for easy use.
  * It loads the terms for the matrices M and N and saves same as class members.
  *
- * @sa WickTermCollector, Coefficient, SumContainer, WickOperator, KroneckerDelta, Momentum, Index, clean_wicks(),
+ * @sa WickTermCollector, Coefficient, SumContainer, WickOperator, KroneckerDelta, Momentum, Index, 
  * wicks_theorem(), TermLoader
  */
 class WickTerm : public AbstractTerm<WickOperator> {
@@ -301,138 +301,6 @@ bool operator==(const WickTerm& lhs, const WickTerm& rhs);
 bool operator!=(const WickTerm& lhs, const WickTerm& rhs);
 
 /**
- * @class WickTermCollector
- * @brief A wrapper for a vector of WickTerm objects.
- */
-struct WickTermCollector {
-    std::vector<WickTerm> terms;  ///< The collected \c WickTerm objects
-
-    /**
-     * @brief Serializes the WickTermCollector object.
-     *
-     * @tparam Archive The type of the archive.
-     * @param ar The archive object.
-     * @param version The version of the serialization.
-     */
-    template <class Archive>
-    void serialize(Archive& ar, [[maybe_unused]] const unsigned int version) {
-        ar & terms;
-    };
-
-    void combine_duplicates();
-
-    MROCK_VECTOR_WRAPPER_FILL_MEMBERS(WickTerm, terms);
-};
-
-/**
- * @brief Addition assignment operator for WickTermCollector and WickTerm.
- *
- * @param lhs The left-hand side WickTermCollector.
- * @param rhs The right-hand side WickTerm.
- * @return WickTermCollector& The updated WickTermCollector.
- */
-WickTermCollector& operator+=(WickTermCollector& lhs, const WickTerm& rhs);
-
-/**
- * @brief Subtraction assignment operator for WickTermCollector and WickTerm.
- *
- * @param lhs The left-hand side WickTermCollector.
- * @param rhs The right-hand side WickTerm.
- * @return WickTermCollector& The updated WickTermCollector.
- */
-WickTermCollector& operator-=(WickTermCollector& lhs, const WickTerm& rhs);
-
-/**
- * @brief Addition assignment operator for two WickTermCollector objects.
- *
- * @param lhs The left-hand side WickTermCollector.
- * @param rhs The right-hand side WickTermCollector.
- * @return WickTermCollector& The updated WickTermCollector.
- */
-WickTermCollector& operator+=(WickTermCollector& lhs, const WickTermCollector& rhs);
-
-/**
- * @brief Subtraction assignment operator for two WickTermCollector objects.
- *
- * @param lhs The left-hand side WickTermCollector.
- * @param rhs The right-hand side WickTermCollector.
- * @return WickTermCollector& The updated WickTermCollector.
- */
-WickTermCollector& operator-=(WickTermCollector& lhs, const WickTermCollector& rhs);
-
-/**
- * @brief Addition operator for WickTermCollector and WickTerm.
- *
- * @param lhs The left-hand side WickTermCollector.
- * @param rhs The right-hand side WickTerm.
- * @return WickTermCollector The resulting WickTermCollector.
- */
-inline WickTermCollector operator+(WickTermCollector lhs, const WickTerm& rhs) {
-    lhs += rhs;
-    return lhs;
-};
-
-/**
- * @brief Subtraction operator for WickTermCollector and WickTerm.
- *
- * @param lhs The left-hand side WickTermCollector.
- * @param rhs The right-hand side WickTerm.
- * @return WickTermCollector The resulting WickTermCollector.
- */
-inline WickTermCollector operator-(WickTermCollector lhs, const WickTerm& rhs) {
-    lhs -= rhs;
-    return lhs;
-};
-
-/**
- * @brief Addition operator for WickTerm and WickTermCollector.
- *
- * @param lhs The left-hand side WickTerm.
- * @param rhs The right-hand side WickTermCollector.
- * @return WickTermCollector The resulting WickTermCollector.
- */
-inline WickTermCollector operator+(const WickTerm& lhs, WickTermCollector rhs) {
-    rhs += lhs;
-    return rhs;
-};
-
-/**
- * @brief Subtraction operator for WickTerm and WickTermCollector.
- *
- * @param lhs The left-hand side WickTerm.
- * @param rhs The right-hand side WickTermCollector.
- * @return WickTermCollector The resulting WickTermCollector.
- */
-inline WickTermCollector operator-(const WickTerm& lhs, WickTermCollector rhs) {
-    rhs -= lhs;
-    return rhs;
-};
-
-/**
- * @brief Addition operator for two WickTermCollector objects.
- *
- * @param lhs The left-hand side WickTermCollector.
- * @param rhs The right-hand side WickTermCollector.
- * @return WickTermCollector The resulting WickTermCollector.
- */
-inline WickTermCollector operator+(WickTermCollector lhs, const WickTermCollector& rhs) {
-    lhs += rhs;
-    return lhs;
-};
-
-/**
- * @brief Subtraction operator for two WickTermCollector objects.
- *
- * @param lhs The left-hand side WickTermCollector.
- * @param rhs The right-hand side WickTermCollector.
- * @return WickTermCollector The resulting WickTermCollector.
- */
-inline WickTermCollector operator-(WickTermCollector lhs, const WickTermCollector& rhs) {
-    lhs -= rhs;
-    return lhs;
-};
-
-/**
  * @brief Stream insertion operator for WickTerm.
  *
  * @param os The output stream.
@@ -440,15 +308,6 @@ inline WickTermCollector operator-(WickTermCollector lhs, const WickTermCollecto
  * @return std::ostream& The updated output stream.
  */
 std::ostream& operator<<(std::ostream& os, const WickTerm& term);
-
-/**
- * @brief Stream insertion operator for WickTermCollector.
- *
- * @param os The output stream.
- * @param terms The WickTermCollector object.
- * @return std::ostream& The updated output stream.
- */
-std::ostream& operator<<(std::ostream& os, const WickTermCollector& terms);
 
 /**
  * @class bad_term_exception

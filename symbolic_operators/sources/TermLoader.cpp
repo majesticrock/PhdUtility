@@ -1,7 +1,7 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <mrock/symbolic_operators/SerializationHeaders.hpp>
 #include <mrock/symbolic_operators/TermLoader.hpp>
-#include <mrock/symbolic_operators/WickTerm.hpp>
+#include <mrock/symbolic_operators/WickTermCollector.hpp>
 
 #include <algorithm>
 #include <filesystem>

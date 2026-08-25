@@ -5,10 +5,10 @@
  * @brief Functions for applying Wick's theorem and manipulating Wick terms.
  */
 
-#include "Term.hpp"
+#include "TermCollector.hpp"
 #include "WickOperatorTemplate.hpp"
 #include "WickSymmetry.hpp"
-#include "WickTerm.hpp"
+#include "WickTermCollector.hpp"
 
 #include <memory>
 #include <vector>
@@ -32,25 +32,8 @@ WickTermCollector identify_wick_operators(const WickTerm& source,
  * @param operator_templates The vector of Wick operator templates.
  * @param reciever The WickTermCollector to receive the results.
  */
-void wicks_theorem(const std::vector<Term>& terms,
+void wicks_theorem(const TermCollector& terms,
                    const std::vector<WickOperatorTemplate>& operator_templates,
                    WickTermCollector& reciever);
-
-/**
- * @brief Clears eta terms from the WickTermCollector. Intended for use if <eta>=0
- *
- * @param terms The WickTermCollector containing the terms.
- */
-void clear_etas(WickTermCollector& terms);
-
-/**
- * @brief Cleans Wick terms using the provided symmetries.
- *
- * @param terms The WickTermCollector containing the terms.
- * @param symmetries The vector of unique pointers to WickSymmetry objects.
- */
-void clean_wicks(
-    WickTermCollector& terms,
-    const std::vector<std::unique_ptr<WickSymmetry>>& symmetries = std::vector<std::unique_ptr<WickSymmetry>>{});
 }  // namespace mrock::symbolic_operators
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICK_HPP

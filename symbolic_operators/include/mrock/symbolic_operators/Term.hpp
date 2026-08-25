@@ -28,32 +28,32 @@ namespace mrock::symbolic_operators {
  * This class represents a Term. It has various kind of constructors that allow setting coefficient(s), sums, operators
  * and deltas. Using IntFractional, the term can have rational prefactors, e.g., 1/2.
  *
- * A Hamiltonian (or any other summation of operators) is characterized as \c std::vector<Term>.
+ * A Hamiltonian (or any other summation of operators) is characterized as \c TermCollector.
  * It can consist of any number of individual terms.
  * For a few practical examples, see the files in the tests folder.
  * See bosons.cpp, continuum.cpp, and compare_test.hpp.
  * My own projects using this library are, e.g.,
  * https://github.com/majesticrock/FermionCommute and https://github.com/majesticrock/FlowCommutators.
  *
- * After creating atleast two \c Terms (or \c std::vector<Term>), you may commute them by calling
+ * After creating atleast two \c Terms (or \c TermCollector), you may commute them by calling
  * \code
- * std::vector<Term> result = commutator(A, B);
- * clean_up(result);
+ * TermCollector result = commutator(A, B);
+ * result.clean_up();
  * \endcode
  * After calling the commutator, you should pretty much always call
- * mrock::symbolic_operators::clean_up(std::vector<Term>) because commutator performs the normal ordering procedure,
+ * TermCollector::clean_up() because commutator performs the normal ordering procedure,
  * however, does not attempt to beautify the result. clean_up then sorts the terms, adds identical ones togeFther and
  * removes those that are equal to 0.
  *
  * Similarly, a double commutator \f$ [C, [A, B]] \f$ can be evaluated by
  * \code
- * std::vector<Term> inner_result = commutator(A, B);
- * clean_up(inner_result);
- * std::vector<Term> result = commutator(C, inner_result);
- * clean_up(result);
+ * TermCollector inner_result = commutator(A, B);
+ * inner_result.clean_up();
+ * TermCollector result = commutator(C, inner_result);
+ * result.clean_up();
  * \endcode
  *
- * To output the results, an overload of \c operator<< is provided for both \c Term and \c std::vector<Term>.
+ * To output the results, an overload of \c operator<< is provided for both \c Term and \c TermCollector.
  * The out put is formatted so that it can be used within an align-environment within LaTeX.
  *
  * @sa Coefficient, SumContainer, Operator, KroneckerDelta
@@ -280,67 +280,50 @@ public:
     void swap_momenta(const MomentumSymbol::name_type a, const MomentumSymbol::name_type b);
 
     /**
-     * @brief Normal orders the terms by using the canoncical (anti-)commutation relations
-     * The result is stored in the input vector.
-     * A simple example is
-     * \f$ b b^\dagger = 1 \pm b^\dagger b \f$, where the + applies to bosons and the minus to fermions.
-     * @param terms The terms to normal order.
-     */
-    friend void normal_order(std::vector<Term>& terms);
-
-    /**
-     * @brief Computes the commutator of two terms: \f$ [A, B] = AB - BA \f$.
-     * @param left The left term.
-     * @param right The right term.
-     * @return The commutation result.
-     */
-    friend std::vector<Term> commutator(const Term& left, const Term& right);
-
-    /**
-     * @brief Overloads the stream insertion operator for the Term class.
+     * @brief Compute other * this
+     * IMPOARTANT: The result will not be normal ordered! If you require
+     * a normal ordered expression, please call normal_order!
+     * Note, that doing so may create additional terms, and the result must therefore
+     * be \c TermCollector and can therefore not return a reference to \c *this
      *
-     * @param os The output stream.
-     * @param term The Term object to insert into the stream.
-     * @return The output stream.
+     * @param other the other Term object.
+     * @return Reference to \c *this containing the result.
      */
-    friend std::ostream& operator<<(std::ostream& os, const Term& term);
+    Term& multiply_from_the_left(const Term& other);
+
+    /**
+     * @brief Compute this * other
+     * IMPOARTANT: The result will not be normal ordered! If you require
+     * a normal ordered expression, please call normal_order!
+     * Note, that doing so may create additional terms, and the result must therefore
+     * be \c TermCollector and can therefore not return a reference to \c *this
+     *
+     * @param other the other Term object.
+     * @return Reference to \c *this containing the result.
+     */
+    Term& multiply_from_the_right(const Term& other);
 
     /**
      * @brief Multiplies this by rhs
      * IMPOARTANT: The result will not be normal ordered! If you require
      * a normal ordered expression, please call normal_order!
      * Note, that doing so may create additional terms, and the result must therefore
-     * be std::vector<Term> and cannot be implemented as Term::operator*=
+     * be \c TermCollector and can therefore not return a reference to \c *this
      *
-     * @param rhs the right-hand side Term object.
-     * @return Reference to this containing the result.
+     * @param other the other Term object.
+     * @return Reference to \c *this containing the result.
      */
     Term& operator*=(const Term& rhs);
 };
 
 /**
- * @brief Computes the commutator of two sets of terms: \f$ [A, B] = AB - BA \f$.
- * @param left The left-hand side terms.
- * @param right The right-hand side terms.
- * @return The result of [left, right]
+ * @brief Overloads the stream insertion operator for the Term class.
+ *
+ * @param os The output stream.
+ * @param term The Term object to insert into the stream.
+ * @return The output stream.
  */
-std::vector<Term> commutator(const std::vector<Term>& left, const std::vector<Term>& right);
-
-/**
- * @brief Computes the commutator of a term and a set of terms: \f$ [A, B] = AB - BA \f$.
- * @param left The left-hand side term.
- * @param right The right-hand side terms.
- * @return The result of [left, right]
- */
-inline std::vector<Term> commutator(const Term& left, const std::vector<Term>& right);
-
-/**
- * @brief Computes the commutator of a set of terms and a term: \f$ [A, B] = AB - BA \f$.
- * @param left The left-hand side terms.
- * @param right The right-hand side term.
- * @return The result of [left, right]
- */
-inline std::vector<Term> commutator(const std::vector<Term>& left, const Term& right);
+std::ostream& operator<<(std::ostream& os, const Term& term);
 
 /**
  * @brief Checks if two terms are equal.
@@ -377,120 +360,6 @@ inline Term operator*(Term lhs, const Term& rhs) {
     return lhs;
 }
 
-/**
- * @brief Negates each term in the vector.
- *
- * @param terms The terms to negate.
- * @return A vector containing the negated terms.
- */
-std::vector<Term> operator-(std::vector<Term> terms);
-
-/**
- * @brief Adds the right-hand side terms to the left-hand side terms.
- *
- * @param lhs The left-hand side terms that are modified in place.
- * @param rhs The right-hand side terms to add.
- * @return A reference to the modified left-hand side terms.
- */
-std::vector<Term>& operator+=(std::vector<Term>& lhs, const std::vector<Term>& rhs);
-
-/**
- * @brief Subtracts the right-hand side terms from the left-hand side terms.
- *
- * @param lhs The left-hand side terms that are modified in place.
- * @param rhs The right-hand side terms to subtract.
- * @return A reference to the modified left-hand side terms.
- */
-std::vector<Term>& operator-=(std::vector<Term>& lhs, const std::vector<Term>& rhs);
-
-/**
- * @brief Multiplies the left-hand side term vector by the right-hand side term vector.
- *
- * @param lhs The left-hand side terms that are modified in place.
- * @param rhs The right-hand side terms to multiply by.
- * @return A reference to the modified left-hand side terms.
- */
-std::vector<Term>& operator*=(std::vector<Term>& lhs, const std::vector<Term>& rhs);
-
-/**
- * @brief Adds two vectors of terms and returns the result.
- *
- * @param lhs The left-hand side terms.
- * @param rhs The right-hand side terms.
- * @return A vector containing the sum of the operands.
- */
-inline std::vector<Term> operator+(std::vector<Term> lhs, const std::vector<Term>& rhs) {
-    lhs += rhs;
-    return lhs;
-}
-
-/**
- * @brief Subtracts the right-hand side term vector from the left-hand side term vector.
- *
- * @param lhs The left-hand side terms.
- * @param rhs The right-hand side terms.
- * @return A vector containing the difference of the operands.
- */
-inline std::vector<Term> operator-(std::vector<Term> lhs, const std::vector<Term>& rhs) {
-    lhs -= rhs;
-    return lhs;
-}
-
-/**
- * @brief Multiplies two vectors of terms and returns the result.
- *
- * @param lhs The left-hand side terms.
- * @param rhs The right-hand side terms.
- * @return A vector containing the product of the operands.
- */
-inline std::vector<Term> operator*(std::vector<Term> lhs, const std::vector<Term>& rhs) {
-    lhs *= rhs;
-    return lhs;
-}
-
-/**
- * @brief Outputs a vector of terms to a stream.
- * @param os The output stream.
- * @param terms The terms.
- * @return The output stream.
- */
-std::ostream& operator<<(std::ostream& os, const std::vector<Term>& terms);
-
-/**
- * @brief Clears duplicate terms from a vector.
- * @param terms The vector of terms.
- */
-void clear_duplicates(std::vector<Term>& terms);
-
-/**
- * @brief Sorts the terms, adds identical ones together and removes those that are equal to 0.
- * @param terms The vector of terms.
- */
-void clean_up(std::vector<Term>& terms);
-
-/**
- * @brief Applies the Hermitian conjugate to a vector of terms.
- * @param terms The vector of terms.
- */
-inline void hermitian_conjugate(std::vector<Term>& terms);
-
-/**
- * @brief Renames momenta in a vector of terms.
- * @param terms The vector of terms.
- * @param what The momentum to rename.
- * @param to The new momentum.
- */
-inline void rename_momenta(std::vector<Term>& terms,
-                           const MomentumSymbol::name_type what,
-                           const MomentumSymbol::name_type to);
-
-/**
- * @brief Converts a vector of terms to a string without the prefactor.
- * @param terms The vector of terms.
- * @return The string representation.
- */
-std::string to_string_without_prefactor(const std::vector<Term>& terms);
-
 // Inline definitions
 bool Term::contains_boson() const {
     return std::any_of(operators.begin(), operators.end(), [](Operator const& op) { return (!op.is_fermion); });
@@ -509,28 +378,6 @@ void Term::perform_operator_swap(Operator& lhs, Operator& rhs) {
         this->multiplicity *= -1;
     }
     std::swap(lhs, rhs);
-}
-
-// Non-member inlines
-std::vector<Term> commutator(const Term& left, const std::vector<Term>& right) {
-    const std::vector<Term> buffer = {left};
-    return commutator(buffer, right);
-}
-std::vector<Term> commutator(const std::vector<Term>& left, const Term& right) {
-    const std::vector<Term> buffer = {right};
-    return commutator(left, buffer);
-}
-void hermitian_conjugate(std::vector<Term>& terms) {
-    for (auto& t : terms) {
-        t.hermitian_conjugate_inplace();
-    }
-}
-void rename_momenta(std::vector<Term>& terms,
-                    const MomentumSymbol::name_type what,
-                    const MomentumSymbol::name_type to) {
-    for (auto& t : terms) {
-        t.rename_momenta(what, to);
-    }
 }
 }  // namespace mrock::symbolic_operators
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_TERM_HPP

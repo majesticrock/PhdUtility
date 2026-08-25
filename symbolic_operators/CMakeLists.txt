@@ -26,12 +26,14 @@ add_library(
     sources/OperatorType.cpp
     sources/SumContainer.cpp
     sources/Term.cpp
+    sources/TermCollector.cpp
     sources/TermLoader.cpp
     sources/Wick.cpp
     sources/WickOperator.cpp
     sources/WickOperatorTemplate.cpp
     sources/WickSymmetry.cpp
     sources/WickTerm.cpp
+    sources/WickTermCollector.cpp
 )
 add_library(
     mrock::symbolic_operators

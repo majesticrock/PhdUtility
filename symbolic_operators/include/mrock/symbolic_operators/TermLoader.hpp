@@ -5,7 +5,7 @@
  * @brief Header file for the TermLoader structure in the symbolic_operators namespace.
  */
 
-#include "WickTerm.hpp"
+#include "WickTermCollector.hpp"
 
 #include <string>
 #include <vector>

@@ -19,12 +19,12 @@ User-facing functionality is defined in the namespace `mrock::symbolic_operators
 Typical workflows create symbolic expressions with `Term`, manipulate them with functions such as `commutator`, `normal_order`, and `clean_up`, and then apply `wicks_theorem` to obtain `WickTerm` objects. 
 
 ```cpp
-std::vector<Term> commutator_result = commutator(H, right);
-clean_up(commutator_result);
+TermCollector commutator_result = commutator(H, right);
+commutator_result.clean_up();
 
 WickTermCollector wicks;
 wicks_theorem(commutator_result, templates, wicks);
-clean_wicks(wicks);
+wicks.clean_up();
 ```
 
 ## Main Classes

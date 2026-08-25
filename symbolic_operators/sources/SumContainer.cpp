@@ -17,4 +17,20 @@ SumContainer& mrock::symbolic_operators::SumContainer::append(const IndexSum& ot
     append_vector(this->spins, other);
     return *this;
 }
+
+SumContainer& mrock::symbolic_operators::SumContainer::prepend(const SumContainer& other) {
+    prepend_vector(this->momenta, other.momenta);
+    prepend_vector(this->spins, other.spins);
+    return *this;
+}
+
+SumContainer& mrock::symbolic_operators::SumContainer::prepend(const MomentumSum& other) {
+    prepend_vector(this->momenta, other);
+    return *this;
+}
+
+SumContainer& mrock::symbolic_operators::SumContainer::prepend(const IndexSum& other) {
+    prepend_vector(this->spins, other);
+    return *this;
+}
 }  // namespace mrock::symbolic_operators

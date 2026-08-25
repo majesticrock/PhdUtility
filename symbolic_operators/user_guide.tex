@@ -439,12 +439,12 @@ const Term H_Ph(-1,
 
 \item Evaluate the desired expression (e.g., a commutator), and clean up the result
 \begin{lstlisting}
-std::vector<Term> commutator_result = commutator(H, right);
-clean_up(commutator_result);
+TermCollector commutator_result = commutator(H, right);
+commutator_result.clean_up();
 
-std::vector<Term> eight_T = std::vector<Term>{H_Ph * H_Ph};
-normal_order(eight_T);
-clean_up(eight_T);
+TermCollector eight_T = TermCollector{H_Ph * H_Ph};
+eight_T.normal_order();
+eight_T.clean_up();
 \end{lstlisting}
     Note that \code{commutator} returns a normal ordered result, but using the operator overload \code{operator*} does not.
     Hence, \code{normal_order} must be called in the second example.
@@ -453,9 +453,9 @@ clean_up(eight_T);
 \begin{lstlisting}
 WickTermCollector commutator_wicks;
 wicks_theorem(commutator_result, templates, commutator_wicks);
-clean_wicks(wicks);
+wicks.clean_up();
 \end{lstlisting}
-    The result is typically messy, and should be cleaned up by calling \code{clean_wicks}.
+    The result is typically messy, and should be cleaned up by calling \code{clean_up}.
     However, the function can do more, if symmetries are known.
     Those can be applied via the child classes of \class{WickSymmetry}.
     Our example adds spin symmetry (expectation values are independent of spin), inversion symmetry (expectation values at $-k$ are the same as at $k$), and a phase symmetry for the superconducting pair channel (the expectation values of the pair-creation and annihilation operators are real).
@@ -470,7 +470,7 @@ symmetries.push_back(std::make_unique<PhaseSymmetry<OperatorType::SC>>());
     \begin{lstlisting}
 WickTermCollector wicks;
 wicks_theorem(H, templates, wicks);
-clean_wicks(wicks, symmetries);
+wicks.clean_up(symmetries);
     \end{lstlisting}
 
   \item Evaluate the resulting expressions numerically.

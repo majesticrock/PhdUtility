@@ -56,7 +56,7 @@
  *             Operator::Boson(Momentum('k'), Index::Sigma, false)
  *         }));
  *
- *     const std::vector<Term> hamiltonian { 
+ *     const TermCollector hamiltonian { 
  *         hopping,                        // Eq. 1 
  *         hopping.hermitian_conjugate(),  // Eq. 2
  *         bogo,                           // Eq. 3
@@ -99,7 +99,7 @@
  *             Operator::Boson(Momentum('l', -1), Index::TypeB, true)
  *         }));
  *
- *     const std::vector<Term> to_commute_2{ 
+ *     const TermCollector to_commute_2{ 
  *         Term(1, SumContainer{ MomentumSum{'q'} },
  *             std::vector<Operator>({
  *                 Operator::Boson(Momentum("l+q"), Index::TypeA, true),
@@ -115,9 +115,9 @@
  * And finially, we perform the commutation, clean up, and print the results to the console within a LaTeX-align environment:
  * \code
  *     // Compute the commutators
- *     std::vector<Term> result_1 = commutator(hamiltonian, to_commute_1);
+ *     TermCollector result_1 = commutator(hamiltonian, to_commute_1);
  *     clean_up(result_1);
- *     std::vector<Term> result_2 = commutator(hamiltonian, to_commute_2);
+ *     TermCollector result_2 = commutator(hamiltonian, to_commute_2);
  *     clean_up(result_2);
  *
  *     std::cout << begin_align << "[H, " << to_commute_1.to_string_without_prefactor() << "] = " << result_1 << end_align << std::endl;

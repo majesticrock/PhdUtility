@@ -11,7 +11,9 @@
  */
 #include <mrock/symbolic_operators/SerializationHeaders.hpp>
 #include <mrock/symbolic_operators/Term.hpp>
+#include <mrock/symbolic_operators/TermCollector.hpp>
 #include <mrock/symbolic_operators/Wick.hpp>
+#include <mrock/symbolic_operators/WickTermCollector.hpp>
 
 #include <filesystem>
 #include <fstream>
@@ -67,8 +69,8 @@ struct SymOpTest {
         ofs.close();
     }
 
-    inline int perform_test(const std::vector<Term>& H,
-                            const std::vector<Term>& base_term,
+    inline int perform_test(const TermCollector& H,
+                            const TermCollector& base_term,
                             const std::vector<WickOperatorTemplate>& templates,
                             const std::vector<std::unique_ptr<WickSymmetry>>& symmetries,
                             const bool is_baseline) {
@@ -78,8 +80,8 @@ struct SymOpTest {
          *   Computing and testing of [H, B]
          *
          */
-        std::vector<Term> first_commutation = commutator(H, base_term);
-        clean_up(first_commutation);
+        TermCollector first_commutation = commutator(H, base_term);
+        first_commutation.clean_up();
         // This means the test has been passed. We generate a new comparison file
         if (is_baseline)
             save_as_comparison(file_names[0], first_commutation);
@@ -91,11 +93,11 @@ struct SymOpTest {
          *   Computing and testing of [B^+, [H, B]]
          *
          */
-        std::vector<Term> base_dagger = base_term;
-        rename_momenta(base_dagger, 'k', 'l');
-        hermitian_conjugate(base_dagger);
-        std::vector<Term> second_commutation = commutator(base_dagger, first_commutation);
-        clean_up(second_commutation);
+        TermCollector base_dagger = base_term;
+        base_dagger.rename_momenta('k', 'l');
+        base_dagger.hermitian_conjugate();
+        TermCollector second_commutation = commutator(base_dagger, first_commutation);
+        second_commutation.clean_up();
         // This means the test has been passed. We generate a new comparison file
         if (is_baseline)
             save_as_comparison(file_names[1], second_commutation);
@@ -109,8 +111,8 @@ struct SymOpTest {
          */
         WickTermCollector wicks;
         wicks_theorem(second_commutation, templates, wicks);
-        clear_etas(wicks);
-        clean_wicks(wicks, symmetries);
+        wicks.clear_etas();
+        wicks.clean_up(symmetries);
         // This means the test has been passed. We generate a new comparison file
         if (is_baseline)
             save_as_comparison(file_names[2], wicks);

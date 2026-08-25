@@ -20,7 +20,7 @@ namespace mrock::symbolic_operators {
  * These symmetries can be implemented by inheriting from the \c WickSymmetry class
  * and defining the member function \c virtual \c void \c apply_to(std::vector<WickOperator>& \c operators) \c const.
  * Then create a \c std::vector<std::unique_ptr<WickSymmetry>> \c symmetries
- * and make use of polymorphism by calling \c clean_wicks(wicks,symmetries).
+ * and make use of polymorphism by calling \c WickTermCollector::clean_up(wicks,symmetries).
  * There are the following predefined symmetry operations:
  *
  * \b SpinSymmetry \n

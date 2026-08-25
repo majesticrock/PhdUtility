@@ -241,7 +241,7 @@ int main() {
                                c_minus_k.with_momentum('P'), c_k.with_momentum('P')}));
 
     // The Hamiltonian is represented by a vector of the two Term objects above
-    const std::vector<Term> H{H_Kin, H_Ph};
+    const TermCollector H{H_Kin, H_Ph};
 
     // Lets say, we have a superconducting system, so for applying Wick's theorem,
     // we focus on number and pair creation/annihilation operators
@@ -344,7 +344,7 @@ int main() {
     WickTermCollector wicks;
     wicks_theorem(H, templates, wicks);
     /* Clean up the result and apply symmetries */
-    clean_wicks(wicks, symmetries);
+    wicks.clean_up(symmetries);
     std::cout << "Expressional result from Wick's theorem:\n" << wicks << "\n" << std::endl;
 
     double numerical{};
@@ -363,14 +363,14 @@ int main() {
     Term right(1, std::vector<Operator>({c_minus_k, c_k}));
 
     /* Compute the commutator and clean up the result */
-    std::vector<Term> commutator_result = commutator(H, right);
-    clean_up(commutator_result);
+    TermCollector commutator_result = commutator(H, right);
+    commutator_result.clean_up();
     std::cout << "Result of the commutator:\n" << commutator_result << "\n" << std::endl;
 
     /* Apply Wick's theorem and clean up the result */
     WickTermCollector commutator_wicks;
     wicks_theorem(commutator_result, templates, commutator_wicks);
-    clean_wicks(commutator_wicks, symmetries);
+    commutator_wicks.clean_up(symmetries);
     std::cout << "Expressional result from Wick's theorem:\n" << commutator_wicks << "\n" << std::endl;
 
     /* Compute the expecation value of <[H,f_k]> with the analytical formula for later comparison */
@@ -418,9 +418,9 @@ int main() {
 
     /* The last analytical check is the expectation value of sum_(k,k',q,p) g(k,k') g(p,q) <f_k^dagger f_q^dagger f_k'
      * f_p> */
-    std::vector<Term> eight_T = std::vector<Term>{H_Ph * H_Ph};
-    normal_order(eight_T);
-    clean_up(eight_T);
+    TermCollector eight_T = TermCollector{H_Ph * H_Ph};
+    eight_T.normal_order();
+    eight_T.clean_up();
     eight_T.erase(eight_T.begin() + 1, eight_T.end());
     std::cout << "Cleaned H_Ph^2:\n" << eight_T << std::endl;
     std::cout
@@ -429,7 +429,7 @@ int main() {
 
     WickTermCollector expec_eight_T;
     wicks_theorem(eight_T, templates, expec_eight_T);
-    clean_wicks(expec_eight_T, symmetries);
+    expec_eight_T.clean_up(symmetries);
 
     std::cout << "Expectation value <T>:\n" << expec_eight_T << std::endl;
 

@@ -73,6 +73,27 @@ struct SumContainer {
     SumContainer& append(const IndexSum& other);
 
     /**
+     * @brief Prepends another SumContainer to this one.
+     * @param other The other SumContainer to prepend.
+     * @return Reference to this SumContainer.
+     */
+    SumContainer& prepend(const SumContainer& other);
+
+    /**
+     * @brief Prepends a MomentumSum to this SumContainer.
+     * @param other The MomentumSum to prepend.
+     * @return Reference to this SumContainer.
+     */
+    SumContainer& prepend(const MomentumSum& other);
+
+    /**
+     * @brief Prepends an IndexSum to this SumContainer.
+     * @param other The IndexSum to prepend.
+     * @return Reference to this SumContainer.
+     */
+    SumContainer& prepend(const IndexSum& other);
+
+    /**
      * @brief Pushes back a momentum into the momenta container.
      * @param momentum The momentum to push back.
      */
