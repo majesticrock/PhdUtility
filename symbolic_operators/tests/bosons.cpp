@@ -33,23 +33,23 @@ int main(int argc, [[maybe_unused]] char** argv) {
 
     // Define the Hamiltonian terms. Each Term is built from a prefactor, a coefficient,
     // the sums that run over momenta or indices, and the ordered operator string.
-    const Term hopping(1, Coefficient::HoneyComb("\\gamma", Momentum('k'), false, false), MomentumSum{'k'},
-                       std::vector<Operator>({Operator::Boson(Momentum('k'), Index::TypeA, true),
-                                              Operator::Boson(Momentum('k'), Index::TypeB, false)}));
+    const Term hopping(1, Coefficient::HoneyComb("\\gamma", Momentum('K'), false, false), MomentumSum{'K'},
+                       std::vector<Operator>({Operator::Boson(Momentum('K'), Index::TypeA, true),
+                                              Operator::Boson(Momentum('K'), Index::TypeB, false)}));
 
     // The Bogoliubov term is constructed in the same way, but the second bosonic operator
     // carries a momentum shift of -1 times k.
-    const Term bogo(IntFractional(1, 2), Coefficient::HoneyComb("\\Gamma", Momentum('k'), false, false),
-                    MomentumSum{'k'},
-                    std::vector<Operator>({Operator::Boson(Momentum('k'), Index::TypeA, true),
-                                           Operator::Boson(Momentum('k', -1), Index::TypeB, true)}));
+    const Term bogo(IntFractional(1, 2), Coefficient::HoneyComb("\\Gamma", Momentum('K'), false, false),
+                    MomentumSum{'K'},
+                    std::vector<Operator>({Operator::Boson(Momentum('K'), Index::TypeA, true),
+                                           Operator::Boson(Momentum('K', -1), Index::TypeB, true)}));
 
     // A chemical-potential term couples a creation and annihilation operator of the same boson.
     // The index sum ensures that the term is summed over the spin-like index Sigma.
     const Term chemical_potential(-1, Coefficient::Constant("\\mu", Index::Sigma),
-                                  SumContainer{MomentumSum{'k'}, IndexSum{Index::Sigma}},
-                                  std::vector<Operator>({Operator::Boson(Momentum('k'), Index::Sigma, true),
-                                                         Operator::Boson(Momentum('k'), Index::Sigma, false)}));
+                                  SumContainer{MomentumSum{'K'}, IndexSum{Index::Sigma}},
+                                  std::vector<Operator>({Operator::Boson(Momentum('K'), Index::Sigma, true),
+                                                         Operator::Boson(Momentum('K'), Index::Sigma, false)}));
 
     const std::vector<Term> hamiltonian{hopping, hopping.hermitian_conjugate(), bogo, bogo.hermitian_conjugate(),
                                         chemical_potential};
@@ -64,11 +64,11 @@ int main(int argc, [[maybe_unused]] char** argv) {
 
     // The second target is a sum of two bosonic operator strings, each carrying a momentum shift.
     const std::vector<Term> to_commute_2{
-        Term(1, SumContainer{MomentumSum{'q'}, IndexSum{}},
-             std::vector<Operator>({Operator::Boson(Momentum("l+q"), Index::TypeA, true),
+        Term(1, SumContainer{MomentumSum{'K'}, IndexSum{}},
+             std::vector<Operator>({Operator::Boson(Momentum("l+K"), Index::TypeA, true),
                                     Operator::Boson(Momentum("l"), Index::TypeA, false)})),
-        Term(1, SumContainer{MomentumSum{'q'}, IndexSum{}},
-             std::vector<Operator>({Operator::Boson(Momentum("l-q"), Index::TypeB, true),
+        Term(1, SumContainer{MomentumSum{'K'}, IndexSum{}},
+             std::vector<Operator>({Operator::Boson(Momentum("l-K"), Index::TypeB, true),
                                     Operator::Boson(Momentum("l"), Index::TypeB, false)}))};
 
     // Compute the commutators

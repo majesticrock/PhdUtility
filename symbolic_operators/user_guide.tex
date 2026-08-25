@@ -392,29 +392,29 @@ The workflow can be summarized as follows.
 \begin{enumerate}
   \item Define symbolic operator strings with \class{Term}.
     \class{Term} is used to encode the symbolic structure of the Hamiltonian.
-    The first term represents a bilinear hopping contribution, and the second one encodes the pairing interaction with a coefficient \code{g(q,p)}.
+    The first term represents a bilinear hopping contribution, and the second one encodes the pairing interaction with a coefficient \code{g(K,P)}.
     The sums over momenta and spin are stored in \class{SumContainer}, while the actual operator sequence is stored in the term's operator vector.
     \begin{lstlisting}
 const Term H_Kin(1,
-    Coefficient("\\epsilon", Momentum('q')),
-    SumContainer{ MomentumSum({ 'q' }), Index::Sigma },
+    Coefficient("\\epsilon", Momentum('K')),
+    SumContainer{ MomentumSum({ 'K' }), Index::Sigma },
     std::vector<Operator>({
-        Operator('q', 1, false, Index::Sigma, true),
-        Operator('q', 1, false, Index::Sigma, false)
+        Operator('K', 1, false, Index::Sigma, true),
+        Operator('K', 1, false, Index::Sigma, false)
     }));
 
 const Term H_Ph(-1,
     Coefficient::RealInversionSymmetric("g",
-        MomentumList({ 'q', 'p' }),
+        MomentumList({ 'K', 'P' }),
         std::function<void(Coefficient&)>([](Coefficient& coeff) {
             coeff.momenta.sort();
         })),
-    SumContainer{ MomentumSum({ 'p', 'q' }) },
+    SumContainer{ MomentumSum({ 'P', 'K' }) },
     std::vector<Operator>({
-        c_k_dagger.with_momentum('q'),
-        c_minus_k_dagger.with_momentum('q'),
-        c_minus_k.with_momentum('p'),
-        c_k.with_momentum('p')
+        c_k_dagger.with_momentum('K'),
+        c_minus_k_dagger.with_momentum('K'),
+        c_minus_k.with_momentum('P'),
+        c_k.with_momentum('P')
     }));
     \end{lstlisting}
 
@@ -427,7 +427,7 @@ const Term H_Ph(-1,
         OperatorType::Number
     }
     \end{lstlisting}
-    and one for pair operators of the form $c_{q\uparrow}^{\dagger} c_{-q\downarrow}^{\dagger}$ and $c_{-q\downarrow} c_{q\uparrow}$.
+    and one for pair operators of the form $c_{k\uparrow}^{\dagger} c_{-k\downarrow}^{\dagger}$ and $c_{-k\downarrow} c_{k\uparrow}$.
     \begin{lstlisting}
     WickOperatorTemplate{
         {IndexComparison{false, Index::SpinUp, Index::SpinDown}},

@@ -302,9 +302,9 @@ void Term::rename_indizes(Index what, Index to) {
 }
 
 void Term::swap_momenta(const MomentumSymbol::name_type a, const MomentumSymbol::name_type b) {
-    this->rename_momenta(a, '_');
+    this->rename_momenta(a, PLACEHOLDER_SYMBOL);
     this->rename_momenta(b, a);
-    this->rename_momenta('_', b);
+    this->rename_momenta(PLACEHOLDER_SYMBOL, b);
 }
 
 void normal_order(std::vector<Term>& terms) {
@@ -445,32 +445,7 @@ std::ostream& operator<<(std::ostream& os, const std::vector<Term>& terms) {
 }
 
 Term& Term::operator*=(const Term& rhs) {
-    unsigned char c = 0;
-    for (const auto& sum_momentum : sums.momenta) {
-        if (rhs.sums.momenta.is_summed_over(sum_momentum)) {
-            while (rhs.sums.momenta.is_summed_over(name_list[c]) || this->sums.momenta.is_summed_over(name_list[c])) {
-                ++c;
-                if (c >= N_BUFFER) {
-                    throw std::runtime_error("The momentum buffer is too short!");
-                }
-            }
-            this->rename_momenta(sum_momentum, name_list[c]);
-        }
-    }
-
-    c = static_cast<unsigned char>(Index::Sigma);
-    for (const auto& sum_index : sums.spins) {
-        if (rhs.sums.spins.is_summed_over(sum_index)) {
-            while (rhs.sums.spins.is_summed_over(static_cast<Index>(c)) ||
-                   this->sums.spins.is_summed_over(static_cast<Index>(c))) {
-                ++c;
-                if (c >= static_cast<unsigned char>(Index::TypeA)) {
-                    throw std::runtime_error("The index buffer is too short!");
-                }
-            }
-            this->rename_indizes(sum_index, static_cast<Index>(c));
-        }
-    }
+    this->rename_duplicate_sums(&rhs);
     this->sums.append(rhs.sums);
 
     this->multiplicity *= rhs.multiplicity;

@@ -33,11 +33,11 @@ protected:
     // to ;, the third to |, etc. As of now, this is limited to 11 sums (which I doubt will become a problem in the
     // future). If more is needed, the buffer_list and name_list need to be extended, and the N_BUFFER constant needs to
     // be changed accordingly.
-    constexpr static int N_BUFFER = 11;
-    constexpr static MomentumSymbol::name_type name_list[N_BUFFER] = {'q', 'p', 'r', 's', 't', 'u',
-                                                                      'v', 'w', 'x', 'y', 'z'};
-    constexpr static MomentumSymbol::name_type buffer_list[N_BUFFER] = {':', ';', '|', '?', '!', '.',
-                                                                        '-', '_', '+', '/', '='};
+    constexpr static int N_BUFFER = 12;
+    constexpr static MomentumSymbol::name_type name_list[N_BUFFER] = {'K', 'P', 'Q', 'R', 'S', 'T',
+                                                                      'U', 'V', 'W', 'X', 'Y', 'Z'};
+    constexpr static MomentumSymbol::name_type buffer_list[N_BUFFER] = {'!', '\"', '#', '$', '%', '&',
+                                                                        '\'', '(', ')', '*', '+', ','};
 
     virtual void for_each_momentum_except_deltas(const std::function<void(Momentum&)>& f) 
     {
@@ -259,8 +259,8 @@ public:
      * @param current The current state of the Momentum to target
      * @param should_be The desired final state; constructed via \c Momentum(should_be)
      * @param do_not_use Optionally provide a vector of symbols that should not be used for the transformation
-     * The idea is, if you already ordered 'q', you probably do not want to destroy what you already achieved.
-     * So you can pass 'q' as \c do_not_use and the algorithm will skip it.
+     * The idea is, if you already ordered 'Q', you probably do not want to destroy what you already achieved.
+     * So you can pass 'Q' as \c do_not_use and the algorithm will skip it.
      */
     void redistribute_momenta(const Momentum& current, const MomentumSymbol::name_type& should_be,
         const std::vector<MomentumSymbol::name_type>& do_not_use = {});
@@ -284,6 +284,18 @@ public:
      */
     void redistribute_indizes(const Index current, const Index should_be,
         const std::vector<Index>& do_not_use = {});
+
+    /**
+     * @brief renames the sums in \c *this so that none of them have the same index as the sums in  \c other .
+     * 
+     * This function is utilized in the multiplication of two terms. For instance, if you want to compute
+     * (sum_k O_k)*(sum_k Q_k)  the result will be sum_(k,l) O_k Q_l and not sum_k O_k Q_k.
+     * In order to handle this, the summation index of one term must be changed from k to l.
+     * This function handles precisely this task.
+     * 
+     * @param other a const pointer to other. This is a pointer so that this function works with derived classes.
+     */
+    void rename_duplicate_sums(AbstractTerm const * const other);
 };
 
 // Implementations
@@ -620,12 +632,12 @@ void AbstractTerm<tOperatorType>::redistribute_momenta(const Momentum& current, 
     }
     Momentum target = -current;
     target += Momentum(transformer);
-    target += Momentum('?');
+    target += Momentum(PLACEHOLDER_SYMBOL);
 
-    transform_momentum_sum(transformer, target, '?');
+    transform_momentum_sum(transformer, target, PLACEHOLDER_SYMBOL);
 
     rename_momenta(should_be, transformer);
-    rename_momenta('?', should_be);
+    rename_momenta(PLACEHOLDER_SYMBOL, should_be);
 }
 
 template <class tOperatorType>
@@ -659,6 +671,37 @@ void AbstractTerm<tOperatorType>::redistribute_indizes(const Index current, cons
     }
     else {
         throw std::invalid_argument("There is no summation that would allow the desired index transformation!");
+    }
+}
+
+template <class tOperatorType>
+void AbstractTerm<tOperatorType>::rename_duplicate_sums(AbstractTerm const * const other)
+{
+    unsigned char c = 0;
+    for (const auto& sum_momentum : sums.momenta) {
+        if (other->sums.momenta.is_summed_over(sum_momentum)) {
+            while (other->sums.momenta.is_summed_over(name_list[c]) || this->sums.momenta.is_summed_over(name_list[c])) {
+                ++c;
+                if (c >= N_BUFFER) {
+                    throw std::runtime_error("The momentum buffer is too short!");
+                }
+            }
+            this->rename_momenta(sum_momentum, name_list[c]);
+        }
+    }
+
+    c = static_cast<unsigned char>(Index::Sigma);
+    for (const auto& sum_index : sums.spins) {
+        if (other->sums.spins.is_summed_over(sum_index)) {
+            while (other->sums.spins.is_summed_over(static_cast<Index>(c)) ||
+                   this->sums.spins.is_summed_over(static_cast<Index>(c))) {
+                ++c;
+                if (c >= static_cast<unsigned char>(Index::TypeA)) {
+                    throw std::runtime_error("The index buffer is too short!");
+                }
+            }
+            this->rename_indizes(sum_index, static_cast<Index>(c));
+        }
     }
 }
 

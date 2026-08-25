@@ -213,12 +213,12 @@ int main() {
     // Setup a simple BCS Hamiltonian
     // Kinetic part: sum_(q,sigma) epsilon (q) c_(k,sigma)^dagger c_(k,sigma)
     const Term H_Kin(1,                                       /* The prefactor of the term is 1 */
-                     Coefficient("\\epsilon", Momentum('q')), /* The coefficient of the term is epsilon (q) */
+                     Coefficient("\\epsilon", Momentum('K')), /* The coefficient of the term is epsilon (q) */
                      SumContainer{/* The term contains a sum over the momentum q and the index sigma */
-                                  MomentumSum({'q'}), Index::Sigma},
+                                  MomentumSum({'K'}), Index::Sigma},
                      std::vector<Operator>(
                          {/* The term has 2 operators: c_(q,sigma)^dagger and c_(q,sigma) */
-                          Operator('q', 1, false, Index::Sigma, true), Operator('q', 1, false, Index::Sigma, false)}));
+                          Operator('K', 1, false, Index::Sigma, true), Operator('K', 1, false, Index::Sigma, false)}));
 
     // Pairing part: sum_(q,p) g(q, p) c_(q,up)^dagger c_(-q,down)^dagger c_(-p,down) c_(p,up)
     // The coefficent g(q, p) has the following symmetries:
@@ -227,7 +227,7 @@ int main() {
         -1, /* The prefactor of the term is -1 */
         Coefficient::RealInversionSymmetric(
             "g", /* The coefficent is named 'g', it is real g=g^* and inversion symmetric g(p) = g(-p) */
-            MomentumList({'q', 'p'}),  // The coefficient depends on the momenta q and p
+            MomentumList({'K', 'P'}),  // The coefficient depends on the momenta q and p
             std::function<void(Coefficient&)>([](Coefficient& coeff) {
                 /* The coefficient has an additional
                custom symmetry that is being handled by this lamdba expression.
@@ -235,10 +235,10 @@ int main() {
                the momenta to bring all coefficients to the same notation. */
                 coeff.momenta.sort();
             })),
-        SumContainer{MomentumSum({'p', 'q'}), IndexSum{}}, /* The term contains a sum over the momenta q and p*/
+        SumContainer{MomentumSum({'P', 'K'}), IndexSum{}}, /* The term contains a sum over the momenta q and p*/
         std::vector<Operator>({/* The term has 4 operators: c_(q,up)^dagger c_(-q,down)^dagger c_(-p,down) c_(p,up) */
-                               c_k_dagger.with_momentum('q'), c_minus_k_dagger.with_momentum('q'),
-                               c_minus_k.with_momentum('p'), c_k.with_momentum('p')}));
+                               c_k_dagger.with_momentum('K'), c_minus_k_dagger.with_momentum('K'),
+                               c_minus_k.with_momentum('P'), c_k.with_momentum('P')}));
 
     // The Hamiltonian is represented by a vector of the two Term objects above
     const std::vector<Term> H{H_Kin, H_Ph};

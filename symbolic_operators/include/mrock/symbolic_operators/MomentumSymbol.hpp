@@ -120,6 +120,8 @@ struct MomentumSymbol {
     constexpr auto operator<=>(const MomentumSymbol&) const = default;
 };
 
+constexpr static MomentumSymbol::name_type PLACEHOLDER_SYMBOL = MomentumSymbol::name_type{'?'};
+
 /**
  * @concept MrockStringAddable
  * @brief Specifies that a type can be added to a std::string and result in a std::string.

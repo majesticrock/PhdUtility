@@ -42,34 +42,34 @@ int main(int argc, [[maybe_unused]] char** argv) {
     // Setup the kinetic term: sum_{q,sigma} epsilon_0(q) c^\dagger_{q,sigma} c_{q,sigma}.
     // A Term is constructed from a prefactor, a coefficient, the sums over momenta and indices,
     // and the ordered list of operators appearing in the term.
-    const Term H_Kin(1, Coefficient("\\epsilon_0", Momentum('q')), SumContainer{MomentumSum({'q'}), Index::Sigma},
+    const Term H_Kin(1, Coefficient("\\epsilon_0", Momentum('K')), SumContainer{MomentumSum({'K'}), Index::Sigma},
                      std::vector<Operator>(
-                         {Operator('q', 1, false, Index::Sigma, true), Operator('q', 1, false, Index::Sigma, false)}));
+                         {Operator('K', 1, false, Index::Sigma, true), Operator('K', 1, false, Index::Sigma, false)}));
 
     // Setup the phonon-mediated pairing term: -sum_{q,p} g(q,p) c^\dagger_{q,up} c^\dagger_{-q,down} c_{-p,down}
     // c_{p,up}. The operators are created from the previously defined base operators and then assigned new momenta.
-    const Term H_Ph(-1, Coefficient("g", MomentumList({'q', 'p'})), SumContainer{MomentumSum({'q', 'p'}), IndexSum{}},
-                    std::vector<Operator>({c_k_dagger.with_momentum('q'), c_minus_k_dagger.with_momentum('q'),
-                                           c_minus_k.with_momentum('p'), c_k.with_momentum('p')}));
+    const Term H_Ph(-1, Coefficient("g", MomentumList({'K', 'P'})), SumContainer{MomentumSum({'K', 'P'}), IndexSum{}},
+                    std::vector<Operator>({c_k_dagger.with_momentum('K'), c_minus_k_dagger.with_momentum('K'),
+                                           c_minus_k.with_momentum('P'), c_k.with_momentum('P')}));
 
     // Setup the Coulomb interaction term: 1/2 sum_{r,p,q} V(q) c^\dagger_{r,sigma} c^\dagger_{p,sigma'}
     // c_{p+q,sigma'} c_{r-q,sigma}. The momentum shifts are encoded directly in the operator constructors.
-    const Term H_C(IntFractional(1, 2), Coefficient("V", Momentum('q')),
-                   SumContainer{MomentumSum({'r', 'p', 'q'}), IndexSum({Index::Sigma, Index::SigmaPrime})},
+    const Term H_C(IntFractional(1, 2), Coefficient("V", Momentum('K')),
+                   SumContainer{MomentumSum({'Q', 'P', 'K'}), IndexSum({Index::Sigma, Index::SigmaPrime})},
                    std::vector<Operator>({
-                       Operator('r', 1, false, Index::Sigma, true),
-                       Operator('p', 1, false, Index::SigmaPrime, true),
-                       Operator(std::vector<MomentumSymbol>({MomentumSymbol(1, 'p'), MomentumSymbol(-1, 'q')}),
+                       Operator('Q', 1, false, Index::Sigma, true),
+                       Operator('P', 1, false, Index::SigmaPrime, true),
+                       Operator(std::vector<MomentumSymbol>({MomentumSymbol(1, 'P'), MomentumSymbol(-1, 'K')}),
                                 Index::SigmaPrime, false),
-                       Operator(std::vector<MomentumSymbol>({MomentumSymbol(1, 'r'), MomentumSymbol(1, 'q')}),
+                       Operator(std::vector<MomentumSymbol>({MomentumSymbol(1, 'Q'), MomentumSymbol(1, 'K')}),
                                 Index::Sigma, false),
                    }));
 
     // Setup the background-density term: -sum_q rho c^\dagger_{q,sigma} c_{q,sigma}.
     // Here the coefficient is a constant and the operator is created from a momentum expression.
-    const Term H_BG(-1, Coefficient("\\rho"), SumContainer{MomentumSum({'q'}), Index::Sigma},
+    const Term H_BG(-1, Coefficient("\\rho"), SumContainer{MomentumSum({'K'}), Index::Sigma},
                     std::vector<Operator>(
-                        {Operator(Momentum("q"), Index::Sigma, true), Operator('q', 1, false, Index::Sigma, false)}));
+                        {Operator(Momentum('K'), Index::Sigma, true), Operator('K', 1, false, Index::Sigma, false)}));
 
     // Hamiltonian of the continuum  system
     const std::vector<Term> H({H_Kin, H_Ph, H_C, H_BG});
