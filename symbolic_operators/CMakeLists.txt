@@ -19,6 +19,7 @@ add_library(
     STATIC
 
     sources/Coefficient.cpp
+    sources/Exceptions.cpp
     sources/IndexWrapper.cpp
     sources/Momentum.cpp
     sources/MomentumList.cpp

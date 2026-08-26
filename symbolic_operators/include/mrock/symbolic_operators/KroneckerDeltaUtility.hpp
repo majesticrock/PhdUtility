@@ -106,7 +106,7 @@ inline bool is_always_zero(const std::vector<KroneckerDelta<Index>>& deltas) {
  */
 inline bool is_always_zero(const std::vector<KroneckerDelta<Momentum>>& deltas) {
     return std::any_of(deltas.begin(), deltas.end(), [](const KroneckerDelta<Momentum>& delta) {
-        return delta.first.differs_only_in_Q(delta.second);
+        return delta.first.differs_only_in_Pi(delta.second);
     });
 }
 
@@ -116,9 +116,9 @@ inline bool is_always_zero(const std::vector<KroneckerDelta<Momentum>>& deltas) 
  * @param delta The KroneckerDelta<Momentum> object.
  */
 inline void remove_double_occurances(KroneckerDelta<Momentum>& delta) {
-    if (delta.first.add_Q) {
-        delta.first.add_Q = false;
-        delta.second.add_Q = !(delta.second.add_Q);
+    if (delta.first.add_PI) {
+        delta.first.add_PI = false;
+        delta.second.add_PI = !(delta.second.add_PI);
     }
     for (auto it = delta.first.momentum_list.begin(); it != delta.first.momentum_list.end();) {
         const int idx = delta.second.is_used_at(it->name);

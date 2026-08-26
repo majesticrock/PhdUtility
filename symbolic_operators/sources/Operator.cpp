@@ -37,17 +37,17 @@ Operator::Operator(const std::vector<MomentumSymbol>& _momentum,
     : momentum(_momentum), indizes(_indizes), is_daggered(_is_daggered), is_fermion(_is_fermion) {}
 
 Operator::Operator(const MomentumSymbol::name_type _momentum,
-                   bool add_Q,
+                   bool add_PI,
                    const IndexWrapper _indizes,
                    bool _is_daggered,
                    bool _is_fermion)
-    : momentum(_momentum, add_Q), indizes(_indizes), is_daggered(_is_daggered), is_fermion(_is_fermion) {}
+    : momentum(_momentum, add_PI), indizes(_indizes), is_daggered(_is_daggered), is_fermion(_is_fermion) {}
 
 Operator::Operator(const MomentumSymbol::name_type _momentum,
                    int sign,
-                   bool add_Q,
+                   bool add_PI,
                    const IndexWrapper _indizes,
                    bool _is_daggered,
                    bool _is_fermion)
-    : momentum(_momentum, sign, add_Q), indizes(_indizes), is_daggered(_is_daggered), is_fermion(_is_fermion) {}
+    : momentum(_momentum, sign, add_PI), indizes(_indizes), is_daggered(_is_daggered), is_fermion(_is_fermion) {}
 }  // namespace mrock::symbolic_operators

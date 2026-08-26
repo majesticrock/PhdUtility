@@ -18,16 +18,16 @@ namespace mrock::symbolic_operators {
  * @struct Momentum
  * @brief Represents a collection of momentum symbols with associated operations.
  *
- * This class represents momenta. It includes addition and substraction operators as well as a \c bool \c add_Q.
- * \f$Q\f$ is defined as \f$(\pi, \pi, \cdots)\f$, i.e., \f$n Q = 0\f$ for all even \f$n\f$.
+ * This class represents momenta. It includes addition and substraction operators as well as a \c bool \c add_PI.
+ * \f$\Pi\f$ is defined as \f$(\pi, \pi, \cdots)\f$, i.e., \f$n \Pi = 0\f$ for all even \f$n\f$.
  * Besides the normal operators in which you specify the class members,
  * you can also pass a string like "3k+l-p" to the constructor to create that specific momentum.
- * If you want to add \f$Q\f$ here, you can do so by passing \c true to the same constructor as a second argument.
+ * If you want to add \f$\Pi\f$ here, you can do so by passing \c true to the same constructor as a second argument.
  */
 struct Momentum {
     std::vector<MomentumSymbol> momentum_list;  ///< List of momentum symbols.
-    bool add_Q{};  ///< Flag indicating additional property \f$Q\f$. \f$Q\f$ is a special momentum with the property
-                   ///< \f$2Q = 0\f$. Remeber that momenta are only defined in the first Brillouin zone.
+    bool add_PI{};  ///< Flag indicating additional property \f$\Pi\f$. \f$\Pi\f$ is a special momentum with the property
+                   ///< \f$2 \Pi = 0\f$. Remeber that momenta are only defined in the first Brillouin zone.
 
     /**cl
      * @brief Serialization function for Boost.
@@ -38,7 +38,7 @@ struct Momentum {
     template <class Archive>
     void serialize(Archive& ar, [[maybe_unused]] const unsigned int version) {
         ar & momentum_list;
-        ar & add_Q;
+        ar & add_PI;
     }
 
     /**
@@ -50,38 +50,38 @@ struct Momentum {
      * @brief Constructs a Momentum with a single symbol.
      * @param value Character representing the symbol.
      * @param plus_minus Factor associated with the symbol.
-     * @param Q Additional property Q.
+     * @param add_PI_ Whether or not to add the special momentum Pi.
      */
-    explicit Momentum(const char value, int plus_minus = 1, bool Q = false);
+    explicit Momentum(const char value, int plus_minus = 1, bool add_PI_ = false);
 
     /**
      * @brief Constructs a Momentum with a single symbol.
      * @param value Name type of the symbol.
      * @param plus_minus Factor associated with the symbol.
-     * @param Q Additional property Q.
+     * @param add_PI_ Whether or not to add the special momentum Pi.
      */
-    explicit Momentum(const MomentumSymbol::name_type value, int plus_minus = 1, bool Q = false);
+    explicit Momentum(const MomentumSymbol::name_type value, int plus_minus = 1, bool add_PI_ = false);
 
     /**
      * @brief Constructs a Momentum with a list of symbols.
      * @param _momenta List of momentum symbols.
-     * @param Q Additional property Q.
+     * @param add_PI_ Whether or not to add the special momentum Pi.
      */
-    explicit Momentum(const std::vector<MomentumSymbol>& _momenta, bool Q = false);
+    explicit Momentum(const std::vector<MomentumSymbol>& _momenta, bool add_PI_ = false);
 
     /**
      * @brief Constructs a Momentum with a single symbol.
      * @param momentum_symbol The momentum symbol.
-     * @param Q Additional property Q.
+     * @param add_PI_ Whether or not to add the special momentum Pi.
      */
-    explicit Momentum(MomentumSymbol const& momentum_symbol, bool Q = false);
+    explicit Momentum(MomentumSymbol const& momentum_symbol, bool add_PI_ = false);
 
     /**
      * @brief Constructs a Momentum from a string expression.
      * @param expression String representing the momentum expression.
-     * @param Q Additional property Q.
+     * @param add_PI_ Whether or not to add the special momentum Pi.
      */
-    Momentum(const std::string& expression, bool Q = false);
+    Momentum(const std::string& expression, bool add_PI_ = false);
 
     /**
      * @brief Deleted constructor to prevent usage.
@@ -142,11 +142,11 @@ struct Momentum {
     inline void flip_momentum();
 
     /**
-     * @brief Checks if this Momentum differs from another only in the Q property.
+     * @brief Checks if this Momentum differs from another only in the the special vector Pi.
      * @param rhs The other Momentum.
-     * @return True if they differ only in Q, false otherwise.
+     * @return True if they differ only in Pi, false otherwise.
      */
-    inline bool differs_only_in_Q(Momentum rhs) const;
+    inline bool differs_only_in_Pi(Momentum rhs) const;
 
     /**
      * @brief Checks if this Momentum is zero.
@@ -336,7 +336,7 @@ std::ostream& operator<<(std::ostream& os, const Momentum& momentum);
 // Inline definitions
 Momentum& Momentum::operator*=(const int rhs) {
     if (!(rhs & 1)) {
-        this->add_Q = false;
+        this->add_PI = false;
     }
     for (auto& m : momentum_list) {
         m.factor *= rhs;
@@ -349,14 +349,14 @@ void Momentum::multiply_by(int factor) {
 void Momentum::flip_momentum() {
     (*this) *= -1;
 }
-bool Momentum::differs_only_in_Q(Momentum rhs) const {
-    if (rhs.add_Q == this->add_Q)
+bool Momentum::differs_only_in_Pi(Momentum rhs) const {
+    if (rhs.add_PI == this->add_PI)
         return false;
-    rhs.add_Q = this->add_Q;
+    rhs.add_PI = this->add_PI;
     return (*this == rhs);
 }
 bool Momentum::is_zero() const {
-    if (add_Q)
+    if (add_PI)
         return false;
     return momentum_list.empty();
 }

@@ -129,46 +129,7 @@ void TermCollector::normal_order() {
     }
 
     for (auto& term : terms) {
-        std::size_t n = term.operators.size();
-        std::size_t new_n{};
-        // First sort so that the spins indizes are always ordered the same way
-        // Without destroying the previously achieved normal order
-        while (n > 1U) {
-            new_n = 0U;
-            for (std::size_t i = 1U; i < term.operators.size(); ++i) {
-                if (term.operators[i - 1].is_daggered != term.operators[i].is_daggered) {
-                    continue;
-                }
-                if (!(term.operators[i - 1].is_fermion && term.operators[i].is_fermion)) {
-                    continue;
-                }
-                if (term.operators[i - 1].indizes.empty() || term.operators[i].indizes.empty()) {
-                    continue;
-                }
-
-                if (term.operators[i - 1].is_daggered) {
-                    if (term.operators[i - 1].indizes.front() == Index::SpinUp) continue;
-                    if (term.operators[i].indizes.front() == Index::SpinDown) continue;
-
-                    if (term.operators[i - 1].indizes.front() > term.operators[i].indizes.front()) {
-                        new_n = i;
-                        std::swap(term.operators[i - 1], term.operators[i]);
-                        term.multiplicity *= -1;
-                    }
-                }
-                else {
-                    if (term.operators[i - 1].indizes.front() == Index::SpinDown) continue;
-                    if (term.operators[i].indizes.front() == Index::SpinUp) continue;
-
-                    if (term.operators[i - 1].indizes.front() < term.operators[i].indizes.front()) {
-                        new_n = i;
-                        std::swap(term.operators[i - 1], term.operators[i]);
-                        term.multiplicity *= -1;
-                    }
-                }
-            }
-            n = new_n;
-        }
+        term.sort_operators_by_indizes();
     }
 
     combine_duplicates();
@@ -239,7 +200,7 @@ void TermCollector::clean_up() {
         }
         it->discard_zero_momenta();
         it->rename_sums();
-        it->sort();
+        it->structure();
         ++it;
     }
 
@@ -260,9 +221,9 @@ void TermCollector::clean_up() {
             const Momentum remainder = delta.second - l_mom;
             delta -= remainder;
             std::swap(delta.first, delta.second);
-            if (delta.first.add_Q) {
-                delta.second.add_Q = !delta.second.add_Q;
-                delta.first.add_Q = false;
+            if (delta.first.add_PI) {
+                delta.second.add_PI = !delta.second.add_PI;
+                delta.first.add_PI = false;
             }
         }
     }

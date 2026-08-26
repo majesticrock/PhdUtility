@@ -78,14 +78,14 @@ struct Operator {
      * @brief Constructs an Operator with specified momentum symbol name, addition flag, indices, daggered state, and
      * fermion state.
      * @param _momentum The name of the momentum symbol.
-     * @param add_Q Flag to indicate if Q should be added. Q has the property 2Q = 0, e.g., (pi,pi) on a unit square
+     * @param add_PI Flag to indicate if Q should be added. Q has the property 2Q = 0, e.g., (pi,pi) on a unit square
      * lattice.
      * @param _indizes The indices of the operator.
      * @param _is_daggered The daggered state of the operator.
      * @param _is_fermion The fermion state of the operator (default is true).
      */
     Operator(const MomentumSymbol::name_type _momentum,
-             bool add_Q,
+             bool add_PI,
              const IndexWrapper _indizes,
              bool _is_daggered,
              bool _is_fermion = true);
@@ -95,7 +95,7 @@ struct Operator {
      * and fermion state.
      * @param _momentum The name of the momentum symbol.
      * @param sign The sign of the momentum.
-     * @param add_Q Flag to indicate if Q should be added. Q has the property 2Q = 0, e.g., (pi,pi) on a unit square
+     * @param add_PI Flag to indicate if Q should be added. Q has the property 2Q = 0, e.g., (pi,pi) on a unit square
      * lattice.
      * @param _indizes The indices of the operator.
      * @param _is_daggered The daggered state of the operator.
@@ -103,7 +103,7 @@ struct Operator {
      */
     Operator(const MomentumSymbol::name_type _momentum,
              int sign,
-             bool add_Q,
+             bool add_PI,
              const IndexWrapper _indizes,
              bool _is_daggered,
              bool _is_fermion = true);

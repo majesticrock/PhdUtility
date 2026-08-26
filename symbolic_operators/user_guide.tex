@@ -206,11 +206,13 @@ The attributes are
 \label{class:Momentum}
 
 \class{Momentum} represents a symbolic momentum expression as a collection of \class{MomentumSymbol} objects.
-It supports addition and subtraction-like algebra, the optional inclusion of the special momentum $Q$, and helper functions for sorting, flipping, and removing contributions.
+It supports addition and subtraction-like algebra, and helper functions for sorting, flipping, and removing contributions.
+The special momentum $\Pi$ (in some references, the symbol $\mathbf{Q}$ is used instead) can be toggled via the \code{add_PI} attribute.
+It has the property $2\Pi = 0$, for instance, on a square lattice, $\Pi = (\pi, \pi)^\mathrm{T}$.
 Strings such as \code{"3k+l-p"} can also be parsed into a momentum object. The attributes are
 \begin{itemize}
   \item The list of momentum symbols, stored in \code{momentum_list}
-  \item The flag indicating whether the special momentum $Q$ is present, stored in \code{add_Q}
+  \item The flag indicating whether the special momentum $\Pi$ is present, stored in \code{add_PI}
 \end{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{MomentumList}
@@ -485,7 +487,7 @@ double evaluate_momentum(const Momentum& expression, const std::map<...>& moment
     for (const MomentumSymbol& momentum : expression) {
         value += momentum.factor * momentum_map.at(momentum.name);
     }
-    if (expression.add_Q) {
+    if (expression.add_PI) {
         value += std::numbers::pi;
     }
     return value;

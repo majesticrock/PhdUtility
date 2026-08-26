@@ -301,15 +301,6 @@ bool operator==(const WickTerm& lhs, const WickTerm& rhs);
 bool operator!=(const WickTerm& lhs, const WickTerm& rhs);
 
 /**
- * @brief Stream insertion operator for WickTerm.
- *
- * @param os The output stream.
- * @param term The WickTerm object.
- * @return std::ostream& The updated output stream.
- */
-std::ostream& operator<<(std::ostream& os, const WickTerm& term);
-
-/**
  * @class bad_term_exception
  * @brief An exception class for bad terms.
  */

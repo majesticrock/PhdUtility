@@ -7,13 +7,16 @@
 
 #include "detail/container_helper.hpp"
 #include "Coefficient.hpp"
+#include "Exceptions.hpp"
 #include "Fractional.hpp"
 #include "KroneckerDelta.hpp"
 #include "KroneckerDeltaUtility.hpp"
 #include "SumContainer.hpp"
 
-#include <vector>
+#include <algorithm>
 #include <functional>
+#include <ostream>
+#include <vector>
 
 namespace mrock::symbolic_operators {
 /**
@@ -216,6 +219,13 @@ public:
     const std::vector<tOperatorType>& get_operators() const;
 
     /**
+     * @brief Swaps two momenta in the term.
+     * @param a The first momentum.
+     * @param b The second momentum.
+     */
+    void swap_momenta(const MomentumSymbol::name_type a, const MomentumSymbol::name_type b);
+
+    /**
      * @brief Inverts a momentum in the term.
      *
      * @param what The momentum to invert.
@@ -262,7 +272,7 @@ public:
      * The idea is, if you already ordered 'Q', you probably do not want to destroy what you already achieved.
      * So you can pass 'Q' as \c do_not_use and the algorithm will skip it.
      */
-    void redistribute_momenta(const Momentum& current, const MomentumSymbol::name_type& should_be,
+    void redistribute_momenta(const Momentum& current, const MomentumSymbol::name_type should_be,
         const std::vector<MomentumSymbol::name_type>& do_not_use = {});
 
     /**
@@ -361,7 +371,7 @@ bool AbstractTerm<tOperatorType>::resolve_momentum_deltas() {
 
         if (delta_it->first.momentum_list.empty() && delta_it->second.momentum_list.empty()) {
             // 0 = Q can never be achieved
-            if (delta_it->first.add_Q != delta_it->second.add_Q)
+            if (delta_it->first.add_PI != delta_it->second.add_PI)
                 return false;
             // delta_(0,0) = 1
             delta_it = delta_momenta.erase(delta_it);
@@ -549,6 +559,14 @@ const std::vector<tOperatorType>& AbstractTerm<tOperatorType>::get_operators() c
 }
 
 template <class tOperatorType>
+void AbstractTerm<tOperatorType>::swap_momenta(const MomentumSymbol::name_type a, const MomentumSymbol::name_type b)
+{
+    this->rename_momenta(a, PLACEHOLDER_SYMBOL);
+    this->rename_momenta(b, a);
+    this->rename_momenta(PLACEHOLDER_SYMBOL, b);
+}
+
+template <class tOperatorType>
 void AbstractTerm<tOperatorType>::invert_momentum(const MomentumSymbol::name_type what) {
     for_each_momentum_except_deltas([what](Momentum& momentum){
         momentum.flip_single(what);
@@ -558,8 +576,7 @@ void AbstractTerm<tOperatorType>::invert_momentum(const MomentumSymbol::name_typ
 template <class tOperatorType>
 void AbstractTerm<tOperatorType>::invert_momentum_sum(const MomentumSymbol::name_type what) {
     if (std::find(sums.momenta.begin(), sums.momenta.end(), what) == sums.momenta.end()) {
-        throw std::invalid_argument(
-            "You are trying to perform a sum transformation on a momentum that is not being summed over!");
+        throw sum_transformation_error();
     }
     invert_momentum(what);
 }
@@ -585,8 +602,7 @@ void AbstractTerm<tOperatorType>::transform_momentum_sum(const MomentumSymbol::n
                                                         const MomentumSymbol::name_type new_sum_index) {
     auto pos = std::find(sums.momenta.begin(), sums.momenta.end(), what);
     if (pos == sums.momenta.end()) {
-        throw std::invalid_argument(
-            "You are trying to perform a sum transformation on a momentum that is not being summed over!");
+        throw sum_transformation_error();
     } else {
         *pos = new_sum_index;
     }
@@ -600,7 +616,7 @@ void AbstractTerm<tOperatorType>::rename_momenta(const MomentumSymbol::name_type
         return;
     for (auto& mom_sum : sums.momenta) {
         if (mom_sum == to) {
-            throw std::invalid_argument("You are replacing a momentum sum with an index that already exists!");
+            throw renaming_error("momentum");
         }
         if (mom_sum == what) {
             mom_sum = to;
@@ -611,20 +627,41 @@ void AbstractTerm<tOperatorType>::rename_momenta(const MomentumSymbol::name_type
 }
 
 template <class tOperatorType>
-void AbstractTerm<tOperatorType>::redistribute_momenta(const Momentum& current, const MomentumSymbol::name_type& should_be,
+void AbstractTerm<tOperatorType>::redistribute_momenta(const Momentum& current, const MomentumSymbol::name_type should_be,
     const std::vector<MomentumSymbol::name_type>& do_not_use)
 {
     if (current == Momentum(should_be) || current.empty()) return;
+    if (current == -Momentum(should_be)) {
+        invert_momentum_sum(should_be);
+        return;
+    }
 
-    std::size_t i=0;
+    std::size_t i=0U;
     MomentumSymbol::name_type transformer = current[i].name;
 
     while (!sums.momenta.is_summed_over(transformer) || exists_in(do_not_use, transformer)) {
         if (++i >= current.size()) {
-            throw std::invalid_argument("There is no summation that would allow the desired momentum transformation!");
+            throw redistribution_error("momentum");
         }
         transformer = current[i].name;
-        
+    }
+    /* To avoid name clashes:
+    * If we have something like sum_(K,P) O_P O_K and the aim is to rename P to K,
+    * we identify that and see that there is also a sum over K. Thus, we swap P and K
+    * Then we look for a new transformer (which would now find K) in case the target
+    * Momentum is not as simple as in the above example
+    */
+    if (sums.momenta.is_summed_over(should_be)) {
+        swap_momenta(transformer, should_be);
+        i=0U;
+        transformer = current[i].name;
+
+        while (!sums.momenta.is_summed_over(transformer) || exists_in(do_not_use, transformer)) {
+            if (++i >= current.size()) {
+                throw redistribution_error("momentum");
+            }
+            transformer = current[i].name;
+        }
     }
 
     if (current[i].factor < 0) {
@@ -635,9 +672,10 @@ void AbstractTerm<tOperatorType>::redistribute_momenta(const Momentum& current, 
     target += Momentum(PLACEHOLDER_SYMBOL);
 
     transform_momentum_sum(transformer, target, PLACEHOLDER_SYMBOL);
-
     rename_momenta(should_be, transformer);
     rename_momenta(PLACEHOLDER_SYMBOL, should_be);
+
+    std::sort(sums.momenta.begin(), sums.momenta.end());
 }
 
 template <class tOperatorType>
@@ -647,7 +685,7 @@ void AbstractTerm<tOperatorType>::rename_indizes(const Index what, const Index t
 
     for (auto& index_sum : sums.spins) {
         if (index_sum == to) {
-            throw std::invalid_argument("You are replacing an index sum with an index that already exists!");
+            throw renaming_error("index");
         }
         if (index_sum == what) {
             index_sum = to;
@@ -670,7 +708,7 @@ void AbstractTerm<tOperatorType>::redistribute_indizes(const Index current, cons
         rename_indizes(Index::PlaceHolderIndex, current);
     }
     else {
-        throw std::invalid_argument("There is no summation that would allow the desired index transformation!");
+        throw redistribution_error("index");
     }
 }
 
@@ -703,6 +741,38 @@ void AbstractTerm<tOperatorType>::rename_duplicate_sums(AbstractTerm const * con
             this->rename_indizes(sum_index, static_cast<Index>(c));
         }
     }
+}
+
+/**
+ * @brief Overloads the stream insertion operator for the AbstractTerm class
+ *
+ * @param os The output stream.
+ * @param term The Term object to insert into the stream.
+ * @return The output stream.
+ */
+template <class tOperatorType>
+std::ostream& operator<<(std::ostream& os, const AbstractTerm<tOperatorType>& term)
+{
+    if (term.multiplicity > 0) {
+        os << "+";
+    }
+    os << term.multiplicity << " ";
+    os << term.sums;
+    os << term.coefficients << " ";
+    for (const auto& delta : term.delta_momenta) {
+        os << delta;
+    }
+    for (const auto& delta : term.delta_indizes) {
+        os << delta;
+    }
+    if (term.is_identity()) {
+        os << " \\hat{1} ";
+        return os;
+    }
+    for (const auto& op : term.operators) {
+        os << op << " ";
+    }
+    return os;
 }
 
 }  // namespace mrock::symbolic_operators

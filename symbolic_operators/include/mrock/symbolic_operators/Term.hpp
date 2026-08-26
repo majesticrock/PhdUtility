@@ -217,10 +217,10 @@ public:
     /**
      * @brief Swaps two operators in the term. Does NOT consider possible additional terms spawned by this operation due
      * to non-commutivity!
-     * @param lhs The first operator.
-     * @param rhs The second operator.
+     * @param i The index of the first operator.
+     * @param j The index of the second operator.
      */
-    inline void perform_operator_swap(Operator& lhs, Operator& rhs);
+    inline void perform_operator_swap(const std::size_t i, const std::size_t j);
 
     /**
      * @brief Resolves the Kronecker deltas in the term ( calls \c resolve_momentum_deltas() and \c
@@ -230,10 +230,20 @@ public:
     bool resolve_deltas();
 
     /**
-     * @brief Sorts the term.
+     * @brief Puts the operators in the term in a specific order based on their indizes.
      */
-    void sort();
+    void sort_operators_by_indizes();
 
+    /**
+     * @brief Tries to bring the momentum dependencies of the operators in \c *this to a fixed notation
+     */
+    void structure_momentum_dependencies();
+
+    /**
+     * @brief Tries to bring \c *this to a fixed notation
+     */
+    void structure();
+        
     /**
      * @brief Checks if the term is equal to another term (excluding multiplicity).
      * @param other The other term.
@@ -273,13 +283,6 @@ public:
     void rename_indizes(const Index what, const Index to);
 
     /**
-     * @brief Swaps two momenta in the term.
-     * @param a The first momentum.
-     * @param b The second momentum.
-     */
-    void swap_momenta(const MomentumSymbol::name_type a, const MomentumSymbol::name_type b);
-
-    /**
      * @brief Compute other * this
      * IMPOARTANT: The result will not be normal ordered! If you require
      * a normal ordered expression, please call normal_order!
@@ -315,15 +318,6 @@ public:
      */
     Term& operator*=(const Term& rhs);
 };
-
-/**
- * @brief Overloads the stream insertion operator for the Term class.
- *
- * @param os The output stream.
- * @param term The Term object to insert into the stream.
- * @return The output stream.
- */
-std::ostream& operator<<(std::ostream& os, const Term& term);
 
 /**
  * @brief Checks if two terms are equal.
@@ -373,11 +367,19 @@ int Term::count_bosons() const {
 int Term::count_fermions() const {
     return std::count_if(operators.begin(), operators.end(), [](Operator const& op) { return op.is_fermion; });
 }
-void Term::perform_operator_swap(Operator& lhs, Operator& rhs) {
-    if (lhs.is_fermion && rhs.is_fermion) {
+void Term::perform_operator_swap(const std::size_t i, const std::size_t j) {
+    std::size_t min = std::min(i, j);
+    const std::size_t max = std::max(i, j);
+    bool parity = operators[min].is_fermion && operators[max].is_fermion;
+    while (++min < max) {
+        if (operators[min].is_fermion && operators[max].is_fermion) {
+            parity = !parity;
+        }
+    }
+    if (parity) {
         this->multiplicity *= -1;
     }
-    std::swap(lhs, rhs);
+    std::swap(operators[i], operators[j]);
 }
 }  // namespace mrock::symbolic_operators
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_TERM_HPP

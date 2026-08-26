@@ -1,5 +1,6 @@
 #include <mrock/symbolic_operators/Momentum.hpp>
 #include <mrock/symbolic_operators/MomentumSymbol.hpp>
+#include <mrock/symbolic_operators/Exceptions.hpp>
 
 #include <cctype>
 #include <cmath>
@@ -53,8 +54,7 @@ void Momentum::add_in_place(const Momentum& rhs) {
 void Momentum::replace_occurances(const MomentumSymbol::name_type replaceWhat, const Momentum& replaceWith) {
     for (const auto& x : replaceWith.momentum_list) {
         if (x.name == replaceWhat) {
-            throw std::invalid_argument(
-                "You are trying to replace a momentum with itself. This has undefined behaviour!");
+            throw momentum_replacement_error((char)replaceWhat, replaceWith.to_string());
         }
     }
     for (std::size_t i = 0U; i < momentum_list.size(); ++i) {
@@ -101,7 +101,7 @@ std::string Momentum::to_string() const {
 }
 
 bool Momentum::operator==(const Momentum& rhs) const {
-    if (this->add_Q != rhs.add_Q)
+    if (this->add_PI != rhs.add_PI)
         return false;
     if (this->momentum_list.size() != rhs.momentum_list.size())
         return false;
@@ -121,7 +121,7 @@ bool Momentum::operator==(const Momentum& rhs) const {
 }
 
 Momentum& Momentum::operator+=(const Momentum& rhs) {
-    this->add_Q = (rhs.add_Q != this->add_Q);
+    this->add_PI = (rhs.add_PI != this->add_PI);
     bool foundOne = false;
     for (std::size_t i = 0U; i < rhs.momentum_list.size(); ++i) {
         foundOne = false;
@@ -144,7 +144,7 @@ Momentum& Momentum::operator+=(const Momentum& rhs) {
 }
 
 Momentum& Momentum::operator-=(const Momentum& rhs) {
-    this->add_Q = (rhs.add_Q != this->add_Q);
+    this->add_PI = (rhs.add_PI != this->add_PI);
     bool foundOne = false;
     for (std::size_t i = 0U; i < rhs.momentum_list.size(); ++i) {
         foundOne = false;
@@ -168,7 +168,7 @@ Momentum& Momentum::operator-=(const Momentum& rhs) {
 
 bool momentum_order(const Momentum& lhs, const Momentum& rhs) {
     if (rhs.momentum_list.empty()) {
-        if (lhs.momentum_list.empty() && !lhs.add_Q && rhs.add_Q)
+        if (lhs.momentum_list.empty() && !lhs.add_PI && rhs.add_PI)
             return true;
         return false;
     }
@@ -177,7 +177,7 @@ bool momentum_order(const Momentum& lhs, const Momentum& rhs) {
     if (lhs.momentum_list[0].name < rhs.momentum_list[0].name)
         return true;
     if (lhs.momentum_list[0].name == rhs.momentum_list[0].name) {
-        if (!lhs.add_Q && rhs.add_Q)
+        if (!lhs.add_PI && rhs.add_PI)
             return true;
     }
     return false;
@@ -185,8 +185,8 @@ bool momentum_order(const Momentum& lhs, const Momentum& rhs) {
 
 std::ostream& operator<<(std::ostream& os, const Momentum& momentum) {
     if (momentum.momentum_list.empty()) {
-        if (momentum.add_Q) {
-            os << _vector_wrap("Q");
+        if (momentum.add_PI) {
+            os << _vector_wrap("\\Pi");
         } else {
             os << "0";
         }
@@ -204,8 +204,8 @@ std::ostream& operator<<(std::ostream& os, const Momentum& momentum) {
         }
         os << _vector_wrap(it->name);
     }
-    if (momentum.add_Q) {
-        os << " + " + _vector_wrap("Q");
+    if (momentum.add_PI) {
+        os << " + " + _vector_wrap("\\Pi");
     }
     return os;
 }
@@ -238,19 +238,19 @@ bool operator<=(const Momentum& lhs, const Momentum& rhs)
     return (lhs < rhs || lhs == rhs);
 }
 
-Momentum::Momentum(const char value, int plus_minus /* = 1 */, bool Q /* = false */)
-    : momentum_list(1, MomentumSymbol(plus_minus, value)), add_Q(Q) {}
+Momentum::Momentum(const char value, int plus_minus /* = 1 */, bool add_PI_ /* = false */)
+    : momentum_list(1, MomentumSymbol(plus_minus, value)), add_PI(add_PI_) {}
 
-Momentum::Momentum(const MomentumSymbol::name_type value, int plus_minus /* = 1 */, bool Q /* = false */)
-    : momentum_list(1, {plus_minus, value}), add_Q(Q) {}
+Momentum::Momentum(const MomentumSymbol::name_type value, int plus_minus /* = 1 */, bool add_PI_ /* = false */)
+    : momentum_list(1, {plus_minus, value}), add_PI(add_PI_) {}
 
-Momentum::Momentum(const std::vector<MomentumSymbol>& _momenta, bool Q /* = false */)
-    : momentum_list(_momenta), add_Q(Q) {}
+Momentum::Momentum(const std::vector<MomentumSymbol>& _momenta, bool add_PI_ /* = false */)
+    : momentum_list(_momenta), add_PI(add_PI_) {}
 
-Momentum::Momentum(MomentumSymbol const& momentum_symbol, bool Q /* = false */)
-    : momentum_list{momentum_symbol}, add_Q(Q) {}
+Momentum::Momentum(MomentumSymbol const& momentum_symbol, bool add_PI_ /* = false */)
+    : momentum_list{momentum_symbol}, add_PI(add_PI_) {}
 
-Momentum::Momentum(const std::string& expression, bool Q /* = false*/) : add_Q(Q) {
+Momentum::Momentum(const std::string& expression, bool add_PI_ /* = false*/) : add_PI(add_PI_) {
     if (expression != "0") {
         std::size_t last = 0U;
         std::size_t current =

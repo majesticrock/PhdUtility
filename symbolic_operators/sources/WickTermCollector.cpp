@@ -93,9 +93,9 @@ void WickTermCollector::clean_up(const std::vector<std::unique_ptr<WickSymmetry>
             const Momentum remainder = delta.second - l_mom;
             delta -= remainder;
             std::swap(delta.first, delta.second);
-            if (delta.first.add_Q) {
-                delta.second.add_Q = !delta.second.add_Q;
-                delta.first.add_Q = false;
+            if (delta.first.add_PI) {
+                delta.second.add_PI = !delta.second.add_PI;
+                delta.first.add_PI = false;
             }
         }
     }
@@ -109,7 +109,7 @@ void WickTermCollector::clean_up(const std::vector<std::unique_ptr<WickSymmetry>
             if (left.delta_momenta.size() < right.delta_momenta.size()) {
                 return true;
             } else if (left.delta_momenta.size() == right.delta_momenta.size()) {
-                if (left.delta_momenta[0].second.add_Q && !(right.delta_momenta[0].second.add_Q)) {
+                if (left.delta_momenta[0].second.add_PI && !(right.delta_momenta[0].second.add_PI)) {
                     return true;
                 } else if (!left.coefficients.empty() && right.coefficients[0].name < left.coefficients[0].name) {
                     return true;

@@ -199,9 +199,9 @@ void WickTerm::sort() {
                     delta.first.flip_momentum();
                     delta.second.flip_momentum();
                 }
-                if (delta.first.add_Q) {
-                    delta.first.add_Q = false;
-                    delta.second.add_Q = !(delta.second.add_Q);
+                if (delta.first.add_PI) {
+                    delta.first.add_PI = false;
+                    delta.second.add_PI = !(delta.second.add_PI);
                 }
             }
             for (auto& op : operators) {
@@ -214,8 +214,8 @@ void WickTerm::sort() {
     }
 
     for (auto& op : operators) {
-        if (op.type == OperatorType::CDW && op.momentum.add_Q) {
-            op.momentum.add_Q = false;
+        if (op.type == OperatorType::CDW && op.momentum.add_PI) {
+            op.momentum.add_PI = false;
             op.is_daggered = !(op.is_daggered);
         }
     }
@@ -231,8 +231,8 @@ void WickTerm::sort() {
                     momentum.flip_momentum();
                 }
             }
-            if (coeff.Q_changes_sign && momentum.add_Q) {
-                momentum.add_Q = false;
+            if (coeff.Q_changes_sign && momentum.add_PI) {
+                momentum.add_PI = false;
                 this->multiplicity *= -1;
             }
         }
@@ -374,29 +374,4 @@ bool operator==(const WickTerm& lhs, const WickTerm& rhs) {
 bool operator!=(const WickTerm& lhs, const WickTerm& rhs) {
     return !(lhs == rhs);
 }
-
-// Operator overloads
-std::ostream& operator<<(std::ostream& os, const WickTerm& term) {
-    if (term.multiplicity > 0) {
-        os << "+";
-    }
-    os << term.multiplicity << " ";
-    os << term.sums;
-    os << term.coefficients << " ";
-    for (const auto& delta : term.delta_momenta) {
-        os << "\\delta_{" << delta.first << ", " << delta.second << "} ";
-    }
-    for (const auto& delta : term.delta_indizes) {
-        os << "\\delta_{" << delta.first << ", " << delta.second << "} ";
-    }
-    if (term.is_identity()) {
-        os << " \\hat{1} ";
-        return os;
-    }
-    for (const auto& op : term.operators) {
-        os << op << " ";
-    }
-    return os;
-}
-
 }  // namespace mrock::symbolic_operators

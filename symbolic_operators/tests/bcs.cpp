@@ -74,10 +74,10 @@ double evaluate_momentum(const Momentum& expression, const std::map<MomentumSymb
     for (const MomentumSymbol& momentum : expression) {
         value += momentum.factor * momentum_map.at(momentum.name);
     }
-    if (expression.add_Q) {
+    if (expression.add_PI) {
         /*
-        Q is a special symbol with the property that 2Q is a reciprocal lattice vector.
-        => in this model: Q=pi */
+        Pi is a special symbol with the property that 2*Pi is a reciprocal lattice vector.
+        => in this model: Pi=pi */
         value += std::numbers::pi;
     }
     return value;

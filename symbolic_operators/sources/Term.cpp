@@ -81,63 +81,141 @@ bool Term::resolve_deltas() {
     return true;
 }
 
-void Term::sort() {
-    for (auto& coeff : coefficients) {
-        for (auto& momentum : coeff.momenta) {
-            momentum.sort();
+void Term::sort_operators_by_indizes() {
+    auto general_swap_predicate = [this](const std::size_t& i, const std::size_t& index_pos) {
+        if (operators[i-1].is_daggered) {
+            if (operators[i - 1].indizes.front() == Index::SpinUp) return false;
+            if (operators[i].indizes.front() == Index::SpinDown) return false;
 
-            if (coeff.inversion_symmetry && !momentum.momentum_list.empty()) {
-                if (momentum.momentum_list[0].factor < 0) {
-                    momentum.flip_momentum();
-                }
+            if (operators[i - 1].indizes.front() == Index::SpinDown || operators[i].indizes.front() == Index::SpinUp) {
+                return true;
             }
-            if (coeff.Q_changes_sign && momentum.add_Q) {
-                momentum.add_Q = false;
-                flip_sign();
+
+            if (operators[i-1].indizes[index_pos] > operators[i].indizes[index_pos]) {
+                return true;
             }
         }
-    }
-    std::size_t new_n;
+        else {
+            // The comparison operator and SpinUp <-> SpinDown are the only changes
+            if (operators[i - 1].indizes.front() == Index::SpinDown) return false;
+            if (operators[i].indizes.front() == Index::SpinUp) return false;
+            
+            if (operators[i - 1].indizes.front() == Index::SpinUp || operators[i].indizes.front() == Index::SpinDown) {
+                return true;
+            }
+
+            if (operators[i-1].indizes[index_pos] < operators[i].indizes[index_pos]) {
+                return true;
+            }
+        }
+        return false;
+    };
+
     std::size_t n = operators.size();
+    std::size_t new_n{};
+    // First sort so that the spins indizes are always ordered the same way
+    // Without destroying the previously achieved normal order
     while (n > 1U) {
         new_n = 0U;
-        for (std::size_t i = 1U; i < n; ++i) {
-            if (operators[i].is_daggered != operators[i - 1].is_daggered)
+        for (std::size_t i = 1U; i < operators.size(); ++i) {
+            if (operators[i - 1].is_daggered != operators[i].is_daggered) {
                 continue;
-            if (operators[i].is_fermion != operators[i - 1].is_fermion)
-                continue;
-            const Index l_idx = operators[i - 1].first_index();
-            const Index r_idx = operators[i].first_index();
-            if (operators[i].is_daggered) {
-                // c^+ c^+
-                if (r_idx == Index::SpinUp && l_idx != Index::SpinUp) {
-                    perform_operator_swap(operators[i], operators[i - 1]);
-                    new_n = i;
-                } else if (l_idx == Index::SpinDown && r_idx != Index::SpinDown) {
-                    perform_operator_swap(operators[i], operators[i - 1]);
-                    new_n = i;
-                } else if (l_idx > Index::SpinDown && r_idx > Index::SpinDown && l_idx > r_idx) {
-                    perform_operator_swap(operators[i], operators[i - 1]);
-                    new_n = i;
-                }
-            } else {
-                // c c
-                if (r_idx == Index::SpinDown && l_idx != Index::SpinDown) {
-                    perform_operator_swap(operators[i], operators[i - 1]);
-                    new_n = i;
-                } else if (l_idx == Index::SpinUp && r_idx != Index::SpinUp) {
-                    perform_operator_swap(operators[i], operators[i - 1]);
-                    new_n = i;
-                } else if (l_idx > Index::SpinDown && r_idx > Index::SpinDown && l_idx < r_idx) {
-                    perform_operator_swap(operators[i], operators[i - 1]);
-                    new_n = i;
-                }
             }
+            if (operators[i - 1].is_fermion != operators[i].is_fermion) {
+                continue;
+            }
+            std::size_t j = 0U;
+            while(j < operators[i - 1].indizes.size() && j < operators[i].indizes.size()) {
+                if (general_swap_predicate(i, j)) {
+                    perform_operator_swap(i-1, i);
+                    new_n = i;
+                    break;
+                }
+                ++j;
+            }
+
         }
         n = new_n;
     }
+}
 
-    n = operators.size();
+void Term::structure_momentum_dependencies()
+{
+    // This function does not do anything to an identity term
+    if (operators.empty()) return;
+
+    auto most_similar_daggered_operator = [this](const IndexWrapper& indizes) {
+        int best_match_count = 0;
+        std::vector<Operator>::const_iterator best_it = operators.end();
+
+        for (std::vector<Operator>::const_iterator it = operators.begin(); it != operators.end() && it->is_daggered; ++it) {
+            // Penalize size mismatch
+            int current_match_count = static_cast<int>(indizes.size()) - static_cast<int>(it->indizes.size());
+            for (std::size_t i=0U; i < it->indizes.size() && i < indizes.size(); ++i) {
+                if (it->indizes[i] == indizes[i]) {
+                    ++current_match_count;
+                }
+            }
+            if (current_match_count > best_match_count) {
+                best_match_count = current_match_count;
+                best_it = it;
+            }
+        }
+        return best_it;
+    };
+
+    MomentumSum::const_iterator sum_it = sums.momenta.begin();
+    std::vector<MomentumSymbol::name_type> do_not_touch;
+    do_not_touch.reserve(sums.momenta.size());
+
+    for (auto op_it = operators.begin(); op_it < operators.end() && sum_it != sums.momenta.end(); ++op_it) {
+        if (!op_it->is_daggered) break;
+        
+        try {
+            const MomentumSymbol::name_type target = *sum_it;
+            redistribute_momenta(op_it->momentum, target, do_not_touch);
+            do_not_touch.push_back(target);
+            ++sum_it;
+        } 
+        catch (redistribution_error& e) {}
+    }
+    
+    // Iterate backwards
+    for (auto op_it = operators.rbegin(); op_it < operators.rend() && sum_it != sums.momenta.end(); ++op_it) {
+        if (op_it->is_daggered) break;
+
+        auto best_it = most_similar_daggered_operator(op_it->indizes);
+        if (best_it == operators.end()) continue;
+        try {
+            const MomentumSymbol::name_type target = *sum_it;
+            redistribute_momenta(op_it->momentum, target, do_not_touch);
+            do_not_touch.push_back(target);
+            ++sum_it;
+            transform_momentum_sum(target, best_it->momentum + Momentum(PLACEHOLDER_SYMBOL), PLACEHOLDER_SYMBOL);
+            rename_momenta(PLACEHOLDER_SYMBOL, target);
+        }
+        catch (redistribution_error& e) {}
+    }
+
+    for (auto coeff_it = coefficients.rbegin(); coeff_it != coefficients.rend(); ++coeff_it) {
+        for (auto mom_it = coeff_it->momenta.rbegin(); mom_it != coeff_it->momenta.rend(); ++mom_it) {
+            if (sum_it == sums.momenta.end()) return;
+            try {
+                const MomentumSymbol::name_type target = *sum_it;
+                redistribute_momenta(*mom_it, target, do_not_touch);
+                do_not_touch.push_back(target);
+                ++sum_it;
+            }
+            catch (redistribution_error& e) {}
+        }
+    }
+}
+
+void Term::structure() {
+    sort_operators_by_indizes();
+
+    std::size_t new_n;
+    std::size_t n = operators.size();
     while (n > 1U) {
         new_n = 0U;
         for (std::size_t i = 1U; i < n; ++i) {
@@ -147,12 +225,14 @@ void Term::sort() {
                 continue;
 
             if (momentum_order(operators[i - 1].momentum, operators[i].momentum)) {
-                perform_operator_swap(operators[i], operators[i - 1]);
+                perform_operator_swap(i, i - 1);
                 new_n = i;
             }
         }
         n = new_n;
     }
+
+    structure_momentum_dependencies();
 
     // Sort the occurring coefficients in alphabetical order
     std::sort(coefficients.begin(), coefficients.end(), [](const Coefficient& a, const Coefficient& b) {
@@ -162,8 +242,49 @@ void Term::sort() {
         return a.name < b.name;
     });
 
+    for (auto& coeff : coefficients) {
+        if (coeff.momenta.size() == 3U) {
+            if (coeff.momenta[0].empty() || coeff.momenta[1].empty()) continue;
+            if (coeff.momenta[0].front().name > coeff.momenta[1].front().name) {
+                coeff.use_symmetric_interaction_exchange();
+            }
+        }
+    }
+
+    for (auto& coeff : coefficients) {
+        if (coeff.momenta.empty()) continue;
+        if (coeff.momenta.back().size() != 1U || !coeff.momenta.back().first_momentum_is_negative()) continue;
+
+        const auto target_name = coeff.momenta.back().front().name;
+        if (!sums.momenta.is_summed_over(target_name)) continue;
+
+        if (std::none_of(operators.begin(), operators.end(), [&target_name](const Operator& op) {
+            return op.momentum.uses(target_name);
+        })) {
+            // If none of the operators uses the momentum, we can change it without
+            // disrupting the previously achieved operator structure
+            invert_momentum_sum(target_name);
+        }
+    }
+
+
+    for (auto& coeff : coefficients) {
+        for (auto& momentum : coeff.momenta) {
+            momentum.sort();
+
+            if (coeff.inversion_symmetry && !momentum.momentum_list.empty()) {
+                if (momentum.momentum_list[0].factor < 0) {
+                    momentum.flip_momentum();
+                }
+            }
+            if (coeff.Q_changes_sign && momentum.add_PI) {
+                momentum.add_PI = false;
+                flip_sign();
+            }
+        }
+    }
+
     // check whether we can swap the sign of each momentum in the coefficients
-    // 26.04.2024, I have no idea what I did here, nor do I know why I did what I did
     for (const auto& coeff : coefficients) {
         if (!(coeff.inversion_symmetry))
             return;
@@ -301,12 +422,6 @@ void Term::rename_indizes(Index what, Index to) {
     }
 }
 
-void Term::swap_momenta(const MomentumSymbol::name_type a, const MomentumSymbol::name_type b) {
-    this->rename_momenta(a, PLACEHOLDER_SYMBOL);
-    this->rename_momenta(b, a);
-    this->rename_momenta(PLACEHOLDER_SYMBOL, b);
-}
-
 Term& Term::multiply_from_the_left(const Term& other)
 {
     this->multiplicity *= other.multiplicity;
@@ -340,28 +455,5 @@ Term& Term::operator*=(const Term& rhs) {
     append_vector(this->operators, rhs.operators);
 
     return *this;
-}
-
-std::ostream& operator<<(std::ostream& os, const Term& term) {
-    if (term.multiplicity > 0) {
-        os << "+";
-    }
-    os << term.multiplicity << " ";
-    os << term.sums;
-    os << term.coefficients << " ";
-    for (const auto& delta : term.delta_momenta) {
-        os << delta;
-    }
-    for (const auto& delta : term.delta_indizes) {
-        os << delta;
-    }
-    if (term.is_identity()) {
-        os << " \\hat{1} ";
-        return os;
-    }
-    for (const auto& op : term.operators) {
-        os << op << " ";
-    }
-    return os;
 }
 }  // namespace mrock::symbolic_operators
