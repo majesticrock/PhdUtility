@@ -191,6 +191,8 @@ struct IndexWrapper {
         ar& this->indizes;
     }
 
+    MROCK_VECTOR_WRAPPER_FILL_MEMBERS(Index, indizes);
+
     /**
      * @brief Default constructor.
      */
@@ -224,8 +226,6 @@ struct IndexWrapper {
      */
     IndexWrapper(std::initializer_list<Index> ilist) : indizes(ilist) {};
 
-    MROCK_VECTOR_WRAPPER_FILL_MEMBERS(Index, indizes);
-
     /**
      * @brief Compares two IndexWrapper objects.
      *
@@ -237,10 +237,18 @@ struct IndexWrapper {
     /**
      * @brief Replaces all <target> with <replace_with>
      *
-     * @param target: the Index to be replaced
+     * @param target the Index to be replaced
      * @param replace_with: the Index that should be inserted instead of <target>
      */
     void replace_index(Index target, Index replace_with);
+
+    /**
+     * @brief Checks whether \c *this contains \c search
+     * 
+     * @param search The Index to look for
+     * @return Returns true if \c search was found and false otherwise
+     */
+    bool contains(Index search) const noexcept;
 };
 
 /**

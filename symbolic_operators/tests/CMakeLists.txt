@@ -30,9 +30,18 @@ target_link_libraries(symop_string_helper_test
         mrock::symbolic_operators 
 )
 
+add_executable(symop_matrix_representation_test matrix_representation.cpp)
+mrock_set_build_options(symop_matrix_representation_test)
+target_link_libraries(symop_matrix_representation_test 
+    PRIVATE 
+        mrock::symbolic_operators 
+)
+
+
 enable_testing()
 
 add_test(NAME symop_continuum_test COMMAND symop_continuum_test)
 add_test(NAME symop_bosons_test COMMAND symop_bosons_test)
 add_test(NAME symop_bcs_test COMMAND symop_bcs_test)
 add_test(NAME symop_string_helper_test COMMAND symop_string_helper_test)
+add_test(NAME symop_matrix_representation_test COMMAND symop_matrix_representation_test)

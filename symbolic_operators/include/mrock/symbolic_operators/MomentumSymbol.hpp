@@ -40,7 +40,7 @@ struct MomentumSymbol {
      * 		but without arithmetic operations (it does not make sense to add or multiply names).
      */
     struct name_type {
-        char _n{};  ///< The character representing the name.
+        unsigned char _n{};  ///< The character representing the name.
 
         /**
          * @brief Serializes the name_type object, required for boost support.
@@ -58,7 +58,7 @@ struct MomentumSymbol {
          * @brief Constructs a name_type with a given character.
          * @param n The character to initialize the name with.
          */
-        constexpr name_type(char n) noexcept : _n{n} {};
+        constexpr name_type(unsigned char n) noexcept : _n{n} {};
 
         /**
          * @brief Compares two name_type objects.
@@ -78,7 +78,9 @@ struct MomentumSymbol {
          * @brief Converts the name_type object to a character.
          * @return The character representation of the name_type.
          */
-        explicit constexpr operator char() const noexcept { return _n; }
+        explicit constexpr operator unsigned char() const noexcept { return _n; }
+
+        explicit operator std::string() const { return std::string(1, _n); }
     };
 
     int factor{};      ///< The factor associated with the momentum.
@@ -183,7 +185,7 @@ inline std::string _vector_wrap(const T& x)
  * @return A string representing the wrapped name_type in vector notation.
  */
 inline std::string _vector_wrap(const MomentumSymbol::name_type& x) {
-    return std::string(MROCK_TEX_VECTOR "{") + static_cast<char>(x) + "}";
+    return std::string(MROCK_TEX_VECTOR "{") + static_cast<std::string>(x) + "}";
 }
 
 /**

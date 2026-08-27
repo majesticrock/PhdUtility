@@ -54,7 +54,7 @@ void Momentum::add_in_place(const Momentum& rhs) {
 void Momentum::replace_occurances(const MomentumSymbol::name_type replaceWhat, const Momentum& replaceWith) {
     for (const auto& x : replaceWith.momentum_list) {
         if (x.name == replaceWhat) {
-            throw momentum_replacement_error((char)replaceWhat, replaceWith.to_string());
+            throw momentum_replacement_error(static_cast<unsigned char>(replaceWhat), replaceWith.to_string());
         }
     }
     for (std::size_t i = 0U; i < momentum_list.size(); ++i) {

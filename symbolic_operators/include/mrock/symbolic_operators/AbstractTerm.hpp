@@ -226,6 +226,13 @@ public:
     void swap_momenta(const MomentumSymbol::name_type a, const MomentumSymbol::name_type b);
 
     /**
+     * @brief Swaps two indizes in the term.
+     * @param a The first Index.
+     * @param b The second Index.
+     */
+    void swap_indizes(const Index a, const Index b);
+
+    /**
      * @brief Inverts a momentum in the term.
      *
      * @param what The momentum to invert.
@@ -564,6 +571,14 @@ void AbstractTerm<tOperatorType>::swap_momenta(const MomentumSymbol::name_type a
     this->rename_momenta(a, PLACEHOLDER_SYMBOL);
     this->rename_momenta(b, a);
     this->rename_momenta(PLACEHOLDER_SYMBOL, b);
+}
+
+template <class tOperatorType>
+void AbstractTerm<tOperatorType>::swap_indizes(const Index a, const Index b)
+{
+    this->rename_indizes(a, Index::PlaceHolderIndex);
+    this->rename_indizes(b, a);
+    this->rename_indizes(Index::PlaceHolderIndex, b);
 }
 
 template <class tOperatorType>

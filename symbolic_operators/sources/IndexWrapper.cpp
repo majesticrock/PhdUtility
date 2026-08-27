@@ -27,6 +27,14 @@ void IndexWrapper::replace_index(Index target, Index replace_with) {
     }
 }
 
+bool IndexWrapper::contains(Index search) const noexcept
+{
+    for (const auto& idx : indizes) {
+        if (idx == search) return true;
+    }
+    return false;
+}
+
 std::ostream& operator<<(std::ostream& os, const Index index) {
     switch (index) {
         case Index::SpinUp:
