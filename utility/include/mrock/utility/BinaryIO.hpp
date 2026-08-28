@@ -1,5 +1,6 @@
 #ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_BINARYIO_HPP
 #define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_BINARYIO_HPP
+#include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <string>

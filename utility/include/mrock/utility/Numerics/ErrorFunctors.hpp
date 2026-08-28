@@ -32,7 +32,7 @@ struct scalar_error {
         if constexpr (compute_relative_error) {
             const double abs_new = abs(_new);
             return (abs_new > std::sqrt(std::numeric_limits<RealType>::epsilon()) ? abs(_new - _old) / abs_new
-                                                                             : abs(_new - _old));
+                                                                                  : abs(_new - _old));
         } else {
             return abs(_new - _old);
         }
@@ -74,7 +74,7 @@ public:
         if constexpr (compute_relative_error) {
             const error_type abs_new = norm(_new);
             return (abs_new > std::sqrt(std::numeric_limits<error_type>::epsilon()) ? norm(_new - _old) / abs_new
-                                                                               : norm(_new - _old) / _new.size());
+                                                                                    : norm(_new - _old) / _new.size());
         } else {
             return norm(_new - _old) / static_cast<error_type>(_new.size());
         }
@@ -114,7 +114,7 @@ struct vector_elementwise_error {
                                                                  return abs(val);
                                                              });
             return (abs_new > std::sqrt(std::numeric_limits<error_type>::epsilon()) ? abs_diff / abs_new
-                                                                               : abs_diff / _new.size());
+                                                                                    : abs_diff / _new.size());
         } else {
             return abs_diff / static_cast<error_type>(_new.size());
         }

@@ -88,26 +88,32 @@ class BroydensMethod<std::complex<RealType>, t_vector_size> {
     RealSolver _solver;
 
 public:
+    // the function must have the following signature
+    // void func(const VectorType& input, VectorType& output)
     template <class FunctionType>
-    // the function must have the following signature void func(const VectorType& input, VectorType& output)
     RealType compute(const FunctionType& func, VectorType& x_complex, const int MAX_ITER = 200) {
         VectorType f_complex = x_complex;
         RealVector x0;
+
         if constexpr (t_vector_size == Eigen::Dynamic) {
-            x0.setZero(2 * x_complex.size());
-        } else {
-            x0.setZero();
+            x0.resize(2 * x_complex.size());
         }
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
+
+        Eigen::Map<RealVector> x_as_real(
+            reinterpret_cast<RealType*>(x_complex.data()),
+            2 * x_complex.size());
+
+        Eigen::Map<RealVector> f_as_real(
+            reinterpret_cast<RealType*>(f_complex.data()),
+            2 * x_complex.size());
+
         auto call_f_from_real = [&](const RealVector& x_real, RealVector& f_real) {
-            std::memcpy(x_complex.data(), x_real.data(), 2 * sizeof(RealType) * x_complex.size());
+            x_as_real = x_real;
             func(x_complex, f_complex);
-            std::memcpy(f_real.data(), f_complex.data(), 2 * sizeof(RealType) * x_complex.size());
+            f_real = f_as_real;
         };
 
-        std::memcpy(x0.data(), x_complex.data(), 2 * sizeof(RealType) * x_complex.size());
-#pragma GCC diagnostic pop
+        x0 = x_as_real;
         return _solver.compute(call_f_from_real, x0, MAX_ITER);
     }
 

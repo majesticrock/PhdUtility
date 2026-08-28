@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <string>
-#include <utility>
 
 #define FAIL_IF_NOT(cond)                                                      \
     if (!(cond)) {                                                             \

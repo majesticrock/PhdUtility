@@ -1,11 +1,10 @@
-#include <mrock/symbolic_operators/WickTermCollector.hpp>
 #include <mrock/symbolic_operators/WickSymmetry.hpp>
+#include <mrock/symbolic_operators/WickTermCollector.hpp>
 
 #include <memory>
 #include <vector>
 
-namespace mrock::symbolic_operators
-{
+namespace mrock::symbolic_operators {
 
 void WickTermCollector::clear_etas() {
     for (auto it = terms.begin(); it != terms.end();) {
@@ -24,7 +23,8 @@ void WickTermCollector::clear_etas() {
     }
 }
 
-void WickTermCollector::clean_up(const std::vector<std::unique_ptr<WickSymmetry>>& symmetries /*= std::vector<std::unique_ptr<WickSymmetry>>{}*/) {
+void WickTermCollector::clean_up(
+    const std::vector<std::unique_ptr<WickSymmetry>>& symmetries /*= std::vector<std::unique_ptr<WickSymmetry>>{}*/) {
     for (auto& term : terms) {
         for (std::vector<Coefficient>::iterator it = term.coefficients.begin(); it != term.coefficients.end();) {
             if (it->name == "") {
@@ -99,7 +99,7 @@ void WickTermCollector::clean_up(const std::vector<std::unique_ptr<WickSymmetry>
             }
         }
     }
-    
+
     combine_duplicates();
 
     auto predicate = [](const WickTerm& left, const WickTerm& right) -> bool {
@@ -199,4 +199,4 @@ std::ostream& operator<<(std::ostream& os, const WickTermCollector& terms) {
     return os;
 }
 
-} // namespace mrock::symbolic_operators
+}  // namespace mrock::symbolic_operators

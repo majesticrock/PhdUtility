@@ -221,10 +221,10 @@ struct IndexWrapper {
 
     /**
      * @brief Constructs an IndexWrapper with an initializer list
-     * 
+     *
      * @param ilist the initializer list
      */
-    IndexWrapper(std::initializer_list<Index> ilist) : indizes(ilist) {};
+    IndexWrapper(std::initializer_list<Index> ilist) : indizes(ilist){};
 
     /**
      * @brief Compares two IndexWrapper objects.
@@ -244,7 +244,7 @@ struct IndexWrapper {
 
     /**
      * @brief Checks whether \c *this contains \c search
-     * 
+     *
      * @param search The Index to look for
      * @return Returns true if \c search was found and false otherwise
      */

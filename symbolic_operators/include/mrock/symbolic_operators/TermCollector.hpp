@@ -4,8 +4,8 @@
 #include "AbstractCollector.hpp"
 #include "Term.hpp"
 
-#include <string>
 #include <ostream>
+#include <string>
 #include <vector>
 
 namespace mrock::symbolic_operators {
@@ -72,7 +72,7 @@ struct TermCollector : public AbstractCollector<Term> {
 
     /**
      * @brief Converts \c *this to a string without the prefactor.
-     * 
+     *
      * @return The string representation.
      */
     std::string to_string_without_prefactor() const;

@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <compare>
 #include <complex>
-#include <cstddef>
 #include <iostream>
 #include <numeric>
 #include <vector>

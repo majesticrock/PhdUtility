@@ -1,9 +1,9 @@
-#include <mrock/symbolic_operators/Commutation>
-
 #include <Eigen/Sparse>
+#include <mrock/symbolic_operators/Commutation>
 
 #include <array>
 #include <cmath>
+#include <cstdint>
 #include <functional>
 #include <iostream>
 #include <numbers>
@@ -13,97 +13,179 @@ using namespace mrock::symbolic_operators;
 using SparseMatrix = Eigen::SparseMatrix<double>;
 
 // Consider a chain of length L
-constexpr int L = 10;
-// Factor 2 for spins + 2 for occupied or unoccupied + one per lattice site
-const int matrix_size = 2 * 2 * L;
+constexpr int L = 4;
+// 2 spins per lattice site
+constexpr int matrix_size = 1 << (2 * L);
 
-const Operator c_K_sigma        = Operator(Momentum('K'), Index::Sigma,      false);
-const Operator c_K_sigma_prime  = Operator(Momentum('K'), Index::SigmaPrime, false);
+const Operator c_K_sigma = Operator(Momentum('K'), Index::Sigma, false);
+const Operator c_K_sigma_prime = Operator(Momentum('K'), Index::SigmaPrime, false);
 
 // Filled in main
 std::array<double, L> cosines;
 
-double wrap_momentum(int k) {
-    while (k <  0) k += L;
-    while (k >= L) k -= L; 
+int wrap_momentum(int k) {
+    while (k < 0)
+        k += L;
+    while (k >= L)
+        k -= L;
     return k;
 }
 
-SparseMatrix creation_operator(int lattice_site, int spin) {
+Eigen::SparseMatrix<double> build_creation_operator(int site, int spin) {
+    const int mode = 2 * site + spin;
+
+    Eigen::SparseMatrix<double> C(matrix_size, matrix_size);
+    std::vector<Eigen::Triplet<double>> triplets;
+    triplets.reserve(matrix_size / 2);
+
+    const uint32_t modeMask = 1u << mode;
+    const uint32_t lowerMask = mode == 0 ? 0u : ((1u << mode) - 1u);
+
+    for (uint32_t state = 0; state < matrix_size; ++state) {
+        // Creation annihilates already-occupied states.
+        if (state & modeMask)
+            continue;
+
+        uint32_t newState = state | modeMask;
+
+        // Fermionic sign: (-1)^(number of occupied modes before 'mode').
+        int parity = __builtin_popcount(state & lowerMask) & 1;
+        double sign = parity ? -1.0 : 1.0;
+
+        triplets.emplace_back(static_cast<int>(newState), static_cast<int>(state), sign);
+    }
+
+    C.setFromTriplets(triplets.begin(), triplets.end());
+    return C;
+}
+
+const Eigen::SparseMatrix<double>& creation_operator(int site, int spin) {
+    static const std::array<Eigen::SparseMatrix<double>, 2 * L> cache = [] {
+        std::array<Eigen::SparseMatrix<double>, 2 * L> ops;
+        for (int s = 0; s < L; ++s)
+            for (int sp = 0; sp < 2; ++sp)
+                ops[2 * s + sp] = build_creation_operator(s, sp);
+        return ops;
+    }();
+
+    return cache[2 * site + spin];
+}
+
+auto annihilation_operator(int lattice_site, int spin) {
+    return creation_operator(lattice_site, spin).transpose();
+}
+
+SparseMatrix operator_string(const std::vector<int>& modes, const std::vector<bool>& creation) {
+    if (modes.size() != creation.size()) {
+        std::cerr << "operator_string: mode <-> operator mismatch!" << std::endl;
+        abort();
+    }
+
     SparseMatrix ret(matrix_size, matrix_size);
-    ret.insert(4 * lattice_site + 2 * spin + 1, 4 * lattice_site + 2 * spin) = 1.;
+    if (modes.empty()) {
+        ret.setIdentity();
+        return ret;
+    }
+
+    std::vector<Eigen::Triplet<double>> triplets;
+    triplets.reserve(matrix_size);
+
+    for (uint32_t input_state = 0; input_state < static_cast<uint32_t>(matrix_size); ++input_state) {
+        uint32_t output_state = input_state;
+        double sign = 1.;
+        bool valid = true;
+
+        // Matrix products act on a state from right to left.
+        for (std::size_t i = modes.size(); i-- > 0;) {
+            const uint32_t mode_mask = 1u << modes[i];
+            const uint32_t lower_mask = mode_mask - 1u;
+            const bool occupied = (output_state & mode_mask) != 0u;
+            if (occupied == creation[i]) {
+                valid = false;
+                break;
+            }
+            if (creation[i]) {
+                output_state |= mode_mask;
+            } else {
+                output_state &= ~mode_mask;
+            }
+            if ((__builtin_popcount(output_state & lower_mask) & 1) != 0) {
+                sign = -sign;
+            }
+        }
+
+        if (valid) {
+            triplets.emplace_back(static_cast<int>(output_state), static_cast<int>(input_state), sign);
+        }
+    }
+    ret.setFromTriplets(triplets.begin(), triplets.end());
     return ret;
 }
-SparseMatrix annihilation_operator(int lattice_site, int spin) {
-    SparseMatrix ret(matrix_size, matrix_size);
-    ret.insert(4 * lattice_site + 2 * spin, 4 * lattice_site + 2 * spin + 1) = 1.;
-    return ret;
-}
-SparseMatrix number_operator(int lattice_site, int spin) {
-    SparseMatrix ret(matrix_size, matrix_size);
-    ret.insert(4 * lattice_site + 2 * spin + 1, 4 * lattice_site + 2 * spin + 1) = 1.;
-    return ret;
+
+// Returns the product of creation and annihilation operators.
+// The first half will be creation and the second half annihilation operators.
+// For example c^dagger c^dagger c c
+SparseMatrix product_string(const std::vector<int>& lattice_sites, const std::vector<int>& spins) {
+    if (lattice_sites.empty() || lattice_sites.size() != spins.size() || lattice_sites.size() % 2 != 0) {
+        std::cerr << "product_string: lattice_site <-> spin mismatch!" << std::endl;
+        abort();
+    }
+
+    const std::size_t creation_count = lattice_sites.size() / 2;
+    std::vector<int> modes;
+    modes.reserve(lattice_sites.size());
+    std::vector<bool> creation(lattice_sites.size());
+    for (std::size_t i = 0; i < lattice_sites.size(); ++i) {
+        modes.push_back(2 * lattice_sites[i] + spins[i]);
+        creation[i] = i < creation_count;
+    }
+    return operator_string(modes, creation);
 }
 
 TermCollector get_symbolic_H() {
-    const Term H_kin_symbolic(1, 
-        Coefficient::RealInversionSymmetric("\\tilde{\\varepsilon}", MomentumList(Momentum('K'))),
-        SumContainer{MomentumSum{'K'}, IndexSum{ Index::Sigma }},
-        std::vector<Operator>({
-            c_K_sigma.hermitian_conjugate(),
-            c_K_sigma
-        })
-    );
+    const Term H_kin_symbolic(1,
+                              Coefficient::RealInversionSymmetric("\\tilde{\\varepsilon}", MomentumList(Momentum('K'))),
+                              SumContainer{MomentumSum{'K'}, IndexSum{Index::Sigma}},
+                              std::vector<Operator>({c_K_sigma.hermitian_conjugate(), c_K_sigma}));
 
-    const Term H_int_symbolic(1, 
-        Coefficient::RealInteraction("U", 
-            MomentumList({Momentum('K'), Momentum('P'), Momentum('Q')}), 
-            IndexWrapper{}
-        ),
+    const Term H_int_symbolic(
+        1,
+        Coefficient::RealInteraction("U", MomentumList({Momentum('K'), Momentum('P'), Momentum('Q')}),
+                                     IndexWrapper{Index::Sigma, Index::SigmaPrime}),
         SumContainer{MomentumSum{'K', 'P', 'Q'}, IndexSum{Index::Sigma, Index::SigmaPrime}},
-        std::vector<Operator>({
-            c_K_sigma.hermitian_conjugate(),
-            c_K_sigma_prime.with_momentum('P').hermitian_conjugate(),
-            c_K_sigma_prime.with_momentum(Momentum("P-Q")),
-            c_K_sigma.with_momentum(Momentum("K+Q"))
-        })
-    );
+        std::vector<Operator>(
+            {c_K_sigma.hermitian_conjugate(), c_K_sigma_prime.with_momentum('P').hermitian_conjugate(),
+             c_K_sigma_prime.with_momentum(Momentum("P-Q")), c_K_sigma.with_momentum(Momentum("K+Q"))}));
 
     return {H_kin_symbolic, H_int_symbolic};
 }
 
 TermCollector get_symbolic_eta() {
-    const Term eta(2, 
-        Coefficient::RealInteraction("\\alpha", 
-            MomentumList({Momentum('K'), Momentum('P'), Momentum('Q')}), 
-            IndexWrapper{}
-        ),
-        SumContainer{MomentumSum{'K', 'P', 'Q'}, IndexSum{Index::Sigma, Index::SigmaPrime}},
-        std::vector<Operator>({
-            c_K_sigma.hermitian_conjugate(),
-            c_K_sigma_prime.with_momentum('P').hermitian_conjugate(),
-            c_K_sigma_prime.with_momentum(Momentum("P-Q")),
-            c_K_sigma.with_momentum(Momentum("K+Q"))
-        })
-    );
+    const Term eta(2,
+                   Coefficient::RealInteraction("\\alpha", MomentumList({Momentum('K'), Momentum('P'), Momentum('Q')}),
+                                                IndexWrapper{Index::Sigma, Index::SigmaPrime}),
+                   SumContainer{MomentumSum{'K', 'P', 'Q'}, IndexSum{Index::Sigma, Index::SigmaPrime}},
+                   std::vector<Operator>(
+                       {c_K_sigma.hermitian_conjugate(), c_K_sigma_prime.with_momentum('P').hermitian_conjugate(),
+                        c_K_sigma_prime.with_momentum(Momentum("P-Q")), c_K_sigma.with_momentum(Momentum("K+Q"))}));
 
     return {eta};
 }
 
 SparseMatrix get_matrix_H() {
     SparseMatrix H(matrix_size, matrix_size);
-    for (int k=0; k<L; ++k) {
-        H += cosines[k] * (number_operator(k, 0) + number_operator(k, 1));
+    for (int k = 0; k < L; ++k) {
+        H += cosines[k] * (product_string({k, k}, {0, 0}) + product_string({k, k}, {1, 1}));
     }
-    for (int k=0; k<L; ++k) {
-        for (int p=0; p<L; ++p) {
-            for (int q=0; q<L; ++q) {
-                H += cosines[wrap_momentum(k+q)] * cosines[wrap_momentum(p-q)] * (
-                    creation_operator(k, 0) * creation_operator(p, 0) * annihilation_operator(wrap_momentum(p-q), 0) * annihilation_operator(wrap_momentum(k+q), 0)
-                    + creation_operator(k, 0) * creation_operator(p, 1) * annihilation_operator(wrap_momentum(p-q), 1) * annihilation_operator(wrap_momentum(k+q), 0)
-                    + creation_operator(k, 1) * creation_operator(p, 0) * annihilation_operator(wrap_momentum(p-q), 0) * annihilation_operator(wrap_momentum(k+q), 1)
-                    + creation_operator(k, 1) * creation_operator(p, 1) * annihilation_operator(wrap_momentum(p-q), 1) * annihilation_operator(wrap_momentum(k+q), 1)
-                );
+    for (int k = 0; k < L; ++k) {
+        for (int p = 0; p < L; ++p) {
+            for (int q = 0; q < L; ++q) {
+                const int k_q = wrap_momentum(k + q);
+                const int p_q = wrap_momentum(p - q);
+                H += cosines[k_q] * cosines[p_q] *
+                     (product_string({k, p, p_q, k_q}, {0, 1, 1, 0}) + product_string({k, p, p_q, k_q}, {1, 0, 0, 1}));
+                H += cosines[q] * cosines[k_q] * cosines[p_q] *
+                     (product_string({k, p, p_q, k_q}, {0, 0, 0, 0}) + product_string({k, p, p_q, k_q}, {1, 1, 1, 1}));
             }
         }
     }
@@ -112,17 +194,18 @@ SparseMatrix get_matrix_H() {
 
 SparseMatrix get_matrix_eta() {
     SparseMatrix eta(matrix_size, matrix_size);
-    for (int k=0; k<L; ++k) {
-        for (int p=0; p<L; ++p) {
-            for (int q=0; q<L; ++q) {
-                eta += cosines[wrap_momentum(k+q)] * cosines[wrap_momentum(p-q)]
-                    * (cosines[wrap_momentum(k)] + cosines[wrap_momentum(p)] - cosines[wrap_momentum(k+q)] + cosines[wrap_momentum(p-q)])
-                    * (
-                        creation_operator(k, 0) * creation_operator(p, 0) * annihilation_operator(wrap_momentum(p-q), 0) * annihilation_operator(wrap_momentum(k+q), 0)
-                        + creation_operator(k, 0) * creation_operator(p, 1) * annihilation_operator(wrap_momentum(p-q), 1) * annihilation_operator(wrap_momentum(k+q), 0)
-                        + creation_operator(k, 1) * creation_operator(p, 0) * annihilation_operator(wrap_momentum(p-q), 0) * annihilation_operator(wrap_momentum(k+q), 1)
-                        + creation_operator(k, 1) * creation_operator(p, 1) * annihilation_operator(wrap_momentum(p-q), 1) * annihilation_operator(wrap_momentum(k+q), 1)
-                    );
+    for (int k = 0; k < L; ++k) {
+        for (int p = 0; p < L; ++p) {
+            for (int q = 0; q < L; ++q) {
+                const int k_q = wrap_momentum(k + q);
+                const int p_q = wrap_momentum(p - q);
+
+                eta +=
+                    cosines[k_q] * cosines[p_q] * (cosines[k] + cosines[p] - cosines[k_q] - cosines[p_q]) *
+                    (product_string({k, p, p_q, k_q}, {0, 1, 1, 0}) + product_string({k, p, p_q, k_q}, {1, 0, 0, 1}));
+                eta +=
+                    cosines[q] * cosines[k_q] * cosines[p_q] * (cosines[k] + cosines[p] - cosines[k_q] - cosines[p_q]) *
+                    (product_string({k, p, p_q, k_q}, {0, 0, 0, 0}) + product_string({k, p, p_q, k_q}, {1, 1, 1, 1}));
             }
         }
     }
@@ -151,21 +234,21 @@ SparseMatrix symbolic_to_matrix(const TermCollector& terms) {
             double value = 1.;
             if (coefficient.name == "\\tilde{\\varepsilon}") {
                 value *= cosines[evaluate_momentum(coefficient.momenta.front())];
-            } 
-            else if (coefficient.name == "U") {
-                value *= cosines[evaluate_momentum(coefficient.momenta[0] + coefficient.momenta[2])]
-                        * cosines[evaluate_momentum(coefficient.momenta[1] - coefficient.momenta[2])];
-            } 
-            else if (coefficient.name == "\\alpha") {
-                value *= cosines[evaluate_momentum(coefficient.momenta[0] + coefficient.momenta[2])]
-                        * cosines[evaluate_momentum(coefficient.momenta[1] - coefficient.momenta[2])]
-                        * ( 
-                            cosines[evaluate_momentum(coefficient.momenta[0])] + cosines[evaluate_momentum(coefficient.momenta[1])]
-                            - cosines[evaluate_momentum(coefficient.momenta[0] + coefficient.momenta[2])]
-                            - cosines[evaluate_momentum(coefficient.momenta[1] - coefficient.momenta[2])]
-                        );
-            } 
-            else {
+            } else if (coefficient.name == "U") {
+                value *= cosines[evaluate_momentum(coefficient.momenta[0] + coefficient.momenta[2])] *
+                         cosines[evaluate_momentum(coefficient.momenta[1] - coefficient.momenta[2])];
+                if (coefficient.indizes[0] != coefficient.indizes[1])
+                    value *= cosines[evaluate_momentum(coefficient.momenta[2])];
+            } else if (coefficient.name == "\\alpha") {
+                value *= cosines[evaluate_momentum(coefficient.momenta[0] + coefficient.momenta[2])] *
+                         cosines[evaluate_momentum(coefficient.momenta[1] - coefficient.momenta[2])] *
+                         (cosines[evaluate_momentum(coefficient.momenta[0])] +
+                          cosines[evaluate_momentum(coefficient.momenta[1])] -
+                          cosines[evaluate_momentum(coefficient.momenta[0] + coefficient.momenta[2])] -
+                          cosines[evaluate_momentum(coefficient.momenta[1] - coefficient.momenta[2])]);
+                if (coefficient.indizes[0] != coefficient.indizes[1])
+                    value *= cosines[evaluate_momentum(coefficient.momenta[2])];
+            } else {
                 throw std::runtime_error("No matrix representation for coefficient " + coefficient.name);
             }
             return value;
@@ -178,8 +261,7 @@ SparseMatrix symbolic_to_matrix(const TermCollector& terms) {
             }
 
             for (const auto& delta : term.delta_momenta) {
-                if (wrap_momentum(evaluate_momentum(delta.first)) !=
-                    wrap_momentum(evaluate_momentum(delta.second))) {
+                if (wrap_momentum(evaluate_momentum(delta.first)) != wrap_momentum(evaluate_momentum(delta.second))) {
                     return;
                 }
             }
@@ -193,18 +275,19 @@ SparseMatrix symbolic_to_matrix(const TermCollector& terms) {
                 }
             }
 
-            SparseMatrix term_matrix(matrix_size, matrix_size);
-            term_matrix.setIdentity();
+            std::vector<int> modes;
+            std::vector<bool> creation;
+            modes.reserve(term.operators.size());
+            creation.reserve(term.operators.size());
             for (const auto& op : term.operators) {
                 const int momentum = wrap_momentum(evaluate_momentum(op.momentum));
                 const int spin = is_mutable(op.first_index())
                                      ? index_values[static_cast<unsigned char>(op.first_index())]
                                      : (op.first_index() == Index::SpinDown ? 1 : 0);
-                const SparseMatrix operator_matrix = op.is_daggered ? creation_operator(momentum, spin)
-                                                                       : annihilation_operator(momentum, spin);
-                term_matrix = term_matrix * operator_matrix;
+                modes.push_back(2 * momentum + spin);
+                creation.push_back(op.is_daggered);
             }
-            result += coefficient * term_matrix;
+            result += coefficient * operator_string(modes, creation);
         };
 
         // std function instead of lambda so that it can be called recursively
@@ -238,19 +321,45 @@ SparseMatrix symbolic_to_matrix(const TermCollector& terms) {
 }
 
 int main() {
-    const SparseMatrix creation = creation_operator(L/2, 0);
-    const SparseMatrix annihilation_transpose = annihilation_operator(L/2, 0).transpose();
-    if ((creation - annihilation_transpose).norm() != 0.) {
-        std::cerr << "c^+ != c" << std::endl;
-        return 1;
-    }
-    if ((creation_operator(L/2, 0) * annihilation_operator(L/2,0) - number_operator(L/2, 0)).norm() != 0.) {
-        std::cerr << "n != c^+ c" << std::endl;
-        return 1;
+    {
+        // Verify the algebra
+        const SparseMatrix creation = creation_operator(L / 2, 0);
+        const SparseMatrix annihilation = annihilation_operator(L / 2, 0);
+        const SparseMatrix annihilation_transpose = annihilation_operator(L / 2, 0).transpose();
+
+        double diff = (creation - annihilation_transpose).norm();
+        if (diff != 0.) {
+            std::cerr << "c^+ != c     diff=" << diff << std::endl;
+            return 1;
+        }
+        diff = (creation_operator(L / 2, 0) * annihilation_operator(L / 2, 0) - product_string({L / 2, L / 2}, {0, 0}))
+                   .norm();
+        if (diff != 0.) {
+            std::cerr << "n != c^+ c     diff=" << diff << std::endl;
+            return 1;
+        }
+
+        diff = (creation * creation + creation * creation).norm();
+        if (diff != 0.) {
+            std::cerr << "{c, c} != 0     diff=" << diff << std::endl;
+            return 1;
+        }
+        diff = (creation * annihilation + annihilation * creation).norm() - (matrix_size >> L);
+        if (diff != 0.) {
+            std::cerr << "{c, c^+} != 1     diff=" << diff << std::endl;
+            return 1;
+        }
+
+        const SparseMatrix annihilation2 = annihilation_operator(0, 1);
+        diff = (creation * annihilation2 + annihilation2 * creation).norm();
+        if (diff != 0.) {
+            std::cerr << "{c_i, c_j^+} != 0     diff=" << diff << std::endl;
+            return 1;
+        }
     }
 
-    for (int i=0; i < L; ++i) {
-        cosines[i] = std::cos(std::numbers::pi * (2*i - L));
+    for (int i = 0; i < L; ++i) {
+        cosines[i] = std::cos(std::numbers::pi * (2 * i - L));
     }
 
     const TermCollector symbolic_H = get_symbolic_H();

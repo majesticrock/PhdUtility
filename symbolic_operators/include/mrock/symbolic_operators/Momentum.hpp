@@ -26,8 +26,8 @@ namespace mrock::symbolic_operators {
  */
 struct Momentum {
     std::vector<MomentumSymbol> momentum_list;  ///< List of momentum symbols.
-    bool add_PI{};  ///< Flag indicating additional property \f$\Pi\f$. \f$\Pi\f$ is a special momentum with the property
-                   ///< \f$2 \Pi = 0\f$. Remeber that momenta are only defined in the first Brillouin zone.
+    bool add_PI{};  ///< Flag indicating additional property \f$\Pi\f$. \f$\Pi\f$ is a special momentum with the
+                    ///< property \f$2 \Pi = 0\f$. Remeber that momenta are only defined in the first Brillouin zone.
 
     /**cl
      * @brief Serialization function for Boost.

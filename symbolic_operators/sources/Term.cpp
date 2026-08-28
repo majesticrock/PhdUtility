@@ -83,28 +83,31 @@ bool Term::resolve_deltas() {
 
 void Term::sort_operators_by_indizes() {
     auto general_swap_predicate = [this](const std::size_t& i, const std::size_t& index_pos) {
-        if (operators[i-1].is_daggered) {
-            if (operators[i - 1].indizes.front() == Index::SpinUp) return false;
-            if (operators[i].indizes.front() == Index::SpinDown) return false;
+        if (operators[i - 1].is_daggered) {
+            if (operators[i - 1].indizes.front() == Index::SpinUp)
+                return false;
+            if (operators[i].indizes.front() == Index::SpinDown)
+                return false;
 
             if (operators[i - 1].indizes.front() == Index::SpinDown || operators[i].indizes.front() == Index::SpinUp) {
                 return true;
             }
 
-            if (operators[i-1].indizes[index_pos] > operators[i].indizes[index_pos]) {
+            if (operators[i - 1].indizes[index_pos] > operators[i].indizes[index_pos]) {
                 return true;
             }
-        }
-        else {
+        } else {
             // The comparison operator and SpinUp <-> SpinDown are the only changes
-            if (operators[i - 1].indizes.front() == Index::SpinDown) return false;
-            if (operators[i].indizes.front() == Index::SpinUp) return false;
-            
+            if (operators[i - 1].indizes.front() == Index::SpinDown)
+                return false;
+            if (operators[i].indizes.front() == Index::SpinUp)
+                return false;
+
             if (operators[i - 1].indizes.front() == Index::SpinUp || operators[i].indizes.front() == Index::SpinDown) {
                 return true;
             }
 
-            if (operators[i-1].indizes[index_pos] < operators[i].indizes[index_pos]) {
+            if (operators[i - 1].indizes[index_pos] < operators[i].indizes[index_pos]) {
                 return true;
             }
         }
@@ -125,33 +128,33 @@ void Term::sort_operators_by_indizes() {
                 continue;
             }
             std::size_t j = 0U;
-            while(j < operators[i - 1].indizes.size() && j < operators[i].indizes.size()) {
+            while (j < operators[i - 1].indizes.size() && j < operators[i].indizes.size()) {
                 if (general_swap_predicate(i, j)) {
-                    perform_operator_swap(i-1, i);
+                    perform_operator_swap(i - 1, i);
                     new_n = i;
                     break;
                 }
                 ++j;
             }
-
         }
         n = new_n;
     }
 }
 
-void Term::structure_momentum_dependencies()
-{
+void Term::structure_momentum_dependencies() {
     // This function does not do anything to an identity term
-    if (operators.empty()) return;
+    if (operators.empty())
+        return;
 
     auto most_similar_daggered_operator = [this](const IndexWrapper& indizes) {
         int best_match_count = 0;
         std::vector<Operator>::const_iterator best_it = operators.end();
 
-        for (std::vector<Operator>::const_iterator it = operators.begin(); it != operators.end() && it->is_daggered; ++it) {
+        for (std::vector<Operator>::const_iterator it = operators.begin(); it != operators.end() && it->is_daggered;
+             ++it) {
             // Penalize size mismatch
             int current_match_count = static_cast<int>(indizes.size()) - static_cast<int>(it->indizes.size());
-            for (std::size_t i=0U; i < it->indizes.size() && i < indizes.size(); ++i) {
+            for (std::size_t i = 0U; i < it->indizes.size() && i < indizes.size(); ++i) {
                 if (it->indizes[i] == indizes[i]) {
                     ++current_match_count;
                 }
@@ -169,23 +172,26 @@ void Term::structure_momentum_dependencies()
     do_not_touch.reserve(sums.momenta.size());
 
     for (auto op_it = operators.begin(); op_it < operators.end() && sum_it != sums.momenta.end(); ++op_it) {
-        if (!op_it->is_daggered) break;
-        
+        if (!op_it->is_daggered)
+            break;
+
         try {
             const MomentumSymbol::name_type target = *sum_it;
             redistribute_momenta(op_it->momentum, target, do_not_touch);
             do_not_touch.push_back(target);
             ++sum_it;
-        } 
-        catch (redistribution_error& e) {}
+        } catch (redistribution_error& e) {
+        }
     }
-    
+
     // Iterate backwards
     for (auto op_it = operators.rbegin(); op_it < operators.rend() && sum_it != sums.momenta.end(); ++op_it) {
-        if (op_it->is_daggered) break;
+        if (op_it->is_daggered)
+            break;
 
         auto best_it = most_similar_daggered_operator(op_it->indizes);
-        if (best_it == operators.end()) continue;
+        if (best_it == operators.end())
+            continue;
         try {
             const MomentumSymbol::name_type target = *sum_it;
             redistribute_momenta(op_it->momentum, target, do_not_touch);
@@ -193,20 +199,21 @@ void Term::structure_momentum_dependencies()
             ++sum_it;
             transform_momentum_sum(target, best_it->momentum + Momentum(PLACEHOLDER_SYMBOL), PLACEHOLDER_SYMBOL);
             rename_momenta(PLACEHOLDER_SYMBOL, target);
+        } catch (redistribution_error& e) {
         }
-        catch (redistribution_error& e) {}
     }
 
     for (auto coeff_it = coefficients.rbegin(); coeff_it != coefficients.rend(); ++coeff_it) {
         for (auto mom_it = coeff_it->momenta.rbegin(); mom_it != coeff_it->momenta.rend(); ++mom_it) {
-            if (sum_it == sums.momenta.end()) return;
+            if (sum_it == sums.momenta.end())
+                return;
             try {
                 const MomentumSymbol::name_type target = *sum_it;
                 redistribute_momenta(*mom_it, target, do_not_touch);
                 do_not_touch.push_back(target);
                 ++sum_it;
+            } catch (redistribution_error& e) {
             }
-            catch (redistribution_error& e) {}
         }
     }
 }
@@ -244,7 +251,8 @@ void Term::structure() {
 
     for (auto& coeff : coefficients) {
         if (coeff.momenta.size() == 3U) {
-            if (coeff.momenta[0].empty() || coeff.momenta[1].empty()) continue;
+            if (coeff.momenta[0].empty() || coeff.momenta[1].empty())
+                continue;
             if (coeff.momenta[0].front().name > coeff.momenta[1].front().name) {
                 coeff.use_symmetric_interaction_exchange();
             }
@@ -252,21 +260,22 @@ void Term::structure() {
     }
 
     for (auto& coeff : coefficients) {
-        if (coeff.momenta.empty()) continue;
-        if (coeff.momenta.back().size() != 1U || !coeff.momenta.back().first_momentum_is_negative()) continue;
+        if (coeff.momenta.empty())
+            continue;
+        if (coeff.momenta.back().size() != 1U || !coeff.momenta.back().first_momentum_is_negative())
+            continue;
 
         const auto target_name = coeff.momenta.back().front().name;
-        if (!sums.momenta.is_summed_over(target_name)) continue;
+        if (!sums.momenta.is_summed_over(target_name))
+            continue;
 
-        if (std::none_of(operators.begin(), operators.end(), [&target_name](const Operator& op) {
-            return op.momentum.uses(target_name);
-        })) {
+        if (std::none_of(operators.begin(), operators.end(),
+                         [&target_name](const Operator& op) { return op.momentum.uses(target_name); })) {
             // If none of the operators uses the momentum, we can change it without
             // disrupting the previously achieved operator structure
             invert_momentum_sum(target_name);
         }
     }
-
 
     for (auto& coeff : coefficients) {
         for (auto& momentum : coeff.momenta) {
@@ -422,8 +431,7 @@ void Term::rename_indizes(Index what, Index to) {
     }
 }
 
-Term& Term::multiply_from_the_left(const Term& other)
-{
+Term& Term::multiply_from_the_left(const Term& other) {
     this->multiplicity *= other.multiplicity;
 
     this->rename_duplicate_sums(&other);
@@ -439,8 +447,7 @@ Term& Term::multiply_from_the_left(const Term& other)
     return *this;
 }
 
-Term& Term::multiply_from_the_right(const Term& other)
-{
+Term& Term::multiply_from_the_right(const Term& other) {
     return ((*this) *= other);
 }
 

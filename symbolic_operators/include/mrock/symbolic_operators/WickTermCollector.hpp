@@ -2,8 +2,8 @@
 #define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICKTERMCOLLECTOR_HPP
 
 #include "AbstractCollector.hpp"
-#include "WickTerm.hpp"
 #include "WickSymmetry.hpp"
+#include "WickTerm.hpp"
 
 #include <memory>
 #include <vector>
@@ -42,7 +42,7 @@ struct WickTermCollector : public AbstractCollector<WickTerm> {
      * @param symmetries The vector of unique pointers to WickSymmetry objects.
      */
     void clean_up(
-    const std::vector<std::unique_ptr<WickSymmetry>>& symmetries = std::vector<std::unique_ptr<WickSymmetry>>{});
+        const std::vector<std::unique_ptr<WickSymmetry>>& symmetries = std::vector<std::unique_ptr<WickSymmetry>>{});
 };
 
 /**

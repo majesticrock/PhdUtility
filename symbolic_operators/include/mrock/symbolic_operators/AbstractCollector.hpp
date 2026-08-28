@@ -1,8 +1,8 @@
 #ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_ABSTRACTCOLLECTOR_HPP
 #define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_ABSTRACTCOLLECTOR_HPP
 
-#include "detail/vector_macro.hpp"
 #include "MomentumSymbol.hpp"
+#include "detail/vector_macro.hpp"
 
 #include <vector>
 
@@ -27,7 +27,7 @@ struct AbstractCollector {
 
     /**
      * @brief Renames momenta in \c *this.
-     * 
+     *
      * @param what The momentum to rename.
      * @param to The new momentum.
      */
@@ -59,7 +59,8 @@ void AbstractCollector<Collected>::combine_duplicates() {
 }
 
 template <class Collected>
-void AbstractCollector<Collected>::rename_momenta(const MomentumSymbol::name_type what, const MomentumSymbol::name_type to) {
+void AbstractCollector<Collected>::rename_momenta(const MomentumSymbol::name_type what,
+                                                  const MomentumSymbol::name_type to) {
     for (auto& t : terms) {
         t.rename_momenta(what, to);
     }

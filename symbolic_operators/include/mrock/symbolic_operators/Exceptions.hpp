@@ -1,8 +1,8 @@
 #ifndef MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_EXCEPTIONS_HPP
 #define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_EXCEPTIONS_HPP
 
-#include <string>
 #include <stdexcept>
+#include <string>
 
 namespace mrock::symbolic_operators {
 class momentum_replacement_error : public std::invalid_argument {

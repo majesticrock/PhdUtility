@@ -1,11 +1,10 @@
 #include <mrock/symbolic_operators/TermCollector.hpp>
 #include <mrock/symbolic_operators/detail/container_helper.hpp>
 
-#include <string>
 #include <cstddef>
+#include <string>
 
-namespace mrock::symbolic_operators
-{
+namespace mrock::symbolic_operators {
 
 TermCollector commutator(const Term& left, const TermCollector& right) {
     const TermCollector buffer = {left};
@@ -263,8 +262,7 @@ void TermCollector::clean_up() {
 #endif
 }
 
-TermCollector& TermCollector::multiply_from_the_left(const TermCollector& other)
-{
+TermCollector& TermCollector::multiply_from_the_left(const TermCollector& other) {
     if (other.empty()) {
         this->clear();
         return (*this);
@@ -279,8 +277,7 @@ TermCollector& TermCollector::multiply_from_the_left(const TermCollector& other)
     return (*this);
 }
 
-TermCollector& TermCollector::multiply_from_the_right(const TermCollector& other)
-{
+TermCollector& TermCollector::multiply_from_the_right(const TermCollector& other) {
     return ((*this) *= other);
 }
 
@@ -297,4 +294,4 @@ std::string TermCollector::to_string_without_prefactor() const {
     return ret;
 }
 
-} // namespace mrock::symbolic_operators
+}  // namespace mrock::symbolic_operators

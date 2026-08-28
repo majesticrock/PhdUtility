@@ -1,5 +1,4 @@
 #include <boost/math/tools/minima.hpp>
-
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -60,7 +59,6 @@ inline void require_finite_array(const double* ptr, py::ssize_t size, const std:
 
 }  // namespace detail
 
-
 struct ContinuedFractionData {
     const double a_infinity;
     const double b_infinity_squared;
@@ -80,15 +78,13 @@ struct ContinuedFractionData {
     py::ssize_t B_size = 0;
     py::ssize_t continuum_boundaries_size = 0;
 
-    ContinuedFractionData(
-        double a_inf,
-        double b_inf_squared,
-        const py_array_double& continuum_boundaries_squared_,
-        const py_array_double& a,
-        const py_array_double& b,
-        int term_index,
-        bool with_terminator_
-    )
+    ContinuedFractionData(double a_inf,
+                          double b_inf_squared,
+                          const py_array_double& continuum_boundaries_squared_,
+                          const py_array_double& a,
+                          const py_array_double& b,
+                          int term_index,
+                          bool with_terminator_)
         : a_infinity(a_inf),
           b_infinity_squared(b_inf_squared),
           continuum_boundaries_squared(continuum_boundaries_squared_),
@@ -108,9 +104,7 @@ struct ContinuedFractionData {
         detail::require_non_empty_array(Bbuf, "B");
 
         if (continuum_boundariesbuf.size != 2) {
-            throw py::value_error(
-                "continuum_boundaries_squared must contain exactly two values."
-            );
+            throw py::value_error("continuum_boundaries_squared must contain exactly two values.");
         }
 
         continuum_boundaries_size = continuum_boundariesbuf.size;
@@ -121,7 +115,8 @@ struct ContinuedFractionData {
         A_ptr = static_cast<const double*>(Abuf.ptr);
         B_ptr = static_cast<const double*>(Bbuf.ptr);
 
-        detail::require_finite_array(continuum_boundaries_ptr, continuum_boundaries_size, "continuum_boundaries_squared");
+        detail::require_finite_array(continuum_boundaries_ptr, continuum_boundaries_size,
+                                     "continuum_boundaries_squared");
         detail::require_finite_array(A_ptr, A_size, "A");
         detail::require_finite_array(B_ptr, B_size, "B");
 
@@ -138,16 +133,13 @@ struct ContinuedFractionData {
         }
 
         if (continuum_boundaries_ptr[0] > continuum_boundaries_ptr[1]) {
-            throw py::value_error(
-                "continuum_boundaries_squared must be ordered as [lower, upper]."
-            );
+            throw py::value_error("continuum_boundaries_squared must be ordered as [lower, upper].");
         }
 
         if (B_size < A_size) {
             throw py::value_error(
                 "B must contain at least as many entries as A. "
-                "The continued-fraction recursion accesses B[k + 1]."
-            );
+                "The continued-fraction recursion accesses B[k + 1].");
         }
 
         validate_termination_index(termination_index);
@@ -164,19 +156,16 @@ struct ContinuedFractionData {
         if (idx < 0 || idx >= A_size) {
             throw py::value_error(
                 "termination_index is out of range. Expected "
-                "0 <= termination_index < len(A)."
-            );
+                "0 <= termination_index < len(A).");
         }
 
         if (idx >= B_size) {
             throw py::value_error(
                 "termination_index is incompatible with len(B). "
-                "Expected termination_index < len(B)."
-            );
+                "Expected termination_index < len(B).");
         }
     }
 };
-
 
 namespace detail {
 
@@ -185,10 +174,8 @@ std::complex<double> terminator_impl(double x, const ContinuedFractionData& data
     const double p = x_squared - data.a_infinity;
     const double radicand = p * p - 4.0 * data.b_infinity_squared;
 
-    const std::complex<double> root =
-        radicand >= 0.0
-            ? std::complex<double>{std::sqrt(radicand), 0.0}
-            : std::complex<double>{0.0, std::sqrt(std::abs(radicand))};
+    const std::complex<double> root = radicand >= 0.0 ? std::complex<double>{std::sqrt(radicand), 0.0}
+                                                      : std::complex<double>{0.0, std::sqrt(std::abs(radicand))};
 
     const auto boundary_index = static_cast<py::ssize_t>(x <= 0.0);
 
@@ -199,13 +186,10 @@ std::complex<double> terminator_impl(double x, const ContinuedFractionData& data
     return (p + root) / (2.0 * data.b_infinity_squared);
 }
 
-
 // Only the real part of x is used for the terminator.
-std::vector<std::complex<double>> terminator_vector(
-    const std::complex<double>* ptr_x,
-    py::ssize_t n_x,
-    const ContinuedFractionData& data
-) {
+std::vector<std::complex<double>> terminator_vector(const std::complex<double>* ptr_x,
+                                                    py::ssize_t n_x,
+                                                    const ContinuedFractionData& data) {
     std::vector<std::complex<double>> result(static_cast<std::size_t>(n_x));
 
     for (py::ssize_t i = 0; i < n_x; ++i) {
@@ -215,103 +199,66 @@ std::vector<std::complex<double>> terminator_vector(
     return result;
 }
 
-
 std::vector<std::complex<double>> zero_terminator_vector(py::ssize_t n_x) {
-    return std::vector<std::complex<double>>(
-        static_cast<std::size_t>(n_x),
-        std::complex<double>{0.0, 0.0}
-    );
+    return std::vector<std::complex<double>>(static_cast<std::size_t>(n_x), std::complex<double>{0.0, 0.0});
 }
-
 
 // This function should only be called outside the continuum.
 //
 // Inside the continuum the terminator is complex and the continued fraction
 // generally has a finite imaginary part. In that regime, this real-valued
 // denominator would not represent the full denominator correctly.
-double subgap_real_denominator(
-    const ContinuedFractionData& data,
-    double x_squared
-) {
+double subgap_real_denominator(const ContinuedFractionData& data, double x_squared) {
     const double p = x_squared - data.a_infinity;
 
     const double terminator_value =
-        data.with_terminator
-            ? (p + std::sqrt(p * p - 4.0 * data.b_infinity_squared))
-                  / (2.0 * data.b_infinity_squared)
-            : 0.0;
+        data.with_terminator ? (p + std::sqrt(p * p - 4.0 * data.b_infinity_squared)) / (2.0 * data.b_infinity_squared)
+                             : 0.0;
 
-    double result =
-        x_squared
-        - data.A_ptr[data.termination_index]
-        - data.b_infinity_squared * terminator_value;
+    double result = x_squared - data.A_ptr[data.termination_index] - data.b_infinity_squared * terminator_value;
 
     for (int k = data.termination_index - 1; k >= 0; --k) {
-        result =
-            x_squared
-            - data.A_ptr[k]
-            - data.B_ptr[k + 1] / result;
+        result = x_squared - data.A_ptr[k] - data.B_ptr[k + 1] / result;
     }
 
     return result;
 }
 
-
-double single_imaginary_part(
-    const ContinuedFractionData& data,
-    const std::complex<double>& x_squared
-) {
+double single_imaginary_part(const ContinuedFractionData& data, const std::complex<double>& x_squared) {
     const double p = x_squared.real() - data.a_infinity;
 
     const double terminator_value =
-        data.with_terminator
-            ? (p + std::sqrt(p * p - 4.0 * data.b_infinity_squared))
-                  / (2.0 * data.b_infinity_squared)
-            : 0.0;
+        data.with_terminator ? (p + std::sqrt(p * p - 4.0 * data.b_infinity_squared)) / (2.0 * data.b_infinity_squared)
+                             : 0.0;
 
     std::complex<double> result =
-        x_squared
-        - data.A_ptr[data.termination_index]
-        - data.b_infinity_squared * terminator_value;
+        x_squared - data.A_ptr[data.termination_index] - data.b_infinity_squared * terminator_value;
 
     for (int k = data.termination_index - 1; k >= 0; --k) {
-        result =
-            x_squared
-            - data.A_ptr[k]
-            - data.B_ptr[k + 1] / result;
+        result = x_squared - data.A_ptr[k] - data.B_ptr[k + 1] / result;
     }
 
     return (1.0 / result).imag();
 }
 
-
-void raw_denominator(
-    const ContinuedFractionData& data,
-    const std::complex<double>* ptr_x,
-    const std::complex<double>* ptr_terminator,
-    std::complex<double>* ptr_result,
-    py::ssize_t n_x,
-    int termination_index
-) {
+void raw_denominator(const ContinuedFractionData& data,
+                     const std::complex<double>* ptr_x,
+                     const std::complex<double>* ptr_terminator,
+                     std::complex<double>* ptr_result,
+                     py::ssize_t n_x,
+                     int termination_index) {
     data.validate_termination_index(termination_index);
 
     for (py::ssize_t i = 0; i < n_x; ++i) {
         const std::complex<double> x_squared = ptr_x[i] * ptr_x[i];
 
-        ptr_result[i] =
-            x_squared
-            - data.A_ptr[termination_index]
-            - data.b_infinity_squared * ptr_terminator[i];
+        ptr_result[i] = x_squared - data.A_ptr[termination_index] - data.b_infinity_squared * ptr_terminator[i];
 
         for (int k = termination_index - 1; k >= 0; --k) {
-            ptr_result[i] =
-                x_squared
-                - data.A_ptr[k]
-                - data.B_ptr[k + 1] / ptr_result[i];
+            ptr_result[i] = x_squared - data.A_ptr[k] - data.B_ptr[k + 1] / ptr_result[i];
         }
     }
 }
-
 
 void require_complex_input_1d(const py_array_cmplx& x) {
     auto xbuf = x.request();
@@ -320,14 +267,9 @@ void require_complex_input_1d(const py_array_cmplx& x) {
     require_non_empty_array(xbuf, "x");
 }
 
-
 }  // namespace detail
 
-
-py_array_cmplx terminator(
-    const py_array_double& x,
-    const ContinuedFractionData& data
-) {
+py_array_cmplx terminator(const py_array_double& x, const ContinuedFractionData& data) {
     auto xbuf = x.request();
 
     detail::require_1d_array(xbuf, "x");
@@ -353,11 +295,7 @@ py_array_cmplx terminator(
     return result;
 }
 
-
-py_array_cmplx denominator(
-    const py_array_cmplx& x,
-    const ContinuedFractionData& data
-) {
+py_array_cmplx denominator(const py_array_cmplx& x, const ContinuedFractionData& data) {
     auto xbuf = x.request();
 
     detail::require_1d_array(xbuf, "x");
@@ -369,31 +307,20 @@ py_array_cmplx denominator(
 
     const auto n_x = xbuf.size;
 
-    const auto* ptr_x =
-        static_cast<const std::complex<double>*>(xbuf.ptr);
+    const auto* ptr_x = static_cast<const std::complex<double>*>(xbuf.ptr);
 
     py_array_cmplx result(n_x);
     auto rbuf = result.request();
 
-    auto* ptr_result =
-        static_cast<std::complex<double>*>(rbuf.ptr);
+    auto* ptr_result = static_cast<std::complex<double>*>(rbuf.ptr);
 
     {
         py::gil_scoped_release release;
 
         const auto terminator_data =
-            data.with_terminator
-                ? detail::terminator_vector(ptr_x, n_x, data)
-                : detail::zero_terminator_vector(n_x);
+            data.with_terminator ? detail::terminator_vector(ptr_x, n_x, data) : detail::zero_terminator_vector(n_x);
 
-        detail::raw_denominator(
-            data,
-            ptr_x,
-            terminator_data.data(),
-            ptr_result,
-            n_x,
-            data.termination_index
-        );
+        detail::raw_denominator(data, ptr_x, terminator_data.data(), ptr_result, n_x, data.termination_index);
 
         for (py::ssize_t i = 0; i < n_x; ++i) {
             ptr_result[i] /= data.B_ptr[0];
@@ -403,11 +330,7 @@ py_array_cmplx denominator(
     return result;
 }
 
-
-py_array_cmplx continued_fraction(
-    const py_array_cmplx& x,
-    const ContinuedFractionData& data
-) {
+py_array_cmplx continued_fraction(const py_array_cmplx& x, const ContinuedFractionData& data) {
     auto xbuf = x.request();
 
     detail::require_1d_array(xbuf, "x");
@@ -415,31 +338,20 @@ py_array_cmplx continued_fraction(
 
     const auto n_x = xbuf.size;
 
-    const auto* ptr_x =
-        static_cast<const std::complex<double>*>(xbuf.ptr);
+    const auto* ptr_x = static_cast<const std::complex<double>*>(xbuf.ptr);
 
     py_array_cmplx result(n_x);
     auto rbuf = result.request();
 
-    auto* ptr_result =
-        static_cast<std::complex<double>*>(rbuf.ptr);
+    auto* ptr_result = static_cast<std::complex<double>*>(rbuf.ptr);
 
     {
         py::gil_scoped_release release;
 
         const auto terminator_data =
-            data.with_terminator
-                ? detail::terminator_vector(ptr_x, n_x, data)
-                : detail::zero_terminator_vector(n_x);
+            data.with_terminator ? detail::terminator_vector(ptr_x, n_x, data) : detail::zero_terminator_vector(n_x);
 
-        detail::raw_denominator(
-            data,
-            ptr_x,
-            terminator_data.data(),
-            ptr_result,
-            n_x,
-            data.termination_index
-        );
+        detail::raw_denominator(data, ptr_x, terminator_data.data(), ptr_result, n_x, data.termination_index);
 
         for (py::ssize_t i = 0; i < n_x; ++i) {
             ptr_result[i] = data.B_ptr[0] / ptr_result[i];
@@ -449,12 +361,9 @@ py_array_cmplx continued_fraction(
     return result;
 }
 
-
-py_array_cmplx continued_fraction_varied_depth(
-    const py_array_cmplx& x,
-    const ContinuedFractionData& data,
-    const py::array_t<int, pyarray_flags>& shift_range
-) {
+py_array_cmplx continued_fraction_varied_depth(const py_array_cmplx& x,
+                                               const ContinuedFractionData& data,
+                                               const py::array_t<int, pyarray_flags>& shift_range) {
     auto xbuf = x.request();
     auto shiftbuf = shift_range.request();
 
@@ -467,15 +376,12 @@ py_array_cmplx continued_fraction_varied_depth(
     const auto n_x = xbuf.size;
     const auto n_shift_range = shiftbuf.size;
 
-    const auto* ptr_x =
-        static_cast<const std::complex<double>*>(xbuf.ptr);
+    const auto* ptr_x = static_cast<const std::complex<double>*>(xbuf.ptr);
 
-    const auto* ptr_shift_range =
-        static_cast<const int*>(shiftbuf.ptr);
+    const auto* ptr_shift_range = static_cast<const int*>(shiftbuf.ptr);
 
     for (py::ssize_t r = 0; r < n_shift_range; ++r) {
-        const int current_termination_index =
-            data.termination_index + ptr_shift_range[r];
+        const int current_termination_index = data.termination_index + ptr_shift_range[r];
 
         data.validate_termination_index(current_termination_index);
     }
@@ -483,45 +389,33 @@ py_array_cmplx continued_fraction_varied_depth(
     py_array_cmplx result({n_shift_range, n_x});
     auto rbuf = result.request();
 
-    auto* ptr_result =
-        static_cast<std::complex<double>*>(rbuf.ptr);
+    auto* ptr_result = static_cast<std::complex<double>*>(rbuf.ptr);
 
     {
         py::gil_scoped_release release;
 
         const auto terminator_data =
-            data.with_terminator
-                ? detail::terminator_vector(ptr_x, n_x, data)
-                : detail::zero_terminator_vector(n_x);
+            data.with_terminator ? detail::terminator_vector(ptr_x, n_x, data) : detail::zero_terminator_vector(n_x);
 
-        std::vector<std::complex<double>> x_squared_data(
-            static_cast<std::size_t>(n_x)
-        );
+        std::vector<std::complex<double>> x_squared_data(static_cast<std::size_t>(n_x));
 
         for (py::ssize_t i = 0; i < n_x; ++i) {
             x_squared_data[static_cast<std::size_t>(i)] = ptr_x[i] * ptr_x[i];
         }
 
         for (py::ssize_t r = 0; r < n_shift_range; ++r) {
-            const int current_termination_index =
-                data.termination_index + ptr_shift_range[r];
+            const int current_termination_index = data.termination_index + ptr_shift_range[r];
 
             for (py::ssize_t i = 0; i < n_x; ++i) {
-                const auto x_squared =
-                    x_squared_data[static_cast<std::size_t>(i)];
+                const auto x_squared = x_squared_data[static_cast<std::size_t>(i)];
 
                 auto& current_result = ptr_result[r * n_x + i];
 
-                current_result =
-                    x_squared
-                    - data.A_ptr[current_termination_index]
-                    - data.b_infinity_squared * terminator_data[static_cast<std::size_t>(i)];
+                current_result = x_squared - data.A_ptr[current_termination_index] -
+                                 data.b_infinity_squared * terminator_data[static_cast<std::size_t>(i)];
 
                 for (int k = current_termination_index - 1; k >= 0; --k) {
-                    current_result =
-                        x_squared
-                        - data.A_ptr[k]
-                        - data.B_ptr[k + 1] / current_result;
+                    current_result = x_squared - data.A_ptr[k] - data.B_ptr[k + 1] / current_result;
                 }
 
                 current_result = data.B_ptr[0] / current_result;
@@ -532,17 +426,14 @@ py_array_cmplx continued_fraction_varied_depth(
     return result;
 }
 
-
 // This classification is designed for finite-energy simple poles.
 // It is known to be less reliable for Goldstone peaks / double-pole-like
 // structures near omega = 0.
-std::vector<std::pair<double, double>> classify_bound_states(
-    const ContinuedFractionData& data,
-    std::size_t n_scan,
-    double weight_domega,
-    int root_tol_bits,
-    std::uintmax_t max_iter
-) {
+std::vector<std::pair<double, double>> classify_bound_states(const ContinuedFractionData& data,
+                                                             std::size_t n_scan,
+                                                             double weight_domega,
+                                                             int root_tol_bits,
+                                                             std::uintmax_t max_iter) {
     if (n_scan < 3) {
         throw py::value_error("n_scan must be at least 3.");
     }
@@ -553,15 +444,9 @@ std::vector<std::pair<double, double>> classify_bound_states(
 
     root_tol_bits = detail::clamp_root_tol_bits(root_tol_bits);
 
-    const double root_tol = std::max(
-        std::ldexp(1.0, 1 - root_tol_bits),
-        4.0 * std::numeric_limits<double>::epsilon()
-    );
+    const double root_tol = std::max(std::ldexp(1.0, 1 - root_tol_bits), 4.0 * std::numeric_limits<double>::epsilon());
 
-    const double dz =
-        detail::BOOST_SHIFT
-        * (data.get_root(0) - weight_domega - root_tol)
-        / static_cast<double>(n_scan);
+    const double dz = detail::BOOST_SHIFT * (data.get_root(0) - weight_domega - root_tol) / static_cast<double>(n_scan);
 
     std::vector<std::pair<double, double>> results;
 
@@ -569,56 +454,40 @@ std::vector<std::pair<double, double>> classify_bound_states(
         return results;
     }
 
-    auto denom = [&data](double z) -> double {
-        return detail::subgap_real_denominator(data, z);
-    };
+    auto denom = [&data](double z) -> double { return detail::subgap_real_denominator(data, z); };
 
     std::complex<double> z_squared = {0.0, detail::EPS};
 
-    auto minimize_function =
-        [&data, &z_squared](double z) -> double {
-            z_squared.real(z);
-            const double f = detail::single_imaginary_part(data, z_squared);
-            return std::atan(f);
-        };
+    auto minimize_function = [&data, &z_squared](double z) -> double {
+        z_squared.real(z);
+        const double f = detail::single_imaginary_part(data, z_squared);
+        return std::atan(f);
+    };
 
-    auto set_coefficient_of_pole =
-        [&]() {
-            auto& last_result = results.back();
+    auto set_coefficient_of_pole = [&]() {
+        auto& last_result = results.back();
 
-            const double peak_position = last_result.first;
+        const double peak_position = last_result.first;
 
-            // For finite-energy simple poles, the spectral weight is the
-            // residue. It is approximated by a symmetric finite difference.
-            if (peak_position > detail::GOLDSTONE_THRESHOLD + root_tol) {
-                const double omega_plus = peak_position + weight_domega;
-                const double omega_minus = peak_position - weight_domega;
+        // For finite-energy simple poles, the spectral weight is the
+        // residue. It is approximated by a symmetric finite difference.
+        if (peak_position > detail::GOLDSTONE_THRESHOLD + root_tol) {
+            const double omega_plus = peak_position + weight_domega;
+            const double omega_minus = peak_position - weight_domega;
 
-                last_result.second =
-                    2.0
-                    * weight_domega
-                    * data.B_ptr[0]
-                    / (
-                        denom(omega_plus * omega_plus)
-                        - denom(omega_minus * omega_minus)
-                    );
-            } else {
-                // For an omega = 0 mode with G(omega) ~ Z / omega^2,
-                // use a finite-difference form inspired by l'Hopital's rule:
-                //
-                //     Z = lim_{omega -> 0} omega^2 / denom(omega^2).
-                //
-                // Numerically this remains delicate for Goldstone-like peaks.
-                last_result.second =
-                    weight_domega
-                    * weight_domega
-                    * data.B_ptr[0]
-                    / (
-                        4.0
-                        * denom(weight_domega * weight_domega)
-                    );
-            }
-        };
+            last_result.second = 2.0 * weight_domega * data.B_ptr[0] /
+                                 (denom(omega_plus * omega_plus) - denom(omega_minus * omega_minus));
+        } else {
+            // For an omega = 0 mode with G(omega) ~ Z / omega^2,
+            // use a finite-difference form inspired by l'Hopital's rule:
+            //
+            //     Z = lim_{omega -> 0} omega^2 / denom(omega^2).
+            //
+            // Numerically this remains delicate for Goldstone-like peaks.
+            last_result.second =
+                weight_domega * weight_domega * data.B_ptr[0] / (4.0 * denom(weight_domega * weight_domega));
+        }
+    };
 
     double f_left = minimize_function(0.0);
     double f_center = minimize_function(dz);
@@ -633,13 +502,8 @@ std::vector<std::pair<double, double>> classify_bound_states(
             if (f_left > f_center && f_right > f_center) {
                 // There is a local minimum somewhere between the neighboring
                 // scan points.
-                const auto minimization_result =
-                    boost::math::tools::brent_find_minima(
-                        minimize_function,
-                        static_cast<double>(i - 2) * dz,
-                        static_cast<double>(i) * dz,
-                        root_tol_bits
-                    );
+                const auto minimization_result = boost::math::tools::brent_find_minima(
+                    minimize_function, static_cast<double>(i - 2) * dz, static_cast<double>(i) * dz, root_tol_bits);
 
                 double search_range = root_tol;
 
@@ -649,10 +513,7 @@ std::vector<std::pair<double, double>> classify_bound_states(
                 double fa = denom(a);
                 double fb = denom(b);
 
-                while (
-                    std::signbit(fa) == std::signbit(fb)
-                    && search_range > detail::MIN_SEARCH_RANGE
-                ) {
+                while (std::signbit(fa) == std::signbit(fb) && search_range > detail::MIN_SEARCH_RANGE) {
                     search_range /= 10.0;
                     a = minimization_result.first - search_range;
                     fa = denom(a);
@@ -660,10 +521,7 @@ std::vector<std::pair<double, double>> classify_bound_states(
 
                 search_range = root_tol;
 
-                while (
-                    std::signbit(fa) == std::signbit(fb)
-                    && search_range > detail::MIN_SEARCH_RANGE
-                ) {
+                while (std::signbit(fa) == std::signbit(fb) && search_range > detail::MIN_SEARCH_RANGE) {
                     search_range /= 10.0;
                     b = minimization_result.first + search_range;
                     fb = denom(b);
@@ -672,19 +530,10 @@ std::vector<std::pair<double, double>> classify_bound_states(
                 if (search_range > detail::MIN_SEARCH_RANGE) {
                     std::uintmax_t iter = max_iter;
 
-                    const auto root_result =
-                        boost::math::tools::toms748_solve(
-                            denom,
-                            a,
-                            b,
-                            boost::math::tools::eps_tolerance<double>(
-                                root_tol_bits
-                            ),
-                            iter
-                        );
+                    const auto root_result = boost::math::tools::toms748_solve(
+                        denom, a, b, boost::math::tools::eps_tolerance<double>(root_tol_bits), iter);
 
-                    const double root_z =
-                        0.5 * (root_result.first + root_result.second);
+                    const double root_z = 0.5 * (root_result.first + root_result.second);
 
                     if (root_z >= 0.0) {
                         results.emplace_back(std::sqrt(root_z), 0.0);
@@ -701,29 +550,15 @@ std::vector<std::pair<double, double>> classify_bound_states(
     return results;
 }
 
-
 PYBIND11_MODULE(cpp_continued_fraction, m) {
     m.doc() = "Fast continued-fraction routines implemented in C++ with pybind11.";
 
     py::class_<ContinuedFractionData>(m, "ContinuedFractionData")
-        .def(
-            py::init<
-                double,
-                double,
-                const py_array_double&,
-                const py_array_double&,
-                const py_array_double&,
-                int,
-                bool
-            >(),
-            py::arg("a_infinity"),
-            py::arg("b_infinity_squared"),
-            py::arg("continuum_boundaries_squared"),
-            py::arg("A"),
-            py::arg("B"),
-            py::arg("termination_index"),
-            py::arg("with_terminator"),
-            R"pbdoc(
+        .def(py::init<double, double, const py_array_double&, const py_array_double&, const py_array_double&, int,
+                      bool>(),
+             py::arg("a_infinity"), py::arg("b_infinity_squared"), py::arg("continuum_boundaries_squared"),
+             py::arg("A"), py::arg("B"), py::arg("termination_index"), py::arg("with_terminator"),
+             R"pbdoc(
                 Data container for continued-fraction evaluation.
 
                 Parameters
@@ -742,14 +577,10 @@ PYBIND11_MODULE(cpp_continued_fraction, m) {
                     Index at which the continued fraction is terminated.
                 with_terminator : bool
                     Whether to attach the square-root terminator.
-            )pbdoc"
-        )
+            )pbdoc")
         .def_readonly("a_infinity", &ContinuedFractionData::a_infinity)
         .def_readonly("b_infinity_squared", &ContinuedFractionData::b_infinity_squared)
-        .def_readonly(
-            "continuum_boundaries_squared",
-            &ContinuedFractionData::continuum_boundaries_squared
-        )
+        .def_readonly("continuum_boundaries_squared", &ContinuedFractionData::continuum_boundaries_squared)
         .def_readonly("A", &ContinuedFractionData::A)
         .def_readonly("B", &ContinuedFractionData::B)
         .def_readonly("termination_index", &ContinuedFractionData::termination_index)
@@ -757,12 +588,8 @@ PYBIND11_MODULE(cpp_continued_fraction, m) {
         .def_readonly("A_size", &ContinuedFractionData::A_size)
         .def_readonly("B_size", &ContinuedFractionData::B_size);
 
-    m.def(
-        "terminator",
-        &terminator,
-        py::arg("x"),
-        py::arg("data"),
-        R"pbdoc(
+    m.def("terminator", &terminator, py::arg("x"), py::arg("data"),
+          R"pbdoc(
             Compute the square-root terminator.
 
             Parameters
@@ -776,15 +603,10 @@ PYBIND11_MODULE(cpp_continued_fraction, m) {
             -------
             numpy.ndarray
                 Complex terminator values.
-        )pbdoc"
-    );
+        )pbdoc");
 
-    m.def(
-        "denominator",
-        &denominator,
-        py::arg("x"),
-        py::arg("data"),
-        R"pbdoc(
+    m.def("denominator", &denominator, py::arg("x"), py::arg("data"),
+          R"pbdoc(
             Compute the normalized denominator of the continued fraction.
 
             Parameters
@@ -798,15 +620,10 @@ PYBIND11_MODULE(cpp_continued_fraction, m) {
             -------
             numpy.ndarray
                 Complex denominator values divided by B[0].
-        )pbdoc"
-    );
+        )pbdoc");
 
-    m.def(
-        "continued_fraction",
-        &continued_fraction,
-        py::arg("x"),
-        py::arg("data"),
-        R"pbdoc(
+    m.def("continued_fraction", &continued_fraction, py::arg("x"), py::arg("data"),
+          R"pbdoc(
             Compute the continued fraction.
 
             Parameters
@@ -820,16 +637,11 @@ PYBIND11_MODULE(cpp_continued_fraction, m) {
             -------
             numpy.ndarray
                 Complex continued-fraction values.
-        )pbdoc"
-    );
+        )pbdoc");
 
-    m.def(
-        "continued_fraction_varied_depth",
-        &continued_fraction_varied_depth,
-        py::arg("x"),
-        py::arg("data"),
-        py::arg("shift_range"),
-        R"pbdoc(
+    m.def("continued_fraction_varied_depth", &continued_fraction_varied_depth, py::arg("x"), py::arg("data"),
+          py::arg("shift_range"),
+          R"pbdoc(
             Compute the continued fraction for several shifted termination depths.
 
             Parameters
@@ -845,18 +657,11 @@ PYBIND11_MODULE(cpp_continued_fraction, m) {
             -------
             numpy.ndarray
                 Complex array of shape ``(len(shift_range), len(x))``.
-        )pbdoc"
-    );
+        )pbdoc");
 
-    m.def(
-        "classify_bound_states",
-        &classify_bound_states,
-        py::arg("data"),
-        py::arg("n_scan"),
-        py::arg("weight_domega"),
-        py::arg("root_tol_bits"),
-        py::arg("max_iter"),
-        R"pbdoc(
+    m.def("classify_bound_states", &classify_bound_states, py::arg("data"), py::arg("n_scan"), py::arg("weight_domega"),
+          py::arg("root_tol_bits"), py::arg("max_iter"),
+          R"pbdoc(
             Compute approximate energies and spectral weights of bound states.
 
             This routine scans the interval below the lower continuum edge and
@@ -871,6 +676,5 @@ PYBIND11_MODULE(cpp_continued_fraction, m) {
             -------
             list[tuple[float, float]]
                 Pairs ``(energy, weight)``.
-        )pbdoc"
-    );
+        )pbdoc");
 }

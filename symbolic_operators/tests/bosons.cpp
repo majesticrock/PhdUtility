@@ -52,7 +52,7 @@ int main(int argc, [[maybe_unused]] char** argv) {
                                                          Operator::Boson(Momentum('K'), Index::Sigma, false)}));
 
     const TermCollector hamiltonian{hopping, hopping.hermitian_conjugate(), bogo, bogo.hermitian_conjugate(),
-                                        chemical_potential};
+                                    chemical_potential};
 
     std::cout << begin_align << "H =" << hamiltonian << end_align << std::endl;
 

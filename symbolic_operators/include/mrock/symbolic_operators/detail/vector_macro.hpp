@@ -137,24 +137,25 @@
         return _vector_name.insert(pos, first, last);                               \
     }
 
-#define MROCK_FORWARD_CONSTRUCTORS(_this_type, _forward_to)         \
-    _this_type() = default;                                         \
-    _this_type(const std::vector<value_type>& _other)               \
-        : _forward_to(_other) {}                                    \
-    _this_type(std::vector<value_type>&& _other)                    \
-        : _forward_to(std::move(_other)) {}                         \
-    _this_type(std::initializer_list<value_type> _init)             \
-        : _forward_to(std::move(_init)) {}                          \
-    _this_type(std::size_t _size, value_type _init = value_type())  \
-        : _forward_to(_size, std::move(_init)) {}
+#define MROCK_FORWARD_CONSTRUCTORS(_this_type, _forward_to)                                \
+    _this_type() = default;                                                                \
+    _this_type(const std::vector<value_type>& _other) : _forward_to(_other) {}             \
+    _this_type(std::vector<value_type>&& _other) : _forward_to(std::move(_other)) {}       \
+    _this_type(std::initializer_list<value_type> _init) : _forward_to(std::move(_init)) {} \
+    _this_type(std::size_t _size, value_type _init = value_type()) : _forward_to(_size, std::move(_init)) {}
 
-
-#define MROCK_FORWARD_ASSIGNMENT(_this_type, _forward_to)               \
-    _this_type & operator=(const std::vector<value_type>& _other) {     \
-        _forward_to = _other; return (*this); }                         \
-    _this_type & operator=(std::vector<value_type>&& _other) {          \
-        _forward_to = std::move(_other); return (*this); }              \
-    _this_type & operator=(std::initializer_list<value_type> _other) {  \
-        _forward_to = std::move(_other); return (*this); }
+#define MROCK_FORWARD_ASSIGNMENT(_this_type, _forward_to)             \
+    _this_type& operator=(const std::vector<value_type>& _other) {    \
+        _forward_to = _other;                                         \
+        return (*this);                                               \
+    }                                                                 \
+    _this_type& operator=(std::vector<value_type>&& _other) {         \
+        _forward_to = std::move(_other);                              \
+        return (*this);                                               \
+    }                                                                 \
+    _this_type& operator=(std::initializer_list<value_type> _other) { \
+        _forward_to = std::move(_other);                              \
+        return (*this);                                               \
+    }
 
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_VECTOR_MACRO_HPP

@@ -3,8 +3,7 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
-#include <stdexcept>
-#include <typeinfo>
+#include <numbers>
 
 int main() {
     using mrock::utility::Numerics::Roots::bisection;
@@ -29,9 +28,9 @@ int main() {
         double root = bisection(f, 3.0, 4.0, 1e-12, 100);
 
         std::cout << "Root of sin(x): " << root << '\n';
-        std::cout << "Expected: " << M_PI << '\n';
+        std::cout << "Expected: " << std::numbers::pi << '\n';
 
-        assert(std::abs(root - M_PI) < 1e-10);
+        assert(std::abs(root - std::numbers::pi) < 1e-10);
     }
 
     {

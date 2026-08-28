@@ -243,7 +243,7 @@ public:
      * @brief Tries to bring \c *this to a fixed notation
      */
     void structure();
-        
+
     /**
      * @brief Checks if the term is equal to another term (excluding multiplicity).
      * @param other The other term.

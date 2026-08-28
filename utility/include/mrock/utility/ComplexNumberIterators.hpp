@@ -2,6 +2,7 @@
 #define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_COMPLEXNUMBERITERATORS_HPP
 #include <compare>
 #include <complex>
+#include <cstddef>
 #include <iterator>
 
 namespace mrock::utility {

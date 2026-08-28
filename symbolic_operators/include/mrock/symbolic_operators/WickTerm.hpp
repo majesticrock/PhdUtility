@@ -65,8 +65,8 @@ namespace mrock::symbolic_operators {
  * wicks_theorem(terms, templates, wicks);
  * wicks.clean_up();
  * \endcode
- * Similar to how we worked with the Term class and commutators, it is strongly recommended to call \c WickTermCollector::clean_up() after
- * applying Wick's theorem.
+ * Similar to how we worked with the Term class and commutators, it is strongly recommended to call \c
+ * WickTermCollector::clean_up() after applying Wick's theorem.
  *
  * \c clean_up() will also make use of polymorphism to apply symmetries to the term, e.g., inversion symmetry.
  * For details, see \c WickSymmetry.
@@ -89,7 +89,7 @@ namespace mrock::symbolic_operators {
  * or if you want to use this code of the iEoM, there is the class \c TermLoader for easy use.
  * It loads the terms for the matrices M and N and saves same as class members.
  *
- * @sa WickTermCollector, Coefficient, SumContainer, WickOperator, KroneckerDelta, Momentum, Index, 
+ * @sa WickTermCollector, Coefficient, SumContainer, WickOperator, KroneckerDelta, Momentum, Index,
  * wicks_theorem(), TermLoader
  */
 class WickTerm : public AbstractTerm<WickOperator> {

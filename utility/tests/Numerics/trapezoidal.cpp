@@ -2,7 +2,6 @@
 #include <mrock/utility/Numerics/ErrorFunctors.hpp>
 #include <mrock/utility/Numerics/Integration/AdaptiveTrapezoidalRule.hpp>
 
-#include <algorithm>
 #include <cmath>
 #include <iomanip>
 #include <iostream>

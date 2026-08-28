@@ -61,12 +61,13 @@ WickTerm::WickTerm(const WickTerm& base, const TemplateResult::SingleResult& res
     this->delta_indizes.insert(this->delta_indizes.end(), result.index_deltas.begin(), result.index_deltas.end());
 }
 
-WickTerm::WickTerm(const IntFractional& _multiplicity, const std::vector<Coefficient>& _coefficients,
-                   const SumContainer& _sums, const std::vector<KroneckerDelta<Momentum>>& _delta_momenta,
+WickTerm::WickTerm(const IntFractional& _multiplicity,
+                   const std::vector<Coefficient>& _coefficients,
+                   const SumContainer& _sums,
+                   const std::vector<KroneckerDelta<Momentum>>& _delta_momenta,
                    const std::vector<KroneckerDelta<Index>>& _delta_indizes,
-                   const std::vector<WickOperator>& _operators) 
-        : AbstractTerm<WickOperator>(_multiplicity, _coefficients, _sums, _delta_momenta, _delta_indizes, _operators)
-{}
+                   const std::vector<WickOperator>& _operators)
+    : AbstractTerm<WickOperator>(_multiplicity, _coefficients, _sums, _delta_momenta, _delta_indizes, _operators) {}
 
 WickTerm::WickTerm(const std::string& expression) : AbstractTerm<WickOperator>(1) {
     // Syntax

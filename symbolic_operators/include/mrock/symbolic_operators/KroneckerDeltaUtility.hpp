@@ -21,7 +21,7 @@ namespace mrock::symbolic_operators {
  *
  * @tparam T The LinearlyCombinable (defines + and -) type of the elements.
  * @param deltas The vector of KroneckerDelta objects.
- * 
+ *
  * @return Returns true if changes were made and false otherwise
  */
 template <LinearlyCombinable T>
@@ -46,7 +46,7 @@ bool remove_delta_squared(std::vector<KroneckerDelta<T>>& deltas) {
  *
  * @tparam T The type of the elements.
  * @param deltas The vector of KroneckerDelta objects.
- * 
+ *
  * @return Returns true if changes were made and false otherwise
  */
 template <class T>
@@ -66,12 +66,12 @@ bool remove_delta_squared(std::vector<KroneckerDelta<T>>& deltas) {
 }
 
 /**
- * @brief Removes KroneckerDelta objects that are equal to unity from the vector. 
+ * @brief Removes KroneckerDelta objects that are equal to unity from the vector.
  * Note that delta_{a,a} = 1.
  *
  * @tparam T The type of the elements.
  * @param deltas The vector of KroneckerDelta objects.
- * 
+ *
  * @return Returns true if changes were made and false otherwise
  */
 template <class T>

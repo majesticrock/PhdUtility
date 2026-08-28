@@ -1,6 +1,6 @@
+#include <mrock/symbolic_operators/Exceptions.hpp>
 #include <mrock/symbolic_operators/Momentum.hpp>
 #include <mrock/symbolic_operators/MomentumSymbol.hpp>
-#include <mrock/symbolic_operators/Exceptions.hpp>
 
 #include <cctype>
 #include <cmath>
@@ -215,26 +215,29 @@ bool operator>(const Momentum& lhs, const Momentum& rhs) {
 }
 
 bool operator<(const Momentum& lhs, const Momentum& rhs) {
-    if (lhs.momentum_list == rhs.momentum_list) return false;
-    
-    if (lhs.momentum_list.size() < rhs.momentum_list.size()) return true;
-    if (lhs.momentum_list.size() > rhs.momentum_list.size()) return false;
+    if (lhs.momentum_list == rhs.momentum_list)
+        return false;
 
-    for (std::size_t i=0U; i < lhs.momentum_list.size(); ++i) {
-        if (lhs.momentum_list[i].name < rhs.momentum_list[i].name) return true;
-        if (lhs.momentum_list[i].name > rhs.momentum_list[i].name) return false;
+    if (lhs.momentum_list.size() < rhs.momentum_list.size())
+        return true;
+    if (lhs.momentum_list.size() > rhs.momentum_list.size())
+        return false;
+
+    for (std::size_t i = 0U; i < lhs.momentum_list.size(); ++i) {
+        if (lhs.momentum_list[i].name < rhs.momentum_list[i].name)
+            return true;
+        if (lhs.momentum_list[i].name > rhs.momentum_list[i].name)
+            return false;
     }
-    
+
     return false;
 }
 
-bool operator>=(const Momentum& lhs, const Momentum& rhs)
-{
+bool operator>=(const Momentum& lhs, const Momentum& rhs) {
     return (lhs > rhs || lhs == rhs);
 }
 
-bool operator<=(const Momentum& lhs, const Momentum& rhs)
-{
+bool operator<=(const Momentum& lhs, const Momentum& rhs) {
     return (lhs < rhs || lhs == rhs);
 }
 

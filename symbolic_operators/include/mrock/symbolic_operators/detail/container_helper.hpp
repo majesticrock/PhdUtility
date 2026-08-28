@@ -112,12 +112,12 @@ void prepend_vector(Vector& target, Vector&& source) {
 
 /**
  * @brief Checks whether \c val is in \c vec
- * 
+ *
  * @tparam Vector Container type
  * @tparam value_type The type of the value for the comparisons
  * @param vec The container to check
  * @param val The value to search for
- * 
+ *
  * @return Returns true if \c val is in \c vec and false otherwise.
  */
 template <class Vector, class value_type>
