@@ -52,9 +52,9 @@ TemplateResult WickOperatorTemplate::_handle_sc_type(const Operator& left, const
 
     for (std::size_t i = 0U; i < indexComparison.size(); ++i) {
         if (indexComparison[i].any_identical) {
-            result.add_index_delta(make_delta(base.indizes[i], other.indizes[i]));
+            result.add_index_delta(make_delta(base.indices[i], other.indices[i]));
             result.operation_on_each(
-                [&base, &i](TemplateResult::SingleResult& res) { res.op.indizes.push_back(base.indizes[i]); });
+                [&base, &i](TemplateResult::SingleResult& res) { res.op.indices.push_back(base.indices[i]); });
             // c c can be swapped for the cost of a sign
             const std::size_t previous_size{result.create_branch()};
             result.operation_on_range([](TemplateResult::SingleResult& res) { res.factor *= -1; }, previous_size,
@@ -63,13 +63,13 @@ TemplateResult WickOperatorTemplate::_handle_sc_type(const Operator& left, const
                                       previous_size, previous_size);
         } else {
             const std::size_t previous_size{result.create_branch()};
-            result.add_index_delta_range(make_delta(base.indizes[i], indexComparison[i].base), 0U, previous_size);
-            result.add_index_delta_range(make_delta(other.indizes[i], indexComparison[i].other), 0U, previous_size);
+            result.add_index_delta_range(make_delta(base.indices[i], indexComparison[i].base), 0U, previous_size);
+            result.add_index_delta_range(make_delta(other.indices[i], indexComparison[i].other), 0U, previous_size);
 
             // c c can be swapped for the cost of a sign
-            result.add_index_delta_range(make_delta(base.indizes[i], indexComparison[i].other), previous_size,
+            result.add_index_delta_range(make_delta(base.indices[i], indexComparison[i].other), previous_size,
                                          previous_size);
-            result.add_index_delta_range(make_delta(other.indizes[i], indexComparison[i].base), previous_size,
+            result.add_index_delta_range(make_delta(other.indices[i], indexComparison[i].base), previous_size,
                                          previous_size);
             result.operation_on_range([](TemplateResult::SingleResult& res) { res.factor *= -1; }, previous_size,
                                       previous_size);
@@ -94,13 +94,13 @@ TemplateResult WickOperatorTemplate::_handle_num_type(const Operator& left, cons
 
     for (std::size_t i = 0U; i < indexComparison.size(); ++i) {
         if (indexComparison[i].any_identical) {
-            result.add_index_delta(make_delta(left.indizes[i], right.indizes[i]));
+            result.add_index_delta(make_delta(left.indices[i], right.indices[i]));
             result.operation_on_each(
-                [&left, &i](TemplateResult::SingleResult& res) { res.op.indizes.push_back(left.indizes[i]); });
+                [&left, &i](TemplateResult::SingleResult& res) { res.op.indices.push_back(left.indices[i]); });
         } else {
             const std::size_t previous_size{result.create_branch()};
-            result.add_index_delta_range(make_delta(left.indizes[i], indexComparison[i].base), 0U, previous_size);
-            result.add_index_delta_range(make_delta(right.indizes[i], indexComparison[i].other), 0U, previous_size);
+            result.add_index_delta_range(make_delta(left.indices[i], indexComparison[i].base), 0U, previous_size);
+            result.add_index_delta_range(make_delta(right.indices[i], indexComparison[i].other), 0U, previous_size);
         }
     }
     for (auto& res : result.results) {

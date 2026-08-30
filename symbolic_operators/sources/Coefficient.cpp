@@ -73,9 +73,9 @@ Coefficient Coefficient::parse_string(const std::string& expression,
     for (const auto& arg : momentum_strings) {
         ret.momenta.push_back(Momentum(arg));
     }
-    ret.indizes.reserve(index_strings.size());
+    ret.indices.reserve(index_strings.size());
     for (const auto& arg : index_strings) {
-        ret.indizes.push_back(string_to_index.at(arg));
+        ret.indices.push_back(string_to_index.at(arg));
     }
 
     ret.Q_changes_sign = _Q_changes_sign;
@@ -90,17 +90,17 @@ Coefficient Coefficient::parse_interaction_string(const std::string& expression)
 }
 
 Coefficient::Coefficient(const std::string& _name)
-    : name(_name), momenta(), indizes(), Q_changes_sign(false), is_daggered(false) {}
+    : name(_name), momenta(), indices(), Q_changes_sign(false), is_daggered(false) {}
 
 Coefficient::Coefficient(const std::string& _name,
                          const Momentum& _momentum,
-                         const IndexWrapper& _indizes,
+                         const IndexWrapper& _indices,
                          bool _Q_changes_sign,
                          bool _inversion_symmetry,
                          bool _is_daggered)
     : name(_name),
       momenta(_momentum),
-      indizes(_indizes),
+      indices(_indices),
       inversion_symmetry{_inversion_symmetry},
       Q_changes_sign(_Q_changes_sign),
       is_daggered(_is_daggered) {}
@@ -112,20 +112,20 @@ Coefficient::Coefficient(const std::string& _name,
                          bool _is_daggered)
     : name(_name),
       momenta(_momentum),
-      indizes(),
+      indices(),
       inversion_symmetry{_inversion_symmetry},
       Q_changes_sign(_Q_changes_sign),
       is_daggered(_is_daggered) {}
 
 Coefficient::Coefficient(const std::string& _name,
                          const MomentumList& _momenta,
-                         const IndexWrapper& _indizes,
+                         const IndexWrapper& _indices,
                          bool _Q_changes_sign,
                          bool _inversion_symmetry,
                          bool _is_daggered)
     : name(_name),
       momenta(_momenta),
-      indizes(_indizes),
+      indices(_indices),
       inversion_symmetry{_inversion_symmetry},
       Q_changes_sign(_Q_changes_sign),
       is_daggered(_is_daggered) {}
@@ -151,10 +151,10 @@ Coefficient Coefficient::RealInteraction(
 
 Coefficient Coefficient::RealInteraction(const std::string& name,
                                          const MomentumList& momenta,
-                                         const IndexWrapper& _indizes,
+                                         const IndexWrapper& _indices,
                                          const std::optional<std::function<void(Coefficient&)>>& custom_symmetry) {
     assert(momenta.size() == 3U);
-    Coefficient ret(name, momenta, _indizes, false, false);
+    Coefficient ret(name, momenta, _indices, false, false);
     ret.is_symmetrized_interaction = true;
     ret.custom_symmetry = custom_symmetry;
     return ret;
@@ -173,16 +173,16 @@ Coefficient Coefficient::HoneyComb(
 }
 
 Coefficient Coefficient::Constant(const std::string& name,
-                                  const IndexWrapper& indizes /* = IndexWrapper{} */,
+                                  const IndexWrapper& indices /* = IndexWrapper{} */,
                                   bool is_real /* = false */,
                                   bool is_daggered /* = true */) {
-    Coefficient ret(name, MomentumList{}, indizes, false, true, is_daggered);
+    Coefficient ret(name, MomentumList{}, indices, false, true, is_daggered);
     ret.is_real = is_real;
     return ret;
 }
 
 bool Coefficient::uses_index(const Index index) const noexcept {
-    for (const auto& idx : indizes) {
+    for (const auto& idx : indices) {
         if (idx == index)
             return true;
     }
@@ -227,8 +227,8 @@ Coefficient Coefficient::hermitian_conjugate() const {
 
 std::ostream& operator<<(std::ostream& os, const Coefficient& coeff) {
     os << coeff.name;
-    if (!coeff.indizes.empty()) {
-        os << "_{ " << coeff.indizes << "}";
+    if (!coeff.indices.empty()) {
+        os << "_{ " << coeff.indices << "}";
     }
     if (coeff.is_daggered) {
         os << "^*";
@@ -251,7 +251,7 @@ bool operator==(const Coefficient& lhs, const Coefficient& rhs) {
         return false;
     if (lhs.is_daggered != rhs.is_daggered)
         return false;
-    return (lhs.indizes == rhs.indizes);
+    return (lhs.indices == rhs.indices);
 }
 
 }  // namespace mrock::symbolic_operators

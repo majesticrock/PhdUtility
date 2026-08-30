@@ -72,7 +72,7 @@ public:
         ar & sums;
         ar & operators;
         ar & delta_momenta;
-        ar & delta_indizes;
+        ar & delta_indices;
         ar & multiplicity;
     }
 
@@ -116,11 +116,11 @@ public:
          const std::vector<Operator>& _operators = std::vector<Operator>());
 
     /**
-     * @brief Constructs a Term with a summation over spins (or other indizes) and a coefficient
+     * @brief Constructs a Term with a summation over spins (or other indices) and a coefficient
      *
      * @param _multiplicity The _multiplicity of the term
      * @param _coefficient The coefficient
-     * @param _sum_spins Sum over spins (or other indizes)
+     * @param _sum_spins Sum over spins (or other indices)
      * @param _operators The operators of the term
      */
     Term(IntFractional _multiplicity,
@@ -140,7 +140,7 @@ public:
          const std::vector<Operator>& _operators = std::vector<Operator>());
 
     /**
-     * @brief Constructs a Term with a summation over momenta and indizes
+     * @brief Constructs a Term with a summation over momenta and indices
      *
      * @param _multiplicity The _multiplicity of the term
      * @param _sums Sums
@@ -162,10 +162,10 @@ public:
          const std::vector<Operator>& _operators = std::vector<Operator>());
 
     /**
-     * @brief Constructs a Term with a summation over spins (or other indizes)
+     * @brief Constructs a Term with a summation over spins (or other indices)
      *
      * @param _multiplicity The _multiplicity of the term
-     * @param _sum_spins Sum over spins (or other indizes)
+     * @param _sum_spins Sum over spins (or other indices)
      * @param _operators The operators of the term
      */
     Term(IntFractional _multiplicity,
@@ -230,9 +230,9 @@ public:
     bool resolve_deltas();
 
     /**
-     * @brief Puts the operators in the term in a specific order based on their indizes.
+     * @brief Puts the operators in the term in a specific order based on their indices.
      */
-    void sort_operators_by_indizes();
+    void sort_operators_by_indices();
 
     /**
      * @brief Tries to bring the momentum dependencies of the operators in \c *this to a fixed notation
@@ -280,7 +280,7 @@ public:
      * @param what The index to rename.
      * @param to The new index.
      */
-    void rename_indizes(const Index what, const Index to);
+    void rename_indices(const Index what, const Index to);
 
     /**
      * @brief Compute other * this

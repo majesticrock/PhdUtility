@@ -36,7 +36,7 @@ WickTerm::WickTerm(const Term* base)
                                  base->coefficients,
                                  base->sums,
                                  base->delta_momenta,
-                                 base->delta_indizes,
+                                 base->delta_indices,
                                  std::vector<WickOperator>()),
       temporary_operators() {}
 
@@ -45,7 +45,7 @@ WickTerm::WickTerm(const Term& base)
                                  base.coefficients,
                                  base.sums,
                                  base.delta_momenta,
-                                 base.delta_indizes,
+                                 base.delta_indices,
                                  std::vector<WickOperator>()),
       temporary_operators() {}
 
@@ -54,20 +54,20 @@ WickTerm::WickTerm(const WickTerm& base, const TemplateResult::SingleResult& res
                                  base.coefficients,
                                  base.sums,
                                  base.delta_momenta,
-                                 base.delta_indizes,
+                                 base.delta_indices,
                                  base.operators),
       temporary_operators() {
     this->operators.push_back(result.op);
-    this->delta_indizes.insert(this->delta_indizes.end(), result.index_deltas.begin(), result.index_deltas.end());
+    this->delta_indices.insert(this->delta_indices.end(), result.index_deltas.begin(), result.index_deltas.end());
 }
 
 WickTerm::WickTerm(const IntFractional& _multiplicity,
                    const std::vector<Coefficient>& _coefficients,
                    const SumContainer& _sums,
                    const std::vector<KroneckerDelta<Momentum>>& _delta_momenta,
-                   const std::vector<KroneckerDelta<Index>>& _delta_indizes,
+                   const std::vector<KroneckerDelta<Index>>& _delta_indices,
                    const std::vector<WickOperator>& _operators)
-    : AbstractTerm<WickOperator>(_multiplicity, _coefficients, _sums, _delta_momenta, _delta_indizes, _operators) {}
+    : AbstractTerm<WickOperator>(_multiplicity, _coefficients, _sums, _delta_momenta, _delta_indices, _operators) {}
 
 WickTerm::WickTerm(const std::string& expression) : AbstractTerm<WickOperator>(1) {
     // Syntax
@@ -133,7 +133,7 @@ void WickTerm::string_parser(std::string&& expression) {
         assert(argument_list.size() == 2U);
 
         if (type == "index") {
-            this->delta_indizes.push_back(
+            this->delta_indices.push_back(
                 make_delta(string_to_index.at(argument_list[0]), string_to_index.at(argument_list[1])));
         } else if (type == "momentum") {
             this->delta_momenta.push_back(make_delta(Momentum(argument_list[0]), Momentum(argument_list[1])));
@@ -283,7 +283,7 @@ void WickTerm::sort() {
 }
 
 void WickTerm::include_template_result(const TemplateResult::SingleResult& result) {
-    this->delta_indizes.insert(this->delta_indizes.begin(), result.index_deltas.begin(), result.index_deltas.end());
+    this->delta_indices.insert(this->delta_indices.begin(), result.index_deltas.begin(), result.index_deltas.end());
     this->operators.push_back(result.op);
     this->multiplicity *= result.factor;
 }
@@ -364,7 +364,7 @@ bool operator==(const WickTerm& lhs, const WickTerm& rhs) {
         return false;
     if (lhs.sums != rhs.sums)
         return false;
-    if (lhs.delta_indizes != rhs.delta_indizes)
+    if (lhs.delta_indices != rhs.delta_indices)
         return false;
     if (lhs.delta_momenta != rhs.delta_momenta)
         return false;

@@ -145,7 +145,7 @@ void wicks_theorem(const TermCollector& terms,
 
     for (auto& w_term : prepared_wick) {
         append_if(reciever, identify_wick_operators(w_term, operator_templates), [](const WickTerm& wick) {
-            return !(is_always_zero(wick.delta_indizes) || is_always_zero(wick.delta_momenta));
+            return !(is_always_zero(wick.delta_indices) || is_always_zero(wick.delta_momenta));
         });
     }
 }

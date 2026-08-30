@@ -55,10 +55,10 @@ protected:
 
     virtual void for_each_index_except_deltas(const std::function<void(IndexWrapper&)>& f) {
         for (auto& op : operators) {
-            f(op.indizes);
+            f(op.indices);
         }
         for (auto& coeff : coefficients) {
-            f(coeff.indizes);
+            f(coeff.indices);
         }
     }
 
@@ -67,7 +67,7 @@ public:
     std::vector<Coefficient> coefficients;  ///< Coefficients of the term.
     SumContainer sums;                      ///< Sum container for the term. Contains e.g. \sum_{k,l} \sum_{sigma}
     std::vector<KroneckerDelta<Momentum>> delta_momenta;  ///< Kronecker delta for momenta.
-    std::vector<KroneckerDelta<Index>> delta_indizes;     ///< Kronecker delta for indices.
+    std::vector<KroneckerDelta<Index>> delta_indices;     ///< Kronecker delta for indices.
     std::vector<tOperatorType>
         operators;  ///< Operators in the term, if empty the term is considered to contain the identiy operator
 
@@ -84,19 +84,19 @@ public:
      * @param _coefficients The coefficients
      * @param _operators The operators
      * @param _delta_momenta The Kronecker deltas for the momenta
-     * @param _delta_indizes The Kronecker deltas for the indizes
+     * @param _delta_indices The Kronecker deltas for the indices
      */
     AbstractTerm(const IntFractional& _multiplicity,
                  const std::vector<Coefficient>& _coefficients,
                  const SumContainer& _sums,
                  const std::vector<KroneckerDelta<Momentum>>& _delta_momenta,
-                 const std::vector<KroneckerDelta<Index>>& _delta_indizes,
+                 const std::vector<KroneckerDelta<Index>>& _delta_indices,
                  const std::vector<tOperatorType>& _operators)
         : multiplicity{_multiplicity},
           coefficients{_coefficients},
           sums{_sums},
           delta_momenta{_delta_momenta},
-          delta_indizes{_delta_indizes},
+          delta_indices{_delta_indices},
           operators{_operators} {};
 
     /**
@@ -191,7 +191,7 @@ public:
     bool resolve_momentum_deltas();
 
     /**
-     * @brief Resolves the Kronecker deltas of the indizes in the term.
+     * @brief Resolves the Kronecker deltas of the indices in the term.
      * @return True if successful, false otherwise.
      */
     bool resolve_index_deltas();
@@ -228,11 +228,11 @@ public:
     void swap_momenta(const MomentumSymbol::name_type a, const MomentumSymbol::name_type b);
 
     /**
-     * @brief Swaps two indizes in the term.
+     * @brief Swaps two indices in the term.
      * @param a The first Index.
      * @param b The second Index.
      */
-    void swap_indizes(const Index a, const Index b);
+    void swap_indices(const Index a, const Index b);
 
     /**
      * @brief Inverts a momentum in the term.
@@ -291,7 +291,7 @@ public:
      * @param what The Index to look for.
      * @param to The Index that \c what should be changed to.
      */
-    void rename_indizes(const Index what, const Index to);
+    void rename_indices(const Index what, const Index to);
 
     /**
      * @brief Restructures the index summations so that a given \c current Index is turned into \c should_be
@@ -302,7 +302,7 @@ public:
      * The idea is, if you already ordered 'sigma', you probably do not want to destroy what you already achieved.
      * So you can pass 'sigma' as \c do_not_use and the algorithm will skip it.
      */
-    void redistribute_indizes(const Index current, const Index should_be, const std::vector<Index>& do_not_use = {});
+    void redistribute_indices(const Index current, const Index should_be, const std::vector<Index>& do_not_use = {});
 
     /**
      * @brief renames the sums in \c *this so that none of them have the same index as the sums in  \c other .
@@ -340,8 +340,8 @@ void AbstractTerm<tOperatorType>::replace_each_index(
     Index replace_with,
     std::function<bool(std::vector<KroneckerDelta<Index>>::iterator)> skip) {
     for_each_index_except_deltas(
-        [&target, &replace_with](IndexWrapper& indizes) { indizes.replace_index(target, replace_with); });
-    for (std::vector<KroneckerDelta<Index>>::iterator it = delta_indizes.begin(); it != delta_indizes.end(); ++it) {
+        [&target, &replace_with](IndexWrapper& indices) { indices.replace_index(target, replace_with); });
+    for (std::vector<KroneckerDelta<Index>>::iterator it = delta_indices.begin(); it != delta_indices.end(); ++it) {
         if (skip(it)) {
             continue;
         }
@@ -455,15 +455,15 @@ bool AbstractTerm<tOperatorType>::resolve_momentum_deltas() {
 
 template <class tOperatorType>
 bool AbstractTerm<tOperatorType>::resolve_index_deltas() {
-    if (is_always_zero(delta_indizes))
+    if (is_always_zero(delta_indices))
         return false;
 
     // Remove delta^2
-    remove_delta_squared(this->delta_indizes);
+    remove_delta_squared(this->delta_indices);
     // Erase delta_k,k etc
-    remove_delta_is_one(this->delta_indizes);
+    remove_delta_is_one(this->delta_indices);
 
-    for (auto delta_it = delta_indizes.begin(); delta_it != delta_indizes.end();) {
+    for (auto delta_it = delta_indices.begin(); delta_it != delta_indices.end();) {
         Index to_resolve{Index::UndefinedIndex};
         Index change_to{Index::UndefinedIndex};
         bool found_sum{};
@@ -493,33 +493,33 @@ bool AbstractTerm<tOperatorType>::resolve_index_deltas() {
                 to_resolve = delta_it->second;
                 change_to = delta_it->first;
             } else if (delta_it->first != delta_it->second) {
-                // Two differing, immutable indizes can never be equal
+                // Two differing, immutable indices can never be equal
                 return false;
             }
         }
 
-        if (remove_delta_is_one(delta_indizes)) {
-            delta_it = delta_indizes.begin();
+        if (remove_delta_is_one(delta_indices)) {
+            delta_it = delta_indices.begin();
             continue;
         }
-        if (remove_delta_squared(delta_indizes)) {
-            delta_it = delta_indizes.begin();
+        if (remove_delta_squared(delta_indices)) {
+            delta_it = delta_indices.begin();
             continue;
         }
         replace_each_index(to_resolve, change_to, [&delta_it](auto it) { return it == delta_it; });
 
         if (found_sum) {
             sums.spins.erase(sum_it);
-            delta_it = delta_indizes.erase(delta_it);
+            delta_it = delta_indices.erase(delta_it);
         } else {
             ++delta_it;
         }
     }
 
     // Remove delta^2
-    remove_delta_squared(this->delta_indizes);
+    remove_delta_squared(this->delta_indices);
     // Erase delta_k,k etc
-    remove_delta_is_one(this->delta_indizes);
+    remove_delta_is_one(this->delta_indices);
 
     return true;
 }
@@ -576,10 +576,10 @@ void AbstractTerm<tOperatorType>::swap_momenta(const MomentumSymbol::name_type a
 }
 
 template <class tOperatorType>
-void AbstractTerm<tOperatorType>::swap_indizes(const Index a, const Index b) {
-    this->rename_indizes(a, Index::PlaceHolderIndex);
-    this->rename_indizes(b, a);
-    this->rename_indizes(Index::PlaceHolderIndex, b);
+void AbstractTerm<tOperatorType>::swap_indices(const Index a, const Index b) {
+    this->rename_indices(a, Index::PlaceHolderIndex);
+    this->rename_indices(b, a);
+    this->rename_indices(Index::PlaceHolderIndex, b);
 }
 
 template <class tOperatorType>
@@ -695,7 +695,7 @@ void AbstractTerm<tOperatorType>::redistribute_momenta(const Momentum& current,
 }
 
 template <class tOperatorType>
-void AbstractTerm<tOperatorType>::rename_indizes(const Index what, const Index to) {
+void AbstractTerm<tOperatorType>::rename_indices(const Index what, const Index to) {
     if (what == to)
         return;
 
@@ -712,7 +712,7 @@ void AbstractTerm<tOperatorType>::rename_indizes(const Index what, const Index t
 }
 
 template <class tOperatorType>
-void AbstractTerm<tOperatorType>::redistribute_indizes(const Index current,
+void AbstractTerm<tOperatorType>::redistribute_indices(const Index current,
                                                        const Index should_be,
                                                        const std::vector<Index>& do_not_use) {
     if (current == should_be)
@@ -721,9 +721,9 @@ void AbstractTerm<tOperatorType>::redistribute_indizes(const Index current,
         return;
 
     if (sums.spins.is_summed_over(current)) {
-        rename_indizes(should_be, Index::PlaceHolderIndex);
-        rename_indizes(current, should_be);
-        rename_indizes(Index::PlaceHolderIndex, current);
+        rename_indices(should_be, Index::PlaceHolderIndex);
+        rename_indices(current, should_be);
+        rename_indices(Index::PlaceHolderIndex, current);
     } else {
         throw redistribution_error("index");
     }
@@ -755,7 +755,7 @@ void AbstractTerm<tOperatorType>::rename_duplicate_sums(AbstractTerm const* cons
                     throw std::runtime_error("The index buffer is too short!");
                 }
             }
-            this->rename_indizes(sum_index, static_cast<Index>(c));
+            this->rename_indices(sum_index, static_cast<Index>(c));
         }
     }
 }
@@ -778,7 +778,7 @@ std::ostream& operator<<(std::ostream& os, const AbstractTerm<tOperatorType>& te
     for (const auto& delta : term.delta_momenta) {
         os << delta;
     }
-    for (const auto& delta : term.delta_indizes) {
+    for (const auto& delta : term.delta_indices) {
         os << delta;
     }
     if (term.is_identity()) {

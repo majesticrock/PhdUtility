@@ -39,9 +39,9 @@ Term::Term(IntFractional _multiplicity,
 
 Term::Term(IntFractional _multiplicity,
            Coefficient _coefficient,
-           const IndexSum& _sum_indizes,
+           const IndexSum& _sum_indices,
            const std::vector<Operator>& _operators)
-    : AbstractTerm<Operator>(_multiplicity, _coefficient, SumContainer{{}, _sum_indizes}, _operators) {}
+    : AbstractTerm<Operator>(_multiplicity, _coefficient, SumContainer{{}, _sum_indices}, _operators) {}
 
 Term::Term(IntFractional _multiplicity, Coefficient _coefficient, const std::vector<Operator>& _operators)
     : AbstractTerm<Operator>(_multiplicity, _coefficient, _operators) {}
@@ -52,8 +52,8 @@ Term::Term(IntFractional _multiplicity, const SumContainer& _sums, const std::ve
 Term::Term(IntFractional _multiplicity, const MomentumSum& _sum_momenta, const std::vector<Operator>& _operators)
     : AbstractTerm<Operator>(_multiplicity, std::vector<Coefficient>(), SumContainer{_sum_momenta, {}}, _operators) {}
 
-Term::Term(IntFractional _multiplicity, const IndexSum& _sum_indizes, const std::vector<Operator>& _operators)
-    : AbstractTerm<Operator>(_multiplicity, std::vector<Coefficient>(), SumContainer{{}, _sum_indizes}, _operators) {}
+Term::Term(IntFractional _multiplicity, const IndexSum& _sum_indices, const std::vector<Operator>& _operators)
+    : AbstractTerm<Operator>(_multiplicity, std::vector<Coefficient>(), SumContainer{{}, _sum_indices}, _operators) {}
 
 Term::Term(IntFractional _multiplicity, const std::vector<Operator>& _operators)
     : AbstractTerm<Operator>(_multiplicity, _operators) {}
@@ -81,33 +81,33 @@ bool Term::resolve_deltas() {
     return true;
 }
 
-void Term::sort_operators_by_indizes() {
+void Term::sort_operators_by_indices() {
     auto general_swap_predicate = [this](const std::size_t& i, const std::size_t& index_pos) {
         if (operators[i - 1].is_daggered) {
-            if (operators[i - 1].indizes.front() == Index::SpinUp)
+            if (operators[i - 1].indices.front() == Index::SpinUp)
                 return false;
-            if (operators[i].indizes.front() == Index::SpinDown)
+            if (operators[i].indices.front() == Index::SpinDown)
                 return false;
 
-            if (operators[i - 1].indizes.front() == Index::SpinDown || operators[i].indizes.front() == Index::SpinUp) {
+            if (operators[i - 1].indices.front() == Index::SpinDown || operators[i].indices.front() == Index::SpinUp) {
                 return true;
             }
 
-            if (operators[i - 1].indizes[index_pos] > operators[i].indizes[index_pos]) {
+            if (operators[i - 1].indices[index_pos] > operators[i].indices[index_pos]) {
                 return true;
             }
         } else {
             // The comparison operator and SpinUp <-> SpinDown are the only changes
-            if (operators[i - 1].indizes.front() == Index::SpinDown)
+            if (operators[i - 1].indices.front() == Index::SpinDown)
                 return false;
-            if (operators[i].indizes.front() == Index::SpinUp)
+            if (operators[i].indices.front() == Index::SpinUp)
                 return false;
 
-            if (operators[i - 1].indizes.front() == Index::SpinUp || operators[i].indizes.front() == Index::SpinDown) {
+            if (operators[i - 1].indices.front() == Index::SpinUp || operators[i].indices.front() == Index::SpinDown) {
                 return true;
             }
 
-            if (operators[i - 1].indizes[index_pos] < operators[i].indizes[index_pos]) {
+            if (operators[i - 1].indices[index_pos] < operators[i].indices[index_pos]) {
                 return true;
             }
         }
@@ -116,7 +116,7 @@ void Term::sort_operators_by_indizes() {
 
     std::size_t n = operators.size();
     std::size_t new_n{};
-    // First sort so that the spins indizes are always ordered the same way
+    // First sort so that the spins indices are always ordered the same way
     // Without destroying the previously achieved normal order
     while (n > 1U) {
         new_n = 0U;
@@ -128,7 +128,7 @@ void Term::sort_operators_by_indizes() {
                 continue;
             }
             std::size_t j = 0U;
-            while (j < operators[i - 1].indizes.size() && j < operators[i].indizes.size()) {
+            while (j < operators[i - 1].indices.size() && j < operators[i].indices.size()) {
                 if (general_swap_predicate(i, j)) {
                     perform_operator_swap(i - 1, i);
                     new_n = i;
@@ -146,16 +146,16 @@ void Term::structure_momentum_dependencies() {
     if (operators.empty())
         return;
 
-    auto most_similar_daggered_operator = [this](const IndexWrapper& indizes) {
+    auto most_similar_daggered_operator = [this](const IndexWrapper& indices) {
         int best_match_count = 0;
         std::vector<Operator>::const_iterator best_it = operators.end();
 
         for (std::vector<Operator>::const_iterator it = operators.begin(); it != operators.end() && it->is_daggered;
              ++it) {
             // Penalize size mismatch
-            int current_match_count = static_cast<int>(indizes.size()) - static_cast<int>(it->indizes.size());
-            for (std::size_t i = 0U; i < it->indizes.size() && i < indizes.size(); ++i) {
-                if (it->indizes[i] == indizes[i]) {
+            int current_match_count = static_cast<int>(indices.size()) - static_cast<int>(it->indices.size());
+            for (std::size_t i = 0U; i < it->indices.size() && i < indices.size(); ++i) {
+                if (it->indices[i] == indices[i]) {
                     ++current_match_count;
                 }
             }
@@ -189,7 +189,7 @@ void Term::structure_momentum_dependencies() {
         if (op_it->is_daggered)
             break;
 
-        auto best_it = most_similar_daggered_operator(op_it->indizes);
+        auto best_it = most_similar_daggered_operator(op_it->indices);
         if (best_it == operators.end())
             continue;
         try {
@@ -219,7 +219,7 @@ void Term::structure_momentum_dependencies() {
 }
 
 void Term::structure() {
-    sort_operators_by_indizes();
+    sort_operators_by_indices();
 
     std::size_t new_n;
     std::size_t n = operators.size();
@@ -325,7 +325,7 @@ bool Term::is_equal(const Term& other) const {
         return false;
     if (this->sums != other.sums)
         return false;
-    if (this->delta_indizes != other.delta_indizes)
+    if (this->delta_indices != other.delta_indices)
         return false;
     if (this->delta_momenta != other.delta_momenta)
         return false;
@@ -365,7 +365,7 @@ std::string Term::to_string_without_prefactor() const {
     for (const auto& delta : delta_momenta) {
         os << delta;
     }
-    for (const auto& delta : delta_indizes) {
+    for (const auto& delta : delta_indices) {
         os << delta;
     }
 
@@ -396,7 +396,7 @@ Term Term::hermitian_conjugate() const {
     return copy;
 }
 
-void Term::rename_indizes(Index what, Index to) {
+void Term::rename_indices(Index what, Index to) {
     if (what == to)
         return;
     for (auto& index_sum : sums.spins) {
@@ -408,20 +408,20 @@ void Term::rename_indizes(Index what, Index to) {
         }
     }
     for (auto& coeff : coefficients) {
-        for (auto& index : coeff.indizes) {
+        for (auto& index : coeff.indices) {
             if (index == what) {
                 index = to;
             }
         }
     }
     for (auto& op : operators) {
-        for (auto& index : op.indizes) {
+        for (auto& index : op.indices) {
             if (index == what) {
                 index = to;
             }
         }
     }
-    for (auto& delta : delta_indizes) {
+    for (auto& delta : delta_indices) {
         if (delta.first == what) {
             delta.first = to;
         }
@@ -439,7 +439,7 @@ Term& Term::multiply_from_the_left(const Term& other) {
 
     append_vector(this->coefficients, other.coefficients);
     append_vector(this->delta_momenta, other.delta_momenta);
-    append_vector(this->delta_indizes, other.delta_indizes);
+    append_vector(this->delta_indices, other.delta_indices);
 
     // IMPORTANT: prepend instead of append!
     prepend_vector(this->operators, other.operators);
@@ -458,7 +458,7 @@ Term& Term::operator*=(const Term& rhs) {
     this->multiplicity *= rhs.multiplicity;
     append_vector(this->coefficients, rhs.coefficients);
     append_vector(this->delta_momenta, rhs.delta_momenta);
-    append_vector(this->delta_indizes, rhs.delta_indizes);
+    append_vector(this->delta_indices, rhs.delta_indices);
     append_vector(this->operators, rhs.operators);
 
     return *this;

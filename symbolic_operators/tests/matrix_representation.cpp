@@ -229,15 +229,18 @@ SparseMatrix symbolic_to_matrix(const TermCollector& terms) {
             }
             return wrap_momentum(value);
         };
+        const auto evaluate_index = [&index_values](const Index& index) {
+            return index_values[static_cast<unsigned char>(index)];
+        };
 
-        const auto evaluate_coefficient = [&evaluate_momentum](const Coefficient& coefficient) {
+        const auto evaluate_coefficient = [&evaluate_momentum, &evaluate_index](const Coefficient& coefficient) {
             double value = 1.;
             if (coefficient.name == "\\tilde{\\varepsilon}") {
                 value *= cosines[evaluate_momentum(coefficient.momenta.front())];
             } else if (coefficient.name == "U") {
                 value *= cosines[evaluate_momentum(coefficient.momenta[0] + coefficient.momenta[2])] *
                          cosines[evaluate_momentum(coefficient.momenta[1] - coefficient.momenta[2])];
-                if (coefficient.indizes[0] != coefficient.indizes[1])
+                if (evaluate_index(coefficient.indices[0]) != evaluate_index(coefficient.indices[1]))
                     value *= cosines[evaluate_momentum(coefficient.momenta[2])];
             } else if (coefficient.name == "\\alpha") {
                 value *= cosines[evaluate_momentum(coefficient.momenta[0] + coefficient.momenta[2])] *
@@ -246,7 +249,7 @@ SparseMatrix symbolic_to_matrix(const TermCollector& terms) {
                           cosines[evaluate_momentum(coefficient.momenta[1])] -
                           cosines[evaluate_momentum(coefficient.momenta[0] + coefficient.momenta[2])] -
                           cosines[evaluate_momentum(coefficient.momenta[1] - coefficient.momenta[2])]);
-                if (coefficient.indizes[0] != coefficient.indizes[1])
+                if (coefficient.indices[0] != coefficient.indices[1])
                     value *= cosines[evaluate_momentum(coefficient.momenta[2])];
             } else {
                 throw std::runtime_error("No matrix representation for coefficient " + coefficient.name);
@@ -265,7 +268,7 @@ SparseMatrix symbolic_to_matrix(const TermCollector& terms) {
                     return;
                 }
             }
-            for (const auto& delta : term.delta_indizes) {
+            for (const auto& delta : term.delta_indices) {
                 const auto index_value = [&index_values](const Index index) {
                     return is_mutable(index) ? index_values[static_cast<unsigned char>(index)]
                                              : (index == Index::SpinDown ? 1 : 0);

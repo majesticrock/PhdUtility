@@ -20,7 +20,7 @@ namespace mrock::symbolic_operators {
 
 /**
  * @struct IndexComparison
- * @brief A structure for comparing indices. E.g. <n_k> merely requires that the spin indizes of the composing operators
+ * @brief A structure for comparing indices. E.g. <n_k> merely requires that the spin indices of the composing operators
  * are identical, but <f_k> requires the first index to be spin down.
  */
 struct IndexComparison {
@@ -36,7 +36,7 @@ struct IndexComparison {
  * Therefore, the 'base operatore' is the second one in the expression c_(k,up),
  * and we have to give the index of the second operator first. */
 inline constexpr IndexComparison SC_Comparison{
-    false,          /* The indizes (here only spins), must be fixed */
+    false,          /* The indices (here only spins), must be fixed */
     Index::SpinUp,  /* The second index must be SpinUp */
     Index::SpinDown /* The first index must be SpinDown */
 };
@@ -44,7 +44,7 @@ inline constexpr IndexComparison SC_Comparison{
  * @brief Convenience definiton of an \c IndexComparison for number-like operators (c^dagger c)
  */
 inline constexpr IndexComparison Num_Comparison{
-    true /* The indizes (here: spins) of both operators must be equal, but no other restriction is placed */
+    true /* The indices (here: spins) of both operators must be equal, but no other restriction is placed */
 };
 /**
  * @struct TemplateResult

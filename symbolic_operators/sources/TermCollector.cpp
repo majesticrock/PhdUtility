@@ -80,7 +80,7 @@ void TermCollector::normal_order() {
                     if (terms[t].operators[i - 1].is_fermion && terms[t].operators[i].is_fermion) {
                         terms[t].flip_sign();
                     }
-                    if (new_term.operators[i - 1].indizes.size() != new_term.operators[i].indizes.size()) {
+                    if (new_term.operators[i - 1].indices.size() != new_term.operators[i].indices.size()) {
                         throw std::invalid_argument("Operators do not have the same index count.");
                     }
 
@@ -90,16 +90,16 @@ void TermCollector::normal_order() {
                          new_term.operators[i].first_index() == Index::SpinUp)) {
                         continue;
                     } else if (new_term.operators[i - 1].first_index() != new_term.operators[i].first_index()) {
-                        new_term.delta_indizes.push_back(
+                        new_term.delta_indices.push_back(
                             make_delta(new_term.operators[i - 1].first_index(), new_term.operators[i].first_index()));
                     }
-                    for (std::size_t c = 1; c < new_term.operators[i - 1].indizes.size(); c++) {
-                        // if the indizes are not the same we emplace a delta
+                    for (std::size_t c = 1; c < new_term.operators[i - 1].indices.size(); c++) {
+                        // if the indices are not the same we emplace a delta
                         // otherwise no action is required
-                        if (new_term.operators[i - 1].indizes[c] != new_term.operators[i].indizes[c]) {
+                        if (new_term.operators[i - 1].indices[c] != new_term.operators[i].indices[c]) {
                             other_deltas = true;
-                            new_term.delta_indizes.push_back(
-                                make_delta(new_term.operators[i - 1].indizes[c], new_term.operators[i].indizes[c]));
+                            new_term.delta_indices.push_back(
+                                make_delta(new_term.operators[i - 1].indices[c], new_term.operators[i].indices[c]));
                         }
                     }
                     if (new_term.operators[i - 1].momentum != new_term.operators[i].momentum) {
@@ -128,7 +128,7 @@ void TermCollector::normal_order() {
     }
 
     for (auto& term : terms) {
-        term.sort_operators_by_indizes();
+        term.sort_operators_by_indices();
     }
 
     combine_duplicates();

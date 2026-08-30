@@ -64,7 +64,7 @@ void WickTermCollector::clean_up(
             if (it->uses_index(*jt)) {
                 ++jt;
             } else {
-                // We are assuming there are only spin indizes here (spin 1/2)
+                // We are assuming there are only spin indices here (spin 1/2)
                 // If another kind of index arises I have to readress this section.
                 it->multiplicity *= 2;
                 jt = it->sums.spins.erase(jt);

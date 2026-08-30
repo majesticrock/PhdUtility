@@ -38,11 +38,11 @@ namespace mrock::symbolic_operators {
  * be finite. In the following, the meaning of the different attributes is listed:
  *
  * \b std::vector< \b IndexComparison \b > \b indexComparison} \n
- * If \c any_identical is \c true, any two identical indizes are considered valid.
+ * If \c any_identical is \c true, any two identical indices are considered valid.
  * An example would be in the number operator \f$c_{k, \sigma}^\dagger c_{k, \sigma'}*\f$:
  * No matter what \f$ \sigma\f$ is, as long as \f$sigma = sigma'\f$ the expectation value will be finite.
  * If \c any_identical is \c false, the members \c base and \c other become relevant:
- * They define what the indizes need to be, e.g., for a pair annihlation operator \f$c_{-k down} c_{k up}\f$
+ * They define what the indices need to be, e.g., for a pair annihlation operator \f$c_{-k down} c_{k up}\f$
  * one would set \c base to \f$ \downarrow \f$ and \c other to \f$ \uparrow\f$.
  *
  * Note, once one operator is set as a template, it is not necessary to set its Hermitian conjugate.
@@ -116,7 +116,7 @@ public:
         ar & sums;
         ar & operators;
         ar & delta_momenta;
-        ar & delta_indizes;
+        ar & delta_indices;
     }
 
     std::vector<Operator> temporary_operators;  ///< Temporary operators used in the term.
@@ -156,13 +156,13 @@ public:
      * @param _coefficients The coefficients
      * @param _operators The operators
      * @param _delta_momenta The Kronecker deltas for the momenta
-     * @param _delta_indizes The Kronecker deltas for the indizes
+     * @param _delta_indices The Kronecker deltas for the indices
      */
     WickTerm(const IntFractional& _multiplicity,
              const std::vector<Coefficient>& _coefficients,
              const SumContainer& _sums,
              const std::vector<KroneckerDelta<Momentum>>& _delta_momenta,
-             const std::vector<KroneckerDelta<Index>>& _delta_indizes,
+             const std::vector<KroneckerDelta<Index>>& _delta_indices,
              const std::vector<WickOperator>& _operators);
 
     /**

@@ -51,16 +51,16 @@ struct SymbolicSum {
     /**
      * @brief Constructs a SymbolicSum with a vector of summation indices.
      *
-     * @param _indizes The vector of summation indices.
+     * @param _indices The vector of summation indices.
      */
-    SymbolicSum(const std::vector<SumIndex>& _indizes) : summations(_indizes) {}
+    SymbolicSum(const std::vector<SumIndex>& _indices) : summations(_indices) {}
 
     /**
      * @brief Constructs a SymbolicSum with a moved vector of summation indices.
      *
-     * @param _indizes The vector of summation indices to move.
+     * @param _indices The vector of summation indices to move.
      */
-    SymbolicSum(std::vector<SumIndex>&& _indizes) : summations(std::move(_indizes)) {}
+    SymbolicSum(std::vector<SumIndex>&& _indices) : summations(std::move(_indices)) {}
 
     /**
      * @brief Constructs a SymbolicSum with an initializer list of summation indices.

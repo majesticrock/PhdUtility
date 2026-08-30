@@ -2,7 +2,7 @@
 #define MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_INDEXWRAPPER_HPP
 /**
  * @file IndexWrapper.hpp
- * @brief Defines the Index enum and the IndexWrapper class for handling indizes.
+ * @brief Defines the Index enum and the IndexWrapper class for handling indices.
  */
 
 #include "detail/vector_macro.hpp"
@@ -178,7 +178,7 @@ std::ostream& operator<<(std::ostream& os, const Index index);
  * This struct provides serialization support and comparison operators.
  */
 struct IndexWrapper {
-    std::vector<Index> indizes;  ///< The vector of Index values.
+    std::vector<Index> indices;  ///< The vector of Index values.
 
     /**
      * @brief Serializes the IndexWrapper, required for boost support.
@@ -188,10 +188,10 @@ struct IndexWrapper {
      */
     template <class Archive>
     void serialize(Archive& ar, [[maybe_unused]] const unsigned int version) {
-        ar& this->indizes;
+        ar& this->indices;
     }
 
-    MROCK_VECTOR_WRAPPER_FILL_MEMBERS(Index, indizes);
+    MROCK_VECTOR_WRAPPER_FILL_MEMBERS(Index, indices);
 
     /**
      * @brief Default constructor.
@@ -203,28 +203,28 @@ struct IndexWrapper {
      *
      * @param _spin The Index value to initialize with.
      */
-    IndexWrapper(Index _spin) : indizes(1U, _spin){};
+    IndexWrapper(Index _spin) : indices(1U, _spin){};
 
     /**
      * @brief Constructs an IndexWrapper with a vector of Index values.
      *
-     * @param _indizes The vector of Index values to initialize with.
+     * @param _indices The vector of Index values to initialize with.
      */
-    IndexWrapper(const std::vector<Index>& _indizes) : indizes(_indizes){};
+    IndexWrapper(const std::vector<Index>& _indices) : indices(_indices){};
 
     /**
      * @brief Constructs an IndexWrapper with a vector of Index values (move semantics).
      *
-     * @param _indizes The vector of Index values to initialize with.
+     * @param _indices The vector of Index values to initialize with.
      */
-    IndexWrapper(std::vector<Index>&& _indizes) : indizes(std::move(_indizes)){};
+    IndexWrapper(std::vector<Index>&& _indices) : indices(std::move(_indices)){};
 
     /**
      * @brief Constructs an IndexWrapper with an initializer list
      *
      * @param ilist the initializer list
      */
-    IndexWrapper(std::initializer_list<Index> ilist) : indizes(ilist){};
+    IndexWrapper(std::initializer_list<Index> ilist) : indices(ilist){};
 
     /**
      * @brief Compares two IndexWrapper objects.
@@ -255,9 +255,9 @@ struct IndexWrapper {
  * @brief Overloads the stream insertion operator for the IndexWrapper struct.
  *
  * @param os The output stream.
- * @param indizes The IndexWrapper to insert into the stream.
+ * @param indices The IndexWrapper to insert into the stream.
  * @return The output stream.
  */
-std::ostream& operator<<(std::ostream& os, const IndexWrapper& indizes);
+std::ostream& operator<<(std::ostream& os, const IndexWrapper& indices);
 }  // namespace mrock::symbolic_operators
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_INDEXWRAPPER_HPP

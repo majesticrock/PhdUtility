@@ -20,7 +20,7 @@ Index operator--(Index& index, int) {
 }
 
 void IndexWrapper::replace_index(Index target, Index replace_with) {
-    for (auto& index : indizes) {
+    for (auto& index : indices) {
         if (index == target) {
             index = replace_with;
         }
@@ -28,7 +28,7 @@ void IndexWrapper::replace_index(Index target, Index replace_with) {
 }
 
 bool IndexWrapper::contains(Index search) const noexcept {
-    for (const auto& idx : indizes) {
+    for (const auto& idx : indices) {
         if (idx == search)
             return true;
     }
@@ -79,8 +79,8 @@ std::ostream& operator<<(std::ostream& os, const Index index) {
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const IndexWrapper& indizes) {
-    for (const auto& idx : indizes) {
+std::ostream& operator<<(std::ostream& os, const IndexWrapper& indices) {
+    for (const auto& idx : indices) {
         os << idx << " ";
     }
     return os;

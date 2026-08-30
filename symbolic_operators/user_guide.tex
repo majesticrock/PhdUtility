@@ -124,7 +124,7 @@ The attributes are
   \item The list of coefficients, stored in \tokencode{std::vector<\classlink{Coefficient}> coefficients}
   \item The summation structure, stored in \tokencode{\classlink{SumContainer} sums}
   \item The Kronecker deltas for momenta, stored in \tokencode{std::vector<\classlink{KroneckerDelta}<\classlink{Momentum}>{}> \detokenize{delta_momenta}}
-  \item The Kronecker deltas for indices, stored in \tokencode{std::vector<\classlink{KroneckerDelta}<\classlink{Index}>{}> \detokenize{delta_indizes}}
+  \item The Kronecker deltas for indices, stored in \tokencode{std::vector<\classlink{KroneckerDelta}<\classlink{Index}>{}> \detokenize{delta_indices}}
   \item The operators contained in the term are stored in \tokencode{std::vector<tOperatorType> operators}; if this vector is empty, the term is treated as the identity operator
 \end{itemize}
 
@@ -139,7 +139,7 @@ The attributes are
 \begin{itemize}
   \item The coefficient name, stored in \code{name}
   \item The list of momenta, stored in \tokencode{\classlink{MomentumList} momenta}
-  \item The index wrapper, stored in \tokencode{\classlink{IndexWrapper} indizes}
+  \item The index wrapper, stored in \tokencode{\classlink{IndexWrapper} indices}
   \item An optional custom symmetry callback, stored in \code{custom_symmetry}
   \item Symmetry flags such as \code{inversion_symmetry}, \code{is_symmetrized_interaction}, \code{Q_changes_sign}, \code{is_real}, and \code{is_daggered}
 \end{itemize}
@@ -186,7 +186,7 @@ It includes predefined values such as spin-up and spin-down states, as well as g
 In addition to storing the indices, it provides convenience constructors and comparison operators, making it easy to pass around spin or orbital labels.
 The attributes are
 \begin{itemize}
-  \item The wrapped list of indices, stored in \code{indizes}
+  \item The wrapped list of indices, stored in \code{indices}
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -247,7 +247,7 @@ The class, therefore, forms the basic unit that is later combined into larger te
 The attributes are
 \begin{itemize}
   \item The momentum of the operator, stored in \code{momentum}
-  \item The associated indices, stored in \code{indizes}
+  \item The associated indices, stored in \code{indices}
   \item The dagger flag (whether or not the operator is a Hermitian conjugate), stored in \code{is_daggered}
   \item The fermion flag, stored in \code{is_fermion}
 \end{itemize}
@@ -323,7 +323,7 @@ The attributes are
   \item The operator type, stored in \code{type}
   \item The dagger flag (whether or not the operator is a Hermitian conjugate), stored in \code{is_daggered}
   \item The momentum of the operator, stored in \code{momentum}
-  \item The associated indices, stored in \code{indizes}
+  \item The associated indices, stored in \code{indices}
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

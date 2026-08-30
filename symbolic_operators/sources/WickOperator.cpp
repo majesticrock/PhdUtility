@@ -15,13 +15,13 @@ namespace mrock::symbolic_operators {
 WickOperator::WickOperator(const OperatorType& _type,
                            const bool _is_daggered,
                            const Momentum& _momentum,
-                           const IndexWrapper& _indizes)
-    : type(_type), is_daggered(_is_daggered), momentum(_momentum), indizes(_indizes) {}
+                           const IndexWrapper& _indices)
+    : type(_type), is_daggered(_is_daggered), momentum(_momentum), indices(_indices) {}
 WickOperator::WickOperator(const OperatorType& _type,
                            const bool _is_daggered,
                            const Momentum& _momentum,
                            const Index _index)
-    : type(_type), is_daggered(_is_daggered), momentum(_momentum), indizes(_index) {}
+    : type(_type), is_daggered(_is_daggered), momentum(_momentum), indices(_index) {}
 
 WickOperator::WickOperator(const std::string& expression) {
     // Syntax    type{Momentum_expression;index1,index2,...}(^+)
@@ -33,17 +33,17 @@ WickOperator::WickOperator(const std::string& expression) {
     assert(momentum_strings.size() == 1U);
     this->momentum = Momentum(momentum_strings.front());
 
-    this->indizes.reserve(index_strings.size());
+    this->indices.reserve(index_strings.size());
     for (const auto& arg : index_strings) {
-        this->indizes.push_back(string_to_index.at(arg));
+        this->indices.push_back(string_to_index.at(arg));
     }
 
     this->is_daggered = expression.find("^+") != std::string::npos;
 }
 
 std::vector<Operator> WickOperator::to_operator_expression() const {
-    std::vector<Operator> result{Operator(this->momentum, this->indizes, false),
-                                 Operator(this->momentum, this->indizes, false)};
+    std::vector<Operator> result{Operator(this->momentum, this->indices, false),
+                                 Operator(this->momentum, this->indices, false)};
 
     switch (this->type) {
         case OperatorType::Eta:
@@ -51,8 +51,8 @@ std::vector<Operator> WickOperator::to_operator_expression() const {
             [[fallthrough]];
         case OperatorType::SC:
             result[0].momentum.flip_momentum();
-            result[0].indizes.insert(result[0].indizes.begin(), Index::SpinDown);
-            result[1].indizes.insert(result[1].indizes.begin(), Index::SpinUp);
+            result[0].indices.insert(result[0].indices.begin(), Index::SpinDown);
+            result[1].indices.insert(result[1].indices.begin(), Index::SpinUp);
 
             result[0].is_daggered = this->is_daggered;
             result[1].is_daggered = this->is_daggered;
@@ -86,7 +86,7 @@ bool operator==(const WickOperator& lhs, const WickOperator& rhs) {
         return false;
     if (lhs.momentum != rhs.momentum)
         return false;
-    return (lhs.indizes == rhs.indizes);
+    return (lhs.indices == rhs.indices);
 }
 
 bool operator!=(const WickOperator& lhs, const WickOperator& rhs) {
@@ -103,11 +103,11 @@ bool operator<(const WickOperator& lhs, const WickOperator& rhs) {
     if (lhs.type > rhs.type)
         return false;
 
-    if (lhs.indizes.empty() || rhs.indizes.empty())
+    if (lhs.indices.empty() || rhs.indices.empty())
         return false;
-    if (lhs.indizes[0] < rhs.indizes[0])
+    if (lhs.indices[0] < rhs.indices[0])
         return true;
-    if (lhs.indizes[0] > rhs.indizes[0])
+    if (lhs.indices[0] > rhs.indices[0])
         return false;
 
     return lhs.momentum < rhs.momentum;
@@ -123,7 +123,7 @@ bool operator<=(const WickOperator& lhs, const WickOperator& rhs) {
 
 std::ostream& operator<<(std::ostream& os, const WickOperator& op) {
     os << "\\langle " << op.type << "_{ " << op.momentum << ", ";
-    for (const auto& index : op.indizes) {
+    for (const auto& index : op.indices) {
         os << index << " ";
     }
     os << "}";

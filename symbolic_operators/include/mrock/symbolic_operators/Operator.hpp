@@ -20,14 +20,14 @@ namespace mrock::symbolic_operators {
  * @brief Represents a symbolic operator with momentum, indices, and properties.
  *
  * This class represents the standard fermionic or bosonic creation and annihilation operators.
- * You can specify its momentum, its indizes and whether it is supposed to be daggered (a creation operator)
+ * You can specify its momentum, its indices and whether it is supposed to be daggered (a creation operator)
  * or not (an annihilation operator).
  *
  * @sa Momentum, IndexWrapper
  */
 struct Operator {
     Momentum momentum;     ///< The momentum associated with the operator.
-    IndexWrapper indizes;  ///< Contains all indices, standard: first index = spin, all others arbitrary, e.g.,
+    IndexWrapper indices;  ///< Contains all indices, standard: first index = spin, all others arbitrary, e.g.,
                            ///< orbitals, bands etc.
     bool is_daggered{};    ///< Indicates if the operator is daggered (conjugate transpose).
     bool is_fermion{
@@ -43,7 +43,7 @@ struct Operator {
     template <class Archive>
     void serialize(Archive& ar, [[maybe_unused]] const unsigned int version) {
         ar & momentum;
-        ar & indizes;
+        ar & indices;
         ar & is_daggered;
         ar & is_fermion;
     }
@@ -56,21 +56,21 @@ struct Operator {
     /**
      * @brief Constructs an Operator with specified momentum, indices, daggered state, and fermion state.
      * @param _momentum The momentum of the operator.
-     * @param _indizes The indices of the operator.
+     * @param _indices The indices of the operator.
      * @param _is_daggered The daggered state of the operator.
      * @param _is_fermion The fermion state of the operator (default is true).
      */
-    Operator(const Momentum& _momentum, const IndexWrapper _indizes, bool _is_daggered, bool _is_fermion = true);
+    Operator(const Momentum& _momentum, const IndexWrapper _indices, bool _is_daggered, bool _is_fermion = true);
 
     /**
      * @brief Constructs an Operator with specified momentum symbols, indices, daggered state, and fermion state.
      * @param _momentum The momentum symbols of the operator.
-     * @param _indizes The indices of the operator.
+     * @param _indices The indices of the operator.
      * @param _is_daggered The daggered state of the operator.
      * @param _is_fermion The fermion state of the operator (default is true).
      */
     Operator(const std::vector<MomentumSymbol>& _momentum,
-             const IndexWrapper _indizes,
+             const IndexWrapper _indices,
              bool _is_daggered,
              bool _is_fermion = true);
 
@@ -80,13 +80,13 @@ struct Operator {
      * @param _momentum The name of the momentum symbol.
      * @param add_PI Flag to indicate if Q should be added. Q has the property 2Q = 0, e.g., (pi,pi) on a unit square
      * lattice.
-     * @param _indizes The indices of the operator.
+     * @param _indices The indices of the operator.
      * @param _is_daggered The daggered state of the operator.
      * @param _is_fermion The fermion state of the operator (default is true).
      */
     Operator(const MomentumSymbol::name_type _momentum,
              bool add_PI,
-             const IndexWrapper _indizes,
+             const IndexWrapper _indices,
              bool _is_daggered,
              bool _is_fermion = true);
 
@@ -97,26 +97,26 @@ struct Operator {
      * @param sign The sign of the momentum.
      * @param add_PI Flag to indicate if Q should be added. Q has the property 2Q = 0, e.g., (pi,pi) on a unit square
      * lattice.
-     * @param _indizes The indices of the operator.
+     * @param _indices The indices of the operator.
      * @param _is_daggered The daggered state of the operator.
      * @param _is_fermion The fermion state of the operator (default is true).
      */
     Operator(const MomentumSymbol::name_type _momentum,
              int sign,
              bool add_PI,
-             const IndexWrapper _indizes,
+             const IndexWrapper _indices,
              bool _is_daggered,
              bool _is_fermion = true);
 
     /**
      * @brief Creates a Boson operator with specified momentum and indices.
      * @param _momentum The momentum of the operator.
-     * @param _indizes The indices of the operator.
+     * @param _indices The indices of the operator.
      * @param _is_daggered The daggered state of the operator.
      * @return A Boson operator.
      */
-    inline static Operator Boson(const Momentum& _momentum, const IndexWrapper _indizes, bool _is_daggered) {
-        return Operator(_momentum, _indizes, _is_daggered, false);
+    inline static Operator Boson(const Momentum& _momentum, const IndexWrapper _indices, bool _is_daggered) {
+        return Operator(_momentum, _indices, _is_daggered, false);
     }
 
     /**
@@ -199,7 +199,7 @@ inline bool operator==(const Operator& lhs, const Operator& rhs) {
         return false;
     if (lhs.is_daggered != rhs.is_daggered)
         return false;
-    if (lhs.indizes != rhs.indizes)
+    if (lhs.indices != rhs.indices)
         return false;
     return (lhs.momentum == rhs.momentum);
 }
@@ -268,13 +268,13 @@ void Operator::remove_momentum_contribution(const MomentumSymbol::name_type valu
 // Returns the first index, if the operator has an index.
 // Return Index::NoIndex otherwise
 Index Operator::first_index() const {
-    return (indizes.empty() ? Index::NoIndex : indizes[0]);
+    return (indices.empty() ? Index::NoIndex : indices[0]);
 }
 // Sets the first index, if the operator has an index
 // Does nothing otherwise
 void Operator::set_first_index(Index index) {
-    if (!indizes.empty()) {
-        indizes[0] = index;
+    if (!indices.empty()) {
+        indices[0] = index;
     }
 }
 }  // namespace mrock::symbolic_operators

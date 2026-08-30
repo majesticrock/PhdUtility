@@ -25,7 +25,7 @@ struct WickOperator {
     OperatorType type{OperatorType::Undefined};  ///< The type of the operator.
     bool is_daggered{};                          ///< Indicates if the operator is daggered.
     Momentum momentum;                           ///< The momentum associated with the operator.
-    IndexWrapper indizes;                        ///< The indices associated with the operator.
+    IndexWrapper indices;                        ///< The indices associated with the operator.
 
     /**
      * @brief Serializes the WickOperator object.
@@ -39,7 +39,7 @@ struct WickOperator {
         ar & type;
         ar & is_daggered;
         ar & momentum;
-        ar & indizes;
+        ar & indices;
     }
 
     /**
@@ -48,12 +48,12 @@ struct WickOperator {
      * @param _type The type of the operator.
      * @param _is_daggered Whether the operator is daggered.
      * @param _momentum The momentum of the operator.
-     * @param _indizes The indices of the operator.
+     * @param _indices The indices of the operator.
      */
     WickOperator(const OperatorType& _type,
                  const bool _is_daggered,
                  const Momentum& _momentum,
-                 const IndexWrapper& _indizes = IndexWrapper());
+                 const IndexWrapper& _indices = IndexWrapper());
 
     /**
      * @brief Constructs a WickOperator object.
@@ -183,7 +183,7 @@ bool operator<=(const WickOperator& lhs, const WickOperator& rhs);
 
 // Inline definitions
 bool WickOperator::uses_index(const Index index) const noexcept {
-    for (const auto& idx : this->indizes) {
+    for (const auto& idx : this->indices) {
         if (idx == index)
             return true;
     }

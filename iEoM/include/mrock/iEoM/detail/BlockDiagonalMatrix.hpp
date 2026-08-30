@@ -132,12 +132,12 @@ struct BlockDiagonalMatrix {
      * @brief Construct from a full matrix and explicit Hermitian block positions.
      *
      * @param matrix Full matrix containing diagonal blocks.
-     * @param block_indizes Block descriptors indicating positions and sizes.
+     * @param block_indices Block descriptors indicating positions and sizes.
      */
-    BlockDiagonalMatrix(const ConstructedMatrix& matrix, const std::vector<HermitianBlock>& block_indizes) {
-        blocks.reserve(block_indizes.size());
-        blocks_begin.reserve(block_indizes.size());
-        for (const auto& block_index : block_indizes) {
+    BlockDiagonalMatrix(const ConstructedMatrix& matrix, const std::vector<HermitianBlock>& block_indices) {
+        blocks.reserve(block_indices.size());
+        blocks_begin.reserve(block_indices.size());
+        for (const auto& block_index : block_indices) {
             blocks.push_back(
                 matrix.block(block_index.position, block_index.position, block_index.size, block_index.size));
             blocks_begin.push_back(block_index.position);
@@ -150,10 +150,10 @@ struct BlockDiagonalMatrix {
      * @param matrix Full matrix to analyze and partition.
      */
     explicit BlockDiagonalMatrix(const ConstructedMatrix& matrix) {
-        const std::vector<HermitianBlock>& block_indizes = identify_hermitian_blocks(matrix);
-        blocks.reserve(block_indizes.size());
-        blocks_begin.reserve(block_indizes.size());
-        for (const auto& block_index : block_indizes) {
+        const std::vector<HermitianBlock>& block_indices = identify_hermitian_blocks(matrix);
+        blocks.reserve(block_indices.size());
+        blocks_begin.reserve(block_indices.size());
+        for (const auto& block_index : block_indices) {
             blocks.push_back(
                 matrix.block(block_index.position, block_index.position, block_index.size, block_index.size));
             blocks_begin.push_back(block_index.position);

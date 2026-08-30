@@ -27,7 +27,7 @@ namespace mrock::symbolic_operators {
 struct Coefficient {
     std::string name;      ///< Name of the coefficient.
     MomentumList momenta;  ///< List of momenta associated with the coefficient.
-    IndexWrapper indizes;  ///< Contains all indices, standard: first index = spin, all others arbitrary, e.g.,
+    IndexWrapper indices;  ///< Contains all indices, standard: first index = spin, all others arbitrary, e.g.,
                            ///< orbitals, bands, etc.
     std::optional<std::function<void(Coefficient&)>> custom_symmetry =
         std::nullopt;                   ///< Optional custom symmetry function.
@@ -48,7 +48,7 @@ struct Coefficient {
     void serialize(Archive& ar, [[maybe_unused]] const unsigned int version) {
         ar & name;
         ar & momenta;
-        ar & indizes;
+        ar & indices;
         ar & is_daggered;
     }
 
@@ -65,18 +65,18 @@ struct Coefficient {
     explicit Coefficient(const std::string& _name);
 
     /**
-     * @brief Constructs a Coefficient with a given name, a single momentum, and a set of indizes (can be of size 1)
+     * @brief Constructs a Coefficient with a given name, a single momentum, and a set of indices (can be of size 1)
      *
      * @param _name The name of the coefficient
      * @param _momentum The momentum of the coefficient
-     * @param _indizes The indizes of the coefficient
+     * @param _indices The indices of the coefficient
      * @param _Q_changes_sign Toggles the V(k+Q) = -V(k) symmetry. Default is false.
      * @param _inversion_symmetry Toggles inversion symmetry, V(k) = V(-k). Default is true.
      * @param _is_daggered Toggles whether the coefficient is a complex conjugate or not. Default is false.
      */
     Coefficient(const std::string& _name,
                 const Momentum& _momentum,
-                const IndexWrapper& _indizes,
+                const IndexWrapper& _indices,
                 bool _Q_changes_sign = false,
                 bool _inversion_symmetry = true,
                 bool _is_daggered = false);
@@ -97,18 +97,18 @@ struct Coefficient {
                 bool _is_daggered = false);
 
     /**
-     * @brief Constructs a Coefficient with a given name, multiple momenta, and a set of indizes (can be of size 1)
+     * @brief Constructs a Coefficient with a given name, multiple momenta, and a set of indices (can be of size 1)
      *
      * @param _name The name of the coefficient
      * @param _momenta The momenta of the coefficient, in order. Usually occurs for interactions, i.e., V(k, k', q)
-     * @param _indizes The indizes of the coefficient
+     * @param _indices The indices of the coefficient
      * @param _Q_changes_sign Toggles the V(k+Q) = -V(k) symmetry. Default is false.
      * @param _inversion_symmetry Toggles inversion symmetry, V(k) = V(-k). Default is true.
      * @param _is_daggered Toggles whether the coefficient is a complex conjugate or not. Default is false.
      */
     Coefficient(const std::string& _name,
                 const MomentumList& _momenta,
-                const IndexWrapper& _indizes = IndexWrapper{},
+                const IndexWrapper& _indices = IndexWrapper{},
                 bool _Q_changes_sign = false,
                 bool _inversion_symmetry = true,
                 bool _is_daggered = false);
@@ -141,14 +141,14 @@ struct Coefficient {
      * @brief Generates a real Coefficient with V(k, k', q) = V(k', k, -q).
      * @param name The name of the coefficient.
      * @param momenta The list of momenta.
-     * @param _indizes The indizes of the coefficient
+     * @param _indices The indices of the coefficient
      * @param custom_symmetry Optional custom symmetry function.
      * @return A real interaction Coefficient.
      */
     static Coefficient RealInteraction(
         const std::string& name,
         const MomentumList& momenta,
-        const IndexWrapper& _indizes,
+        const IndexWrapper& _indices,
         const std::optional<std::function<void(Coefficient&)>>& custom_symmetry = std::nullopt);
 
     /**
@@ -170,13 +170,13 @@ struct Coefficient {
     /**
      * @brief Generates a Coefficient that does not depend on any momentum
      * @param name The name of the coefficient.
-     * @param indizes The indizes of the coefficient. Default is no index.
+     * @param indices The indices of the coefficient. Default is no index.
      * @param is_daggered Indicates if the coefficient is daggered. Default is false.
      * @param is_real Indicates if the coefficient is real. Default is true.
      * @return A Coefficient with the symmetries of a honeycomb lattice.
      */
     static Coefficient Constant(const std::string& name,
-                                const IndexWrapper& indizes = IndexWrapper{},
+                                const IndexWrapper& indices = IndexWrapper{},
                                 bool is_real = true,
                                 bool is_daggered = false);
 

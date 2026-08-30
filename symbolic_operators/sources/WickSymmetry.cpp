@@ -8,7 +8,7 @@
 namespace mrock::symbolic_operators {
 void SpinSymmetry::apply_to(std::vector<WickOperator>& operator_vector) const {
     for (auto& op : operator_vector) {
-        for (auto& idx : op.indizes) {
+        for (auto& idx : op.indices) {
             if (idx == Index::SpinDown)
                 idx = Index::SpinUp;
         }
