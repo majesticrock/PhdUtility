@@ -1,3 +1,5 @@
+#include "IntMomentum.hpp"
+
 #include <Eigen/Sparse>
 #include <mrock/symbolic_operators/Commutation>
 
@@ -23,14 +25,6 @@ const Operator c_K_sigma_prime = Operator(Momentum('K'), Index::SigmaPrime, fals
 // Filled in main
 std::array<double, L> cosines;
 
-int wrap_momentum(int k) {
-    while (k < 0)
-        k += L;
-    while (k >= L)
-        k -= L;
-    return k;
-}
-
 Eigen::SparseMatrix<double> build_creation_operator(int site, int spin) {
     const int mode = 2 * site + spin;
 
@@ -49,7 +43,7 @@ Eigen::SparseMatrix<double> build_creation_operator(int site, int spin) {
         uint32_t newState = state | modeMask;
 
         // Fermionic sign: (-1)^(number of occupied modes before 'mode').
-        int parity = __builtin_popcount(state & lowerMask) & 1;
+        int parity = std::popcount(state & lowerMask) & 1;
         double sign = parity ? -1.0 : 1.0;
 
         triplets.emplace_back(static_cast<int>(newState), static_cast<int>(state), sign);
@@ -109,7 +103,7 @@ SparseMatrix operator_string(const std::vector<int>& modes, const std::vector<bo
             } else {
                 output_state &= ~mode_mask;
             }
-            if ((__builtin_popcount(output_state & lower_mask) & 1) != 0) {
+            if ((std::popcount(output_state & lower_mask) & 1) != 0) {
                 sign = -sign;
             }
         }
@@ -180,11 +174,11 @@ SparseMatrix get_matrix_H() {
     for (int k = 0; k < L; ++k) {
         for (int p = 0; p < L; ++p) {
             for (int q = 0; q < L; ++q) {
-                const int k_q = wrap_momentum(k + q);
-                const int p_q = wrap_momentum(p - q);
-                H += cosines[k_q] * cosines[p_q] *
+                const int k_q = IntMomentum<L>(k) + IntMomentum<L>(q);
+                const int p_q = IntMomentum<L>(p) - IntMomentum<L>(q);
+                H += (cosines[k_q] * cosines[p_q] + cosines[k] * cosines[q]) *
                      (product_string({k, p, p_q, k_q}, {0, 1, 1, 0}) + product_string({k, p, p_q, k_q}, {1, 0, 0, 1}));
-                H += cosines[q] * cosines[k_q] * cosines[p_q] *
+                H += cosines[q] * (cosines[k_q] * cosines[p_q] + cosines[k] * cosines[q]) *
                      (product_string({k, p, p_q, k_q}, {0, 0, 0, 0}) + product_string({k, p, p_q, k_q}, {1, 1, 1, 1}));
             }
         }
@@ -197,14 +191,14 @@ SparseMatrix get_matrix_eta() {
     for (int k = 0; k < L; ++k) {
         for (int p = 0; p < L; ++p) {
             for (int q = 0; q < L; ++q) {
-                const int k_q = wrap_momentum(k + q);
-                const int p_q = wrap_momentum(p - q);
+                const int k_q = IntMomentum<L>(k) + IntMomentum<L>(q);
+                const int p_q = IntMomentum<L>(p) - IntMomentum<L>(q);
 
-                eta +=
-                    cosines[k_q] * cosines[p_q] * (cosines[k] + cosines[p] - cosines[k_q] - cosines[p_q]) *
+                eta += (cosines[k_q] * cosines[p_q] + cosines[k] * cosines[q]) 
+                    * (cosines[k] + cosines[p] - cosines[k_q] - cosines[p_q]) *
                     (product_string({k, p, p_q, k_q}, {0, 1, 1, 0}) + product_string({k, p, p_q, k_q}, {1, 0, 0, 1}));
-                eta +=
-                    cosines[q] * cosines[k_q] * cosines[p_q] * (cosines[k] + cosines[p] - cosines[k_q] - cosines[p_q]) *
+                eta += cosines[q] * (cosines[k_q] * cosines[p_q] + cosines[k] * cosines[q])
+                * cosines[k_q] * cosines[p_q] * (cosines[k] + cosines[p] - cosines[k_q] - cosines[p_q]) *
                     (product_string({k, p, p_q, k_q}, {0, 0, 0, 0}) + product_string({k, p, p_q, k_q}, {1, 1, 1, 1}));
             }
         }
@@ -216,42 +210,44 @@ SparseMatrix symbolic_to_matrix(const TermCollector& terms) {
     SparseMatrix result(matrix_size, matrix_size);
 
     for (const auto& term : terms) {
-        std::array<int, 256> momentum_values{};
+        std::array<IntMomentum<L>, 256> momentum_values{};
         std::array<int, 256> index_values{};
 
         const auto evaluate_momentum = [&momentum_values](const Momentum& momentum) {
-            int value = 0;
+            IntMomentum<L> value(momentum.add_PI ? 0 : L/2);
             for (const auto& symbol : momentum.momentum_list) {
                 value += symbol.factor * momentum_values[static_cast<unsigned char>(symbol.name)];
             }
-            if (momentum.add_PI) {
-                value += L / 2;
-            }
-            return wrap_momentum(value);
+            return value;
         };
         const auto evaluate_index = [&index_values](const Index& index) {
             return index_values[static_cast<unsigned char>(index)];
         };
 
         const auto evaluate_coefficient = [&evaluate_momentum, &evaluate_index](const Coefficient& coefficient) {
-            double value = 1.;
             if (coefficient.name == "\\tilde{\\varepsilon}") {
-                value *= cosines[evaluate_momentum(coefficient.momenta.front())];
-            } else if (coefficient.name == "U") {
-                value *= cosines[evaluate_momentum(coefficient.momenta[0] + coefficient.momenta[2])] *
-                         cosines[evaluate_momentum(coefficient.momenta[1] - coefficient.momenta[2])];
-                if (evaluate_index(coefficient.indices[0]) != evaluate_index(coefficient.indices[1]))
-                    value *= cosines[evaluate_momentum(coefficient.momenta[2])];
-            } else if (coefficient.name == "\\alpha") {
-                value *= cosines[evaluate_momentum(coefficient.momenta[0] + coefficient.momenta[2])] *
-                         cosines[evaluate_momentum(coefficient.momenta[1] - coefficient.momenta[2])] *
-                         (cosines[evaluate_momentum(coefficient.momenta[0])] +
+                return cosines[evaluate_momentum(coefficient.momenta.front())];
+            } 
+
+            double value = cosines[evaluate_momentum(coefficient.momenta[0] + coefficient.momenta[2])] *
+                           cosines[evaluate_momentum(coefficient.momenta[1] - coefficient.momenta[2])]
+                        + cosines[evaluate_momentum(coefficient.momenta[0])] *
+                          cosines[evaluate_momentum(coefficient.momenta[1])];
+            if (evaluate_index(coefficient.indices[0]) != evaluate_index(coefficient.indices[1])) {
+                value *= cosines[evaluate_momentum(coefficient.momenta[2])];
+            }
+
+            if (coefficient.name == "U") {
+                return value;
+                
+            } 
+            else if (coefficient.name == "\\alpha") {
+                value *= (cosines[evaluate_momentum(coefficient.momenta[0])] +
                           cosines[evaluate_momentum(coefficient.momenta[1])] -
                           cosines[evaluate_momentum(coefficient.momenta[0] + coefficient.momenta[2])] -
                           cosines[evaluate_momentum(coefficient.momenta[1] - coefficient.momenta[2])]);
-                if (coefficient.indices[0] != coefficient.indices[1])
-                    value *= cosines[evaluate_momentum(coefficient.momenta[2])];
-            } else {
+            } 
+            else {
                 throw std::runtime_error("No matrix representation for coefficient " + coefficient.name);
             }
             return value;
@@ -264,7 +260,7 @@ SparseMatrix symbolic_to_matrix(const TermCollector& terms) {
             }
 
             for (const auto& delta : term.delta_momenta) {
-                if (wrap_momentum(evaluate_momentum(delta.first)) != wrap_momentum(evaluate_momentum(delta.second))) {
+                if (evaluate_momentum(delta.first) != evaluate_momentum(delta.second)) {
                     return;
                 }
             }
@@ -283,7 +279,7 @@ SparseMatrix symbolic_to_matrix(const TermCollector& terms) {
             modes.reserve(term.operators.size());
             creation.reserve(term.operators.size());
             for (const auto& op : term.operators) {
-                const int momentum = wrap_momentum(evaluate_momentum(op.momentum));
+                const int momentum = evaluate_momentum(op.momentum);
                 const int spin = is_mutable(op.first_index())
                                      ? index_values[static_cast<unsigned char>(op.first_index())]
                                      : (op.first_index() == Index::SpinDown ? 1 : 0);
@@ -314,7 +310,7 @@ SparseMatrix symbolic_to_matrix(const TermCollector& terms) {
             }
             const auto name = static_cast<unsigned char>(term.sums.momenta[sum_index]);
             for (int value = 0; value < L; ++value) {
-                momentum_values[name] = value;
+                momentum_values[name] = IntMomentum<L>(value);
                 assign_momenta(sum_index + 1U);
             }
         };
