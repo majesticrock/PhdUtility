@@ -1,10 +1,11 @@
 #pragma once
-#include <cassert>
+#include <cstddef>
 
 namespace mrock::symbolic_operators {
 
 template <int L>
 struct IntMomentum {
+    static_assert(L%2==0);
 private:
     constexpr int wrap(int x) const noexcept {
         x %= L;
@@ -19,10 +20,7 @@ public:
 
     constexpr IntMomentum(int idx)
         : i(wrap(idx))
-    {
-        assert(L > 0);
-        assert(L % 2 == 0);
-    }
+    { }
 
     constexpr IntMomentum& operator+=(const IntMomentum& rhs) noexcept {
         i = wrap(i + rhs.i + L / 2);
