@@ -10,6 +10,7 @@
 #include <mrock/symbolic_operators/SumContainer.hpp>
 #include <mrock/symbolic_operators/Term.hpp>
 #include <mrock/symbolic_operators/detail/container_helper.hpp>
+#include <mrock/symbolic_operators/detail/OperatorOrder.hpp>
 
 #include <cassert>
 #include <compare>
@@ -81,145 +82,10 @@ bool Term::resolve_deltas() {
     return true;
 }
 
-void Term::sort_operators_by_indices() {
-    auto general_swap_predicate = [this](const std::size_t& i, const std::size_t& index_pos) {
-        if (operators[i - 1].is_daggered) {
-            if (operators[i - 1].indices.front() == Index::SpinUp)
-                return false;
-            if (operators[i].indices.front() == Index::SpinDown)
-                return false;
-
-            if (operators[i - 1].indices.front() == Index::SpinDown || operators[i].indices.front() == Index::SpinUp) {
-                return true;
-            }
-
-            if (operators[i - 1].indices[index_pos] > operators[i].indices[index_pos]) {
-                return true;
-            }
-        } else {
-            // The comparison operator and SpinUp <-> SpinDown are the only changes
-            if (operators[i - 1].indices.front() == Index::SpinDown)
-                return false;
-            if (operators[i].indices.front() == Index::SpinUp)
-                return false;
-
-            if (operators[i - 1].indices.front() == Index::SpinUp || operators[i].indices.front() == Index::SpinDown) {
-                return true;
-            }
-
-            if (operators[i - 1].indices[index_pos] < operators[i].indices[index_pos]) {
-                return true;
-            }
-        }
-        return false;
-    };
-
-    std::size_t n = operators.size();
-    std::size_t new_n{};
-    // First sort so that the spins indices are always ordered the same way
-    // Without destroying the previously achieved normal order
-    while (n > 1U) {
-        new_n = 0U;
-        for (std::size_t i = 1U; i < operators.size(); ++i) {
-            if (operators[i - 1].is_daggered != operators[i].is_daggered) {
-                continue;
-            }
-            if (operators[i - 1].is_fermion != operators[i].is_fermion) {
-                continue;
-            }
-            std::size_t j = 0U;
-            while (j < operators[i - 1].indices.size() && j < operators[i].indices.size()) {
-                if (general_swap_predicate(i, j)) {
-                    perform_operator_swap(i - 1, i);
-                    new_n = i;
-                    break;
-                }
-                ++j;
-            }
-        }
-        n = new_n;
-    }
-}
-
-void Term::structure_momentum_dependencies() {
-    // This function does not do anything to an identity term
-    if (operators.empty())
-        return;
-
-    auto most_similar_daggered_operator = [this](const IndexWrapper& indices) {
-        int best_match_count = 0;
-        std::vector<Operator>::const_iterator best_it = operators.end();
-
-        for (std::vector<Operator>::const_iterator it = operators.begin(); it != operators.end() && it->is_daggered;
-             ++it) {
-            // Penalize size mismatch
-            int current_match_count = static_cast<int>(indices.size()) - static_cast<int>(it->indices.size());
-            for (std::size_t i = 0U; i < it->indices.size() && i < indices.size(); ++i) {
-                if (it->indices[i] == indices[i]) {
-                    ++current_match_count;
-                }
-            }
-            if (current_match_count > best_match_count) {
-                best_match_count = current_match_count;
-                best_it = it;
-            }
-        }
-        return best_it;
-    };
-
-    MomentumSum::const_iterator sum_it = sums.momenta.begin();
-    std::vector<MomentumSymbol::name_type> do_not_touch;
-    do_not_touch.reserve(sums.momenta.size());
-
-    for (auto op_it = operators.begin(); op_it < operators.end() && sum_it != sums.momenta.end(); ++op_it) {
-        if (!op_it->is_daggered)
-            break;
-
-        try {
-            const MomentumSymbol::name_type target = *sum_it;
-            redistribute_momenta(op_it->momentum, target, do_not_touch);
-            do_not_touch.push_back(target);
-            ++sum_it;
-        } catch (redistribution_error& e) {
-        }
-    }
-
-    // Iterate backwards
-    for (auto op_it = operators.rbegin(); op_it < operators.rend() && sum_it != sums.momenta.end(); ++op_it) {
-        if (op_it->is_daggered)
-            break;
-
-        auto best_it = most_similar_daggered_operator(op_it->indices);
-        if (best_it == operators.end())
-            continue;
-        try {
-            const MomentumSymbol::name_type target = *sum_it;
-            redistribute_momenta(op_it->momentum, target, do_not_touch);
-            do_not_touch.push_back(target);
-            ++sum_it;
-            transform_momentum_sum(target, best_it->momentum + Momentum(PLACEHOLDER_SYMBOL), PLACEHOLDER_SYMBOL);
-            rename_momenta(PLACEHOLDER_SYMBOL, target);
-        } catch (redistribution_error& e) {
-        }
-    }
-
-    for (auto coeff_it = coefficients.rbegin(); coeff_it != coefficients.rend(); ++coeff_it) {
-        for (auto mom_it = coeff_it->momenta.rbegin(); mom_it != coeff_it->momenta.rend(); ++mom_it) {
-            if (sum_it == sums.momenta.end())
-                return;
-            try {
-                const MomentumSymbol::name_type target = *sum_it;
-                redistribute_momenta(*mom_it, target, do_not_touch);
-                do_not_touch.push_back(target);
-                ++sum_it;
-            } catch (redistribution_error& e) {
-            }
-        }
-    }
-}
-
 void Term::structure() {
-    sort_operators_by_indices();
+    if (sort_operators_by_indices(this->operators)) {
+        this->multiplicity *= -1;
+    }
 
     std::size_t new_n;
     std::size_t n = operators.size();
@@ -239,7 +105,7 @@ void Term::structure() {
         n = new_n;
     }
 
-    structure_momentum_dependencies();
+    structure_momentum_dependencies(*this);
 
     // Sort the occurring coefficients in alphabetical order
     std::sort(coefficients.begin(), coefficients.end(), [](const Coefficient& a, const Coefficient& b) {

@@ -35,6 +35,8 @@ add_library(
     sources/WickSymmetry.cpp
     sources/WickTerm.cpp
     sources/WickTermCollector.cpp
+
+    sources/detail/OperatorOrder.cpp
 )
 add_library(
     mrock::symbolic_operators

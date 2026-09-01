@@ -94,6 +94,11 @@ struct SumContainer {
     SumContainer& prepend(const IndexSum& other);
 
     /**
+     * @brief Sorts the summations vectors of both \c momenta and \c spins using the default comparison operator
+     */
+    void sort();
+
+    /**
      * @brief Pushes back a momentum into the momenta container.
      * @param momentum The momentum to push back.
      */

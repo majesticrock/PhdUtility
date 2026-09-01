@@ -1,5 +1,6 @@
 #include <mrock/symbolic_operators/TermCollector.hpp>
 #include <mrock/symbolic_operators/detail/container_helper.hpp>
+#include <mrock/symbolic_operators/detail/OperatorOrder.hpp>
 
 #include <cstddef>
 #include <string>
@@ -128,7 +129,9 @@ void TermCollector::normal_order() {
     }
 
     for (auto& term : terms) {
-        term.sort_operators_by_indices();
+        if (sort_operators_by_indices(term.operators)) {
+            term.multiplicity *= -1;
+        }
     }
 
     combine_duplicates();

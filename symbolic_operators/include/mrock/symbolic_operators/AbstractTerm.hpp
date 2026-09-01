@@ -317,6 +317,11 @@ public:
     void rename_duplicate_sums(AbstractTerm const* const other);
 };
 
+template <class TermType>
+concept DerivedFromAbstractTerm = requires(TermType term) {
+    []<typename X>(AbstractTerm<X>&){}(term);
+};
+
 // Implementations
 template <class tOperatorType>
 void AbstractTerm<tOperatorType>::replace_each_momentum(

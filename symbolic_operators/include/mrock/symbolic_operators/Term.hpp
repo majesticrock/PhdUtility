@@ -230,16 +230,6 @@ public:
     bool resolve_deltas();
 
     /**
-     * @brief Puts the operators in the term in a specific order based on their indices.
-     */
-    void sort_operators_by_indices();
-
-    /**
-     * @brief Tries to bring the momentum dependencies of the operators in \c *this to a fixed notation
-     */
-    void structure_momentum_dependencies();
-
-    /**
      * @brief Tries to bring \c *this to a fixed notation
      */
     void structure();

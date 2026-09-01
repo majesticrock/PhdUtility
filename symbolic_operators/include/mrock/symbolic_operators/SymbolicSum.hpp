@@ -36,6 +36,8 @@ struct SymbolicSum {
         ar& this->summations;
     }
 
+    MROCK_VECTOR_WRAPPER_FILL_MEMBERS(SumIndex, summations);
+
     /**
      * @brief Default constructor.
      */
@@ -82,8 +84,6 @@ struct SymbolicSum {
         }
         return false;
     }
-
-    MROCK_VECTOR_WRAPPER_FILL_MEMBERS(SumIndex, summations);
 
     /**
      * @brief Compares two SymbolicSum objects.
