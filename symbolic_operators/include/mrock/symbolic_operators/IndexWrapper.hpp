@@ -64,7 +64,11 @@ enum class Index : index_base {
     char_z = 122,
     Parallel = 150,
     AntiParallel = 151,
-    PlaceHolderIndex = 253, /* Designed as an internal placeholder. Should not be directly used */
+    /* The Anti-Indizes are meant for spin-1/2 systems; AntiSigma shall then mean the anti-parallel spin state to Sigma */
+    AntiSigma = 200,
+    AntiSigmaPrime = 201,
+    /* Designed as an internal placeholder. Should not be directly used */
+    PlaceHolderIndex = 253, 
     UndefinedIndex = 254,
     NoIndex = 255
 };

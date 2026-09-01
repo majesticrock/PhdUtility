@@ -58,6 +58,13 @@ std::ostream& operator<<(std::ostream& os, const Index index) {
             os << "\\uparrow\\downarrow";
             break;
 
+        case Index::AntiSigma:
+            os << "\\bar{\\sigma}";
+            break;
+        case Index::AntiSigmaPrime:
+            os << "\\bar{\\sigma}'";
+            break;
+
         case Index::UndefinedIndex:
             os << "UNDEFINED INDEX";
             break;

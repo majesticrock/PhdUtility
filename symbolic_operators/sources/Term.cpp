@@ -157,6 +157,8 @@ void Term::structure() {
                 flip_sign();
             }
         }
+
+        coeff.use_custom_symmetry();
     }
 
     // check whether we can swap the sign of each momentum in the coefficients
