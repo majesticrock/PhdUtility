@@ -5,6 +5,7 @@
 
 #include "Wick.hpp"
 #include "WickOperator.hpp"
+#include "WickSymmetry.hpp"
 #include "WickTerm.hpp"
 #include "WickTermCollector.hpp"
 #include "TermLoader.hpp"

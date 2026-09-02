@@ -6,6 +6,10 @@
 
 namespace mrock::symbolic_operators {
 
+void WickTermCollector::clean_up() {
+    clean_up(std::vector<std::unique_ptr<WickSymmetry>>{});
+}
+
 void WickTermCollector::clear_etas() {
     for (auto it = terms.begin(); it != terms.end();) {
         bool isEta = false;

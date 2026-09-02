@@ -33,9 +33,6 @@ reconfigure:
 build: $(CONFIGURE_STAMP)
 	cmake --build $(BUILD_DIR) --parallel
 
-test: build
-	ctest --test-dir $(BUILD_DIR) --output-on-failure
-
 install: build
 	cmake --install $(BUILD_DIR) \
 		$(if $(INSTALL_PREFIX),--prefix "$(INSTALL_PREFIX)")

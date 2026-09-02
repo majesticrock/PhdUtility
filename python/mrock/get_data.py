@@ -71,6 +71,9 @@ def _convert_to_numpy(obj):
         return {k: _convert_to_numpy(v) for k, v in obj.items()}
     return obj
 
+##################################################
+#####     Beginning of DataLoader class     ######
+##################################################
 
 class DataLoader:
     """Loader for simulation data stored below a configurable data directory.
@@ -304,6 +307,9 @@ class DataLoader:
         path = self._to_path(model, subdir) / file
         return pd.read_pickle(path)
 
+##################################################
+######       End of DataLoader class        ######
+##################################################
 
 def continuum_params(N_k, T, coulomb_scaling, screening, k_F, g, omega_D):
     """Create a parameter dictionary for a continuum model calculation.
@@ -347,7 +353,6 @@ def continuum_params(N_k, T, coulomb_scaling, screening, k_F, g, omega_D):
                 "omega_D"         : _float_or_str(omega_D)
             }
 
-
 def hubbard_params(T, U, V):
     """Create a parameter dictionary for a Hubbard model calculation.
 
@@ -370,7 +375,6 @@ def hubbard_params(T, U, V):
                 "U": _float_or_str(U), 
                 "V": _float_or_str(V)
             }
-
 
 def hhg_params(T, E_F, v_F, band_width, field_amplitude, photon_energy, tau_diag, tau_offdiag, t0):
     """Create a parameter dictionary for a high-harmonic-generation calculation.
@@ -413,7 +417,6 @@ def hhg_params(T, E_F, v_F, band_width, field_amplitude, photon_energy, tau_diag
                 "t0" : _float_or_str(t0)
             }
 
-
 def lattice_cut_params(N, g, U, E_F, omega_D):
     """Create a parameter dictionary for a lattice-cut calculation.
 
@@ -443,6 +446,34 @@ def lattice_cut_params(N, g, U, E_F, omega_D):
                 "omega_D" : _float_or_str (omega_D)
             }
 
+def nickel_cut_params(L, T, U_0, tprime, E_F):
+    """Create a parameter dictionary for a lattice-cut calculation.
+
+    Parameters
+    ----------
+    L : int or str
+        System size; N=L*L
+    T : float-like or str
+        Temperature.
+    U_0 : float-like or str
+        Hubbard interaction strength.
+    tprime : float-like or str
+        Next-nearest-neighbor hopping constant.
+    E_F : float-like or str
+        Fermi energy.
+
+    Returns
+    -------
+    dict
+        Dictionary containing normalized lattice-cut parameters.
+    """
+    return  {
+                "L" : L,
+                "T" : _float_or_str (T),
+                "U_0" : _float_or_str(U_0),
+                "tprime" : _float_or_str(tprime),
+                "E_F" : _float_or_str(E_F)
+            }
 
 def dwave_params(N, g, V, E_F, omega_D):
     """Create a parameter dictionary for a d-wave calculation.

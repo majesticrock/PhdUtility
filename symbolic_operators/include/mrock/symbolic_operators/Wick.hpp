@@ -9,8 +9,6 @@
 #include "WickOperatorTemplate.hpp"
 #include "WickSymmetry.hpp"
 #include "WickTermCollector.hpp"
-
-#include <memory>
 #include <vector>
 
 namespace mrock::symbolic_operators {
