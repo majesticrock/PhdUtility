@@ -105,7 +105,7 @@ class DataLoader:
             otherwise :data:`DEFAULT_DATA_DIR` is used.
         """
         if data_dir is None:
-            self.data_dir = os.environ.get("MROCK_DATA_DIR", DEFAULT_DATA_DIR)
+            self.data_dir = Path(os.environ.get("MROCK_DATA_DIR", DEFAULT_DATA_DIR)).expanduser().resolve()
         else:
             self.data_dir = Path(data_dir).expanduser().resolve()
 
