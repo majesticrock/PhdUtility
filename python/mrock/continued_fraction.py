@@ -230,7 +230,7 @@ class ContinuedFraction:
 
         self.termination_resolvent_index[resolvent_name][resolvent_index] = best_approx
         if self.messages: 
-            print("Terminating at i =", len(A) - best_approx)
+            print("Terminating at i =", best_approx)
     
     def _termination_depth_if_required(self, resolvent_name, resolvent_index):
         """Ensure that a termination depth exists for a resolvent.
