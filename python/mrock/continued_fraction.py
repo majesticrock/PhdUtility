@@ -333,7 +333,7 @@ class ContinuedFraction:
         """Evaluate the spectral density.
 
         The spectral density is computed from the imaginary part of the
-        continued fraction using the normalization factor $1/\pi$.
+        continued fraction using the normalization factor 1/pi.
 
         Parameters
         ----------
