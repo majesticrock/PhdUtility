@@ -14,15 +14,12 @@ extra_include_dirs = []
 
 if platform.system() == "Windows":
     extra_compile_args = ["/O2"]
-    
-    boost_include_dir = os.environ.get("BOOST_INCLUDE_DIR")
-    extra_include_dirs.append(boost_include_dir)
 else:
     extra_compile_args = ["-O3"]
 
-    boost_include_dir = os.environ.get("BOOST_INCLUDE_DIR")
-    if boost_include_dir:
-        extra_include_dirs.append(boost_include_dir)
+boost_include_dir = os.environ.get("BOOST_INCLUDE_DIR")
+if boost_include_dir:
+    extra_include_dirs.append(boost_include_dir)
 
 
 ext_modules = [
