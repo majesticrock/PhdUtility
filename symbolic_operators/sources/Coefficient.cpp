@@ -134,7 +134,7 @@ Coefficient Coefficient::RealInversionSymmetric(
     const std::string& name,
     const MomentumList& momenta,
     const std::optional<std::function<void(Coefficient&)>>& custom_symmetry /* = std::nullopt */) {
-    Coefficient ret(name, momenta, {}, true, false);
+    Coefficient ret(name, momenta, IndexWrapper{}, false, true);
     ret.custom_symmetry = custom_symmetry;
     return ret;
 }
@@ -143,7 +143,7 @@ Coefficient Coefficient::RealInteraction(
     const MomentumList& momenta,
     const std::optional<std::function<void(Coefficient&)>>& custom_symmetry /* = std::nullopt */) {
     assert(momenta.size() == 3U);
-    Coefficient ret(name, momenta, {}, false, false);
+    Coefficient ret(name, momenta, IndexWrapper{}, false, false);
     ret.is_symmetrized_interaction = true;
     ret.custom_symmetry = custom_symmetry;
     return ret;
