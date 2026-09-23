@@ -44,7 +44,8 @@ public:
                                                      const RealType grace = 1e-10) {
         std::chrono::time_point begin = std::chrono::steady_clock::now();
         this->_parent::procedure_iterative(_MaxPreBroydenIterations);
-
+        this->_attr->converged = false;
+        
         this->x0.setZero(this->NUMBER_OF_PARAMETERS);
         std::copy(this->_attr->begin(), this->_attr->end(), this->x0.begin());
 
