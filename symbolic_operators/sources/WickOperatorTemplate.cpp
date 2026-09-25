@@ -41,8 +41,8 @@ void TemplateResult::clean_up() {
 
 TemplateResult WickOperatorTemplate::_handle_sc_type(const Operator& left, const Operator& right) const {
     // c_{-k-q} c_{k} or c_{k}^+ c_{-k-q}^+
-    const Operator& base{left.is_daggered ? right : left};
-    const Operator& other{left.is_daggered ? left : right};
+    const Operator& base{left.is_daggered ? left : right};
+    const Operator& other{left.is_daggered ? right : left};
     // q
     const Momentum momentum_diff{-(base.momentum + other.momentum)};
 

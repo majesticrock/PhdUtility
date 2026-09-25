@@ -453,8 +453,7 @@ eight_T.clean_up();
 
   \item Transform the resulting expression into \class{WickTerm} objects via
 \begin{lstlisting}
-WickTermCollector commutator_wicks;
-wicks_theorem(commutator_result, templates, commutator_wicks);
+WickTermCollector commutator_wicks = wicks_theorem(commutator_result, templates);
 wicks.clean_up();
 \end{lstlisting}
     The result is typically messy, and should be cleaned up by calling \code{clean_up}.
@@ -470,8 +469,7 @@ symmetries.push_back(std::make_unique<PhaseSymmetry<OperatorType::SC>>());
     \end{lstlisting}
     After the definitions above, we can instead use
     \begin{lstlisting}
-WickTermCollector wicks;
-wicks_theorem(H, templates, wicks);
+WickTermCollector wicks = wicks_theorem(H, templates);
 wicks.clean_up(symmetries);
     \end{lstlisting}
 

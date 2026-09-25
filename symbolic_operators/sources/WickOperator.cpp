@@ -103,12 +103,12 @@ bool operator<(const WickOperator& lhs, const WickOperator& rhs) {
     if (lhs.type > rhs.type)
         return false;
 
-    if (lhs.indices.empty() || rhs.indices.empty())
-        return false;
-    if (lhs.indices[0] < rhs.indices[0])
-        return true;
-    if (lhs.indices[0] > rhs.indices[0])
-        return false;
+    if (!lhs.indices.empty() && !rhs.indices.empty()) {
+        if (lhs.indices[0] < rhs.indices[0])
+            return true;
+        if (lhs.indices[0] > rhs.indices[0])
+            return false;
+    }
 
     return lhs.momentum < rhs.momentum;
 }

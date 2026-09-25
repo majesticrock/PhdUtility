@@ -184,8 +184,17 @@ TermCollector& TermCollector::operator*=(const TermCollector& other) {
 }
 
 std::ostream& operator<<(std::ostream& os, const TermCollector& terms) {
+    if (terms.empty()) {
+        return (os << "0");
+    }
     for (TermCollector::const_iterator it = terms.begin(); it != terms.end(); ++it) {
-        os << "\t&" << *it;
+        if (terms.size() == 1U) {
+            os << "\t";
+        }
+        else {
+            os << "\t&";
+        }
+        os << *it;
         if (it != terms.end() - 1) {
             os << " \\\\";
         }

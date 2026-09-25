@@ -193,8 +193,17 @@ WickTermCollector& operator-=(WickTermCollector& lhs, const WickTermCollector& r
 }
 
 std::ostream& operator<<(std::ostream& os, const WickTermCollector& terms) {
+    if (terms.empty()) {
+        return (os << "0");
+    }
     for (WickTermCollector::const_iterator it = terms.begin(); it != terms.end(); ++it) {
-        os << "\t&" << *it;
+        if (terms.size() == 1U) {
+            os << "\t";
+        }
+        else {
+            os << "\t&";
+        }
+        os << *it;
         if (it != terms.end() - 1) {
             os << " \\\\";
         }

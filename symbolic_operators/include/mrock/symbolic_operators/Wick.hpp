@@ -28,10 +28,9 @@ WickTermCollector identify_wick_operators(const WickTerm& source,
  *
  * @param terms The vector of terms.
  * @param operator_templates The vector of Wick operator templates.
- * @param reciever The WickTermCollector to receive the results.
+ * @return WickTermCollector The resulting terms of bilinear expectation values
  */
-void wicks_theorem(const TermCollector& terms,
-                   const std::vector<WickOperatorTemplate>& operator_templates,
-                   WickTermCollector& reciever);
+WickTermCollector wicks_theorem(const TermCollector& terms,
+                   const std::vector<WickOperatorTemplate>& operator_templates);
 }  // namespace mrock::symbolic_operators
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICK_HPP

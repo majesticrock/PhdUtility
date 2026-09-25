@@ -110,11 +110,15 @@ WickTermCollector identify_wick_operators(const WickTerm& source,
         }
 
         const std::size_t current_size = ret.size();
-        const std::size_t number_additional_elements =
+        const std::size_t number_of_elements =
             std::accumulate(template_results.begin(), template_results.end(), std::size_t{},
                             [](std::size_t current, const TemplateResult& tr) { return current + tr.results.size(); });
-        if (number_additional_elements > 1U) {
-            duplicate_n_inplace(ret, number_additional_elements - 1U);
+        if (number_of_elements == 0) {
+            ret.clear();
+            return ret;
+        }
+        if (number_of_elements > 1U) {
+            duplicate_n_inplace(ret, number_of_elements - 1U);
         }
 
         std::size_t template_result_it{};
@@ -138,16 +142,17 @@ WickTermCollector identify_wick_operators(const WickTerm& source,
     return ret;
 }
 
-void wicks_theorem(const TermCollector& terms,
-                   const std::vector<WickOperatorTemplate>& operator_templates,
-                   WickTermCollector& reciever) {
+WickTermCollector wicks_theorem(const TermCollector& terms,
+                   const std::vector<WickOperatorTemplate>& operator_templates) {
     WickTermCollector prepared_wick = prepare_wick(terms);
 
+    WickTermCollector ret;
     for (auto& w_term : prepared_wick) {
-        append_if(reciever, identify_wick_operators(w_term, operator_templates), [](const WickTerm& wick) {
+        append_if(ret, identify_wick_operators(w_term, operator_templates), [](const WickTerm& wick) {
             return !(is_always_zero(wick.delta_indices) || is_always_zero(wick.delta_momenta));
         });
     }
+    return ret;
 }
 
 }  // namespace mrock::symbolic_operators

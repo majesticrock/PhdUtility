@@ -61,8 +61,7 @@ namespace mrock::symbolic_operators {
  * \b Apply \b Wick's \b theorem
  * Create an instance of \c WickTermCollector. Then simply call
  * \code
- * WickTermCollector wicks;
- * wicks_theorem(terms, templates, wicks);
+ * WickTermCollector wicks = wicks_theorem(terms, templates);
  * wicks.clean_up();
  * \endcode
  * Similar to how we worked with the Term class and commutators, it is strongly recommended to call \c

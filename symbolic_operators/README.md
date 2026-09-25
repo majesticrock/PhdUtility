@@ -22,8 +22,7 @@ Typical workflows create symbolic expressions with `Term`, manipulate them with 
 TermCollector commutator_result = commutator(H, right);
 commutator_result.clean_up();
 
-WickTermCollector wicks;
-wicks_theorem(commutator_result, templates, wicks);
+WickTermCollector wicks = wicks_theorem(commutator_result, templates);
 wicks.clean_up();
 ```
 

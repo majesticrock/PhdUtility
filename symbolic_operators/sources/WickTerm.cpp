@@ -280,6 +280,7 @@ void WickTerm::sort() {
             }
         }
     }
+    std::sort(coefficients.begin(), coefficients.end());
 }
 
 void WickTerm::include_template_result(const TemplateResult::SingleResult& result) {

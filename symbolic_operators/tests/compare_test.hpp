@@ -109,8 +109,7 @@ struct SymOpTest {
          *   Computing and testing of Wick's theorem on <[B^+, [H, B]]>
          *
          */
-        WickTermCollector wicks;
-        wicks_theorem(second_commutation, templates, wicks);
+        WickTermCollector wicks = wicks_theorem(second_commutation, templates);
         wicks.clear_etas();
         wicks.clean_up(symmetries);
         // This means the test has been passed. We generate a new comparison file

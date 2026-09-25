@@ -288,6 +288,38 @@ std::ostream& operator<<(std::ostream& os, const Coefficient& coeff);
 std::ostream& operator<<(std::ostream& os, const std::vector<Coefficient>& coeffs);
 
 /**
+ * @brief Compares two Coefficient objects for greater-than ordering.
+ * @param lhs The left-hand side Coefficient.
+ * @param rhs The right-hand side Coefficient.
+ * @return True if lhs is greater than rhs, false otherwise.
+ */
+bool operator>(const Coefficient& lhs, const Coefficient& rhs);
+
+/**
+ * @brief Compares two Coefficient objects for less-than ordering.
+ * @param lhs The left-hand side Coefficient.
+ * @param rhs The right-hand side Coefficient.
+ * @return True if lhs is less than rhs, false otherwise.
+ */
+bool operator<(const Coefficient& lhs, const Coefficient& rhs);
+
+/**
+ * @brief Compares two Coefficient objects for greater-or-equal ordering.
+ * @param lhs The left-hand side Coefficient.
+ * @param rhs The right-hand side Coefficient.
+ * @return True if lhs is greater than or equal to rhs, false otherwise.
+ */
+bool operator>=(const Coefficient& lhs, const Coefficient& rhs);
+
+/**
+ * @brief Compares two Coefficient objects for less-or-equal ordering.
+ * @param lhs The left-hand side Coefficient.
+ * @param rhs The right-hand side Coefficient.
+ * @return True if lhs is less than or equal to rhs, false otherwise.
+ */
+bool operator<=(const Coefficient& lhs, const Coefficient& rhs);
+
+/**
  * @brief Equality operator for Coefficient.
  * @param lhs The left-hand side Coefficient.
  * @param rhs The right-hand side Coefficient.

@@ -36,9 +36,9 @@ struct IndexComparison {
  * Therefore, the 'base operatore' is the second one in the expression c_(k,up),
  * and we have to give the index of the second operator first. */
 inline constexpr IndexComparison SC_Comparison{
-    false,          /* The indices (here only spins), must be fixed */
-    Index::SpinUp,  /* The second index must be SpinUp */
-    Index::SpinDown /* The first index must be SpinDown */
+    false,           /* The indices (here only spins), must be fixed */
+    Index::SpinUp,   /* The base index must be SpinUp */
+    Index::SpinDown  /* The other index must be SpinDown */
 };
 /**
  * @brief Convenience definiton of an \c IndexComparison for number-like operators (c^dagger c)

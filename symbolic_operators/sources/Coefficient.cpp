@@ -244,6 +244,28 @@ std::ostream& operator<<(std::ostream& os, const std::vector<Coefficient>& coeff
     return os;
 }
 
+bool operator>(const Coefficient& lhs, const Coefficient& rhs) {
+    return !(lhs <= rhs);
+}
+
+bool operator<(const Coefficient& lhs, const Coefficient& rhs) {
+    if (lhs.name < rhs.name) return true;
+    if (lhs.name > rhs.name) return false;
+
+    if (lhs.indices < rhs.indices) return true;
+    if (rhs.indices > lhs.indices) return false;
+
+    return lhs.momenta < rhs.momenta;
+}
+
+bool operator>=(const Coefficient& lhs, const Coefficient& rhs) {
+    return (lhs > rhs || lhs == rhs);
+}
+
+bool operator<=(const Coefficient& lhs, const Coefficient& rhs) {
+    return (lhs < rhs || lhs == rhs);
+}
+
 bool operator==(const Coefficient& lhs, const Coefficient& rhs) {
     if (lhs.name != rhs.name)
         return false;

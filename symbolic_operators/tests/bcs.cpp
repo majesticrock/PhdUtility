@@ -251,8 +251,8 @@ int main() {
              {
                  IndexComparison{                 /* Alternatively, the constexpr object SC_Comparison could be used */
                                  false,           /* The indizes (here only spins), must be fixed */
-                                 Index::SpinUp,   /* The second index must be SpinUp */
-                                 Index::SpinDown} /* The first index must be SpinDown */
+                                 Index::SpinUp,   /* The base index must be SpinUp */
+                                 Index::SpinDown} /* The other index must be SpinDown */
              },
              /* Note that the pair annihilation operator is defined as f_k := c_(-k,down) c_(k,up).
              Therefore, the 'base operatore' is the second one in the expression c_(k,up),
@@ -341,11 +341,10 @@ int main() {
     However, this one scales as 1/N and may thus be neglected in the thermodynamic limit. */
 
     /* Now compute the expecation value using the implementation of Wick's theorem */
-    WickTermCollector wicks;
-    wicks_theorem(H, templates, wicks);
+    WickTermCollector wicks = wicks_theorem(H, templates);
     /* Clean up the result and apply symmetries */
     wicks.clean_up(symmetries);
-    std::cout << "Expressional result from Wick's theorem:\n" << wicks << "\n" << std::endl;
+    std::cout << "Expressional result from Wick's theorem:\n\\begin{align*}\n\t" << wicks << "\\end{align*}\n" << std::endl;
 
     double numerical{};
     for (const auto& term : wicks) {
@@ -365,13 +364,12 @@ int main() {
     /* Compute the commutator and clean up the result */
     TermCollector commutator_result = commutator(H, right);
     commutator_result.clean_up();
-    std::cout << "Result of the commutator:\n" << commutator_result << "\n" << std::endl;
+    std::cout << "Result of the commutator:\n\\begin{align*}\n\t" << commutator_result << "\\end{align*}\n" << std::endl;
 
     /* Apply Wick's theorem and clean up the result */
-    WickTermCollector commutator_wicks;
-    wicks_theorem(commutator_result, templates, commutator_wicks);
+    WickTermCollector commutator_wicks = wicks_theorem(commutator_result, templates);
     commutator_wicks.clean_up(symmetries);
-    std::cout << "Expressional result from Wick's theorem:\n" << commutator_wicks << "\n" << std::endl;
+    std::cout << "Expressional result from Wick's theorem:\n\\begin{align*}\n\t" << commutator_wicks << "\\end{align*}\n" << std::endl;
 
     /* Compute the expecation value of <[H,f_k]> with the analytical formula for later comparison */
     /* Kinetic part, the factor of 2 accounts for the spins */
@@ -384,9 +382,9 @@ int main() {
                                           }
                                           return current + expec_pair(epsilon, delta);
                                       });
-    bilinear *= -interaction_strength;
+    bilinear *= interaction_strength;
     if (std::abs(epsilons[k]) < omega) {
-        bilinear += 2. * epsilons[k] * expec_pair(epsilons[k], delta);
+        bilinear -= 2. * epsilons[k] * expec_pair(epsilons[k], delta);
     }
 
     /* Pairing part */
@@ -397,7 +395,7 @@ int main() {
                                          }
                                          return current + expec_pair(epsilon, delta);
                                      });
-    quartic *= 2. * expec_number(epsilons[k], delta) * interaction_strength;
+    quartic *= -2. * expec_number(epsilons[k], delta) * interaction_strength;
 
     if (std::abs(epsilons[k]) >= omega) {
         quartic = 0.0;
@@ -422,16 +420,15 @@ int main() {
     eight_T.normal_order();
     eight_T.clean_up();
     eight_T.erase(eight_T.begin() + 1, eight_T.end());
-    std::cout << "Cleaned H_Ph^2:\n" << eight_T << std::endl;
+    std::cout << "Cleaned $H_{Ph}^2$:\n\\begin{align*}\n" << eight_T << "\\end{align*}" << std::endl;
     std::cout
-        << "The only remaining term should be equal to T = sum_(k,k',q,p) g(k,k') g(p,q) f_k^dagger f_q^dagger f_k' f_p"
+        << "The only remaining term should be equal to $$T = \\sum_{k,k',q,p} g(k,k') g(p,q) f_k^{\\dagger} f_q^{\\dagger} f_{k'} f_p$$"
         << std::endl;
 
-    WickTermCollector expec_eight_T;
-    wicks_theorem(eight_T, templates, expec_eight_T);
+    WickTermCollector expec_eight_T = wicks_theorem(eight_T, templates);
     expec_eight_T.clean_up(symmetries);
 
-    std::cout << "Expectation value <T>:\n" << expec_eight_T << std::endl;
+    std::cout << "Expectation value $<T>$:\n\\begin{align*}\n" << expec_eight_T << "\\end{align*}" << std::endl;
 
     /* Precompute the expectation values */
     std::array<double, N> numbers{};
