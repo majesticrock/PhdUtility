@@ -41,9 +41,12 @@ struct WickTermCollector : public AbstractCollector<WickTerm> {
      * @brief Cleans Wick terms using the provided symmetries.
      *
      * @param symmetries The vector of unique pointers to WickSymmetry objects.
+     * @param trivial_spin_summation_factor If there are spin summations of an index (e.g. sigma) that
+     * does not occur anywhere else in the term, the summation is trivial and reduces to a multiplication.
+     * This parameter defines by what the term should be multiplied. Default is 2 which is correct for spin-1/2 particles.
      */
-    void clean_up();
-    void clean_up(const std::vector<std::unique_ptr<WickSymmetry>>& symmetries);
+    void clean_up(const int trivial_spin_summation_factor=2);
+    void clean_up(const std::vector<std::unique_ptr<WickSymmetry>>& symmetries, const int trivial_spin_summation_factor=2);
 };
 
 /**

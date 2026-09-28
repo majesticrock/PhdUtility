@@ -123,7 +123,7 @@ struct Fractional {
      * @param other The fraction to compare with.
      * @return Comparison result based on cross-multiplication.
      */
-    constexpr auto operator<=>(const Fractional<_int>& other) const {
+    constexpr std::strong_ordering operator<=>(const Fractional<_int>& other) const noexcept {
         return (this->numerator * other.denominator) <=> (other.numerator * this->denominator);
     }
 
@@ -133,17 +133,9 @@ struct Fractional {
      * @param other The fraction to compare with.
      * @return True if both fractions represent the same rational number.
      */
-    constexpr bool operator==(const Fractional<_int>& other) const {
-        return (this->numerator * other.denominator) == (other.numerator * this->denominator);
-    };
-
-    /**
-     * @brief Checks inequality with another Fractional.
-     *
-     * @param other The fraction to compare with.
-     * @return True if the fractions represent different values.
-     */
-    constexpr bool operator!=(const Fractional<_int>& other) const { return !(*this == other); };
+    constexpr bool operator==(const Fractional<_int>& other) const noexcept {
+        return (*this <=> other) == 0;
+    }
 
     /**
      * @brief Three-way comparison with an integer.
@@ -151,7 +143,7 @@ struct Fractional {
      * @param other The integer to compare with.
      * @return Comparison result using the fraction's denominator.
      */
-    constexpr auto operator<=>(_int other) const { return this->numerator <=> (other * this->denominator); }
+    constexpr std::strong_ordering operator<=>(_int other) const noexcept { return this->numerator <=> (other * this->denominator); }
 
     /**
      * @brief Checks equality with an integer.
@@ -159,15 +151,7 @@ struct Fractional {
      * @param other The integer to compare with.
      * @return True if the fraction equals the integer.
      */
-    constexpr bool operator==(_int other) const { return this->numerator == (other * this->denominator); };
-
-    /**
-     * @brief Checks inequality with an integer.
-     *
-     * @param other The integer to compare with.
-     * @return True if the fraction does not equal the integer.
-     */
-    constexpr bool operator!=(_int other) const { return !(*this == other); };
+    constexpr bool operator==(_int other) const noexcept { return this->numerator == (other * this->denominator); };
 
     /**
      * @brief Adds another Fractional to this one.
@@ -175,7 +159,7 @@ struct Fractional {
      * @param other The fraction to add.
      * @return Reference to this fraction.
      */
-    inline Fractional& operator+=(Fractional const& other) {
+    inline Fractional& operator+=(Fractional const& other) noexcept {
         if (other.denominator == this->denominator) {
             this->numerator += other.numerator;
             this->reduce_fraction();
@@ -193,7 +177,7 @@ struct Fractional {
      * @param other The fraction to subtract.
      * @return Reference to this fraction.
      */
-    inline Fractional& operator-=(Fractional const& other) {
+    inline Fractional& operator-=(Fractional const& other) noexcept {
         if (other.denominator == this->denominator) {
             this->numerator -= other.numerator;
             this->reduce_fraction();
@@ -211,7 +195,7 @@ struct Fractional {
      * @param other The fraction multiplier.
      * @return Reference to this fraction.
      */
-    inline Fractional& operator*=(Fractional const& other) {
+    inline Fractional& operator*=(Fractional const& other) noexcept {
         this->denominator *= other.denominator;
         this->numerator *= other.numerator;
         this->reduce_fraction();
@@ -224,7 +208,7 @@ struct Fractional {
      * @param other The fraction divisor.
      * @return Reference to this fraction.
      */
-    inline Fractional& operator/=(Fractional const& other) {
+    inline Fractional& operator/=(Fractional const& other) noexcept {
         this->denominator *= other.numerator;
         this->numerator *= other.denominator;
         this->reduce_fraction();
@@ -237,7 +221,7 @@ struct Fractional {
      * @param other The integer to add.
      * @return Reference to this fraction.
      */
-    constexpr Fractional& operator+=(_int other) {
+    constexpr Fractional& operator+=(_int other) noexcept {
         this->numerator += other * this->denominator;
         return *this;
     }
@@ -248,7 +232,7 @@ struct Fractional {
      * @param other The integer to subtract.
      * @return Reference to this fraction.
      */
-    constexpr Fractional& operator-=(_int other) {
+    constexpr Fractional& operator-=(_int other) noexcept {
         this->numerator -= other * this->denominator;
         return *this;
     }
@@ -259,7 +243,7 @@ struct Fractional {
      * @param other The integer multiplier.
      * @return Reference to this fraction.
      */
-    inline Fractional& operator*=(_int other) {
+    inline Fractional& operator*=(_int other) noexcept {
         this->numerator *= other;
         this->reduce_fraction();
         return *this;
@@ -271,7 +255,7 @@ struct Fractional {
      * @param other The integer divisor.
      * @return Reference to this fraction.
      */
-    inline Fractional& operator/=(_int other) {
+    inline Fractional& operator/=(_int other) noexcept {
         this->denominator *= other;
         this->reduce_fraction();
         return *this;
@@ -287,7 +271,7 @@ struct Fractional {
  * @return The result of raising the base to the exponent.
  */
 template <class _int>
-constexpr Fractional<_int> pow(Fractional<_int> base, int exponent) {
+constexpr Fractional<_int> pow(Fractional<_int> base, int exponent) noexcept {
     if (exponent == 0)
         return Fractional<_int>{_int(1), _int(1)};
     if (exponent < 0)
@@ -326,91 +310,91 @@ std::ostream& operator<<(std::ostream& os, const Fractional<_int>& frac) {
  * @{
  */
 template <class _int>
-inline Fractional<_int> operator+(Fractional<_int> lhs, const Fractional<_int>& rhs) {
+inline Fractional<_int> operator+(Fractional<_int> lhs, const Fractional<_int>& rhs) noexcept {
     return lhs += rhs;
 }
 template <class _int>
-inline Fractional<_int> operator-(Fractional<_int> lhs, const Fractional<_int>& rhs) {
+inline Fractional<_int> operator-(Fractional<_int> lhs, const Fractional<_int>& rhs) noexcept {
     return lhs -= rhs;
 }
 template <class _int>
-inline Fractional<_int> operator*(Fractional<_int> lhs, const Fractional<_int>& rhs) {
+inline Fractional<_int> operator*(Fractional<_int> lhs, const Fractional<_int>& rhs) noexcept {
     return lhs *= rhs;
 }
 template <class _int>
-inline Fractional<_int> operator/(Fractional<_int> lhs, const Fractional<_int>& rhs) {
+inline Fractional<_int> operator/(Fractional<_int> lhs, const Fractional<_int>& rhs) noexcept {
     return lhs /= rhs;
 }
 
 template <class _int>
-inline Fractional<_int> operator-(Fractional<_int> rhs) {
+inline Fractional<_int> operator-(Fractional<_int> rhs) noexcept {
     return rhs *= _int{-1};
 }
 
 template <class _int>
-constexpr Fractional<_int> operator+(Fractional<_int> lhs, _int rhs) {
+constexpr Fractional<_int> operator+(Fractional<_int> lhs, _int rhs) noexcept {
     return lhs += rhs;
 }
 template <class _int>
-constexpr Fractional<_int> operator-(Fractional<_int> lhs, _int rhs) {
+constexpr Fractional<_int> operator-(Fractional<_int> lhs, _int rhs) noexcept {
     return lhs -= rhs;
 }
 template <class _int>
-inline Fractional<_int> operator*(Fractional<_int> lhs, _int rhs) {
+inline Fractional<_int> operator*(Fractional<_int> lhs, _int rhs) noexcept {
     return lhs *= rhs;
 }
 template <class _int>
-inline Fractional<_int> operator/(Fractional<_int> lhs, _int rhs) {
+inline Fractional<_int> operator/(Fractional<_int> lhs, _int rhs) noexcept {
     return lhs /= rhs;
 }
 
 template <class _int>
-constexpr Fractional<_int> operator+(_int lhs, Fractional<_int> rhs) {
+constexpr Fractional<_int> operator+(_int lhs, Fractional<_int> rhs) noexcept {
     return rhs += lhs;
 }
 template <class _int>
-constexpr Fractional<_int> operator-(_int lhs, Fractional<_int> rhs) {
+constexpr Fractional<_int> operator-(_int lhs, Fractional<_int> rhs) noexcept {
     return rhs -= lhs;
 }
 template <class _int>
-inline Fractional<_int> operator*(_int lhs, Fractional<_int> rhs) {
+inline Fractional<_int> operator*(_int lhs, Fractional<_int> rhs) noexcept {
     return rhs *= lhs;
 }
 template <class _int>
-inline Fractional<_int> operator/(_int lhs, Fractional<_int> rhs) {
+inline Fractional<_int> operator/(_int lhs, Fractional<_int> rhs) noexcept {
     return rhs /= lhs;
 }
 
 template <class _Number, class _int>
-inline _Number operator+(const Fractional<_int>& lhs, const _Number& rhs) {
+inline _Number operator+(const Fractional<_int>& lhs, const _Number& rhs) noexcept {
     return rhs + static_cast<_Number>(lhs);
 }
 template <class _Number, class _int>
-inline _Number operator-(const Fractional<_int>& lhs, const _Number& rhs) {
+inline _Number operator-(const Fractional<_int>& lhs, const _Number& rhs) noexcept {
     return rhs - static_cast<_Number>(lhs);
 }
 template <class _Number, class _int>
-inline _Number operator*(const Fractional<_int>& lhs, const _Number& rhs) {
+inline _Number operator*(const Fractional<_int>& lhs, const _Number& rhs) noexcept {
     return rhs * static_cast<_Number>(lhs);
 }
 template <class _Number, class _int>
-inline _Number operator/(const Fractional<_int>& lhs, const _Number& rhs) {
+inline _Number operator/(const Fractional<_int>& lhs, const _Number& rhs) noexcept {
     return rhs / static_cast<_Number>(lhs);
 }
 template <class _Number, class _int>
-inline _Number operator+(const _Number& lhs, const Fractional<_int>& rhs) {
+inline _Number operator+(const _Number& lhs, const Fractional<_int>& rhs) noexcept {
     return lhs + static_cast<_Number>(rhs);
 }
 template <class _Number, class _int>
-inline _Number operator-(const _Number& lhs, const Fractional<_int>& rhs) {
+inline _Number operator-(const _Number& lhs, const Fractional<_int>& rhs) noexcept {
     return lhs - static_cast<_Number>(rhs);
 }
 template <class _Number, class _int>
-inline _Number operator*(const _Number& lhs, const Fractional<_int>& rhs) {
+inline _Number operator*(const _Number& lhs, const Fractional<_int>& rhs) noexcept {
     return lhs * static_cast<_Number>(rhs);
 }
 template <class _Number, class _int>
-inline _Number operator/(const _Number& lhs, const Fractional<_int>& rhs) {
+inline _Number operator/(const _Number& lhs, const Fractional<_int>& rhs) noexcept {
     return lhs / static_cast<_Number>(rhs);
 }
 /** @} */

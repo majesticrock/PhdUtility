@@ -2,6 +2,7 @@
 #include <mrock/symbolic_operators/detail/container_helper.hpp>
 #include <mrock/symbolic_operators/detail/OperatorOrder.hpp>
 
+#include <functional>
 #include <cstddef>
 #include <string>
 
@@ -239,33 +240,17 @@ void TermCollector::clean_up() {
         }
     }
 
+    for (auto& term : terms) {
+        std::sort(term.coefficients.begin(), term.coefficients.end());
+        std::sort(term.delta_indices.begin(), term.delta_indices.end());
+        std::sort(term.delta_momenta.begin(), term.delta_momenta.end());
+        term.sums.sort();
+    }
+
     combine_duplicates();
 
     // Sort terms
-    for (std::size_t i = 0; i < terms.size(); i++) {
-        for (std::size_t j = i + 1; j < terms.size(); j++) {
-            if (terms[i].sums.momenta.empty() && terms[j].sums.momenta.size() > 0) {
-                std::swap(terms[i], terms[j]);
-            }
-            if (terms[i].sums.momenta.size() > 0 && terms[j].sums.momenta.size() > 0) {
-                if (terms[i].sums.momenta.size() < terms[j].sums.momenta.size()) {
-                    std::swap(terms[i], terms[j]);
-                } else if (terms[i].sums.momenta.size() == terms[j].sums.momenta.size()) {
-                    if (terms[i].coefficients.size() > 0) {
-                        if (terms[j].coefficients[0].name < terms[i].coefficients[0].name) {
-                            std::swap(terms[i], terms[j]);
-                        }
-                    }
-                }
-            } else if (terms[i].sums.momenta.empty() && terms[j].sums.momenta.empty()) {
-                if (terms[i].coefficients.size() > 0) {
-                    if (terms[j].coefficients[0].name < terms[i].coefficients[0].name) {
-                        std::swap(terms[i], terms[j]);
-                    }
-                }
-            }
-        }
-    }
+    std::sort(terms.begin(), terms.end(), std::greater<Term>());
 
 #ifndef NDEBUG
     for (const auto& term : terms) {

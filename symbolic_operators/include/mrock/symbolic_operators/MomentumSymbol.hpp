@@ -53,7 +53,7 @@ struct MomentumSymbol {
             ar & _n;
         }
 
-        constexpr name_type() = default;
+        constexpr name_type() noexcept = default;
         /**
          * @brief Constructs a name_type with a given character.
          * @param n The character to initialize the name with.
@@ -65,15 +65,15 @@ struct MomentumSymbol {
          * @param other The other name_type object to compare with.
          * @return The result of the comparison.
          */
-        constexpr auto operator<=>(const name_type&) const = default;
+        constexpr std::strong_ordering operator<=>(const name_type&) const noexcept = default;
 
         /**
          * @brief Compares the name_type object with a character.
          * @param other The character to compare with.
          * @return The result of the comparison.
          */
-        constexpr auto operator<=>(const char other) const { return _n <=> other; }
-
+        constexpr std::strong_ordering operator<=>(const unsigned char other) const noexcept { return _n <=> other; }
+        
         /**
          * @brief Converts the name_type object to a character.
          * @return The character representation of the name_type.
@@ -83,9 +83,9 @@ struct MomentumSymbol {
         explicit operator std::string() const { return std::string(1, _n); }
     };
 
-    int factor{};      ///< The factor associated with the momentum.
     name_type name{};  ///< The name associated with the momentum.
-
+    int factor{};      ///< The factor associated with the momentum.
+    
     /**
      * @brief Serializes the MomentumSymbol object, required for boost support.
      * @tparam Archive The type of the archive.
@@ -94,32 +94,34 @@ struct MomentumSymbol {
      */
     template <class Archive>
     void serialize(Archive& ar, [[maybe_unused]] const unsigned int version) {
-        ar & factor;
         ar & name;
+        ar & factor;
     }
 
-    constexpr MomentumSymbol() = default;
+    constexpr MomentumSymbol() noexcept = default;
 
     /**
      * @brief Constructs a MomentumSymbol with a given factor and name.
      * @param _factor The factor to initialize the momentum with.
      * @param _name The name to initialize the momentum with.
      */
-    constexpr MomentumSymbol(int _factor, char _name) : factor{_factor}, name(_name){};
+    constexpr MomentumSymbol(int _factor, unsigned char _name) noexcept 
+        : name(_name), factor{_factor} {};
 
     /**
      * @brief Constructs a MomentumSymbol with a given factor and name_type.
      * @param _factor The factor to initialize the momentum with.
      * @param _name The name_type to initialize the momentum with.
      */
-    constexpr MomentumSymbol(int _factor, name_type _name) : factor{_factor}, name{_name} {};
+    constexpr MomentumSymbol(int _factor, name_type _name) noexcept
+        : name{_name}, factor{_factor} {};
 
     /**
      * @brief Compares two MomentumSymbol objects.
      * @param other The other MomentumSymbol object to compare with.
      * @return The result of the comparison.
      */
-    constexpr auto operator<=>(const MomentumSymbol&) const = default;
+    constexpr std::strong_ordering operator<=>(const MomentumSymbol&) const noexcept = default;
 };
 
 constexpr static MomentumSymbol::name_type PLACEHOLDER_SYMBOL = MomentumSymbol::name_type{'?'};

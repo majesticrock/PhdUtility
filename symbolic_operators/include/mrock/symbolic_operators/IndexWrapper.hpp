@@ -236,7 +236,7 @@ struct IndexWrapper {
      * @param rhs The other IndexWrapper to compare with.
      * @return The result of the comparison.
      */
-    inline auto operator<=>(const IndexWrapper& rhs) const = default;
+    inline std::strong_ordering operator<=>(const IndexWrapper& rhs) const = default;
 
     /**
      * @brief Replaces all <target> with <replace_with>

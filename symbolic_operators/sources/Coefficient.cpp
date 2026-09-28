@@ -60,7 +60,7 @@ void Coefficient::use_custom_symmetry() {
 }
 
 Coefficient Coefficient::parse_string(const std::string& expression,
-                                      bool _Q_changes_sign /* = false */,
+                                      bool _PI_changes_sign /* = false */,
                                       bool _inversion_symmetry /* = true */) {
     // Syntax:   name{Momentum_expression1,Momentum_expression1;index1,index2,...}
     Coefficient ret;
@@ -78,7 +78,7 @@ Coefficient Coefficient::parse_string(const std::string& expression,
         ret.indices.push_back(string_to_index.at(arg));
     }
 
-    ret.Q_changes_sign = _Q_changes_sign;
+    ret.PI_changes_sign = _PI_changes_sign;
     ret.inversion_symmetry = _inversion_symmetry;
     return ret;
 }
@@ -90,44 +90,44 @@ Coefficient Coefficient::parse_interaction_string(const std::string& expression)
 }
 
 Coefficient::Coefficient(const std::string& _name)
-    : name(_name), momenta(), indices(), Q_changes_sign(false), is_daggered(false) {}
+    : name(_name), momenta(), indices(), PI_changes_sign(false), is_daggered(false) {}
 
 Coefficient::Coefficient(const std::string& _name,
                          const Momentum& _momentum,
                          const IndexWrapper& _indices,
-                         bool _Q_changes_sign,
+                         bool _PI_changes_sign,
                          bool _inversion_symmetry,
                          bool _is_daggered)
     : name(_name),
       momenta(_momentum),
       indices(_indices),
       inversion_symmetry{_inversion_symmetry},
-      Q_changes_sign(_Q_changes_sign),
+      PI_changes_sign(_PI_changes_sign),
       is_daggered(_is_daggered) {}
 
 Coefficient::Coefficient(const std::string& _name,
                          const Momentum& _momentum,
-                         bool _Q_changes_sign,
+                         bool _PI_changes_sign,
                          bool _inversion_symmetry,
                          bool _is_daggered)
     : name(_name),
       momenta(_momentum),
       indices(),
       inversion_symmetry{_inversion_symmetry},
-      Q_changes_sign(_Q_changes_sign),
+      PI_changes_sign(_PI_changes_sign),
       is_daggered(_is_daggered) {}
 
 Coefficient::Coefficient(const std::string& _name,
                          const MomentumList& _momenta,
                          const IndexWrapper& _indices,
-                         bool _Q_changes_sign,
+                         bool _PI_changes_sign,
                          bool _inversion_symmetry,
                          bool _is_daggered)
     : name(_name),
       momenta(_momenta),
       indices(_indices),
       inversion_symmetry{_inversion_symmetry},
-      Q_changes_sign(_Q_changes_sign),
+      PI_changes_sign(_PI_changes_sign),
       is_daggered(_is_daggered) {}
 
 Coefficient Coefficient::RealInversionSymmetric(
@@ -244,36 +244,21 @@ std::ostream& operator<<(std::ostream& os, const std::vector<Coefficient>& coeff
     return os;
 }
 
-bool operator>(const Coefficient& lhs, const Coefficient& rhs) {
-    return !(lhs <= rhs);
+std::strong_ordering Coefficient::operator<=>(const Coefficient& other) const {
+    if (auto cmp = name <=> other.name; cmp != 0)
+        return cmp;
+
+    if (auto cmp = momenta <=> other.momenta; cmp != 0)
+        return cmp;
+
+    if (auto cmp = indices <=> other.indices; cmp != 0)
+        return cmp;
+
+    return is_daggered <=> other.is_daggered;
 }
 
-bool operator<(const Coefficient& lhs, const Coefficient& rhs) {
-    if (lhs.name < rhs.name) return true;
-    if (lhs.name > rhs.name) return false;
-
-    if (lhs.indices < rhs.indices) return true;
-    if (rhs.indices > lhs.indices) return false;
-
-    return lhs.momenta < rhs.momenta;
-}
-
-bool operator>=(const Coefficient& lhs, const Coefficient& rhs) {
-    return (lhs > rhs || lhs == rhs);
-}
-
-bool operator<=(const Coefficient& lhs, const Coefficient& rhs) {
-    return (lhs < rhs || lhs == rhs);
-}
-
-bool operator==(const Coefficient& lhs, const Coefficient& rhs) {
-    if (lhs.name != rhs.name)
-        return false;
-    if (lhs.momenta != rhs.momenta)
-        return false;
-    if (lhs.is_daggered != rhs.is_daggered)
-        return false;
-    return (lhs.indices == rhs.indices);
+bool Coefficient::operator==(const Coefficient& other) const {
+    return (*this <=> other) == 0;
 }
 
 }  // namespace mrock::symbolic_operators

@@ -310,26 +310,6 @@ public:
 };
 
 /**
- * @brief Checks if two terms are equal.
- * @param lhs The left-hand side term.
- * @param rhs The right-hand side term.
- * @return True if equal, false otherwise.
- */
-inline bool operator==(const Term& lhs, const Term& rhs) {
-    return lhs.is_equal(rhs);
-}
-
-/**
- * @brief Checks if two terms are not equal.
- * @param lhs The left-hand side term.
- * @param rhs The right-hand side term.
- * @return True if not equal, false otherwise.
- */
-inline bool operator!=(const Term& lhs, const Term& rhs) {
-    return !(lhs == rhs);
-}
-
-/**
  * @brief Multiplies a Term by another Term.
  * IMPOARTANT: The result will not be normal ordered! If you require
  * a normal ordered expression, please call normal_order!

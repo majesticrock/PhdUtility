@@ -91,7 +91,7 @@ struct SymbolicSum {
      * @param rhs The other SymbolicSum to compare with.
      * @return The result of the comparison.
      */
-    inline auto operator<=>(const SymbolicSum<SumIndex>& rhs) const = default;
+    inline std::strong_ordering operator<=>(const SymbolicSum<SumIndex>& rhs) const = default;
 };
 
 /**

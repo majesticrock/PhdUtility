@@ -34,7 +34,7 @@ struct Coefficient {
     bool inversion_symmetry{true};      ///< Indicates if V(k) = V(-k).
     bool is_symmetrized_interaction{};  ///< Indicates if the interaction is symmetrized, i.e., V(k, k', q) = V(k', k,
                                         ///< -q)
-    bool Q_changes_sign{};              ///< Indicates if V(k+Q) = -V(k).
+    bool PI_changes_sign{};             ///< Indicates if V(k+PI) = -V(k).
     bool is_real{true};                 ///< Indicates if V^* = V. Default is true.
     bool is_daggered{};                 ///< Indicates if the coefficient is daggered.
 
@@ -70,14 +70,14 @@ struct Coefficient {
      * @param _name The name of the coefficient
      * @param _momentum The momentum of the coefficient
      * @param _indices The indices of the coefficient
-     * @param _Q_changes_sign Toggles the V(k+Q) = -V(k) symmetry. Default is false.
+     * @param _PI_changes_sign Toggles the V(k+Q) = -V(k) symmetry. Default is false.
      * @param _inversion_symmetry Toggles inversion symmetry, V(k) = V(-k). Default is true.
      * @param _is_daggered Toggles whether the coefficient is a complex conjugate or not. Default is false.
      */
     Coefficient(const std::string& _name,
                 const Momentum& _momentum,
                 const IndexWrapper& _indices,
-                bool _Q_changes_sign = false,
+                bool _PI_changes_sign = false,
                 bool _inversion_symmetry = true,
                 bool _is_daggered = false);
 
@@ -86,13 +86,13 @@ struct Coefficient {
      *
      * @param _name The name of the coefficient
      * @param _momentum The momentum of the coefficient
-     * @param _Q_changes_sign Toggles the V(k+Q) = -V(k) symmetry. Default is false.
+     * @param _PI_changes_sign Toggles the V(k+Q) = -V(k) symmetry. Default is false.
      * @param _inversion_symmetry Toggles inversion symmetry, V(k) = V(-k). Default is true.
      * @param _is_daggered Toggles whether the coefficient is a complex conjugate or not. Default is false.
      */
     Coefficient(const std::string& _name,
                 const Momentum& _momentum,
-                bool _Q_changes_sign = false,
+                bool _PI_changes_sign = false,
                 bool _inversion_symmetry = true,
                 bool _is_daggered = false);
 
@@ -102,14 +102,14 @@ struct Coefficient {
      * @param _name The name of the coefficient
      * @param _momenta The momenta of the coefficient, in order. Usually occurs for interactions, i.e., V(k, k', q)
      * @param _indices The indices of the coefficient
-     * @param _Q_changes_sign Toggles the V(k+Q) = -V(k) symmetry. Default is false.
+     * @param _PI_changes_sign Toggles the V(k+Q) = -V(k) symmetry. Default is false.
      * @param _inversion_symmetry Toggles inversion symmetry, V(k) = V(-k). Default is true.
      * @param _is_daggered Toggles whether the coefficient is a complex conjugate or not. Default is false.
      */
     Coefficient(const std::string& _name,
                 const MomentumList& _momenta,
                 const IndexWrapper& _indices = IndexWrapper{},
-                bool _Q_changes_sign = false,
+                bool _PI_changes_sign = false,
                 bool _inversion_symmetry = true,
                 bool _is_daggered = false);
 
@@ -183,12 +183,12 @@ struct Coefficient {
     /**
      * @brief Parses a string to create a Coefficient.
      * @param expression The string expression.
-     * @param _Q_changes_sign Indicates if Q changes sign.
+     * @param _PI_changes_sign Indicates if the momentum PI caueses a sign change of the coefficient.
      * @param _inversion_symmetry Indicates if inversion symmetry is present.
      * @return A parsed Coefficient.
      */
     static Coefficient parse_string(const std::string& expression,
-                                    bool _Q_changes_sign = false,
+                                    bool _PI_changes_sign = false,
                                     bool _inversion_symmetry = true);
 
     /**
@@ -269,6 +269,10 @@ struct Coefficient {
      * @brief Applies the custom symmetry function if it exists.
      */
     void use_custom_symmetry();
+
+    std::strong_ordering operator<=>(const Coefficient& other) const;
+
+    bool operator==(const Coefficient& other) const;
 };
 
 /**
@@ -286,56 +290,6 @@ std::ostream& operator<<(std::ostream& os, const Coefficient& coeff);
  * @return The output stream.
  */
 std::ostream& operator<<(std::ostream& os, const std::vector<Coefficient>& coeffs);
-
-/**
- * @brief Compares two Coefficient objects for greater-than ordering.
- * @param lhs The left-hand side Coefficient.
- * @param rhs The right-hand side Coefficient.
- * @return True if lhs is greater than rhs, false otherwise.
- */
-bool operator>(const Coefficient& lhs, const Coefficient& rhs);
-
-/**
- * @brief Compares two Coefficient objects for less-than ordering.
- * @param lhs The left-hand side Coefficient.
- * @param rhs The right-hand side Coefficient.
- * @return True if lhs is less than rhs, false otherwise.
- */
-bool operator<(const Coefficient& lhs, const Coefficient& rhs);
-
-/**
- * @brief Compares two Coefficient objects for greater-or-equal ordering.
- * @param lhs The left-hand side Coefficient.
- * @param rhs The right-hand side Coefficient.
- * @return True if lhs is greater than or equal to rhs, false otherwise.
- */
-bool operator>=(const Coefficient& lhs, const Coefficient& rhs);
-
-/**
- * @brief Compares two Coefficient objects for less-or-equal ordering.
- * @param lhs The left-hand side Coefficient.
- * @param rhs The right-hand side Coefficient.
- * @return True if lhs is less than or equal to rhs, false otherwise.
- */
-bool operator<=(const Coefficient& lhs, const Coefficient& rhs);
-
-/**
- * @brief Equality operator for Coefficient.
- * @param lhs The left-hand side Coefficient.
- * @param rhs The right-hand side Coefficient.
- * @return True if the coefficients are equal, false otherwise.
- */
-bool operator==(const Coefficient& lhs, const Coefficient& rhs);
-
-/**
- * @brief Inequality operator for Coefficient.
- * @param lhs The left-hand side Coefficient.
- * @param rhs The right-hand side Coefficient.
- * @return True if the coefficients are not equal, false otherwise.
- */
-inline bool operator!=(const Coefficient& lhs, const Coefficient& rhs) {
-    return !(lhs == rhs);
-}
 
 }  // namespace mrock::symbolic_operators
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_COEFFICIENT_HPP

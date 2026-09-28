@@ -79,6 +79,9 @@ bool Term::resolve_deltas() {
         }
     }
 
+    std::sort(delta_indices.begin(), delta_indices.end());
+    std::sort(delta_momenta.begin(), delta_momenta.end());
+
     return true;
 }
 
@@ -97,7 +100,7 @@ void Term::structure() {
             if (operators[i].first_index() != operators[i - 1].first_index())
                 continue;
 
-            if (momentum_order(operators[i - 1].momentum, operators[i].momentum)) {
+            if (operators[i - 1].momentum < operators[i].momentum) {
                 perform_operator_swap(i, i - 1);
                 new_n = i;
             }
@@ -107,13 +110,7 @@ void Term::structure() {
 
     structure_momentum_dependencies(*this);
 
-    // Sort the occurring coefficients in alphabetical order
-    std::sort(coefficients.begin(), coefficients.end(), [](const Coefficient& a, const Coefficient& b) {
-        if (a.name == b.name) {
-            return (a.is_daggered && (!b.is_daggered));
-        }
-        return a.name < b.name;
-    });
+    std::sort(coefficients.begin(), coefficients.end());
 
     for (auto& coeff : coefficients) {
         if (coeff.momenta.size() == 3U) {
@@ -152,7 +149,7 @@ void Term::structure() {
                     momentum.flip_momentum();
                 }
             }
-            if (coeff.Q_changes_sign && momentum.add_PI) {
+            if (coeff.PI_changes_sign && momentum.add_PI) {
                 momentum.add_PI = false;
                 flip_sign();
             }
@@ -186,20 +183,14 @@ void Term::structure() {
             }
         }
     }
+
+    std::sort(delta_indices.begin(), delta_indices.end());
+    std::sort(delta_momenta.begin(), delta_momenta.end());
+    sums.sort();
 }
 
 bool Term::is_equal(const Term& other) const {
-    if (this->coefficients != other.coefficients)
-        return false;
-    if (this->sums != other.sums)
-        return false;
-    if (this->delta_indices != other.delta_indices)
-        return false;
-    if (this->delta_momenta != other.delta_momenta)
-        return false;
-    if (this->operators != other.operators)
-        return false;
-    return true;
+    return (*this) == other;
 }
 
 bool Term::is_normal_ordered() const {

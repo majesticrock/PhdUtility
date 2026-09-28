@@ -186,33 +186,11 @@ struct Operator {
      * @param index The index to set as the first index.
      */
     inline void set_first_index(Index index);
+
+    std::strong_ordering operator<=>(const Operator& other) const;
+
+    bool operator==(const Operator& other) const = default;
 };
-
-/**
- * @brief Equality operator for Operator.
- * @param lhs The left-hand side operator.
- * @param rhs The right-hand side operator.
- * @return True if the operators are equal, false otherwise.
- */
-inline bool operator==(const Operator& lhs, const Operator& rhs) {
-    if (lhs.is_fermion != rhs.is_fermion)
-        return false;
-    if (lhs.is_daggered != rhs.is_daggered)
-        return false;
-    if (lhs.indices != rhs.indices)
-        return false;
-    return (lhs.momentum == rhs.momentum);
-}
-
-/**
- * @brief Inequality operator for Operator.
- * @param lhs The left-hand side operator.
- * @param rhs The right-hand side operator.
- * @return True if the operators are not equal, false otherwise.
- */
-inline bool operator!=(const Operator& lhs, const Operator& rhs) {
-    return !(lhs == rhs);
-}
 
 /**
  * @brief Stream insertion operator for Operator.

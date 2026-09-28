@@ -315,6 +315,28 @@ public:
      * @param other a const pointer to other. This is a pointer so that this function works with derived classes.
      */
     void rename_duplicate_sums(AbstractTerm const* const other);
+
+    std::strong_ordering operator<=>(const AbstractTerm& other) const {
+        if (auto cmp = delta_indices <=> other.delta_indices; cmp != 0)
+            return cmp;
+        if (auto cmp = delta_momenta <=> other.delta_momenta; cmp != 0)
+            return cmp;
+
+        if (auto cmp = sums <=> other.sums; cmp != 0)
+            return cmp;
+
+        if (auto cmp = coefficients <=> other.coefficients; cmp != 0)
+            return cmp;
+
+        if (auto cmp = operators.size() <=> other.operators.size(); cmp != 0) {
+            return cmp;
+        }
+        return operators <=> other.operators;
+    }
+
+    bool operator==(const AbstractTerm& other) const {
+        return (*this <=> other) == 0;
+    }
 };
 
 template <class TermType>

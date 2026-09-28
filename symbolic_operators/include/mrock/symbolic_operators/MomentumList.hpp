@@ -116,7 +116,7 @@ public:
 
     MROCK_VECTOR_WRAPPER_FILL_MEMBERS(Momentum, momenta);
 
-    inline auto operator<=>(const MomentumList& rhs) const = default;
+    inline std::strong_ordering operator<=>(const MomentumList& rhs) const = default;
 };
 
 /**

@@ -1,9 +1,11 @@
 #include <mrock/symbolic_operators/SumContainer.hpp>
 #include <mrock/symbolic_operators/detail/container_helper.hpp>
 
+#include <compare>
 #include <algorithm>
 
 namespace mrock::symbolic_operators {
+
 SumContainer& SumContainer::append(const SumContainer& other) {
     append_vector(this->momenta, other.momenta);
     append_vector(this->spins, other.spins);

@@ -280,26 +280,6 @@ public:
 };  // WickTerm
 
 /**
- * @brief Equality operator for WickTerm.
- *
- * @param lhs The left-hand side WickTerm.
- * @param rhs The right-hand side WickTerm.
- * @return true if the two WickTerm objects are equal.
- * @return false otherwise.
- */
-bool operator==(const WickTerm& lhs, const WickTerm& rhs);
-
-/**
- * @brief Inequality operator for WickTerm.
- *
- * @param lhs The left-hand side WickTerm.
- * @param rhs The right-hand side WickTerm.
- * @return true if the two WickTerm objects are not equal.
- * @return false otherwise.
- */
-bool operator!=(const WickTerm& lhs, const WickTerm& rhs);
-
-/**
  * @class bad_term_exception
  * @brief An exception class for bad terms.
  */

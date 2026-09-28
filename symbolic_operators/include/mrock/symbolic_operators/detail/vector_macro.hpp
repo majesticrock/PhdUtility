@@ -40,10 +40,10 @@
     using reverse_iterator = typename std::vector<_T>::reverse_iterator;            \
     using constreverse_iterator = typename std::vector<_T>::const_reverse_iterator; \
                                                                                     \
-    inline reference operator[](size_type i) {                                      \
+    inline reference operator[](size_type i) noexcept {                             \
         return _vector_name[i];                                                     \
     };                                                                              \
-    inline const_reference operator[](size_type i) const {                          \
+    inline const_reference operator[](size_type i) const noexcept {                 \
         return _vector_name[i];                                                     \
     };                                                                              \
                                                                                     \
@@ -79,16 +79,16 @@
         return _vector_name.size();                                                 \
     }                                                                               \
                                                                                     \
-    inline const_reference front() const {                                          \
+    inline const_reference front() const noexcept {                                 \
         return _vector_name.front();                                                \
     }                                                                               \
-    inline reference front() {                                                      \
+    inline reference front() noexcept {                                             \
         return _vector_name.front();                                                \
     }                                                                               \
-    inline const_reference back() const {                                           \
+    inline const_reference back() const noexcept {                                  \
         return _vector_name.back();                                                 \
     }                                                                               \
-    inline reference back() {                                                       \
+    inline reference back() noexcept {                                              \
         return _vector_name.back();                                                 \
     }                                                                               \
                                                                                     \
@@ -116,7 +116,7 @@
     inline void clear() noexcept {                                                  \
         _vector_name.clear();                                                       \
     }                                                                               \
-    inline void pop_back() {                                                        \
+    inline void pop_back() noexcept {                                               \
         _vector_name.pop_back();                                                    \
     }                                                                               \
                                                                                     \

@@ -9,6 +9,7 @@
 #include "detail/vector_macro.hpp"
 
 #include <algorithm>
+#include <compare>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -44,7 +45,7 @@ struct Momentum {
     /**
      * @brief Default constructor.
      */
-    Momentum() = default;
+    Momentum() noexcept = default;
 
     /**
      * @brief Constructs a Momentum with a single symbol.
@@ -91,13 +92,13 @@ struct Momentum {
     /**
      * @brief Sorts the momentum symbols.
      */
-    void sort();
+    void sort() noexcept;
 
     /**
      * @brief Removes a specific momentum contribution.
      * @param momentum Name of the momentum to remove.
      */
-    void remove_contribution(const MomentumSymbol::name_type momentum);
+    void remove_contribution(const MomentumSymbol::name_type momentum) noexcept;
 
     /**
      * @brief Adds another Momentum in place.
@@ -115,13 +116,13 @@ struct Momentum {
     /**
      * @brief Removes entries with a zero prefactor.
      */
-    void remove_zeros();
+    void remove_zeros() noexcept;
 
     /**
      * @brief Flips a specific momentum if it exists.
      * @param momentum Name of the momentum to flip.
      */
-    void flip_single(const MomentumSymbol::name_type momentum);
+    void flip_single(const MomentumSymbol::name_type momentum) noexcept;
 
     /**
      * @brief Checks if a specific momentum is used.
@@ -134,12 +135,12 @@ struct Momentum {
      * @brief Multiplies this Momentum by an integer factor.
      * @param factor The factor.
      */
-    inline void multiply_by(int factor);
+    inline void multiply_by(int factor) noexcept;
 
     /**
      * @brief Flips the momentum by multiplying by -1.
      */
-    inline void flip_momentum();
+    inline void flip_momentum() noexcept;
 
     /**
      * @brief Checks if this Momentum differs from another only in the the special vector Pi.
@@ -152,7 +153,7 @@ struct Momentum {
      * @brief Checks if this Momentum is zero.
      * @return True if zero, false otherwise.
      */
-    inline bool is_zero() const;
+    inline bool is_zero() const noexcept;
 
     /**
      * @brief Checks if a specific momentum is used.
@@ -165,47 +166,33 @@ struct Momentum {
      * @brief Checks if the first momentum is negative.
      * @return True if negative, false otherwise.
      */
-    inline bool first_momentum_is_negative() const;
+    inline bool first_momentum_is_negative() const noexcept;
 
     /**
      * @brief Checks if the first momentum is a specific value.
      * @param what Name of the momentum.
      * @return True if it matches, false otherwise.
      */
-    inline bool first_momentum_is(const MomentumSymbol::name_type what) const;
+    inline bool first_momentum_is(const MomentumSymbol::name_type what) const noexcept;
 
     /**
      * @brief Checks if the last momentum is negative.
      * @return True if negative, false otherwise.
      */
-    inline bool last_momentum_is_negative() const;
+    inline bool last_momentum_is_negative() const noexcept;
 
     /**
      * @brief Checks if the last momentum is a specific value.
      * @param what Name of the momentum.
      * @return True if it matches, false otherwise.
      */
-    inline bool last_momentum_is(const MomentumSymbol::name_type what) const;
+    inline bool last_momentum_is(const MomentumSymbol::name_type what) const noexcept;
 
     /**
      * @brief Converts this Momentum to a string representation.
      * @return String representation of this Momentum.
      */
     std::string to_string() const;
-
-    /**
-     * @brief Equality operator.
-     * @param rhs The other Momentum.
-     * @return True if equal, false otherwise.
-     */
-    bool operator==(const Momentum& rhs) const;
-
-    /**
-     * @brief Inequality operator.
-     * @param rhs The other Momentum.
-     * @return True if not equal, false otherwise.
-     */
-    inline bool operator!=(const Momentum& rhs) const;
 
     /**
      * @brief Adds another Momentum to this one.
@@ -226,18 +213,14 @@ struct Momentum {
      * @param rhs The factor.
      * @return Reference to this Momentum.
      */
-    inline Momentum& operator*=(const int rhs);
+    inline Momentum& operator*=(const int rhs) noexcept;
+
+    std::strong_ordering operator<=>(const Momentum& other) const noexcept;
+
+    bool operator==(const Momentum& other) const noexcept = default;
 
     MROCK_VECTOR_WRAPPER_FILL_MEMBERS(MomentumSymbol, momentum_list);
 };
-
-/**
- * @brief Compares two Momentum objects for ordering.
- * @param lhs The left-hand side Momentum.
- * @param rhs The right-hand side Momentum.
- * @return True if lhs is ordered before rhs, false otherwise.
- */
-bool momentum_order(const Momentum& lhs, const Momentum& rhs);
 
 /**
  * @brief Adds two Momentum objects.
@@ -294,38 +277,6 @@ inline Momentum operator-(Momentum rhs) {
 }
 
 /**
- * @brief Compares two Momentum objects for greater-than ordering.
- * @param lhs The left-hand side Momentum.
- * @param rhs The right-hand side Momentum.
- * @return True if lhs is greater than rhs, false otherwise.
- */
-bool operator>(const Momentum& lhs, const Momentum& rhs);
-
-/**
- * @brief Compares two Momentum objects for less-than ordering.
- * @param lhs The left-hand side Momentum.
- * @param rhs The right-hand side Momentum.
- * @return True if lhs is less than rhs, false otherwise.
- */
-bool operator<(const Momentum& lhs, const Momentum& rhs);
-
-/**
- * @brief Compares two Momentum objects for greater-or-equal ordering.
- * @param lhs The left-hand side Momentum.
- * @param rhs The right-hand side Momentum.
- * @return True if lhs is greater than or equal to rhs, false otherwise.
- */
-bool operator>=(const Momentum& lhs, const Momentum& rhs);
-
-/**
- * @brief Compares two Momentum objects for less-or-equal ordering.
- * @param lhs The left-hand side Momentum.
- * @param rhs The right-hand side Momentum.
- * @return True if lhs is less than or equal to rhs, false otherwise.
- */
-bool operator<=(const Momentum& lhs, const Momentum& rhs);
-
-/**
  * @brief Outputs a Momentum to an output stream.
  * @param os The output stream.
  * @param momentum The Momentum.
@@ -334,7 +285,7 @@ bool operator<=(const Momentum& lhs, const Momentum& rhs);
 std::ostream& operator<<(std::ostream& os, const Momentum& momentum);
 
 // Inline definitions
-Momentum& Momentum::operator*=(const int rhs) {
+Momentum& Momentum::operator*=(const int rhs) noexcept {
     if (!(rhs & 1)) {
         this->add_PI = false;
     }
@@ -343,10 +294,11 @@ Momentum& Momentum::operator*=(const int rhs) {
     }
     return *this;
 }
-void Momentum::multiply_by(int factor) {
+
+void Momentum::multiply_by(int factor) noexcept {
     (*this) *= factor;
 }
-void Momentum::flip_momentum() {
+void Momentum::flip_momentum() noexcept {
     (*this) *= -1;
 }
 bool Momentum::differs_only_in_Pi(Momentum rhs) const {
@@ -355,7 +307,7 @@ bool Momentum::differs_only_in_Pi(Momentum rhs) const {
     rhs.add_PI = this->add_PI;
     return (*this == rhs);
 }
-bool Momentum::is_zero() const {
+bool Momentum::is_zero() const noexcept {
     if (add_PI)
         return false;
     return momentum_list.empty();
@@ -363,28 +315,25 @@ bool Momentum::is_zero() const {
 bool Momentum::uses(const MomentumSymbol::name_type what) const noexcept {
     return is_used_at(what) != -1;
 }
-bool Momentum::first_momentum_is_negative() const {
+bool Momentum::first_momentum_is_negative() const noexcept {
     if (momentum_list.empty())
         return false;
     return momentum_list.front().factor < 0;
 }
-bool Momentum::first_momentum_is(const MomentumSymbol::name_type what) const {
+bool Momentum::first_momentum_is(const MomentumSymbol::name_type what) const noexcept {
     if (momentum_list.empty())
         return false;
     return momentum_list.front().name == what;
 }
-bool Momentum::last_momentum_is_negative() const {
+bool Momentum::last_momentum_is_negative() const noexcept {
     if (momentum_list.empty())
         return false;
     return momentum_list.back().factor < 0;
 }
-bool Momentum::last_momentum_is(const MomentumSymbol::name_type what) const {
+bool Momentum::last_momentum_is(const MomentumSymbol::name_type what) const noexcept {
     if (momentum_list.empty())
         return false;
     return momentum_list.back().name == what;
-}
-bool Momentum::operator!=(const Momentum& rhs) const {
-    return !(*this == rhs);
 }
 }  // namespace mrock::symbolic_operators
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_MOMENTUM_HPP

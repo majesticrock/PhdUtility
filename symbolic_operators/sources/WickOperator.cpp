@@ -79,48 +79,6 @@ std::vector<Operator> WickOperator::to_operator_expression() const {
     return result;
 }
 
-bool operator==(const WickOperator& lhs, const WickOperator& rhs) {
-    if (lhs.type != rhs.type)
-        return false;
-    if (lhs.is_daggered != rhs.is_daggered)
-        return false;
-    if (lhs.momentum != rhs.momentum)
-        return false;
-    return (lhs.indices == rhs.indices);
-}
-
-bool operator!=(const WickOperator& lhs, const WickOperator& rhs) {
-    return !(lhs == rhs);
-}
-
-bool operator>(const WickOperator& lhs, const WickOperator& rhs) {
-    return !(lhs <= rhs);
-}
-
-bool operator<(const WickOperator& lhs, const WickOperator& rhs) {
-    if (lhs.type < rhs.type)
-        return true;
-    if (lhs.type > rhs.type)
-        return false;
-
-    if (!lhs.indices.empty() && !rhs.indices.empty()) {
-        if (lhs.indices[0] < rhs.indices[0])
-            return true;
-        if (lhs.indices[0] > rhs.indices[0])
-            return false;
-    }
-
-    return lhs.momentum < rhs.momentum;
-}
-
-bool operator>=(const WickOperator& lhs, const WickOperator& rhs) {
-    return (lhs > rhs || lhs == rhs);
-}
-
-bool operator<=(const WickOperator& lhs, const WickOperator& rhs) {
-    return (lhs < rhs || lhs == rhs);
-}
-
 std::ostream& operator<<(std::ostream& os, const WickOperator& op) {
     os << "\\langle " << op.type << "_{ " << op.momentum << ", ";
     for (const auto& index : op.indices) {

@@ -1,13 +1,14 @@
 #include <mrock/symbolic_operators/WickSymmetry.hpp>
 #include <mrock/symbolic_operators/WickTermCollector.hpp>
 
+#include <functional>
 #include <memory>
 #include <vector>
 
 namespace mrock::symbolic_operators {
 
-void WickTermCollector::clean_up() {
-    clean_up(std::vector<std::unique_ptr<WickSymmetry>>{});
+void WickTermCollector::clean_up(const int trivial_spin_summation_factor) {
+    clean_up(std::vector<std::unique_ptr<WickSymmetry>>{}, trivial_spin_summation_factor);
 }
 
 void WickTermCollector::clear_etas() {
@@ -28,7 +29,8 @@ void WickTermCollector::clear_etas() {
 }
 
 void WickTermCollector::clean_up(
-    const std::vector<std::unique_ptr<WickSymmetry>>& symmetries /*= std::vector<std::unique_ptr<WickSymmetry>>{}*/) {
+    const std::vector<std::unique_ptr<WickSymmetry>>& symmetries,
+    const int trivial_spin_summation_factor) {
     for (auto& term : terms) {
         for (std::vector<Coefficient>::iterator it = term.coefficients.begin(); it != term.coefficients.end();) {
             if (it->name == "") {
@@ -53,7 +55,7 @@ void WickTermCollector::clean_up(
         is_pauli_forbidden() transforms <o> back into the original operators and checks, whether its legal.
         That is, if <o> = <c_-k c_k>, then
         <o^dagger> <o> becomes <c_k^dagger c_-k^dagger c_-k c_k> which is finite.
-        Applyng the aforementioned symmetry gives
+        Applying the aforementioned symmetry gives
         <o><o> = <c_-k c_k c_-k c_k> which would be Pauli forbidden. */
         if (it->is_pauli_forbidden()) {
             it = terms.erase(it);
@@ -68,9 +70,7 @@ void WickTermCollector::clean_up(
             if (it->uses_index(*jt)) {
                 ++jt;
             } else {
-                // We are assuming there are only spin indices here (spin 1/2)
-                // If another kind of index arises I have to readress this section.
-                it->multiplicity *= 2;
+                it->multiplicity *= trivial_spin_summation_factor;
                 jt = it->sums.spins.erase(jt);
             }
         }
@@ -104,55 +104,18 @@ void WickTermCollector::clean_up(
         }
     }
 
+    for (auto& term : terms) {
+        std::sort(term.operators.begin(), term.operators.end());
+        std::sort(term.coefficients.begin(), term.coefficients.end());
+        std::sort(term.delta_indices.begin(), term.delta_indices.end());
+        std::sort(term.delta_momenta.begin(), term.delta_momenta.end());
+        term.sums.sort();
+    }
+
     combine_duplicates();
 
-    auto predicate = [](const WickTerm& left, const WickTerm& right) -> bool {
-        if (left.delta_momenta.empty() && right.delta_momenta.size() > 0) {
-            return true;
-        } else if (left.delta_momenta.size() > 0 && right.delta_momenta.size() > 0) {
-            if (left.delta_momenta.size() < right.delta_momenta.size()) {
-                return true;
-            } else if (left.delta_momenta.size() == right.delta_momenta.size()) {
-                if (left.delta_momenta[0].second.add_PI && !(right.delta_momenta[0].second.add_PI)) {
-                    return true;
-                } else if (!left.coefficients.empty() && right.coefficients[0].name < left.coefficients[0].name) {
-                    return true;
-                } else if ((!left.coefficients.empty() && right.coefficients[0].name == left.coefficients[0].name) ||
-                           left.coefficients.empty()) {
-                    if (!left.operators.empty() && right.operators.empty()) {
-                        return true;
-                    } else if ((!left.operators.empty() && !right.operators.empty()) &&
-                               left.operators.front().type < right.operators.front().type) {
-                        return true;
-                    }
-                }
-            }
-        } else if (left.delta_momenta.empty() && right.delta_momenta.empty()) {
-            if (left.coefficients.size() < right.coefficients.size()) {
-                return true;
-            } else if (!left.coefficients.empty() && !right.coefficients.empty()) {
-                if (right.coefficients[0].name < left.coefficients[0].name) {
-                    return true;
-                } else if (right.coefficients[0].name == left.coefficients[0].name) {
-                    if (left.operators.size() > right.operators.size()) {
-                        return true;
-                    } else if ((!left.operators.empty() && !right.operators.empty()) &&
-                               left.operators.front().type < right.operators.front().type) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    };
-
     // Sort terms
-    for (std::size_t i = 0U; i < terms.size(); i++) {
-        for (std::size_t j = i + 1U; j < terms.size(); j++) {
-            if (predicate(terms[i], terms[j]))
-                std::swap(terms[i], terms[j]);
-        }
-    }
+    std::sort(terms.begin(), terms.end(), std::greater<WickTerm>());
 }
 
 WickTermCollector& operator+=(WickTermCollector& lhs, const WickTerm& rhs) {

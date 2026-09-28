@@ -7,6 +7,7 @@
 
 #include "detail/defines_arithmetic_operators.hpp"
 
+#include <compare>
 #include <iostream>
 #include <utility>
 
@@ -47,6 +48,8 @@ struct KroneckerDelta {
      * @return false otherwise.
      */
     constexpr bool isOne() const { return first == second; };
+
+    std::strong_ordering operator<=>(const KroneckerDelta& other) const noexcept = default;
 };
 
 /**
@@ -73,38 +76,6 @@ constexpr auto make_delta(const T& first, const T& second) {
 template <typename T>
 constexpr auto make_delta(std::decay_t<T>&& first, std::decay_t<T>&& second) {
     return KroneckerDelta<std::decay_t<T>>{std::move(first), std::move(second)};
-}
-
-/**
- * @brief Equality operator for KroneckerDelta.
- *
- * @tparam T The type of the elements.
- * @param lhs The left-hand side KroneckerDelta.
- * @param rhs The right-hand side KroneckerDelta.
- * @return true if the two KroneckerDelta objects are equal.
- * @return false otherwise.
- */
-template <typename T>
-bool operator==(const KroneckerDelta<T>& lhs, const KroneckerDelta<T>& rhs) {
-    if (lhs.first == rhs.first && lhs.second == rhs.second)
-        return true;
-    if (lhs.first == rhs.second && lhs.second == rhs.first)
-        return true;
-    return false;
-}
-
-/**
- * @brief Inequality operator for KroneckerDelta.
- *
- * @tparam T The type of the elements.
- * @param lhs The left-hand side KroneckerDelta.
- * @param rhs The right-hand side KroneckerDelta.
- * @return true if the two KroneckerDelta objects are not equal.
- * @return false otherwise.
- */
-template <typename T>
-bool operator!=(const KroneckerDelta<T>& lhs, const KroneckerDelta<T>& rhs) {
-    return !(lhs == rhs);
 }
 
 /**

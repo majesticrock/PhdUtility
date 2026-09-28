@@ -2,6 +2,7 @@
 #include <mrock/symbolic_operators/Momentum.hpp>
 #include <mrock/symbolic_operators/MomentumSymbol.hpp>
 
+#include <algorithm>
 #include <cctype>
 #include <cmath>
 #include <cstddef>
@@ -28,19 +29,12 @@ inline std::vector<MomentumSymbol>::value_type identify_subexpression(const std:
     return MomentumSymbol(std::stoi(std::string(sub.begin(), it)), sub.back());
 }
 
-void Momentum::sort() {
-    for (std::size_t i = 0U; i < momentum_list.size(); ++i) {
-        for (std::size_t j = i + 1U; j < momentum_list.size(); ++j) {
-            // Comparing two chars is easy
-            if (momentum_list[i].name > momentum_list[j].name) {
-                std::swap(momentum_list[i], momentum_list[j]);
-            }
-        }
-    }
+void Momentum::sort() noexcept {
+    std::sort(momentum_list.begin(), momentum_list.end());
     remove_zeros();
 }
 
-void Momentum::remove_contribution(const MomentumSymbol::name_type momentum) {
+void Momentum::remove_contribution(const MomentumSymbol::name_type momentum) noexcept {
     const int idx = this->is_used_at(momentum);
     if (idx < 0)
         return;
@@ -66,9 +60,10 @@ void Momentum::replace_occurances(const MomentumSymbol::name_type replaceWhat, c
             (*this) += buffer;
         }
     }
+    sort();
 }
 
-void Momentum::remove_zeros() {
+void Momentum::remove_zeros() noexcept {
     for (auto it = momentum_list.begin(); it != momentum_list.end();) {
         if (it->factor == 0) {
             it = momentum_list.erase(it);
@@ -78,7 +73,7 @@ void Momentum::remove_zeros() {
     }
 }
 
-void Momentum::flip_single(const MomentumSymbol::name_type momentum) {
+void Momentum::flip_single(const MomentumSymbol::name_type momentum) noexcept {
     for (auto& momentum_symbol : momentum_list) {
         if (momentum_symbol.name == momentum) {
             momentum_symbol.factor *= -1;
@@ -98,26 +93,6 @@ std::string Momentum::to_string() const {
     std::ostringstream oss;
     oss << *this;
     return oss.str();
-}
-
-bool Momentum::operator==(const Momentum& rhs) const {
-    if (this->add_PI != rhs.add_PI)
-        return false;
-    if (this->momentum_list.size() != rhs.momentum_list.size())
-        return false;
-    bool foundOne = true;
-    for (std::size_t i = 0U; i < this->momentum_list.size(); ++i) {
-        foundOne = false;
-        for (std::size_t j = 0U; j < rhs.momentum_list.size(); ++j) {
-            if (this->momentum_list[i] == rhs.momentum_list[j]) {
-                foundOne = true;
-                break;
-            }
-        }
-        if (!foundOne)
-            return false;
-    }
-    return true;
 }
 
 Momentum& Momentum::operator+=(const Momentum& rhs) {
@@ -166,23 +141,6 @@ Momentum& Momentum::operator-=(const Momentum& rhs) {
     return *this;
 }
 
-bool momentum_order(const Momentum& lhs, const Momentum& rhs) {
-    if (rhs.momentum_list.empty()) {
-        if (lhs.momentum_list.empty() && !lhs.add_PI && rhs.add_PI)
-            return true;
-        return false;
-    }
-    if (lhs.momentum_list.empty())
-        return true;
-    if (lhs.momentum_list[0].name < rhs.momentum_list[0].name)
-        return true;
-    if (lhs.momentum_list[0].name == rhs.momentum_list[0].name) {
-        if (!lhs.add_PI && rhs.add_PI)
-            return true;
-    }
-    return false;
-}
-
 std::ostream& operator<<(std::ostream& os, const Momentum& momentum) {
     if (momentum.momentum_list.empty()) {
         if (momentum.add_PI) {
@@ -210,48 +168,29 @@ std::ostream& operator<<(std::ostream& os, const Momentum& momentum) {
     return os;
 }
 
-bool operator>(const Momentum& lhs, const Momentum& rhs) {
-    return !(lhs <= rhs);
-}
-
-bool operator<(const Momentum& lhs, const Momentum& rhs) {
-    if (lhs.momentum_list == rhs.momentum_list)
-        return false;
-
-    if (lhs.momentum_list.size() < rhs.momentum_list.size())
-        return true;
-    if (lhs.momentum_list.size() > rhs.momentum_list.size())
-        return false;
-
-    for (std::size_t i = 0U; i < lhs.momentum_list.size(); ++i) {
-        if (lhs.momentum_list[i].name < rhs.momentum_list[i].name)
-            return true;
-        if (lhs.momentum_list[i].name > rhs.momentum_list[i].name)
-            return false;
-    }
-
-    return false;
-}
-
-bool operator>=(const Momentum& lhs, const Momentum& rhs) {
-    return (lhs > rhs || lhs == rhs);
-}
-
-bool operator<=(const Momentum& lhs, const Momentum& rhs) {
-    return (lhs < rhs || lhs == rhs);
-}
-
 Momentum::Momentum(const char value, int plus_minus /* = 1 */, bool add_PI_ /* = false */)
-    : momentum_list(1, MomentumSymbol(plus_minus, value)), add_PI(add_PI_) {}
+    : momentum_list(1, MomentumSymbol(plus_minus, value)), add_PI(add_PI_) 
+{
+    sort();
+}
 
 Momentum::Momentum(const MomentumSymbol::name_type value, int plus_minus /* = 1 */, bool add_PI_ /* = false */)
-    : momentum_list(1, {plus_minus, value}), add_PI(add_PI_) {}
+    : momentum_list(1, {plus_minus, value}), add_PI(add_PI_) 
+{
+    sort();
+}
 
 Momentum::Momentum(const std::vector<MomentumSymbol>& _momenta, bool add_PI_ /* = false */)
-    : momentum_list(_momenta), add_PI(add_PI_) {}
+    : momentum_list(_momenta), add_PI(add_PI_) 
+{
+    sort();
+}
 
 Momentum::Momentum(MomentumSymbol const& momentum_symbol, bool add_PI_ /* = false */)
-    : momentum_list{momentum_symbol}, add_PI(add_PI_) {}
+    : momentum_list{momentum_symbol}, add_PI(add_PI_) 
+{
+    sort();
+}
 
 Momentum::Momentum(const std::string& expression, bool add_PI_ /* = false*/) : add_PI(add_PI_) {
     if (expression != "0") {
@@ -264,5 +203,16 @@ Momentum::Momentum(const std::string& expression, bool add_PI_ /* = false*/) : a
             last = current;
         } while (current != std::string::npos);
     }
+    sort();
 }
+
+std::strong_ordering Momentum::operator<=>(const Momentum& other) const noexcept {
+    if (auto cmp = momentum_list.size() <=> other.momentum_list.size(); cmp != 0)
+        return cmp;
+    if (auto cmp = momentum_list <=> other.momentum_list; cmp != 0)
+        return cmp;
+    
+    return add_PI <=> other.add_PI;
+}
+
 }  // namespace mrock::symbolic_operators

@@ -232,7 +232,7 @@ void WickTerm::sort() {
                     momentum.flip_momentum();
                 }
             }
-            if (coeff.Q_changes_sign && momentum.add_PI) {
+            if (coeff.PI_changes_sign && momentum.add_PI) {
                 momentum.add_PI = false;
                 this->multiplicity *= -1;
             }
@@ -281,6 +281,9 @@ void WickTerm::sort() {
         }
     }
     std::sort(coefficients.begin(), coefficients.end());
+    std::sort(delta_indices.begin(), delta_indices.end());
+    std::sort(delta_momenta.begin(), delta_momenta.end());
+    sums.sort();
 }
 
 void WickTerm::include_template_result(const TemplateResult::SingleResult& result) {
@@ -360,20 +363,4 @@ bool WickTerm::handled() const noexcept {
     return !(this->operators.empty());
 }
 
-bool operator==(const WickTerm& lhs, const WickTerm& rhs) {
-    if (lhs.coefficients != rhs.coefficients)
-        return false;
-    if (lhs.sums != rhs.sums)
-        return false;
-    if (lhs.delta_indices != rhs.delta_indices)
-        return false;
-    if (lhs.delta_momenta != rhs.delta_momenta)
-        return false;
-    if (lhs.operators != rhs.operators)
-        return false;
-    return true;
-}
-bool operator!=(const WickTerm& lhs, const WickTerm& rhs) {
-    return !(lhs == rhs);
-}
 }  // namespace mrock::symbolic_operators

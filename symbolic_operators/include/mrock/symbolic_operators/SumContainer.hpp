@@ -9,6 +9,7 @@
 #include "MomentumSymbol.hpp"
 #include "SymbolicSum.hpp"
 
+#include <compare>
 #include <ostream>
 #include <vector>
 
@@ -121,27 +122,20 @@ struct SumContainer {
      * @return True if the container has spins, false otherwise.
      */
     inline bool has_spins() const noexcept;
+
+    inline std::strong_ordering operator<=>(const SumContainer& other) const {
+        if (auto cmp = momenta.size() <=> other.momenta.size(); cmp != 0)
+            return cmp;
+        if (auto cmp = spins.size() <=> other.spins.size(); cmp != 0)
+            return cmp;
+        
+        if (auto cmp = momenta <=> other.momenta; cmp != 0)
+            return cmp;
+        return spins <=> other.spins;
+    };
+
+    bool operator==(const SumContainer& other) const = default;
 };
-
-/**
- * @brief Equality operator for SumContainer.
- * @param lhs The left-hand side SumContainer.
- * @param rhs The right-hand side SumContainer.
- * @return True if both SumContainers are equal, false otherwise.
- */
-inline bool operator==(const SumContainer& lhs, const SumContainer& rhs) {
-    return (lhs.momenta == rhs.momenta && lhs.spins == rhs.spins);
-}
-
-/**
- * @brief Inequality operator for SumContainer.
- * @param lhs The left-hand side SumContainer.
- * @param rhs The right-hand side SumContainer.
- * @return True if both SumContainers are not equal, false otherwise.
- */
-inline bool operator!=(const SumContainer& lhs, const SumContainer& rhs) {
-    return !(lhs == rhs);
-}
 
 /**
  * @brief Stream insertion operator for SumContainer.

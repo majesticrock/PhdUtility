@@ -27,6 +27,16 @@ std::ostream& operator<<(std::ostream& os, const std::vector<Operator>& ops) {
     return os;
 }
 
+std::strong_ordering Operator::operator<=>(const Operator& other) const {
+    if (auto cmp = is_fermion <=> other.is_fermion; cmp != 0)
+        return cmp;
+    if (auto cmp = is_daggered <=> other.is_daggered; cmp != 0)
+        return cmp;
+    if (auto cmp = indices <=> other.indices; cmp != 0)
+        return cmp;
+    return momentum <=> other.momentum;
+}
+
 Operator::Operator(const Momentum& _momentum, const IndexWrapper _indices, bool _is_daggered, bool _is_fermion)
     : momentum(_momentum), indices(_indices), is_daggered(_is_daggered), is_fermion(_is_fermion) {}
 
