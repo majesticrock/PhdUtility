@@ -248,13 +248,13 @@ std::strong_ordering Coefficient::operator<=>(const Coefficient& other) const {
     if (auto cmp = name <=> other.name; cmp != 0)
         return cmp;
 
-    if (auto cmp = momenta <=> other.momenta; cmp != 0)
+    if (auto cmp = is_daggered <=> other.is_daggered; cmp != 0)
         return cmp;
 
     if (auto cmp = indices <=> other.indices; cmp != 0)
         return cmp;
 
-    return is_daggered <=> other.is_daggered;
+    return momenta <=> other.momenta;
 }
 
 bool Coefficient::operator==(const Coefficient& other) const {
