@@ -43,6 +43,15 @@ inline const std::map<std::string, OperatorType> string_to_wick = {{"n", Operato
                                                                    {"\\eta", OperatorType::Eta}};
 
 /**
+ * @var wick_to_string
+ * @brief The inverse of string_to_wick.
+ */
+inline const std::map<OperatorType, std::string> wick_to_string = {{OperatorType::Number, "n"},
+                                                                   {OperatorType::CDW, "g"},
+                                                                   {OperatorType::SC, "f"},
+                                                                   {OperatorType::Eta, "\\eta"}};
+
+/**
  * @brief Overloads the stream insertion operator for the Index enum.
  *
  * @param os The output stream.

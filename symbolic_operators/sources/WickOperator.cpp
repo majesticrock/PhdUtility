@@ -41,6 +41,46 @@ WickOperator::WickOperator(const std::string& expression) {
     this->is_daggered = expression.find("^+") != std::string::npos;
 }
 
+Coefficient WickOperator::to_coefficient(const std::string& base) const {
+    const auto type_name = wick_to_string.at(this->type);
+    Coefficient result(base + "_{(" + type_name + ")}", this->momentum, this->indices, false, false,
+                      this->is_daggered);
+    result.custom_symmetry = std::nullopt;
+    result.is_real = false;
+    result.is_symmetrized_interaction = false;
+    return result;
+}
+
+WickOperator WickOperator::from_coefficient(const Coefficient& coeff, const std::string& base) {
+    if (coeff.momenta.size() != 1U) {
+        throw std::runtime_error("WickOperator conversion requires exactly one momentum.");
+    }
+
+    const auto match_suffix = [&](const std::string& suffix) {
+        if (coeff.name.size() < suffix.size() || coeff.name.compare(coeff.name.size() - suffix.size(), suffix.size(), suffix) != 0) {
+            return false;
+        }
+        return coeff.name.substr(0U, coeff.name.size() - suffix.size()) == base;
+    };
+
+    for (const auto& [operator_type, type_string] : wick_to_string) {
+        const std::string with_underscore = "_{(" + type_string + ")}";
+        if (match_suffix(with_underscore)) {
+            return WickOperator(operator_type, coeff.is_daggered,
+                                coeff.momenta.empty() ? Momentum{} : coeff.momenta.front(), coeff.indices);
+        }
+
+        const std::string without_underscore = "{(" + type_string + ")}";
+        if (match_suffix(without_underscore)) {
+            return WickOperator(operator_type, coeff.is_daggered,
+                                coeff.momenta.empty() ? Momentum{} : coeff.momenta.front(), coeff.indices);
+        }
+    }
+
+    return WickOperator(OperatorType::Undefined, coeff.is_daggered,
+                        coeff.momenta.empty() ? Momentum{} : coeff.momenta.front(), coeff.indices);
+}
+
 std::vector<Operator> WickOperator::to_operator_expression() const {
     std::vector<Operator> result{Operator(this->momentum, this->indices, false),
                                  Operator(this->momentum, this->indices, false)};

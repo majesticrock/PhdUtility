@@ -5,6 +5,7 @@
  * @brief Defines the WickOperator structure used in symbolic operators.
  */
 
+#include "Coefficient.hpp"
 #include "IndexWrapper.hpp"
 #include "Momentum.hpp"
 #include "MomentumSymbol.hpp"
@@ -76,6 +77,30 @@ struct WickOperator {
      * @param expression The string expression.
      */
     WickOperator(const std::string& expression);
+
+    /**
+     * @brief Turns this into a Coefficient object with the name scheme "base_{(wick_to_string[this->type])}".
+     * The Momentum, dagger status, and indices are copied directly into the Coefficient object.
+     * Any symmetries are lost.
+     * 
+     * @param base The base string to be used
+     * @return The resulting Coefficient object
+     */
+    Coefficient to_coefficient(const std::string& base) const;
+
+    /**
+     * @brief The reverse of the to_coefficient method.
+     * The name scheme must be base_{(wick_to_string[this->type])}".
+     * The Momentum, dagger status, and indices are copied directly into the Coefficient object.
+     * Any symmetries are lost.
+     * If the name scheme could not be matched, the resulting WickOperator will have its type set to 
+     * OperatorType::Undefined
+     * If the Coefficient depends on more than one Momentum, an exception will be thrown.
+     * 
+     * @param base The base string to be used
+     * @return The resulting Coefficient object
+     */
+    static WickOperator from_coefficient(const Coefficient& coeff, const std::string& base);
 
     /**
      * @brief Checks if the operator uses a specific index.

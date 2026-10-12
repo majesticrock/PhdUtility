@@ -13,6 +13,7 @@ find_package(
         serialization
         iostreams
 )
+find_package(Eigen3 REQUIRED)
 
 add_library(
     mrock_symbolic_operators
@@ -35,6 +36,10 @@ add_library(
     sources/WickSymmetry.cpp
     sources/WickTerm.cpp
     sources/WickTermCollector.cpp
+    sources/experimental/WickOrderedCollector.cpp
+    sources/experimental/WickOrderedExpression.cpp
+    sources/experimental/WickOrderedTerm.cpp
+    sources/experimental/verify/Verifier.cpp
 
     sources/detail/OperatorOrder.cpp
 )
@@ -55,6 +60,7 @@ target_link_libraries(
         mrock::mrock
         Boost::serialization
         Boost::iostreams
+        Eigen3::Eigen
 )
 
 target_include_directories(

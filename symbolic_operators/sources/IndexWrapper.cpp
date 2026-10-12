@@ -65,6 +65,12 @@ std::ostream& operator<<(std::ostream& os, const Index index) {
             os << "\\bar{\\sigma}'";
             break;
 
+        case Index::WickA:
+            os << "WICK A";
+            break;
+        case Index::WickB:
+            os << "WICK B";
+            break;
         case Index::UndefinedIndex:
             os << "UNDEFINED INDEX";
             break;

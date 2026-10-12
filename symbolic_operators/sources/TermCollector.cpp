@@ -226,8 +226,8 @@ void TermCollector::clean_up() {
 
             l_is = delta.second.is_used_at('l');
             if (l_is == -1) {
-                std::cout << term << std::endl;
-                throw;
+                // No l in the delta, skip the logic
+                continue;
             }
             const Momentum l_mom('l', delta.second.momentum_list[l_is].factor);
             const Momentum remainder = delta.second - l_mom;

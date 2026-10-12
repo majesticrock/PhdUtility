@@ -1,4 +1,4 @@
-#include "IntMomentum.hpp"
+#include <mrock/symbolic_operators/IntMomentum.hpp>
 
 #include <Eigen/Sparse>
 #include <mrock/symbolic_operators/Commutation>

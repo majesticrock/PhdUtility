@@ -44,6 +44,34 @@ target_link_libraries(explicit_wick_test
         mrock::symbolic_operators 
 )
 
+add_executable(symop_wick_operator_conversion_test wick_operator_conversion.cpp)
+mrock_set_build_options(symop_wick_operator_conversion_test)
+target_link_libraries(symop_wick_operator_conversion_test 
+    PRIVATE 
+        mrock::symbolic_operators 
+)
+
+add_executable(symop_wick_ordered_test wick_ordered.cpp)
+mrock_set_build_options(symop_wick_ordered_test)
+target_link_libraries(symop_wick_ordered_test
+    PRIVATE
+        mrock::symbolic_operators
+)
+
+add_executable(symop_wick_matrix_test wick_matrix.cpp)
+mrock_set_build_options(symop_wick_matrix_test)
+target_link_libraries(symop_wick_matrix_test
+    PRIVATE
+        mrock::symbolic_operators
+)
+
+add_executable(symop_wick_commutator_test wick_commutator.cpp)
+mrock_set_build_options(symop_wick_commutator_test)
+target_link_libraries(symop_wick_commutator_test
+    PRIVATE
+        mrock::symbolic_operators
+)
+
 enable_testing()
 
 add_test(NAME symop_continuum_test COMMAND symop_continuum_test)
@@ -52,3 +80,7 @@ add_test(NAME symop_bcs_test COMMAND symop_bcs_test)
 add_test(NAME symop_string_helper_test COMMAND symop_string_helper_test)
 add_test(NAME symop_matrix_representation_test COMMAND symop_matrix_representation_test)
 add_test(NAME explicit_wick_test COMMAND explicit_wick_test)
+add_test(NAME symop_wick_operator_conversion_test COMMAND symop_wick_operator_conversion_test)
+add_test(NAME symop_wick_ordered_test COMMAND symop_wick_ordered_test)
+add_test(NAME symop_wick_matrix_test COMMAND symop_wick_matrix_test)
+add_test(NAME symop_wick_commutator_test COMMAND symop_wick_commutator_test)

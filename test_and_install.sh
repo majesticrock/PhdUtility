@@ -87,21 +87,28 @@ CURRENT_MROCK_EXTRA_INCLUDE_DIRS=""
 CURRENT_CMAKE_INSTALL_PREFIX=""
 CURRENT_CMAKE_PREFIX_PATH=""
 USE_DEFAULTS="OFF"
+USE_TEST_DEFAULTS="OFF"
 
 parse_args() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --default)
                 USE_DEFAULTS="ON"
+                USE_TEST_DEFAULTS="OFF"
+                shift
+                ;;
+            --test)
+                USE_DEFAULTS="ON"
+                USE_TEST_DEFAULTS="ON"
                 shift
                 ;;
             -h|--help)
-                echo "Usage: $0 [--default]"
+                echo "Usage: $0 [--default|--test]"
                 exit 0
                 ;;
             *)
                 echo "Unknown option: $1" >&2
-                echo "Usage: $0 [--default]" >&2
+                echo "Usage: $0 [--default|--test]" >&2
                 exit 1
                 ;;
         esac
@@ -503,6 +510,13 @@ if [[ "${USE_DEFAULTS}" == "OFF" ]]; then
     fi
 fi
 
+CMAKE_BUILD_TESTING="${BUILD_TESTING}"
+if [[ "${USE_TEST_DEFAULTS}" == "ON" ]]; then
+    CMAKE_BUILD_TESTING="ON"
+    RUN_TESTS="ON"
+    DO_INSTALL="OFF"
+fi
+
 if [[ "${USE_DEFAULTS}" == "ON" ]]; then
     echo "Using default option values."
 fi
@@ -527,7 +541,7 @@ CMAKE_ARGS=(
     -DMROCK_BUILD_UTILITY="${BUILD_UTILITY}"
     -DMROCK_BUILD_SYMBOLIC_OPERATORS="${BUILD_SYMBOLIC_OPERATORS}"
     -DMROCK_BUILD_IEOM="${BUILD_IEOM}"
-    -DBUILD_TESTING="${BUILD_TESTING}"
+    -DBUILD_TESTING="${CMAKE_BUILD_TESTING}"
     "-DMROCK_EXTRA_INCLUDE_DIRS=${MROCK_EXTRA_INCLUDE_DIRS}"
     "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH_VALUE}"
 )
