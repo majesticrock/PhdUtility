@@ -266,17 +266,6 @@ public:
      * @param result The TemplateResult::SingleResult to include.
      */
     void include_template_result(const TemplateResult::SingleResult& result);
-
-    /**
-     * @brief Checks if the term can be finite.
-     * Works under the assumption that the initial term was normal ordered with respect to the vacuum, e.g., c^+ c^+ c
-     * c. Then, for instance, <n_k> <n_k> cannot be finite because it must have originated from c_k^+ c_k^+ c_k c_k,
-     * which must be 0 due to the Pauli principle. IMPORTANT: This only works if the original term structure was c^+ c^+
-     * c c, since c_k^+ c_k c_k^+ c_k can be finite!
-     *
-     * @return true if the term is forbidden and false otherwise.
-     */
-    bool is_pauli_forbidden() const;
 };  // WickTerm
 
 /**

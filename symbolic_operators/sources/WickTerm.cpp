@@ -292,31 +292,6 @@ void WickTerm::include_template_result(const TemplateResult::SingleResult& resul
     this->multiplicity *= result.factor;
 }
 
-bool WickTerm::is_pauli_forbidden() const {
-    // Cannot be forbidden if there is only one WickOperator
-    if (operators.size() < 2U)
-        return false;
-    // IMPORTANT: This function assumes that the term prior to the application of
-    // Wick's theorem was normal ordered!
-
-    std::vector<Operator> transformed_operators;
-    transformed_operators.reserve(2 * operators.size());
-
-    for (const auto& wick_op : operators) {
-        append_vector(transformed_operators, wick_op.to_operator_expression());
-    }
-
-    for (std::size_t i = 0U; i < transformed_operators.size(); ++i) {
-        for (std::size_t j = i + 1; j < transformed_operators.size(); ++j) {
-            if (transformed_operators[i] == transformed_operators[j]) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
 int WickTerm::which_operator_depends_on(const MomentumSymbol::name_type momentum) const noexcept {
     for (std::size_t i = 0U; i < operators.size(); ++i) {
         if (operators[i].depends_on(momentum))

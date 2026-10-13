@@ -49,19 +49,6 @@ void WickTermCollector::clean_up(
         it->rename_sums();
         it->sort();
 
-        /*
-        This function must be called before symmetries are applied!
-        Sometimes <o^dagger> = <o> is a symmetry, which would transform <o^dagger> <o> into <o><o>.
-        is_pauli_forbidden() transforms <o> back into the original operators and checks, whether its legal.
-        That is, if <o> = <c_-k c_k>, then
-        <o^dagger> <o> becomes <c_k^dagger c_-k^dagger c_-k c_k> which is finite.
-        Applying the aforementioned symmetry gives
-        <o><o> = <c_-k c_k c_-k c_k> which would be Pauli forbidden. */
-        //if (it->is_pauli_forbidden()) {
-        //    it = terms.erase(it);
-        //    continue;
-        //}
-
         for (const auto& symmetry : symmetries) {
             symmetry->apply_to(it->operators);
         }
