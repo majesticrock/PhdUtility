@@ -148,36 +148,60 @@ void wick_decompose_internal(const std::vector<Operator>& operators,
     WickOrderedTerm&& attach_to,
     WickOrderedCollector& result)
 {
+    WickOrderedTerm contraction_base = attach_to;
     result.emplace_back(std::move(attach_to));
     result.back().wick_expression.operators = operators;
+
+    struct ContractionOption {
+        TemplateResult::SingleResult result;
+        KroneckerDelta<Momentum> momentum_delta;
+    };
 
     for(std::size_t n_contractions = 1U; n_contractions <= operators.size() / 2; ++n_contractions) {
         const PairingVector pairings = get_pairings(operators.size(), n_contractions);
 
         for (const auto& pairing : pairings) {
-            std::list<TemplateResult> template_results;
+            std::vector<std::vector<ContractionOption>> options_by_pair;
+            options_by_pair.reserve(pairing.size());
+            bool pairing_is_valid = true;
 
             for (const auto& pair : pairing) {
+                std::vector<ContractionOption> options;
                 for (const auto& wick_template : templates) {
-                    template_results.emplace_back(wick_template.create_from_operators(operators[pair.first], operators[pair.second]));
+                    TemplateResult template_result =
+                        wick_template.create_from_operators(operators[pair.first], operators[pair.second]);
+                    template_result.clean_up();
+                    for (const auto& single_result : template_result.results) {
+                        options.push_back({ single_result, template_result.momentum_delta });
+                    }
                 }
+                if (options.empty()) {
+                    pairing_is_valid = false;
+                    break;
+                }
+                options_by_pair.push_back(std::move(options));
             }
-
-            if(!std::all_of(template_results.begin(), template_results.end(), [](const auto& tr) { return !!tr;}))
-            {
+            if (!pairing_is_valid)
                 continue;
-            }
 
-            WickOrderedTerm new_term = WickOrderedTerm::from_wick_term_skip_wick_expression(attach_to);
-            new_term.multiplicity *= pair_parity(pairing);
+            WickOrderedTerm base = WickOrderedTerm::from_wick_term_skip_wick_expression(contraction_base);
+            base.multiplicity *= pair_parity(pairing);
+            auto append_contraction_options = [&](auto&& self, std::size_t pair_index, WickOrderedTerm partial) -> void {
+                if (pair_index == options_by_pair.size()) {
+                    partial.wick_expression.operators = remove_elements(operators, pairing);
+                    result.emplace_back(std::move(partial));
+                    return;
+                }
 
-            for (const auto& tr : template_results) {
-                new_term.delta_momenta.emplace_back(tr.momentum_delta);
-                new_term.include_template_result(tr.results.front());
-            }
-
-            new_term.wick_expression.operators = remove_elements(operators, pairing);
-            result.emplace_back(std::move(new_term));
+                for (const auto& option : options_by_pair[pair_index]) {
+                    WickOrderedTerm branch = partial;
+                    branch.include_template_result(option.result);
+                    if (!option.momentum_delta.isOne())
+                        branch.delta_momenta.push_back(option.momentum_delta);
+                    self(self, pair_index + 1U, std::move(branch));
+                }
+            };
+            append_contraction_options(append_contraction_options, 0U, std::move(base));
         }
     }
 }
@@ -254,7 +278,7 @@ WickOrderedCollector multiply_impl(const WickOrderedTerm& lhs,
             }
         }
     }
-    //clean_wick_ordered_terms(result);
+    clean_wick_ordered_terms(result);
 
     return result;
 }

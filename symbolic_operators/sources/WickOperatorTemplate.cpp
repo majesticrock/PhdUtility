@@ -111,9 +111,15 @@ TemplateResult WickOperatorTemplate::_handle_num_type(const Operator& left, cons
                 });
         } 
         else {
-            const std::size_t previous_size{result.create_branch()};
-            result.add_index_delta_range(make_delta(base.indices[i], indexComparison[i].base), 0U, previous_size);
-            result.add_index_delta_range(make_delta(other.indices[i], indexComparison[i].other), 0U, previous_size);
+            result.add_index_delta(make_delta(base.indices[i], indexComparison[i].base));
+            result.add_index_delta(make_delta(other.indices[i], indexComparison[i].other));
+
+            result.operation_on_each(
+                [&](TemplateResult::SingleResult& res) { 
+                    res.op.indices.push_back(base.indices[i]);
+                    if (swap_required && saved_type != OperatorType::HoleNumber)
+                        res.factor *= -1;
+                });
         }
     }
     for (auto& res : result.results) {

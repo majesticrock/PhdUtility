@@ -43,12 +43,12 @@ int main() {
     WickOrderedTerm expected_contraction;
     expected_contraction.multiplicity = -1;
     expected_contraction.delta_momenta.push_back({ p, k });
-    expected_contraction.operators.emplace_back(OperatorType::Number, false, k, Index::SpinUp);
-    expected_contraction.wick_expression.operators = { c_k_up_dagger, c_k_down };
+    expected_contraction.operators.emplace_back(OperatorType::Number, false, p, Index::SpinUp);
+    expected_contraction.wick_expression.operators = { c_p_up_dagger, c_k_down.with_momentum(p) };
     const WickOrderedCollector expected{ expected_uncontracted, expected_contraction };
 
     std::cout << "% Product of two bilinear Wick-ordered strings\n\\begin{align*}\n\t"
-              << lhs.wick_expression << " " << rhs.wick_expression << " &= " << result << "\\end{align*}"
+              << lhs.wick_expression << " " << rhs.wick_expression << " = " << result << "\\end{align*}"
               << std::endl;
     std::cout << "% Analytical result, including the cross-contraction delta\n\\begin{align*}\n\t"
               << expected << "\\end{align*}" << std::endl;
