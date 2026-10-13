@@ -92,9 +92,9 @@ int main(int argc, [[maybe_unused]] char** argv) {
 
     sym_op_test::SymOpTest tester(COMPARE_DIR);
     if (std::filesystem::exists(COMPARE_DIR)) {
-        std::cout << "Found compare dir " << std::filesystem::canonical(COMPARE_DIR) << std::endl;
+        std::cerr << "Found compare dir " << std::filesystem::canonical(COMPARE_DIR) << std::endl;
     } else {
-        std::cout << "Did not find compare dir " << COMPARE_DIR << "\nCreating comparison data now..." << std::endl;
+        std::cerr << "Did not find compare dir " << COMPARE_DIR << "\nCreating comparison data now..." << std::endl;
     }
     return tester.perform_test(H, base_term, templates, symmetries,
                                (argc > 1) || !(std::filesystem::exists(COMPARE_DIR)));

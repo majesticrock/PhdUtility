@@ -19,9 +19,10 @@ namespace mrock::symbolic_operators {
  * - CDW: <c_{k+Q}^+ c_k> (1).
  * - SC: <c_{-k down} c_{k up}> (2).
  * - Eta: <c_{-k-Q down} c_{k up}> (3).
- * - Undefined: Represents an undefined type (4).
+ * - HoleNumber: <c c^+> = 1 - <n> (254)
+ * - Undefined: Represents an undefined type (255).
  */
-enum class OperatorType { Number = 0, CDW, SC, Eta, Undefined = 255 };
+enum class OperatorType { Number = 0, CDW, SC, Eta, HoleNumber = 254, Undefined = 255 };
 
 /**
  * @brief Checks whether a given \c OperatorType is a pair creation or annihilation operators
@@ -37,19 +38,25 @@ constexpr bool is_bcs_like(OperatorType type) {
  * @var string_to_wick
  * @brief A map that associates string representations with their corresponding Wick operators values.
  */
-inline const std::map<std::string, OperatorType> string_to_wick = {{"n", OperatorType::Number},
-                                                                   {"g", OperatorType::CDW},
-                                                                   {"f", OperatorType::SC},
-                                                                   {"\\eta", OperatorType::Eta}};
+inline const std::map<std::string, OperatorType> string_to_wick = {
+    {"n", OperatorType::Number},
+    {"g", OperatorType::CDW},
+    {"f", OperatorType::SC},
+    {"\\eta", OperatorType::Eta},
+    {"h", OperatorType::HoleNumber}
+};
 
 /**
  * @var wick_to_string
  * @brief The inverse of string_to_wick.
  */
-inline const std::map<OperatorType, std::string> wick_to_string = {{OperatorType::Number, "n"},
-                                                                   {OperatorType::CDW, "g"},
-                                                                   {OperatorType::SC, "f"},
-                                                                   {OperatorType::Eta, "\\eta"}};
+inline const std::map<OperatorType, std::string> wick_to_string = {
+    {OperatorType::Number, "n"},
+    {OperatorType::CDW, "g"},
+    {OperatorType::SC, "f"},
+    {OperatorType::Eta, "\\eta"},
+    {OperatorType::HoleNumber, "h"}
+};
 
 /**
  * @brief Overloads the stream insertion operator for the Index enum.

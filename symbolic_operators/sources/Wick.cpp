@@ -143,7 +143,8 @@ WickTermCollector identify_wick_operators(const WickTerm& source,
 }
 
 WickTermCollector wicks_theorem(const TermCollector& terms,
-                   const std::vector<WickOperatorTemplate>& operator_templates) {
+                    const std::vector<WickOperatorTemplate>& operator_templates,
+                    const bool run_clean_up) {
     WickTermCollector prepared_wick = prepare_wick(terms);
 
     WickTermCollector ret;
@@ -151,6 +152,9 @@ WickTermCollector wicks_theorem(const TermCollector& terms,
         append_if(ret, identify_wick_operators(w_term, operator_templates), [](const WickTerm& wick) {
             return !(is_always_zero(wick.delta_indices) || is_always_zero(wick.delta_momenta));
         });
+    }
+    if (run_clean_up) {
+        ret.clean_up();
     }
     return ret;
 }

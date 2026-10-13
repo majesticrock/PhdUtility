@@ -27,11 +27,13 @@ std::size_t TemplateResult::create_branch() {
     std::copy_n(results.begin(), current_size, std::back_inserter(results));
     return current_size;
 }
+
 void TemplateResult::clear_impossible() {
     auto new_end = std::remove_if(this->results.begin(), this->results.end(),
                                   [](const SingleResult& result) { return result.contains_impossible_delta(); });
     this->results.erase(new_end, this->results.end());
 }
+
 void TemplateResult::clean_up() {
     for (auto& result : results) {
         result.clear_delta_equals_one();
@@ -61,7 +63,8 @@ TemplateResult WickOperatorTemplate::_handle_sc_type(const Operator& left, const
                                       previous_size);
             result.operation_on_range([&other](TemplateResult::SingleResult& res) { res.op.momentum = other.momentum; },
                                       previous_size, previous_size);
-        } else {
+        } 
+        else {
             const std::size_t previous_size{result.create_branch()};
             result.add_index_delta_range(make_delta(base.indices[i], indexComparison[i].base), 0U, previous_size);
             result.add_index_delta_range(make_delta(other.indices[i], indexComparison[i].other), 0U, previous_size);
@@ -84,23 +87,33 @@ TemplateResult WickOperatorTemplate::_handle_sc_type(const Operator& left, const
     return result;
 }
 TemplateResult WickOperatorTemplate::_handle_num_type(const Operator& left, const Operator& right) const {
-    // c_{k}^+ c_{k+q}
+    // c_{k}^+ c_{k+q} or c_{k+q}^+ c_{k}
+    const bool swap_required = right.is_daggered;
+    const Operator& base{swap_required ? left : right};
+    const Operator& other{swap_required ? right : left};
     // q
-    const Momentum momentum_diff = right.momentum - left.momentum;
+    const Momentum momentum_diff = other.momentum - base.momentum;
 
-    TemplateResult result(1U, this->type, left.momentum);
+    // Takes care of c_k c_k^+ = 1 - n_k
+    const OperatorType saved_type = (swap_required && this->type == OperatorType::Number) ? OperatorType::HoleNumber : this->type;
+    TemplateResult result(1U, saved_type, base.momentum);
     result.results.front().op.is_daggered = false;
     result.momentum_delta = make_delta(this->momentum_difference, momentum_diff);
 
     for (std::size_t i = 0U; i < indexComparison.size(); ++i) {
         if (indexComparison[i].any_identical) {
-            result.add_index_delta(make_delta(left.indices[i], right.indices[i]));
+            result.add_index_delta(make_delta(base.indices[i], other.indices[i]));
             result.operation_on_each(
-                [&left, &i](TemplateResult::SingleResult& res) { res.op.indices.push_back(left.indices[i]); });
-        } else {
+                [&](TemplateResult::SingleResult& res) { 
+                    res.op.indices.push_back(base.indices[i]);
+                    if (swap_required && saved_type != OperatorType::HoleNumber)
+                        res.factor *= -1;
+                });
+        } 
+        else {
             const std::size_t previous_size{result.create_branch()};
-            result.add_index_delta_range(make_delta(left.indices[i], indexComparison[i].base), 0U, previous_size);
-            result.add_index_delta_range(make_delta(right.indices[i], indexComparison[i].other), 0U, previous_size);
+            result.add_index_delta_range(make_delta(base.indices[i], indexComparison[i].base), 0U, previous_size);
+            result.add_index_delta_range(make_delta(other.indices[i], indexComparison[i].other), 0U, previous_size);
         }
     }
     for (auto& res : result.results) {
@@ -122,7 +135,7 @@ TemplateResult WickOperatorTemplate::create_from_operators(const Operator& left,
         return TemplateResult::null_result();
     // The input needs to be normal ordered.
     // This means that the left input must be daggered here
-    assert(left.is_daggered);
+    //assert(left.is_daggered);
     return this->_handle_num_type(left, right);
 }
 }  // namespace mrock::symbolic_operators

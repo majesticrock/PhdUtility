@@ -15,6 +15,9 @@ std::ostream& operator<<(std::ostream& os, const OperatorType op) {
         case OperatorType::Number:
             os << "\\hat{n}";
             break;
+        case OperatorType::HoleNumber:
+            os << "\\hat{h}";
+            break;
         default:
             os << "ERROR_OPERATOR";
     }
