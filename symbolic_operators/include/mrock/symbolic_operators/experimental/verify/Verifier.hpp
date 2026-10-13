@@ -122,10 +122,16 @@ Verifier::SparseMatrix Verifier::symbolic_to_matrix_impl(const CollectorType& te
         
             if constexpr (is_wick) {
                 for (const auto& expec : term.operators) {
-                    if (expec.type != mrock::symbolic_operators::OperatorType::Number) {
+                    if (expec.type == mrock::symbolic_operators::OperatorType::Number) {
+                        prefactor *= occupations[momentum_lookup(expec.momentum)];
+                    }
+                    else if (expec.type == mrock::symbolic_operators::OperatorType::HoleNumber) {
+                        prefactor *= (1. - occupations[momentum_lookup(expec.momentum)]);
+                    }
+                    else {
                         throw std::runtime_error("Expected only Number-type expectation values!");
                     }
-                    prefactor *= occupations[momentum_lookup(expec.momentum)];
+                    
                 }
             }
         

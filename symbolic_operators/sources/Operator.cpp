@@ -30,7 +30,7 @@ std::ostream& operator<<(std::ostream& os, const std::vector<Operator>& ops) {
 std::strong_ordering Operator::operator<=>(const Operator& other) const {
     if (auto cmp = is_fermion <=> other.is_fermion; cmp != 0)
         return cmp;
-    if (auto cmp = is_daggered <=> other.is_daggered; cmp != 0)
+    if (auto cmp = (!is_daggered) <=> (!other.is_daggered); cmp != 0)
         return cmp;
     if (auto cmp = indices <=> other.indices; cmp != 0)
         return cmp;

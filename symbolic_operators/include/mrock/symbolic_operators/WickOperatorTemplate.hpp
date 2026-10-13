@@ -24,7 +24,7 @@ namespace mrock::symbolic_operators {
  * are identical, but <f_k> requires the first index to be spin down.
  */
 struct IndexComparison {
-    bool any_identical;                  ///< Indicates if any identical indices are identical.
+    bool any_identical;                  ///< Indicates if any identical indices are accepted.
     Index base{Index::UndefinedIndex};   ///< The base index.
     Index other{Index::UndefinedIndex};  ///< The other index.
 };

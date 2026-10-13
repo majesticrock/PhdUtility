@@ -61,6 +61,16 @@ public:
     Term to_term(const std::string& base) const;
 
     /**
+     * @brief Permutes the operator string in wick_expression such that all creation operators are on the left,
+     * and all annihilation operators on the right. The function keeps track of sign changes due to fermionic exchange.
+     * No new terms are generated because the operators anticommute under Wick-ordering.
+     * 
+     * @return Returns true if everything ran successfully.
+     * Returns false if two identical fermionic creation or annihilation operators exist in the term.
+     */
+    bool creation_operators_to_the_left();
+
+    /**
      * @brief Includes a template result in the term.
      *
      * @param result The TemplateResult::SingleResult to include.

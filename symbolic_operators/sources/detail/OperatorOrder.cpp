@@ -2,6 +2,7 @@
 #include <mrock/symbolic_operators/Operator.hpp>
 #include <mrock/symbolic_operators/Term.hpp>
 
+#include <algorithm>
 #include <cstddef>
 #include <vector>
 
@@ -92,4 +93,17 @@ void structure_momentum_dependencies(Term& term)
     detail::structure_momentum_dependencies_impl(term, term.operators);
 }
 
-} // namespace mrock::symbolic_operators
+bool sort_lexicographically(std::vector<Operator>& operators) {
+    bool parity = false;
+    for (std::size_t i = 1U; i < operators.size(); ++i) {
+        std::size_t current = i;
+        while (current > 0U && operators[current] < operators[current - 1U]) {
+            if (_perform_operator_swap(operators, current - 1U, current))
+                parity = !parity;
+            --current;
+        }
+    }
+    return parity;
+}
+
+}  // namespace mrock::symbolic_operators

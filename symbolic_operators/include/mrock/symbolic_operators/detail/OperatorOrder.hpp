@@ -119,5 +119,13 @@ bool sort_operators_by_indices(std::vector<Operator>& operators);
  */
 void structure_momentum_dependencies(Term& term);
 
+/**
+ * @brief Sorts a vector of operators by their indices while preserving the normal order.
+ * 
+ * @param operators The vector of operators to be sorted.
+ * @return returns \c true if the sorting induced a fermionic sign change, \c false otherwise.
+ */
+bool sort_lexicographically(std::vector<Operator>& operators);
+
 } // namespace mrock::symbolic_operators
 #endif // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_OPERATOR_ORDER_HPP

@@ -7,6 +7,7 @@
 #include <mrock/symbolic_operators/detail/container_helper.hpp>
 
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <numeric>
 #include <variant>
@@ -71,6 +72,37 @@ Term WickOrderedTerm::to_term(const std::string& base) const {
     }
 
     return result;
+}
+
+bool WickOrderedTerm::creation_operators_to_the_left() {
+    auto& operators = wick_expression.operators;
+    // Fermionic Wick ordering can use anticommutation; bosons can produce extra terms.
+    assert(std::all_of(operators.begin(), operators.end(), [](const Operator& op) { return op.is_fermion; }));
+
+    for (std::size_t i = 0; i < operators.size(); ++i) {
+        for (std::size_t j = i + 1; j < operators.size(); ++j) {
+            if (operators[i].is_daggered == operators[j].is_daggered && operators[i] == operators[j]) {
+                return false;
+            }
+        }
+    }
+
+    std::size_t end = operators.size();
+    while (end > 1U) {
+        std::size_t new_end{};
+        for (std::size_t i = 1U; i < end; ++i) {
+            Operator& left = operators[i - 1U];
+            Operator& right = operators[i];
+            if (!left.is_daggered && right.is_daggered) {
+                multiplicity *= -1;
+                std::swap(left, right);
+                new_end = i;
+            }
+        }
+        end = new_end;
+    }
+
+    return true;
 }
 
 void WickOrderedTerm::include_template_result(const TemplateResult::SingleResult& result) {

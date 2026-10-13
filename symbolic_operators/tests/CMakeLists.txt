@@ -44,6 +44,20 @@ target_link_libraries(explicit_wick_test
         mrock::symbolic_operators 
 )
 
+add_executable(symop_wick_multiple_indices_test wick_multiple_indices.cpp)
+mrock_set_build_options(symop_wick_multiple_indices_test)
+target_link_libraries(symop_wick_multiple_indices_test
+    PRIVATE
+        mrock::symbolic_operators
+)
+
+add_executable(symop_wick_ordered_multiple_indices_test wick_ordered_multiple_indices.cpp)
+mrock_set_build_options(symop_wick_ordered_multiple_indices_test)
+target_link_libraries(symop_wick_ordered_multiple_indices_test
+    PRIVATE
+        mrock::symbolic_operators
+)
+
 add_executable(symop_wick_quartic_test wick_quartic.cpp)
 mrock_set_build_options(symop_wick_quartic_test)
 target_link_libraries(symop_wick_quartic_test
@@ -54,6 +68,13 @@ target_link_libraries(symop_wick_quartic_test
 add_executable(symop_wick_normal_order_test wick_normal_order.cpp)
 mrock_set_build_options(symop_wick_normal_order_test)
 target_link_libraries(symop_wick_normal_order_test
+    PRIVATE
+        mrock::symbolic_operators
+)
+
+add_executable(symop_wick_ordered_multiply_test wick_ordered_multiply.cpp)
+mrock_set_build_options(symop_wick_ordered_multiply_test)
+target_link_libraries(symop_wick_ordered_multiply_test
     PRIVATE
         mrock::symbolic_operators
 )
@@ -94,8 +115,11 @@ add_test(NAME symop_bcs_test COMMAND symop_bcs_test)
 add_test(NAME symop_string_helper_test COMMAND symop_string_helper_test)
 add_test(NAME symop_matrix_representation_test COMMAND symop_matrix_representation_test)
 add_test(NAME explicit_wick_test COMMAND explicit_wick_test)
+add_test(NAME symop_wick_multiple_indices_test COMMAND symop_wick_multiple_indices_test)
+add_test(NAME symop_wick_ordered_multiple_indices_test COMMAND symop_wick_ordered_multiple_indices_test)
 add_test(NAME symop_wick_quartic_test COMMAND symop_wick_quartic_test)
 add_test(NAME symop_wick_normal_order_test COMMAND symop_wick_normal_order_test)
+add_test(NAME symop_wick_ordered_multiply_test COMMAND symop_wick_ordered_multiply_test)
 add_test(NAME symop_wick_operator_conversion_test COMMAND symop_wick_operator_conversion_test)
 add_test(NAME symop_wick_ordered_test COMMAND symop_wick_ordered_test)
 add_test(NAME symop_wick_matrix_test COMMAND symop_wick_matrix_test)

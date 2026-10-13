@@ -71,8 +71,6 @@ bool verify_commutator(const WickOrderedCollector& lhs,
 }
 
 int main() {
-    // TODO: Implement all of this
-    return 0;
     const Verifier verifier;
     const Momentum k('k');
     Momentum p('p');

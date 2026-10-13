@@ -1,10 +1,52 @@
 #include <mrock/symbolic_operators/experimental/WickOrderedCollector.hpp>
+#include <mrock/symbolic_operators/experimental/WickOrderedTerm.hpp>
+#include <mrock/symbolic_operators/detail/OperatorOrder.hpp>
 
 #include <mrock/symbolic_operators/Term.hpp>
 
 using namespace mrock::symbolic_operators;
 
 int main(int /*argc*/, char** /*argv*/) {
+    const Operator fermion_k(Momentum('k'), Index::SpinUp, false);
+    const Operator fermion_p(Momentum('p'), Index::SpinUp, false);
+    std::vector<Operator> fermion_operators{ fermion_p, fermion_k };
+    if (!sort_lexicographically(fermion_operators) ||
+        fermion_operators != std::vector<Operator>{ fermion_k, fermion_p }) {
+        return 1;
+    }
+
+    const Operator boson_p = Operator::Boson(Momentum('p'), false);
+    std::vector<Operator> mixed_operators{ fermion_k, boson_p };
+    if (sort_lexicographically(mixed_operators) ||
+        mixed_operators != std::vector<Operator>{ boson_p, fermion_k }) {
+        return 1;
+    }
+
+    const Operator fermion_annihilation(Momentum('k'), Index::SpinUp, false);
+    const Operator fermion_creation(Momentum('p'), Index::SpinDown, true);
+    const Operator second_fermion_annihilation(Momentum('q'), Index::SpinDown, false);
+    const Operator second_fermion_creation(Momentum('r'), Index::SpinUp, true);
+
+    experimental::WickOrderedTerm reordered_fermions;
+    reordered_fermions.multiplicity = 1;
+    reordered_fermions.wick_expression.operators = {
+        fermion_annihilation, fermion_creation, second_fermion_annihilation, second_fermion_creation
+    };
+    if (!reordered_fermions.creation_operators_to_the_left() || reordered_fermions.multiplicity != -1 ||
+        reordered_fermions.wick_expression.operators !=
+            std::vector<Operator>{ fermion_creation, second_fermion_creation,
+                                   fermion_annihilation, second_fermion_annihilation }) {
+        return 1;
+    }
+
+    experimental::WickOrderedTerm duplicate_fermions;
+    duplicate_fermions.multiplicity = 1;
+    duplicate_fermions.wick_expression.operators = { fermion_creation, fermion_creation };
+    if (duplicate_fermions.creation_operators_to_the_left() || duplicate_fermions.multiplicity != 1 ||
+        duplicate_fermions.wick_expression.operators != std::vector<Operator>{ fermion_creation, fermion_creation }) {
+        return 1;
+    }
+
     const Operator c_q_up     = Operator(Momentum('q'), Index::SpinUp,   false);
     const Operator c_q_down   = Operator(Momentum('q'), Index::SpinDown, false);
     const Operator c_q_sigma  = Operator(Momentum('q'), Index::Sigma,    false);

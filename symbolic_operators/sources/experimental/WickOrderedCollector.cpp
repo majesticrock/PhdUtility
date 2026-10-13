@@ -213,30 +213,95 @@ WickOrderedCollector wick_decompose(const TermCollector& terms,
     return result;
 }
 
+WickOrderedCollector multiply_impl(const WickOrderedTerm& lhs,
+                              const WickOrderedTerm& rhs,
+                              const std::vector<WickOperatorTemplate>& templates) 
+{
+    WickOrderedCollector result;
+
+    Term term_l = lhs.to_term(WICK_OP_TO_STRING_TEMP_BASE);
+    Term term_r = rhs.to_term(WICK_OP_TO_STRING_TEMP_BASE);
+
+    for (auto& op : term_l.operators) {
+        op.indices.push_back(Index::WickA);
+    }
+    for (auto& op : term_r.operators) {
+        op.indices.push_back(Index::WickB);
+    }
+    term_l *= term_r;
+
+    result = wick_decompose(term_l, templates);
+    
+    const auto is_tmp_index = [](Index index){
+        return (index == Index::WickA || index == Index::WickB);
+    };
+
+    for (auto& term : result) {
+        for (auto& op : term.operators) {
+            std::erase_if(op.indices.indices, is_tmp_index);
+        }
+        for (auto& op : term.wick_expression) {
+            std::erase_if(op.indices.indices, is_tmp_index);
+        }
+        for (auto it = term.coefficients.begin(); it != term.coefficients.end();) {
+            WickOperator transform = WickOperator::from_coefficient(*it, WICK_OP_TO_STRING_TEMP_BASE);
+            if (transform.type == OperatorType::Undefined) {
+                ++it;
+            }
+            else {
+                term.operators.push_back(std::move(transform));
+                it = term.coefficients.erase(it);
+            }
+        }
+    }
+    //clean_wick_ordered_terms(result);
+
+    return result;
+}
+
+void include_cross_contraction_in_templates(std::vector<WickOperatorTemplate>& templates) 
+{
+    const std::size_t old_size = templates.size();
+    duplicate_n_inplace(templates, 1);
+    for (std::size_t i=0U; i<old_size; ++i) {
+        templates[i].indexComparison.push_back(IndexComparison{false, Index::WickA, Index::WickB});
+        templates[i+old_size].indexComparison.push_back(IndexComparison{false, Index::WickB, Index::WickA});
+    }
+}
+
 WickOrderedCollector multiply(const WickOrderedTerm& lhs,
                               const WickOrderedTerm& rhs,
                               std::vector<WickOperatorTemplate> templates) 
 {
-    return WickOrderedCollector();
+    include_cross_contraction_in_templates(templates);
+    return multiply_impl(lhs, rhs, templates);
+}
+
+WickOrderedCollector commutator_impl(const WickOrderedTerm& lhs,
+                                const WickOrderedTerm& rhs,
+                                const std::vector<WickOperatorTemplate>& templates) 
+{
+    WickOrderedCollector result = multiply_impl(lhs, rhs, templates) - multiply_impl(rhs, lhs, templates);
+    clean_wick_ordered_terms(result);
+    return result;
 }
 
 WickOrderedCollector commutator(const WickOrderedTerm& lhs,
                                 const WickOrderedTerm& rhs,
-                                std::vector<WickOperatorTemplate> templates) 
-{
-    WickOrderedCollector result = multiply(lhs, rhs, templates) - multiply(rhs, lhs, templates);
-    clean_wick_ordered_terms(result);
-    return result;
+                                std::vector<WickOperatorTemplate> templates) {
+    include_cross_contraction_in_templates(templates);
+    return commutator_impl(lhs, rhs, templates);
 }
 
 WickOrderedCollector commutator(const WickOrderedCollector& lhs,
                                 const WickOrderedCollector& rhs,
                                 std::vector<WickOperatorTemplate> templates)
 {
+    include_cross_contraction_in_templates(templates);
     WickOrderedCollector result;
     for (const auto& lhs_term : lhs) {
         for (const auto& rhs_term : rhs) {
-            result += commutator(lhs_term, rhs_term, templates);
+            result += commutator_impl(lhs_term, rhs_term, templates);
         }
     }
     return result;
@@ -271,6 +336,14 @@ void clean_wick_ordered_terms(WickOrderedCollector& terms,
             coeff.use_custom_symmetry();
             coeff.use_inversion_symmetry();
         }
+
+        if (!it->creation_operators_to_the_left()) {
+            it = terms.erase(it);
+            continue;
+        }
+        if (sort_lexicographically(it->wick_expression.operators)) {
+            it->multiplicity *= -1;
+        }
         ++it;
     }
 
@@ -298,7 +371,7 @@ void clean_wick_ordered_terms(WickOrderedCollector& terms,
         }
     }
 
-    for (auto& term :terms) {
+    for (auto& term : terms) {
         if (sort_operators_by_indices(term.wick_expression.operators)) {
             term.multiplicity *= -1;
         }
