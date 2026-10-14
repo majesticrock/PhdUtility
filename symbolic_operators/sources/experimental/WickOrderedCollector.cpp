@@ -206,7 +206,7 @@ void wick_decompose_internal(const std::vector<Operator>& operators,
     }
 }
 
-WickOrderedCollector wick_decompose(const Term& term, const std::vector<WickOperatorTemplate>& templates)
+WickOrderedCollector wick_decompose(const Term& term, const std::vector<WickOperatorTemplate>& templates, const bool clean_up)
 {
     const std::size_t estimated_size = double_factorial(term.get_operators().size()) * templates.size();
     WickOrderedCollector result;
@@ -215,11 +215,14 @@ WickOrderedCollector wick_decompose(const Term& term, const std::vector<WickOper
     WickOrderedTerm initial(term);
     wick_decompose_internal(term.get_operators(), templates, std::move(initial), result);
 
+    if (clean_up) {
+        clean_wick_ordered_terms(result);
+    }
+
     return result;
 }
 
-WickOrderedCollector wick_decompose(const TermCollector& terms,
-                                    const std::vector<WickOperatorTemplate>& templates) 
+WickOrderedCollector wick_decompose(const TermCollector& terms, const std::vector<WickOperatorTemplate>& templates, const bool clean_up) 
 {
     WickOrderedCollector result;
     std::size_t estimated_size = std::accumulate(
@@ -234,6 +237,9 @@ WickOrderedCollector wick_decompose(const TermCollector& terms,
         wick_decompose_internal(term.get_operators(), templates, std::move(initial), result);
     }
 
+    if (clean_up) {
+        clean_wick_ordered_terms(result);
+    }
     return result;
 }
 
@@ -268,6 +274,10 @@ WickOrderedCollector multiply_impl(const WickOrderedTerm& lhs,
             std::erase_if(op.indices.indices, is_tmp_index);
         }
         for (auto it = term.coefficients.begin(); it != term.coefficients.end();) {
+            if (it->momenta.size() != 1U) {
+                ++it;
+                continue;
+            }
             WickOperator transform = WickOperator::from_coefficient(*it, WICK_OP_TO_STRING_TEMP_BASE);
             if (transform.type == OperatorType::Undefined) {
                 ++it;
@@ -279,7 +289,6 @@ WickOrderedCollector multiply_impl(const WickOrderedTerm& lhs,
         }
     }
     clean_wick_ordered_terms(result);
-
     return result;
 }
 
@@ -404,6 +413,7 @@ void clean_wick_ordered_terms(WickOrderedCollector& terms,
             coeff.use_custom_symmetry();
             coeff.use_inversion_symmetry();
         }
+        std::sort(term.coefficients.begin(), term.coefficients.end());
     }
 
     terms.combine_duplicates();
@@ -442,22 +452,7 @@ void WickOrderedCollector::sort() {
         term.sort();
     }
 
-    std::sort(terms.begin(), terms.end(), 
-        [](const experimental::WickOrderedTerm& l, const experimental::WickOrderedTerm& r) {
-            if (l.wick_expression.size() < r.wick_expression.size()) return true;
-            if (l.wick_expression.size() > r.wick_expression.size()) return false;
-
-            if (l.sums.momenta.size() < r.sums.momenta.size()) return true;
-            if (l.sums.momenta.size() > r.sums.momenta.size()) return false;
-
-            if (l.sums.spins.size() < r.sums.spins.size()) return true;
-            if (l.sums.spins.size() > r.sums.spins.size()) return false;
-            
-            if (l.operators.size() < r.operators.size()) return true;
-            if (l.operators.size() > r.operators.size()) return false;
-
-            return false;
-        });
+    std::sort(terms.begin(), terms.end());
 }
 
 WickOrderedCollector& WickOrderedCollector::operator+=(const WickOrderedCollector& other)

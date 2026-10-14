@@ -388,6 +388,9 @@ double Verifier::coefficient_value(const Coefficient& coefficient) const
     if (coefficient.name == "\\tilde{\\varepsilon}") {
         return cosines[k] - 0.5 * U - 2 * V;
     }
+    if (coefficient.name == "\\varepsilon") {
+        return cosines[k];
+    }
     const IntMomentum<L> p = momentum_lookup(coefficient.momenta[1]);
     const IntMomentum<L> q = momentum_lookup(coefficient.momenta[2]);
     

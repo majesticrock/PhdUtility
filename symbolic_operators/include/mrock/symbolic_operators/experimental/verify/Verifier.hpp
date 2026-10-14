@@ -129,7 +129,7 @@ Verifier::SparseMatrix Verifier::symbolic_to_matrix_impl(const CollectorType& te
                         prefactor *= (1. - occupations[momentum_lookup(expec.momentum)]);
                     }
                     else {
-                        throw std::runtime_error("Expected only Number-type expectation values!");
+                        throw std::runtime_error("Expected only Number- or HoleNumber-type expectation values!");
                     }
                     
                 }

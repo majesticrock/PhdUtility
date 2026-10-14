@@ -77,8 +77,7 @@ WickOperator WickOperator::from_coefficient(const Coefficient& coeff, const std:
         }
     }
 
-    return WickOperator(OperatorType::Undefined, coeff.is_daggered,
-                        coeff.momenta.empty() ? Momentum{} : coeff.momenta.front(), coeff.indices);
+    return WickOperator(OperatorType::Undefined, coeff.is_daggered, coeff.momenta.front(), coeff.indices);
 }
 
 std::vector<Operator> WickOperator::to_operator_expression() const {

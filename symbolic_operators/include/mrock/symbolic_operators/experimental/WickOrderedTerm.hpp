@@ -45,6 +45,21 @@ public:
     WickOrderedTerm(const WickTerm& base);
 
     /**
+     * @brief Constructs a Term with a summation over momenta and spins and a coefficient
+     *
+     * @param _multiplicity The _multiplicity of the term
+     * @param _coefficient The coefficient
+     * @param _sums The sums
+     * @param _wick_operator_string The operators of the term, i.e., :cccc... :
+     * @param _expectation_values The expectation values, i.e., <cc> ...
+     */
+    WickOrderedTerm(const IntFractional& _multiplicity,
+        const Coefficient& _coefficient,
+        const SumContainer& _sums,
+        const std::vector<Operator>& _wick_operator_string,
+        const std::vector<WickOperator>& _expectation_values);
+
+    /**
      * @brief Constructs a WickOrderedTerm object using the coefficients, sums, etc provided from a base WickOrderedTerm, 
      * while ignoring the Wick expression of the base term.
      * 

@@ -52,9 +52,9 @@ struct WickOrderedCollector : public mrock::symbolic_operators::AbstractCollecto
  * @param templates The vector of WickOperatorTemplate objects to use for decomposition.
  * @return WickOrderedCollector The collector containing the resulting WickOrderedTerm objects.
  */
-WickOrderedCollector wick_decompose(const Term& term, const std::vector<WickOperatorTemplate>& templates);
+WickOrderedCollector wick_decompose(const Term& term, const std::vector<WickOperatorTemplate>& templates, const bool clean_up = false);
 
-WickOrderedCollector wick_decompose(const TermCollector& terms, const std::vector<WickOperatorTemplate>& templates);
+WickOrderedCollector wick_decompose(const TermCollector& terms, const std::vector<WickOperatorTemplate>& templates, const bool clean_up = false);
 
 WickOrderedCollector multiply(const WickOrderedTerm& lhs, const WickOrderedTerm& rhs, std::vector<WickOperatorTemplate> templates);
 

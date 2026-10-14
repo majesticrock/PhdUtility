@@ -20,43 +20,45 @@
 #include <stdexcept>
 
 namespace mrock::symbolic_operators {
-Term::Term(IntFractional _multiplicity,
-           std::vector<Coefficient> _coefficients,
+Term::Term(const IntFractional& _multiplicity,
+           const std::vector<Coefficient>& _coefficients,
            const SumContainer& _sums,
            const std::vector<Operator>& _operators)
     : AbstractTerm<Operator>(_multiplicity, _coefficients, _sums, _operators) {}
 
-Term::Term(IntFractional _multiplicity,
-           Coefficient _coefficient,
+Term::Term(const IntFractional& _multiplicity,
+           const Coefficient& _coefficient,
            const SumContainer& _sums,
            const std::vector<Operator>& _operators)
     : AbstractTerm<Operator>(_multiplicity, _coefficient, _sums, _operators) {}
 
-Term::Term(IntFractional _multiplicity,
-           Coefficient _coefficient,
+Term::Term(const IntFractional& _multiplicity,
+           const Coefficient& _coefficient,
            const MomentumSum& _sum_momenta,
            const std::vector<Operator>& _operators)
     : AbstractTerm<Operator>(_multiplicity, _coefficient, SumContainer{_sum_momenta, {}}, _operators) {}
 
-Term::Term(IntFractional _multiplicity,
-           Coefficient _coefficient,
+Term::Term(const IntFractional& _multiplicity,
+           const Coefficient& _coefficient,
            const IndexSum& _sum_indices,
            const std::vector<Operator>& _operators)
     : AbstractTerm<Operator>(_multiplicity, _coefficient, SumContainer{{}, _sum_indices}, _operators) {}
 
-Term::Term(IntFractional _multiplicity, Coefficient _coefficient, const std::vector<Operator>& _operators)
+Term::Term(const IntFractional& _multiplicity,
+           const Coefficient& _coefficient,
+           const std::vector<Operator>& _operators)
     : AbstractTerm<Operator>(_multiplicity, _coefficient, _operators) {}
 
-Term::Term(IntFractional _multiplicity, const SumContainer& _sums, const std::vector<Operator>& _operators)
+Term::Term(const IntFractional& _multiplicity, const SumContainer& _sums, const std::vector<Operator>& _operators)
     : AbstractTerm<Operator>(_multiplicity, std::vector<Coefficient>(), _sums, _operators) {}
 
-Term::Term(IntFractional _multiplicity, const MomentumSum& _sum_momenta, const std::vector<Operator>& _operators)
+Term::Term(const IntFractional& _multiplicity, const MomentumSum& _sum_momenta, const std::vector<Operator>& _operators)
     : AbstractTerm<Operator>(_multiplicity, std::vector<Coefficient>(), SumContainer{_sum_momenta, {}}, _operators) {}
 
-Term::Term(IntFractional _multiplicity, const IndexSum& _sum_indices, const std::vector<Operator>& _operators)
+Term::Term(const IntFractional& _multiplicity, const IndexSum& _sum_indices, const std::vector<Operator>& _operators)
     : AbstractTerm<Operator>(_multiplicity, std::vector<Coefficient>(), SumContainer{{}, _sum_indices}, _operators) {}
 
-Term::Term(IntFractional _multiplicity, const std::vector<Operator>& _operators)
+Term::Term(const IntFractional& _multiplicity, const std::vector<Operator>& _operators)
     : AbstractTerm<Operator>(_multiplicity, _operators) {}
 
 void Term::print() const {

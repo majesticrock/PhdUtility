@@ -84,8 +84,8 @@ public:
      * @param _sums The sums
      * @param _operators The operators of the term
      */
-    Term(IntFractional _multiplicity,
-         std::vector<Coefficient> _coefficients,
+    Term(const IntFractional& _multiplicity,
+         const std::vector<Coefficient>& _coefficients,
          const SumContainer& _sums,
          const std::vector<Operator>& _operators = std::vector<Operator>());
 
@@ -97,8 +97,8 @@ public:
      * @param _sums The sums
      * @param _operators The operators of the term
      */
-    Term(IntFractional _multiplicity,
-         Coefficient _coefficient,
+    Term(const IntFractional& _multiplicity,
+         const Coefficient& _coefficient,
          const SumContainer& _sums,
          const std::vector<Operator>& _operators = std::vector<Operator>());
 
@@ -110,8 +110,8 @@ public:
      * @param _sum_momenta Sum over momenta
      * @param _operators The operators of the term
      */
-    Term(IntFractional _multiplicity,
-         Coefficient _coefficient,
+    Term(const IntFractional& _multiplicity,
+         const Coefficient& _coefficient,
          const MomentumSum& _sum_momenta,
          const std::vector<Operator>& _operators = std::vector<Operator>());
 
@@ -123,8 +123,8 @@ public:
      * @param _sum_spins Sum over spins (or other indices)
      * @param _operators The operators of the term
      */
-    Term(IntFractional _multiplicity,
-         Coefficient _coefficient,
+    Term(const IntFractional& _multiplicity,
+         const Coefficient& _coefficient,
          const IndexSum& _sum_spins,
          const std::vector<Operator>& _operators = std::vector<Operator>());
 
@@ -135,8 +135,8 @@ public:
      * @param _coefficient The coefficient
      * @param _operators The operators of the term
      */
-    Term(IntFractional _multiplicity,
-         Coefficient _coefficient,
+    Term(const IntFractional& _multiplicity,
+         const Coefficient& _coefficient,
          const std::vector<Operator>& _operators = std::vector<Operator>());
 
     /**
@@ -146,7 +146,7 @@ public:
      * @param _sums Sums
      * @param _operators The operators of the term
      */
-    Term(IntFractional _multiplicity,
+    Term(const IntFractional& _multiplicity,
          const SumContainer& _sums,
          const std::vector<Operator>& _operators = std::vector<Operator>());
 
@@ -157,7 +157,7 @@ public:
      * @param _sum_momenta Sum over momenta
      * @param _operators The operators of the term
      */
-    Term(IntFractional _multiplicity,
+    Term(const IntFractional& _multiplicity,
          const MomentumSum& _sum_momenta,
          const std::vector<Operator>& _operators = std::vector<Operator>());
 
@@ -168,7 +168,7 @@ public:
      * @param _sum_spins Sum over spins (or other indices)
      * @param _operators The operators of the term
      */
-    Term(IntFractional _multiplicity,
+    Term(const IntFractional& _multiplicity,
          const IndexSum& _sum_spins,
          const std::vector<Operator>& _operators = std::vector<Operator>());
 
@@ -178,7 +178,8 @@ public:
      * @param _multiplicity The _multiplicity of the term
      * @param _operators The operators of the term
      */
-    explicit Term(IntFractional _multiplicity, const std::vector<Operator>& _operators = std::vector<Operator>());
+    explicit Term(const IntFractional& _multiplicity,
+                  const std::vector<Operator>& _operators = std::vector<Operator>());
 
     /**
      * @brief Default constructor.

@@ -49,6 +49,20 @@ WickOrderedTerm::WickOrderedTerm(const WickTerm& base)
       wick_expression()
 { }
 
+WickOrderedTerm::WickOrderedTerm(const IntFractional& _multiplicity,
+                                 const Coefficient& _coefficient,
+                                 const SumContainer& _sums,
+                                 const std::vector<Operator>& _wick_operator_string,
+                                 const std::vector<WickOperator>& _expectation_values)
+    : AbstractTerm<WickOperator>(_multiplicity,
+                                 decltype(coefficients)(1U, _coefficient),
+                                 _sums,
+                                 decltype(delta_momenta)(),
+                                 decltype(delta_indices)(),
+                                 _expectation_values),
+    wick_expression(_wick_operator_string)
+{ }
+
 WickOrderedTerm WickOrderedTerm::from_wick_term_skip_wick_expression(const WickOrderedTerm& base)
 {
     WickOrderedTerm result;
