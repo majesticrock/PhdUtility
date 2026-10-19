@@ -1,5 +1,6 @@
 #ifndef MROCK_UTILITY_INCLUDE_MROCK_UTILITY_SELFCONSISTENCY_ITERATIVESOLVER_HPP
 #define MROCK_UTILITY_INCLUDE_MROCK_UTILITY_SELFCONSISTENCY_ITERATIVESOLVER_HPP
+
 /**
  * @file IterativeSolver.hpp
  * @brief Provides the IterativeSolver template class and related functions for self-consistency computations.
@@ -10,6 +11,7 @@
 #include <Eigen/Dense>
 
 #include <chrono>
+#include <concepts>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -21,6 +23,7 @@ namespace mrock::utility::Selfconsistency {
  */
 template <class RealType>
 inline constexpr RealType PRECISION = 1e2 * std::numeric_limits<RealType>::epsilon();
+
 template <>
 inline constexpr float PRECISION<float> = 1e1f * std::numeric_limits<float>::epsilon();
 
@@ -31,6 +34,7 @@ struct DebugPolicy {
     bool convergenceWarning{true};
     bool printSteps{false};
 };
+
 inline constexpr DebugPolicy WarnNoConvergence{true, false};
 inline constexpr DebugPolicy NoWarning{false, false};
 inline constexpr DebugPolicy PrintEverything{true, true};
@@ -44,7 +48,10 @@ template <class RealType>
 struct ConvergenceInfo {
     RealType error{100};
     bool converged{false};
-    explicit operator bool() const { return this->converged; };
+
+    explicit operator bool() const {
+        return this->converged;
+    }
 };
 
 /**
@@ -57,7 +64,8 @@ struct ConvergenceInfo {
  */
 template <class RealType>
 std::ostream& operator<<(std::ostream& os, const ConvergenceInfo<RealType>& _info) {
-    os << (_info ? "C" : "No c") << "onvergence achieved with error = " << _info.error;
+    os << (_info ? "C" : "No c")
+       << "onvergence achieved with error = " << _info.error;
     return os;
 }
 
@@ -87,9 +95,21 @@ protected:
     const unsigned int NUMBER_OF_PARAMETERS{};
 
     /**
+     * @brief Detects whether the attributes type has a writable converged member.
+     *
+     * If the member exists and can be assigned a bool value, the original
+     * convergence-flag behavior is preserved. Otherwise, no such assignment
+     * is performed.
+     */
+    static constexpr bool has_converged_flag =
+        requires(SelfconsistencyAttributes& attr) {
+            attr.converged = true;
+        };
+
+    /**
      * @brief Checks for sign flipping behavior in the parameter vector.
      *
-     * @param x0 The parameter vector.
+     * @param _x0 The parameter vector.
      * @return True if sign flipping behavior is detected, false otherwise.
      */
     inline bool has_sign_flipping_behaviour(const ParameterVector& _x0) {
@@ -116,35 +136,47 @@ protected:
         std::copy(this->_attr->begin(), this->_attr->end(), f0.begin());
         x0 = f0;
 
-        if (debugPolicy.printSteps) {
-            std::cout << "-1:\t" << std::scientific << std::setprecision(4) << "\n" << x0.transpose() << std::endl;
+        if constexpr (debugPolicy.printSteps) {
+            std::cout << "-1:\t" << std::scientific << std::setprecision(4)
+                      << "\n" << x0.transpose() << std::endl;
         }
 
         unsigned int iterNum = 0U;
+
         while (iterNum < MAX_STEPS && convergence.error > _precision) {
             this->_model->iteration_step(x0, f0);
+
             if (has_sign_flipping_behaviour(x0)) {
                 if constexpr (debugPolicy.convergenceWarning) {
-                    std::cerr << "Sign flipper for " << this->_model->info() << std::endl;
+                    std::cerr << "Sign flipper for "
+                              << this->_model->info() << std::endl;
                 }
                 return {2 * x0.norm(), false};
             }
+
             convergence.error = f0.norm() / x0.norm();
             std::copy(this->_attr->begin(), this->_attr->end(), x0.begin());
 
             if constexpr (debugPolicy.printSteps) {
-                std::cout << iterNum << ":\t" << std::scientific << std::setprecision(4) << "\n"
-                          << x0.transpose() << std::endl;
-                std::cout << "Error:  " << std::setprecision(12) << convergence.error << "\n";
+                std::cout << iterNum << ":\t"
+                          << std::scientific << std::setprecision(4)
+                          << "\n" << x0.transpose() << std::endl;
+                std::cout << "Error:  "
+                          << std::setprecision(12)
+                          << convergence.error << "\n";
             }
+
             ++iterNum;
         }
+
         if constexpr (debugPolicy.printSteps) {
             std::cout << "Finished iterative procedure!" << std::endl;
         }
+
         if (iterNum >= MAX_STEPS) {
             return convergence;
         }
+
         convergence.converged = true;
         return convergence;
     }
@@ -157,21 +189,33 @@ public:
      * @param MAX_STEPS The maximum number of steps.
      * @return The self-consistency attributes.
      */
-    virtual const SelfconsistencyAttributes& compute(bool print_time = false, const unsigned int MAX_STEPS = 1500) {
+    virtual const SelfconsistencyAttributes& compute(
+        bool print_time = false,
+        const unsigned int MAX_STEPS = 1500) {
+
         std::chrono::time_point begin = std::chrono::steady_clock::now();
-        this->_attr->converged = true;
+
+        if constexpr (has_converged_flag) {
+            this->_attr->converged = true;
+        }
+
         auto _info = this->procedure_iterative(MAX_STEPS);
+
         if (!_info) {
             if constexpr (debugPolicy.convergenceWarning) {
-                std::cerr << "For " << this->_model->info() << ": " << _info << std::endl;
+                std::cerr << "For " << this->_model->info()
+                          << ": " << _info << std::endl;
             }
         }
 
         if (print_time) {
             std::chrono::time_point end = std::chrono::steady_clock::now();
+
             std::cout << "Time for self-consistency computations: "
-                      << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]"
-                      << std::endl;
+                      << std::chrono::duration_cast<std::chrono::milliseconds>(
+                             end - begin)
+                             .count()
+                      << "[ms]" << std::endl;
         }
 
         return *this->_attr;
@@ -192,17 +236,25 @@ public:
      * @param attribute_ptr Pointer to the self-consistency attributes.
      */
     IterativeSolver(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr)
-        : _model(model_ptr), _attr(attribute_ptr), NUMBER_OF_PARAMETERS(_attr->size()) {}
+        : _model(model_ptr),
+          _attr(attribute_ptr),
+          NUMBER_OF_PARAMETERS(_attr->size()) {}
 
     /**
-     * @brief Constructs an IterativeSolver with the given model, attributes, and precision.
+     * @brief Constructs an IterativeSolver with the given model, attributes,
+     * and precision.
      *
      * @param model_ptr Pointer to the model.
      * @param attribute_ptr Pointer to the self-consistency attributes.
      * @param precision The precision for the iterative procedure.
      */
-    IterativeSolver(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, const RealType& precision)
-        : _model(model_ptr), _attr(attribute_ptr), _precision(precision), NUMBER_OF_PARAMETERS(_attr->size()) {}
+    IterativeSolver(Model* model_ptr,
+                    SelfconsistencyAttributes* attribute_ptr,
+                    const RealType& precision)
+        : _model(model_ptr),
+          _attr(attribute_ptr),
+          _precision(precision),
+          NUMBER_OF_PARAMETERS(_attr->size()) {}
 };
 
 /**
@@ -217,12 +269,18 @@ public:
  * @param precision The precision for the iterative procedure.
  * @return An IterativeSolver object.
  */
-template <const DebugPolicy& debugPolicy, class DataType, class Model, class SelfconsistencyAttributes>
-auto make_iterative(Model* model_ptr,
-                    SelfconsistencyAttributes* attribute_ptr,
-                    const UnderlyingRealType_t<DataType>& precision = PRECISION<UnderlyingRealType_t<DataType>>) {
-    return IterativeSolver<DataType, Model, SelfconsistencyAttributes, debugPolicy>(model_ptr, attribute_ptr,
-                                                                                    precision);
+template <const DebugPolicy& debugPolicy,
+          class DataType,
+          class Model,
+          class SelfconsistencyAttributes>
+auto make_iterative(
+    Model* model_ptr,
+    SelfconsistencyAttributes* attribute_ptr,
+    const UnderlyingRealType_t<DataType>& precision =
+        PRECISION<UnderlyingRealType_t<DataType>>) {
+
+    return IterativeSolver<DataType, Model, SelfconsistencyAttributes, debugPolicy>(
+        model_ptr, attribute_ptr, precision);
 }
 
 /**
@@ -237,11 +295,19 @@ auto make_iterative(Model* model_ptr,
  * @return An IterativeSolver object.
  */
 template <class DataType, class Model, class SelfconsistencyAttributes>
-auto make_iterative(Model* model_ptr,
-                    SelfconsistencyAttributes* attribute_ptr,
-                    const UnderlyingRealType_t<DataType>& precision = PRECISION<UnderlyingRealType_t<DataType>>) {
-    return IterativeSolver<DataType, Model, SelfconsistencyAttributes, WarnNoConvergence>(model_ptr, attribute_ptr,
-                                                                                          precision);
+auto make_iterative(
+    Model* model_ptr,
+    SelfconsistencyAttributes* attribute_ptr,
+    const UnderlyingRealType_t<DataType>& precision =
+        PRECISION<UnderlyingRealType_t<DataType>>) {
+
+    return IterativeSolver<
+        DataType,
+        Model,
+        SelfconsistencyAttributes,
+        WarnNoConvergence>(model_ptr, attribute_ptr, precision);
 }
+
 }  // namespace mrock::utility::Selfconsistency
+
 #endif  // MROCK_UTILITY_INCLUDE_MROCK_UTILITY_SELFCONSISTENCY_ITERATIVESOLVER_HPP

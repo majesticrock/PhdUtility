@@ -446,7 +446,7 @@ def lattice_cut_params(N, g, U, E_F, omega_D):
                 "omega_D" : _float_or_str (omega_D)
             }
 
-def nickel_cut_params(L, T, U_0, tprime, E_F):
+def nickel_cut_params(L, T, U_0, tprime, E_F, **kwargs):
     """Create a parameter dictionary for a lattice-cut calculation.
 
     Parameters
