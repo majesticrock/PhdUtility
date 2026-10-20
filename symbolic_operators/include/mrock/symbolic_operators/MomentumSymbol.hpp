@@ -73,7 +73,7 @@ struct MomentumSymbol {
          * @return The result of the comparison.
          */
         constexpr std::strong_ordering operator<=>(const unsigned char other) const noexcept { return _n <=> other; }
-        
+
         /**
          * @brief Converts the name_type object to a character.
          * @return The character representation of the name_type.
@@ -85,7 +85,7 @@ struct MomentumSymbol {
 
     name_type name{};  ///< The name associated with the momentum.
     int factor{};      ///< The factor associated with the momentum.
-    
+
     /**
      * @brief Serializes the MomentumSymbol object, required for boost support.
      * @tparam Archive The type of the archive.
@@ -105,16 +105,14 @@ struct MomentumSymbol {
      * @param _factor The factor to initialize the momentum with.
      * @param _name The name to initialize the momentum with.
      */
-    constexpr MomentumSymbol(int _factor, unsigned char _name) noexcept 
-        : name(_name), factor{_factor} {};
+    constexpr MomentumSymbol(int _factor, unsigned char _name) noexcept : name(_name), factor{_factor} {};
 
     /**
      * @brief Constructs a MomentumSymbol with a given factor and name_type.
      * @param _factor The factor to initialize the momentum with.
      * @param _name The name_type to initialize the momentum with.
      */
-    constexpr MomentumSymbol(int _factor, name_type _name) noexcept
-        : name{_name}, factor{_factor} {};
+    constexpr MomentumSymbol(int _factor, name_type _name) noexcept : name{_name}, factor{_factor} {};
 
     /**
      * @brief Compares two MomentumSymbol objects.

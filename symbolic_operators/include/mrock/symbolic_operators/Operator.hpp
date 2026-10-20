@@ -31,10 +31,10 @@ struct Operator {
                            ///< orbitals, bands etc.
     bool is_daggered{};    ///< Indicates if the operator is daggered (conjugate transpose).
     bool is_fermion{
-        true};  ///< Indicates if the operator is a fermion. This of course impacts the commutation relation 
+        true};  ///< Indicates if the operator is a fermion. This of course impacts the commutation relation
                 ///< [O', O^+]_{+/-} = delta_{O,O'}, where the plus applies to fermions and the minus to bosons.
 
-    bool _wick_other{}; ///< A temporary flag required when commuting two Wick-ordered terms
+    bool _wick_other{};  ///< A temporary flag required when commuting two Wick-ordered terms
 
     /**
      * @brief Serializes the Operator object.

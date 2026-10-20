@@ -24,7 +24,7 @@ public:
     void for_each_index_except_deltas(const std::function<void(IndexWrapper&)>& f) override;
 
     WickOrderedExpression wick_expression;  ///< The Wick ordered expression associated with the term.
-    
+
     /**
      * @brief Default constructor for WickOrderedTerm.
      */
@@ -32,14 +32,14 @@ public:
 
     /**
      * @brief Constructs a WickOrderedTerm object using the coefficients, sums, etc provided from a base Term
-     * 
+     *
      * @param base The base Term object.
      */
     WickOrderedTerm(const Term& base);
 
     /**
      * @brief Constructs a WickOrderedTerm object using the coefficients, sums, etc provided from a base WickTerm
-     * 
+     *
      * @param base The base WickTerm object.
      */
     WickOrderedTerm(const WickTerm& base);
@@ -54,15 +54,15 @@ public:
      * @param _expectation_values The expectation values, i.e., <cc> ...
      */
     WickOrderedTerm(const IntFractional& _multiplicity,
-        const Coefficient& _coefficient,
-        const SumContainer& _sums,
-        const std::vector<Operator>& _wick_operator_string,
-        const std::vector<WickOperator>& _expectation_values);
+                    const Coefficient& _coefficient,
+                    const SumContainer& _sums,
+                    const std::vector<Operator>& _wick_operator_string,
+                    const std::vector<WickOperator>& _expectation_values);
 
     /**
-     * @brief Constructs a WickOrderedTerm object using the coefficients, sums, etc provided from a base WickOrderedTerm, 
-     * while ignoring the Wick expression of the base term.
-     * 
+     * @brief Constructs a WickOrderedTerm object using the coefficients, sums, etc provided from a base
+     * WickOrderedTerm, while ignoring the Wick expression of the base term.
+     *
      * @param base The base WickTerm object.
      */
     static WickOrderedTerm from_wick_term_skip_wick_expression(const WickOrderedTerm& base);
@@ -70,7 +70,7 @@ public:
     /**
      * @brief Transforms the expectation values into Coefficient objects and fills the operators of the term
      * with the WickOrderedExpression.
-     * 
+     *
      * @return The resulting Term object
      */
     Term to_term(const std::string& base) const;
@@ -79,7 +79,7 @@ public:
      * @brief Permutes the operator string in wick_expression such that all creation operators are on the left,
      * and all annihilation operators on the right. The function keeps track of sign changes due to fermionic exchange.
      * No new terms are generated because the operators anticommute under Wick-ordering.
-     * 
+     *
      * @return Returns true if everything ran successfully.
      * Returns false if two identical fermionic creation or annihilation operators exist in the term.
      */
@@ -109,36 +109,36 @@ public:
 
     /**
      * @brief Returns true if the term is bilinear
-     * 
+     *
      * @return true if the term is bilinear
      */
     bool is_identity() const noexcept;
 
     /**
      * @brief Returns true if the term is bilinear
-     * 
+     *
      * @return true if the term is bilinear
      */
     bool is_bilinear() const noexcept;
 
     /**
      * @brief Returns true if the term is quartic
-     * 
+     *
      * @return true if the term is quartic
      */
     bool is_quartic() const noexcept;
 
     /**
      * @brief Takes the Hermitian conjugate of the current expression in place
-     * 
-     * @return A reference to \c *this after the Hermitian conjugation 
+     *
+     * @return A reference to \c *this after the Hermitian conjugation
      */
     WickOrderedTerm& hermitian_conjugate_inplace() noexcept;
 
     /**
      * @brief Takes the Hermitian conjugate of the current expression in a copy
-     * 
-     * @return A copy of \c *this after the Hermitian conjugation 
+     *
+     * @return A copy of \c *this after the Hermitian conjugation
      */
     WickOrderedTerm hermitian_conjugate() const noexcept;
 
@@ -149,11 +149,11 @@ public:
 
 /**
  * @brief Overloads the output stream operator for WickOrderedTerm.
- * 
+ *
  * @param os The output stream.
  * @param term The WickOrderedTerm to output.
  * @return The output stream.
  */
 std::ostream& operator<<(std::ostream& os, const WickOrderedTerm& term);
 
-} // namespace mrock::symbolic_operators::experimental
+}  // namespace mrock::symbolic_operators::experimental

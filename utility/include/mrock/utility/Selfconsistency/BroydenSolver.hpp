@@ -25,11 +25,9 @@ template <class DataType,
           class Model,
           class SelfconsistencyAttributes,
           const DebugPolicy& debugPolicy = WarnNoConvergence>
-class BroydenSolver
-    : public IterativeSolver<DataType, Model, SelfconsistencyAttributes, debugPolicy> {
+class BroydenSolver : public IterativeSolver<DataType, Model, SelfconsistencyAttributes, debugPolicy> {
 private:
-    using _parent =
-        IterativeSolver<DataType, Model, SelfconsistencyAttributes, debugPolicy>;
+    using _parent = IterativeSolver<DataType, Model, SelfconsistencyAttributes, debugPolicy>;
 
     using ParameterVector = typename _parent::ParameterVector;
     using RealType = typename _parent::RealType;
@@ -47,11 +45,9 @@ public:
      * @param grace The convergence threshold.
      * @return The convergence information.
      */
-    virtual ConvergenceInfo<RealType> compute(
-        bool print_time = false,
-        const unsigned int MAX_STEPS = 400,
-        const RealType grace = 1e-10) {
-
+    virtual ConvergenceInfo<RealType> compute(bool print_time = false,
+                                              const unsigned int MAX_STEPS = 400,
+                                              const RealType grace = 1e-10) {
         std::chrono::time_point begin = std::chrono::steady_clock::now();
 
         this->_parent::procedure_iterative(_MaxPreBroydenIterations);
@@ -64,9 +60,7 @@ public:
         std::copy(this->_attr->begin(), this->_attr->end(), this->x0.begin());
 
         std::function<void(const ParameterVector&, ParameterVector&)> func =
-            [&](const ParameterVector& x, ParameterVector& F) {
-                this->_model->iteration_step(x, F);
-            };
+            [&](const ParameterVector& x, ParameterVector& F) { this->_model->iteration_step(x, F); };
 
         ConvergenceInfo<RealType> convergence;
         convergence.error = broyden_solver.compute(func, this->x0, MAX_STEPS);
@@ -77,13 +71,10 @@ public:
             this->_model->iteration_step(this->x0, this->f0);
 
             if constexpr (debugPolicy.convergenceWarning) {
-                std::cerr << std::fixed << std::setprecision(8)
-                          << "No convergence for " << this->_model->info()
+                std::cerr << std::fixed << std::setprecision(8) << "No convergence for " << this->_model->info()
                           << std::endl;
 
-                std::cerr << std::scientific
-                          << "Final |F(x)| = " << this->f0.norm()
-                          << " > " << grace << std::endl;
+                std::cerr << std::scientific << "Final |F(x)| = " << this->f0.norm() << " > " << grace << std::endl;
             }
         } else {
             if constexpr (_parent::has_converged_flag) {
@@ -112,25 +103,20 @@ public:
                 std::cout << " " << f << " ";
             }
 
-            std::cout << ")\n -> |f0| = "
-                      << std::scientific << std::setprecision(8)
-                      << this->f0.norm() << std::endl;
+            std::cout << ")\n -> |f0| = " << std::scientific << std::setprecision(8) << this->f0.norm() << std::endl;
         }
 
         if (print_time) {
             std::chrono::time_point end = std::chrono::steady_clock::now();
 
             std::cout << "Time for self-consistency computations: "
-                      << std::chrono::duration_cast<std::chrono::milliseconds>(
-                             end - begin)
-                             .count()
-                      << "[ms]" << std::endl;
+                      << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]"
+                      << std::endl;
 
             this->f0.setZero(this->NUMBER_OF_PARAMETERS);
             this->_model->iteration_step(this->x0, this->f0);
 
-            std::cout << "Convergence achieved up to |f0| = "
-                      << std::scientific << std::setprecision(8)
+            std::cout << "Convergence achieved up to |f0| = " << std::scientific << std::setprecision(8)
                       << this->f0.norm() << std::endl;
         }
 
@@ -152,12 +138,8 @@ public:
      * @param attribute_ptr Pointer to the self-consistency attributes.
      * @param MaxPreBroydenIterations The maximum number of pre-Broyden iterations.
      */
-    BroydenSolver(
-        Model* model_ptr,
-        SelfconsistencyAttributes* attribute_ptr,
-        unsigned int MaxPreBroydenIterations)
-        : _parent(model_ptr, attribute_ptr, 1e-6),
-          _MaxPreBroydenIterations(MaxPreBroydenIterations) {}
+    BroydenSolver(Model* model_ptr, SelfconsistencyAttributes* attribute_ptr, unsigned int MaxPreBroydenIterations)
+        : _parent(model_ptr, attribute_ptr, 1e-6), _MaxPreBroydenIterations(MaxPreBroydenIterations) {}
 
     /**
      * @brief Constructs a BroydenSolver with the given model, attributes,
@@ -168,28 +150,21 @@ public:
      * @param MaxPreBroydenIterations The maximum number of pre-Broyden iterations.
      * @param preBroydenPrecision The precision for the pre-Broyden iterative procedure.
      */
-    BroydenSolver(
-        Model* model_ptr,
-        SelfconsistencyAttributes* attribute_ptr,
-        unsigned int MaxPreBroydenIterations,
-        const RealType& preBroydenPrecision)
-        : _parent(model_ptr, attribute_ptr, preBroydenPrecision),
-          _MaxPreBroydenIterations(MaxPreBroydenIterations) {}
+    BroydenSolver(Model* model_ptr,
+                  SelfconsistencyAttributes* attribute_ptr,
+                  unsigned int MaxPreBroydenIterations,
+                  const RealType& preBroydenPrecision)
+        : _parent(model_ptr, attribute_ptr, preBroydenPrecision), _MaxPreBroydenIterations(MaxPreBroydenIterations) {}
 };
 
 /**
  * @brief Factory function to create a BroydenSolver with a specified debug policy.
  */
-template <const DebugPolicy& debugPolicy,
-          class DataType,
-          class Model,
-          class SelfconsistencyAttributes>
-auto make_broyden(
-    Model* model_ptr,
-    SelfconsistencyAttributes* attribute_ptr,
-    unsigned int MaxPreBroydenIterations,
-    const UnderlyingRealType_t<DataType>& preBroydenPrecision = 1e-6) {
-
+template <const DebugPolicy& debugPolicy, class DataType, class Model, class SelfconsistencyAttributes>
+auto make_broyden(Model* model_ptr,
+                  SelfconsistencyAttributes* attribute_ptr,
+                  unsigned int MaxPreBroydenIterations,
+                  const UnderlyingRealType_t<DataType>& preBroydenPrecision = 1e-6) {
     return BroydenSolver<DataType, Model, SelfconsistencyAttributes, debugPolicy>(
         model_ptr, attribute_ptr, MaxPreBroydenIterations, preBroydenPrecision);
 }
@@ -198,17 +173,11 @@ auto make_broyden(
  * @brief Factory function to create a BroydenSolver with the default debug policy.
  */
 template <class DataType, class Model, class SelfconsistencyAttributes>
-auto make_broyden(
-    Model* model_ptr,
-    SelfconsistencyAttributes* attribute_ptr,
-    unsigned int MaxPreBroydenIterations,
-    const UnderlyingRealType_t<DataType>& preBroydenPrecision = 1e-6) {
-
-    return BroydenSolver<
-        DataType,
-        Model,
-        SelfconsistencyAttributes,
-        WarnNoConvergence>(
+auto make_broyden(Model* model_ptr,
+                  SelfconsistencyAttributes* attribute_ptr,
+                  unsigned int MaxPreBroydenIterations,
+                  const UnderlyingRealType_t<DataType>& preBroydenPrecision = 1e-6) {
+    return BroydenSolver<DataType, Model, SelfconsistencyAttributes, WarnNoConvergence>(
         model_ptr, attribute_ptr, MaxPreBroydenIterations, preBroydenPrecision);
 }
 

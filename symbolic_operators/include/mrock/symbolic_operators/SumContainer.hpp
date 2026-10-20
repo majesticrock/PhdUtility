@@ -128,7 +128,7 @@ struct SumContainer {
             return cmp;
         if (auto cmp = spins.size() <=> other.spins.size(); cmp != 0)
             return cmp;
-        
+
         if (auto cmp = momenta <=> other.momenta; cmp != 0)
             return cmp;
         return spins <=> other.spins;

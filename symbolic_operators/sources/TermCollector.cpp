@@ -1,9 +1,9 @@
 #include <mrock/symbolic_operators/TermCollector.hpp>
-#include <mrock/symbolic_operators/detail/container_helper.hpp>
 #include <mrock/symbolic_operators/detail/OperatorOrder.hpp>
+#include <mrock/symbolic_operators/detail/container_helper.hpp>
 
-#include <functional>
 #include <cstddef>
+#include <functional>
 #include <string>
 
 namespace mrock::symbolic_operators {
@@ -191,8 +191,7 @@ std::ostream& operator<<(std::ostream& os, const TermCollector& terms) {
     for (TermCollector::const_iterator it = terms.begin(); it != terms.end(); ++it) {
         if (terms.size() == 1U) {
             os << "\t";
-        }
-        else {
+        } else {
             os << "\t&";
         }
         os << *it;

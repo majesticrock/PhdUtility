@@ -169,26 +169,22 @@ std::ostream& operator<<(std::ostream& os, const Momentum& momentum) {
 }
 
 Momentum::Momentum(const char value, int plus_minus /* = 1 */, bool add_PI_ /* = false */)
-    : momentum_list(1, MomentumSymbol(plus_minus, value)), add_PI(add_PI_) 
-{
+    : momentum_list(1, MomentumSymbol(plus_minus, value)), add_PI(add_PI_) {
     sort();
 }
 
 Momentum::Momentum(const MomentumSymbol::name_type value, int plus_minus /* = 1 */, bool add_PI_ /* = false */)
-    : momentum_list(1, {plus_minus, value}), add_PI(add_PI_) 
-{
+    : momentum_list(1, {plus_minus, value}), add_PI(add_PI_) {
     sort();
 }
 
 Momentum::Momentum(const std::vector<MomentumSymbol>& _momenta, bool add_PI_ /* = false */)
-    : momentum_list(_momenta), add_PI(add_PI_) 
-{
+    : momentum_list(_momenta), add_PI(add_PI_) {
     sort();
 }
 
 Momentum::Momentum(MomentumSymbol const& momentum_symbol, bool add_PI_ /* = false */)
-    : momentum_list{momentum_symbol}, add_PI(add_PI_) 
-{
+    : momentum_list{momentum_symbol}, add_PI(add_PI_) {
     sort();
 }
 
@@ -211,7 +207,7 @@ std::strong_ordering Momentum::operator<=>(const Momentum& other) const noexcept
         return cmp;
     if (auto cmp = momentum_list <=> other.momentum_list; cmp != 0)
         return cmp;
-    
+
     return add_PI <=> other.add_PI;
 }
 

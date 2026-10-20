@@ -9,8 +9,8 @@
 #include <mrock/symbolic_operators/Operator.hpp>
 #include <mrock/symbolic_operators/SumContainer.hpp>
 #include <mrock/symbolic_operators/Term.hpp>
-#include <mrock/symbolic_operators/detail/container_helper.hpp>
 #include <mrock/symbolic_operators/detail/OperatorOrder.hpp>
+#include <mrock/symbolic_operators/detail/container_helper.hpp>
 
 #include <cassert>
 #include <compare>
@@ -44,9 +44,7 @@ Term::Term(const IntFractional& _multiplicity,
            const std::vector<Operator>& _operators)
     : AbstractTerm<Operator>(_multiplicity, _coefficient, SumContainer{{}, _sum_indices}, _operators) {}
 
-Term::Term(const IntFractional& _multiplicity,
-           const Coefficient& _coefficient,
-           const std::vector<Operator>& _operators)
+Term::Term(const IntFractional& _multiplicity, const Coefficient& _coefficient, const std::vector<Operator>& _operators)
     : AbstractTerm<Operator>(_multiplicity, _coefficient, _operators) {}
 
 Term::Term(const IntFractional& _multiplicity, const SumContainer& _sums, const std::vector<Operator>& _operators)

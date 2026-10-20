@@ -1,16 +1,15 @@
-#include <mrock/symbolic_operators/experimental/WickOrderedCollector.hpp>
-
 #include <mrock/symbolic_operators/TermCollector.hpp>
 #include <mrock/symbolic_operators/WickSymmetry.hpp>
 #include <mrock/symbolic_operators/detail/OperatorOrder.hpp>
 #include <mrock/symbolic_operators/detail/container_helper.hpp>
+#include <mrock/symbolic_operators/experimental/WickOrderedCollector.hpp>
 
 #include <algorithm>
+#include <list>
 #include <memory>
 #include <ostream>
 #include <utility>
 #include <vector>
-#include <list>
 
 namespace mrock::symbolic_operators::experimental {
 
@@ -31,12 +30,7 @@ using Pair = std::pair<std::size_t, std::size_t>;
 using Pairing = std::vector<Pair>;
 using PairingVector = std::vector<Pairing>;
 
-void generate_pairings(
-    const IndexVector& remaining,
-    std::size_t n,
-    Pairing& current,
-    PairingVector& result
-) {
+void generate_pairings(const IndexVector& remaining, std::size_t n, Pairing& current, PairingVector& result) {
     // We have generated enough pairs
     if (current.size() == n) {
         result.push_back(current);
@@ -88,9 +82,7 @@ PairingVector get_pairings(std::size_t n_indices, std::size_t n_pairings) {
     return result;
 }
 
-
-int pair_parity(Pairing pairs)
-{
+int pair_parity(Pairing pairs) {
     int parity = 0;
 
     // Normalize ordering
@@ -104,13 +96,12 @@ int pair_parity(Pairing pairs)
 
     // crossings
     for (size_t i = 0; i < pairs.size(); ++i) {
-        auto [a,b] = pairs[i];
+        auto [a, b] = pairs[i];
 
         for (size_t j = i + 1; j < pairs.size(); ++j) {
-            auto [c,d] = pairs[j];
+            auto [c, d] = pairs[j];
 
-            if ((a < c && c < b && b < d) ||
-                (c < a && a < d && d < b)) {
+            if ((a < c && c < b && b < d) || (c < a && a < d && d < b)) {
                 parity ^= 1;
             }
         }
@@ -120,10 +111,7 @@ int pair_parity(Pairing pairs)
 }
 
 template <typename T>
-std::vector<T> remove_elements(
-    const std::vector<T>& vec,
-    const Pairing& pairing
-) {
+std::vector<T> remove_elements(const std::vector<T>& vec, const Pairing& pairing) {
     std::vector<bool> remove(vec.size(), false);
 
     for (auto [a, b] : pairing) {
@@ -143,11 +131,10 @@ std::vector<T> remove_elements(
     return result;
 }
 
-void wick_decompose_internal(const std::vector<Operator>& operators, 
-    const std::vector<WickOperatorTemplate>& templates,
-    WickOrderedTerm&& attach_to,
-    WickOrderedCollector& result)
-{
+void wick_decompose_internal(const std::vector<Operator>& operators,
+                             const std::vector<WickOperatorTemplate>& templates,
+                             WickOrderedTerm&& attach_to,
+                             WickOrderedCollector& result) {
     WickOrderedTerm contraction_base = attach_to;
     result.emplace_back(std::move(attach_to));
     result.back().wick_expression.operators = operators;
@@ -157,7 +144,7 @@ void wick_decompose_internal(const std::vector<Operator>& operators,
         KroneckerDelta<Momentum> momentum_delta;
     };
 
-    for(std::size_t n_contractions = 1U; n_contractions <= operators.size() / 2; ++n_contractions) {
+    for (std::size_t n_contractions = 1U; n_contractions <= operators.size() / 2; ++n_contractions) {
         const PairingVector pairings = get_pairings(operators.size(), n_contractions);
 
         for (const auto& pairing : pairings) {
@@ -172,7 +159,7 @@ void wick_decompose_internal(const std::vector<Operator>& operators,
                         wick_template.create_from_operators(operators[pair.first], operators[pair.second]);
                     template_result.clean_up();
                     for (const auto& single_result : template_result.results) {
-                        options.push_back({ single_result, template_result.momentum_delta });
+                        options.push_back({single_result, template_result.momentum_delta});
                     }
                 }
                 if (options.empty()) {
@@ -186,7 +173,8 @@ void wick_decompose_internal(const std::vector<Operator>& operators,
 
             WickOrderedTerm base = WickOrderedTerm::from_wick_term_skip_wick_expression(contraction_base);
             base.multiplicity *= pair_parity(pairing);
-            auto append_contraction_options = [&](auto&& self, std::size_t pair_index, WickOrderedTerm partial) -> void {
+            auto append_contraction_options = [&](auto&& self, std::size_t pair_index,
+                                                  WickOrderedTerm partial) -> void {
                 if (pair_index == options_by_pair.size()) {
                     partial.wick_expression.operators = remove_elements(operators, pairing);
                     result.emplace_back(std::move(partial));
@@ -206,8 +194,9 @@ void wick_decompose_internal(const std::vector<Operator>& operators,
     }
 }
 
-WickOrderedCollector wick_decompose(const Term& term, const std::vector<WickOperatorTemplate>& templates, const bool clean_up)
-{
+WickOrderedCollector wick_decompose(const Term& term,
+                                    const std::vector<WickOperatorTemplate>& templates,
+                                    const bool clean_up) {
     const std::size_t estimated_size = double_factorial(term.get_operators().size()) * templates.size();
     WickOrderedCollector result;
     result.reserve(estimated_size);
@@ -222,14 +211,14 @@ WickOrderedCollector wick_decompose(const Term& term, const std::vector<WickOper
     return result;
 }
 
-WickOrderedCollector wick_decompose(const TermCollector& terms, const std::vector<WickOperatorTemplate>& templates, const bool clean_up) 
-{
+WickOrderedCollector wick_decompose(const TermCollector& terms,
+                                    const std::vector<WickOperatorTemplate>& templates,
+                                    const bool clean_up) {
     WickOrderedCollector result;
-    std::size_t estimated_size = std::accumulate(
-        terms.begin(), terms.end(), std::size_t{}, [&templates](std::size_t current, const auto& term) {
+    std::size_t estimated_size =
+        std::accumulate(terms.begin(), terms.end(), std::size_t{}, [&templates](std::size_t current, const auto& term) {
             return current + double_factorial(term.get_operators().size()) * templates.size();
-        }
-    );
+        });
     result.reserve(estimated_size);
 
     for (const auto& term : terms) {
@@ -244,9 +233,8 @@ WickOrderedCollector wick_decompose(const TermCollector& terms, const std::vecto
 }
 
 WickOrderedCollector multiply_impl(const WickOrderedTerm& lhs,
-                              const WickOrderedTerm& rhs,
-                              const std::vector<WickOperatorTemplate>& templates) 
-{
+                                   const WickOrderedTerm& rhs,
+                                   const std::vector<WickOperatorTemplate>& templates) {
     WickOrderedCollector result;
 
     Term term_l = lhs.to_term(WICK_OP_TO_STRING_TEMP_BASE);
@@ -261,10 +249,8 @@ WickOrderedCollector multiply_impl(const WickOrderedTerm& lhs,
     term_l *= term_r;
 
     result = wick_decompose(term_l, templates);
-    
-    const auto is_tmp_index = [](Index index){
-        return (index == Index::WickA || index == Index::WickB);
-    };
+
+    const auto is_tmp_index = [](Index index) { return (index == Index::WickA || index == Index::WickB); };
 
     for (auto& term : result) {
         for (auto& op : term.operators) {
@@ -281,8 +267,7 @@ WickOrderedCollector multiply_impl(const WickOrderedTerm& lhs,
             WickOperator transform = WickOperator::from_coefficient(*it, WICK_OP_TO_STRING_TEMP_BASE);
             if (transform.type == OperatorType::Undefined) {
                 ++it;
-            }
-            else {
+            } else {
                 term.operators.push_back(std::move(transform));
                 it = term.coefficients.erase(it);
             }
@@ -292,28 +277,25 @@ WickOrderedCollector multiply_impl(const WickOrderedTerm& lhs,
     return result;
 }
 
-void include_cross_contraction_in_templates(std::vector<WickOperatorTemplate>& templates) 
-{
+void include_cross_contraction_in_templates(std::vector<WickOperatorTemplate>& templates) {
     const std::size_t old_size = templates.size();
     duplicate_n_inplace(templates, 1);
-    for (std::size_t i=0U; i<old_size; ++i) {
+    for (std::size_t i = 0U; i < old_size; ++i) {
         templates[i].indexComparison.push_back(IndexComparison{false, Index::WickA, Index::WickB});
-        templates[i+old_size].indexComparison.push_back(IndexComparison{false, Index::WickB, Index::WickA});
+        templates[i + old_size].indexComparison.push_back(IndexComparison{false, Index::WickB, Index::WickA});
     }
 }
 
 WickOrderedCollector multiply(const WickOrderedTerm& lhs,
                               const WickOrderedTerm& rhs,
-                              std::vector<WickOperatorTemplate> templates) 
-{
+                              std::vector<WickOperatorTemplate> templates) {
     include_cross_contraction_in_templates(templates);
     return multiply_impl(lhs, rhs, templates);
 }
 
 WickOrderedCollector commutator_impl(const WickOrderedTerm& lhs,
-                                const WickOrderedTerm& rhs,
-                                const std::vector<WickOperatorTemplate>& templates) 
-{
+                                     const WickOrderedTerm& rhs,
+                                     const std::vector<WickOperatorTemplate>& templates) {
     WickOrderedCollector result = multiply_impl(lhs, rhs, templates) - multiply_impl(rhs, lhs, templates);
     clean_wick_ordered_terms(result);
     return result;
@@ -328,8 +310,7 @@ WickOrderedCollector commutator(const WickOrderedTerm& lhs,
 
 WickOrderedCollector commutator(const WickOrderedCollector& lhs,
                                 const WickOrderedCollector& rhs,
-                                std::vector<WickOperatorTemplate> templates)
-{
+                                std::vector<WickOperatorTemplate> templates) {
     include_cross_contraction_in_templates(templates);
     WickOrderedCollector result;
     for (const auto& lhs_term : lhs) {
@@ -340,9 +321,9 @@ WickOrderedCollector commutator(const WickOrderedCollector& lhs,
     return result;
 }
 
-void clean_wick_ordered_terms(WickOrderedCollector& terms,
-    const std::vector<std::unique_ptr<WickSymmetry>>& symmetries /*= std::vector<std::unique_ptr<WickSymmetry>>{}*/)
-{
+void clean_wick_ordered_terms(
+    WickOrderedCollector& terms,
+    const std::vector<std::unique_ptr<WickSymmetry>>& symmetries /*= std::vector<std::unique_ptr<WickSymmetry>>{}*/) {
     for (auto& term : terms) {
         for (std::vector<Coefficient>::iterator it = term.coefficients.begin(); it != term.coefficients.end();) {
             if (it->name == "") {
@@ -432,16 +413,14 @@ std::ostream& operator<<(std::ostream& os, const WickOrderedCollector& terms) {
     return os;
 }
 
-WickOrderedCollector& WickOrderedCollector::hermitian_conjugate_inplace() noexcept
-{
+WickOrderedCollector& WickOrderedCollector::hermitian_conjugate_inplace() noexcept {
     for (auto& term : terms) {
         term.hermitian_conjugate_inplace();
     }
     return *this;
 }
 
-WickOrderedCollector WickOrderedCollector::hermitian_conjugate() const noexcept
-{
+WickOrderedCollector WickOrderedCollector::hermitian_conjugate() const noexcept {
     WickOrderedCollector copy(*this);
     copy.hermitian_conjugate_inplace();
     return copy;
@@ -455,32 +434,27 @@ void WickOrderedCollector::sort() {
     std::sort(terms.begin(), terms.end());
 }
 
-WickOrderedCollector& WickOrderedCollector::operator+=(const WickOrderedCollector& other)
-{
+WickOrderedCollector& WickOrderedCollector::operator+=(const WickOrderedCollector& other) {
     append_vector(this->terms, other.terms);
     return *this;
 }
 
-WickOrderedCollector& WickOrderedCollector::operator-=(const WickOrderedCollector& other)
-{
+WickOrderedCollector& WickOrderedCollector::operator-=(const WickOrderedCollector& other) {
     const std::size_t old_size = size();
     append_vector(this->terms, other.terms);
 
-    for(std::size_t i = old_size; i < size(); ++i) {
+    for (std::size_t i = old_size; i < size(); ++i) {
         terms[i].multiplicity *= -1;
     }
     return *this;
 }
 
-WickOrderedCollector operator+(WickOrderedCollector lhs, const WickOrderedCollector& rhs)
-{
+WickOrderedCollector operator+(WickOrderedCollector lhs, const WickOrderedCollector& rhs) {
     return (lhs += rhs);
 }
 
-WickOrderedCollector operator-(WickOrderedCollector lhs, const WickOrderedCollector& rhs)
-{
+WickOrderedCollector operator-(WickOrderedCollector lhs, const WickOrderedCollector& rhs) {
     return (lhs -= rhs);
 }
-
 
 }  // namespace mrock::symbolic_operators::experimental

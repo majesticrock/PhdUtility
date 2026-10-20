@@ -82,7 +82,7 @@ struct WickOperator {
      * @brief Turns this into a Coefficient object with the name scheme "base_{(wick_to_string[this->type])}".
      * The Momentum, dagger status, and indices are copied directly into the Coefficient object.
      * Any symmetries are lost.
-     * 
+     *
      * @param base The base string to be used
      * @return The resulting Coefficient object
      */
@@ -93,10 +93,10 @@ struct WickOperator {
      * The name scheme must be base_{(wick_to_string[this->type])}".
      * The Momentum, dagger status, and indices are copied directly into the Coefficient object.
      * Any symmetries are lost.
-     * If the name scheme could not be matched, the resulting WickOperator will have its type set to 
+     * If the name scheme could not be matched, the resulting WickOperator will have its type set to
      * OperatorType::Undefined
      * If the Coefficient depends on more than one Momentum, an exception will be thrown.
-     * 
+     *
      * @param base The base string to be used
      * @return The resulting Coefficient object
      */

@@ -99,13 +99,9 @@ public:
             x0.resize(2 * x_complex.size());
         }
 
-        Eigen::Map<RealVector> x_as_real(
-            reinterpret_cast<RealType*>(x_complex.data()),
-            2 * x_complex.size());
+        Eigen::Map<RealVector> x_as_real(reinterpret_cast<RealType*>(x_complex.data()), 2 * x_complex.size());
 
-        Eigen::Map<RealVector> f_as_real(
-            reinterpret_cast<RealType*>(f_complex.data()),
-            2 * x_complex.size());
+        Eigen::Map<RealVector> f_as_real(reinterpret_cast<RealType*>(f_complex.data()), 2 * x_complex.size());
 
         auto call_f_from_real = [&](const RealVector& x_real, RealVector& f_real) {
             x_as_real = x_real;

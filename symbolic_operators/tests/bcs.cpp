@@ -140,8 +140,7 @@ double evaluate_expression(const WickTerm& term, const std::array<double, N>& ks
             value += evaluate_coefficients(term.coefficients, momentum_map) *
                      evaluate_wick_operators(term.operators, momentum_map, delta);
         }
-    } 
-    else if (term.sums.momenta.size() == 2U) {
+    } else if (term.sums.momenta.size() == 2U) {
         for (int q = 0; q < N; ++q) {
             momentum_map[term.sums.momenta[0]] = ks[q];
             double psum{};
@@ -152,8 +151,7 @@ double evaluate_expression(const WickTerm& term, const std::array<double, N>& ks
             }
             value += psum;
         }
-    } 
-    else if (term.sums.momenta.size() == 3U) {
+    } else if (term.sums.momenta.size() == 3U) {
         for (int q = 0; q < N; ++q) {
             momentum_map[term.sums.momenta[0]] = ks[q];
             double psum{};
@@ -169,8 +167,7 @@ double evaluate_expression(const WickTerm& term, const std::array<double, N>& ks
             }
             value += psum;
         }
-    } 
-    else if (term.sums.momenta.size() == 4U) {
+    } else if (term.sums.momenta.size() == 4U) {
         for (int q = 0; q < N; ++q) {
             momentum_map[term.sums.momenta[0]] = ks[q];
             double psum{};
@@ -191,12 +188,10 @@ double evaluate_expression(const WickTerm& term, const std::array<double, N>& ks
             }
             value += psum;
         }
-    } 
-    else if (term.sums.momenta.empty()) {
+    } else if (term.sums.momenta.empty()) {
         value = evaluate_coefficients(term.coefficients, momentum_map) *
                 evaluate_wick_operators(term.operators, momentum_map, delta);
-    } 
-    else {
+    } else {
         throw std::runtime_error("Number of momentum sums not supported!");
     }
     value *= static_cast<double>(term.multiplicity);
@@ -349,7 +344,8 @@ int main() {
     WickTermCollector wicks = wicks_theorem(H, templates);
     /* Clean up the result and apply symmetries */
     wicks.clean_up(symmetries);
-    std::cout << "% Expressional result from Wick's theorem\n\\begin{align*}\n\t" << wicks << "\\end{align*}\n" << std::endl;
+    std::cout << "% Expressional result from Wick's theorem\n\\begin{align*}\n\t" << wicks << "\\end{align*}\n"
+              << std::endl;
 
     double numerical{};
     for (const auto& term : wicks) {
@@ -357,10 +353,9 @@ int main() {
     }
     numerical /= N;
     std::cout << std::setprecision(14) << "\\begin{align*}\n"
-              << "\\left.\\frac{\\langle H \\rangle}{N}\\right|_{\\mathrm{analytical}} &= "
-              << analytical << " \\\\\n"
-              << "\\left.\\frac{\\langle H \\rangle}{N}\\right|_{\\mathrm{Wick}} &= "
-              << numerical << "\n\\end{align*}" << std::endl;
+              << "\\left.\\frac{\\langle H \\rangle}{N}\\right|_{\\mathrm{analytical}} &= " << analytical << " \\\\\n"
+              << "\\left.\\frac{\\langle H \\rangle}{N}\\right|_{\\mathrm{Wick}} &= " << numerical << "\n\\end{align*}"
+              << std::endl;
     if (std::abs(numerical - analytical) > 1e-10) {
         return -1;
     }
@@ -372,12 +367,15 @@ int main() {
     /* Compute the commutator and clean up the result */
     TermCollector commutator_result = commutator(H, right);
     commutator_result.clean_up();
-    std::cout << "% Result of the commutator\n\\begin{align*}\n\t" << commutator_result << "\\end{align*}\n" << std::endl;
+    std::cout << "% Result of the commutator\n\\begin{align*}\n\t" << commutator_result << "\\end{align*}\n"
+              << std::endl;
 
     /* Apply Wick's theorem and clean up the result */
     WickTermCollector commutator_wicks = wicks_theorem(commutator_result, templates);
     commutator_wicks.clean_up(symmetries);
-    std::cout << "% Expressional result from Wick's theorem\n\\begin{align*}\n\t" << commutator_wicks << "\\end{align*}\n" << std::endl;
+    std::cout << "% Expressional result from Wick's theorem\n\\begin{align*}\n\t" << commutator_wicks
+              << "\\end{align*}\n"
+              << std::endl;
 
     /* Compute the expecation value of <[H,f_k]> with the analytical formula for later comparison */
     /* Kinetic part, the factor of 2 accounts for the spins */
@@ -419,8 +417,8 @@ int main() {
     std::cout << std::setprecision(14) << "\\begin{align*}\n"
               << "\\left.\\frac{\\langle [H, f_k] \\rangle}{N}\\right|_{\\mathrm{analytical}} &= "
               << analytical_commutator << " \\\\\n"
-              << "\\left.\\frac{\\langle [H, f_k] \\rangle}{N}\\right|_{\\mathrm{Wick}} &= "
-              << numerical_commutator << "\n\\end{align*}" << std::endl;
+              << "\\left.\\frac{\\langle [H, f_k] \\rangle}{N}\\right|_{\\mathrm{Wick}} &= " << numerical_commutator
+              << "\n\\end{align*}" << std::endl;
     if (std::abs(numerical_commutator - analytical_commutator) > 1e-10) {
         return -1;
     }
@@ -432,10 +430,9 @@ int main() {
     eight_T.clean_up();
     eight_T.erase(eight_T.begin() + 1, eight_T.end());
     std::cout << "% Cleaned $H_{Ph}^2$\n\\begin{align*}\n" << eight_T << "\\end{align*}" << std::endl;
-    std::cout
-        << "% The only remaining term should equal:\n\\begin{align*}\n"
-        << "T &= \\sum_{k,k',q,p} g(k,k') g(p,q) f_k^{\\dagger} f_q^{\\dagger} f_{k'} f_p\\\\\n"
-        << "\\end{align*}" << std::endl;
+    std::cout << "% The only remaining term should equal:\n\\begin{align*}\n"
+              << "T &= \\sum_{k,k',q,p} g(k,k') g(p,q) f_k^{\\dagger} f_q^{\\dagger} f_{k'} f_p\\\\\n"
+              << "\\end{align*}" << std::endl;
 
     WickTermCollector expec_eight_T = wicks_theorem(eight_T, templates);
     expec_eight_T.clean_up(symmetries);
@@ -466,16 +463,19 @@ int main() {
                 for (int s = 0; s < N; ++s) {
                     if (std::abs(epsilons[s]) >= omega)
                         continue;
-                    if (s == r || p == q) continue;
+                    if (s == r || p == q)
+                        continue;
                     ssum += pairs[q] * pairs[p] * pairs[r] * pairs[s];
                 }
                 rsum += ssum;
-                if (q == r || p == r) continue;
+                if (q == r || p == r)
+                    continue;
                 rsum += 4 * pairs[q] * pairs[p] * numbers[r] * numbers[r];
             }
             psum += rsum;
             // k = -p is Pauli forbidden, -p in index-notation is N - p, except for p=0 which maps to 0 again
-            if (q == N - p || (q == 0 && p == 0)) continue;
+            if (q == N - p || (q == 0 && p == 0))
+                continue;
             psum += 2 * numbers[q] * numbers[q] * numbers[p] * numbers[p];
         }
         eight_analytical += psum;

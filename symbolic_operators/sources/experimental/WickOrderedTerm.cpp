@@ -1,10 +1,9 @@
-#include <mrock/symbolic_operators/experimental/WickOrderedTerm.hpp>
-
 #include <mrock/symbolic_operators/Term.hpp>
 #include <mrock/symbolic_operators/WickOperator.hpp>
 #include <mrock/symbolic_operators/WickOperatorTemplate.hpp>
 #include <mrock/symbolic_operators/WickTerm.hpp>
 #include <mrock/symbolic_operators/detail/container_helper.hpp>
+#include <mrock/symbolic_operators/experimental/WickOrderedTerm.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -13,41 +12,37 @@
 #include <variant>
 
 namespace mrock::symbolic_operators::experimental {
-void WickOrderedTerm::for_each_momentum_except_deltas(const std::function<void(Momentum&)>& f) 
-{
+void WickOrderedTerm::for_each_momentum_except_deltas(const std::function<void(Momentum&)>& f) {
     AbstractTerm<WickOperator>::for_each_momentum_except_deltas(f);
     for (auto& op : wick_expression) {
         f(op.momentum);
     }
 }
 
-void WickOrderedTerm::for_each_index_except_deltas(const std::function<void(IndexWrapper&)>& f) 
-{
+void WickOrderedTerm::for_each_index_except_deltas(const std::function<void(IndexWrapper&)>& f) {
     AbstractTerm<WickOperator>::for_each_index_except_deltas(f);
     for (auto& op : wick_expression) {
         f(op.indices);
     }
 }
 
-WickOrderedTerm::WickOrderedTerm(const Term& base) 
+WickOrderedTerm::WickOrderedTerm(const Term& base)
     : AbstractTerm<WickOperator>(base.multiplicity,
                                  base.coefficients,
                                  base.sums,
                                  base.delta_momenta,
                                  base.delta_indices,
                                  std::vector<WickOperator>()),
-      wick_expression()
-{ }
+      wick_expression() {}
 
-WickOrderedTerm::WickOrderedTerm(const WickTerm& base) 
+WickOrderedTerm::WickOrderedTerm(const WickTerm& base)
     : AbstractTerm<WickOperator>(base.multiplicity,
                                  base.coefficients,
                                  base.sums,
                                  base.delta_momenta,
                                  base.delta_indices,
                                  base.operators),
-      wick_expression()
-{ }
+      wick_expression() {}
 
 WickOrderedTerm::WickOrderedTerm(const IntFractional& _multiplicity,
                                  const Coefficient& _coefficient,
@@ -60,11 +55,9 @@ WickOrderedTerm::WickOrderedTerm(const IntFractional& _multiplicity,
                                  decltype(delta_momenta)(),
                                  decltype(delta_indices)(),
                                  _expectation_values),
-    wick_expression(_wick_operator_string)
-{ }
+      wick_expression(_wick_operator_string) {}
 
-WickOrderedTerm WickOrderedTerm::from_wick_term_skip_wick_expression(const WickOrderedTerm& base)
-{
+WickOrderedTerm WickOrderedTerm::from_wick_term_skip_wick_expression(const WickOrderedTerm& base) {
     WickOrderedTerm result;
     result.multiplicity = base.multiplicity;
     result.coefficients = base.coefficients;
@@ -125,8 +118,7 @@ void WickOrderedTerm::include_template_result(const TemplateResult::SingleResult
     this->multiplicity *= result.factor;
 }
 
-bool WickOrderedTerm::resolve_deltas()
-{
+bool WickOrderedTerm::resolve_deltas() {
     if (!resolve_momentum_deltas())
         return false;
     if (!resolve_index_deltas())
@@ -135,16 +127,14 @@ bool WickOrderedTerm::resolve_deltas()
     return true;
 }
 
-void WickOrderedTerm::discard_zero_momenta() 
-{
+void WickOrderedTerm::discard_zero_momenta() {
     AbstractTerm<WickOperator>::discard_zero_momenta();
     for (auto& op : wick_expression) {
         op.momentum.remove_zeros();
     }
 }
 
-void WickOrderedTerm::sort()
-{
+void WickOrderedTerm::sort() {
     std::sort(operators.begin(), operators.end());
     std::sort(sums.momenta.begin(), sums.momenta.end());
     std::sort(sums.spins.begin(), sums.spins.end());
@@ -162,22 +152,18 @@ bool WickOrderedTerm::is_quartic() const noexcept {
     return wick_expression.size() == 4U;
 }
 
-WickOrderedTerm& WickOrderedTerm::hermitian_conjugate_inplace() noexcept
-{
+WickOrderedTerm& WickOrderedTerm::hermitian_conjugate_inplace() noexcept {
     wick_expression.hermitian_conjugate_inplace();
     return *this;
 }
 
-WickOrderedTerm WickOrderedTerm::hermitian_conjugate() const noexcept
-{
+WickOrderedTerm WickOrderedTerm::hermitian_conjugate() const noexcept {
     WickOrderedTerm copy(*this);
     copy.hermitian_conjugate_inplace();
     return copy;
 }
 
-
-std::ostream& operator<<(std::ostream& os, const WickOrderedTerm& term)
-{
+std::ostream& operator<<(std::ostream& os, const WickOrderedTerm& term) {
     if (term.multiplicity > 0) {
         os << "+";
     }
@@ -208,4 +194,4 @@ bool WickOrderedTerm::operator==(const WickOrderedTerm& other) const {
     return (*this <=> other) == 0;
 }
 
-}
+}  // namespace mrock::symbolic_operators::experimental

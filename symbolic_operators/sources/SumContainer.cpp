@@ -1,8 +1,8 @@
 #include <mrock/symbolic_operators/SumContainer.hpp>
 #include <mrock/symbolic_operators/detail/container_helper.hpp>
 
-#include <compare>
 #include <algorithm>
+#include <compare>
 
 namespace mrock::symbolic_operators {
 

@@ -14,20 +14,19 @@ class Term;
 namespace detail {
 /**
  * @brief Tries to bring the momentum dependencies of the operators to a fixed notation
- * 
+ *
  * The passed container of operators should be the operators of the term that is being structured.
  * Allowing this additional parameter allows this function to work with more implementations
  * than just the standard \c Term class.
- * 
+ *
  * @tparam TermType The type of the term containing the operators.
  * @tparam OperatorContainer The type of the container holding the operators.
  * @param term The term containing the operators.
  * @param operators The container of operators to be structured.
  */
 template <DerivedFromAbstractTerm TermType, class OperatorContainer>
-void structure_momentum_dependencies_impl(TermType& term, OperatorContainer& operators)
-{
-// This function does not do anything to an identity term
+void structure_momentum_dependencies_impl(TermType& term, OperatorContainer& operators) {
+    // This function does not do anything to an identity term
     if (operators.empty())
         return;
 
@@ -102,11 +101,11 @@ void structure_momentum_dependencies_impl(TermType& term, OperatorContainer& ope
         }
     }
 }
-} // namespace detail
+}  // namespace detail
 
 /**
  * @brief Sorts a vector of operators by their indices while preserving the normal order.
- * 
+ *
  * @param operators The vector of operators to be sorted.
  * @return returns \c true if the sorting induced a fermionic sign change, \c false otherwise.
  */
@@ -114,18 +113,18 @@ bool sort_operators_by_indices(std::vector<Operator>& operators);
 
 /**
  * @brief Tries to bring the momentum dependencies of the operators in the \c Term object to a fixed notation
- * 
+ *
  * @param term The term containing the operators.
  */
 void structure_momentum_dependencies(Term& term);
 
 /**
  * @brief Sorts a vector of operators by their indices while preserving the normal order.
- * 
+ *
  * @param operators The vector of operators to be sorted.
  * @return returns \c true if the sorting induced a fermionic sign change, \c false otherwise.
  */
 bool sort_lexicographically(std::vector<Operator>& operators);
 
-} // namespace mrock::symbolic_operators
-#endif // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_OPERATOR_ORDER_HPP
+}  // namespace mrock::symbolic_operators
+#endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_DETAIL_OPERATOR_ORDER_HPP

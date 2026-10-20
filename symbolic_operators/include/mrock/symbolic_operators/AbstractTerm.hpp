@@ -334,15 +334,11 @@ public:
         return operators <=> other.operators;
     }
 
-    bool operator==(const AbstractTerm& other) const {
-        return (*this <=> other) == 0;
-    }
+    bool operator==(const AbstractTerm& other) const { return (*this <=> other) == 0; }
 };
 
 template <class TermType>
-concept DerivedFromAbstractTerm = requires(TermType term) {
-    []<typename X>(AbstractTerm<X>&){}(term);
-};
+concept DerivedFromAbstractTerm = requires(TermType term) { []<typename X>(AbstractTerm<X>&) {}(term); };
 
 // Implementations
 template <class tOperatorType>

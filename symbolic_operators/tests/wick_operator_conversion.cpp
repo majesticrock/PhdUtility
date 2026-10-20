@@ -17,8 +17,7 @@ void require(bool condition, const std::string& message) {
 void require_throws_for_momentum_count(const Coefficient& coefficient) {
     try {
         (void)WickOperator::from_coefficient(coefficient, "Delta");
-    }
-    catch (const std::runtime_error&) {
+    } catch (const std::runtime_error&) {
         return;
     }
     throw std::runtime_error("from_coefficient accepted a coefficient without exactly one momentum");
@@ -71,19 +70,17 @@ void test_unmatched_names() {
 
 void test_invalid_momentum_counts() {
     require_throws_for_momentum_count(Coefficient::Constant("Delta_{(n)}"));
-    require_throws_for_momentum_count(
-        Coefficient{"Delta_{(n)}", MomentumList{Momentum('k'), Momentum('p')}});
+    require_throws_for_momentum_count(Coefficient{"Delta_{(n)}", MomentumList{Momentum('k'), Momentum('p')}});
 }
 
-} // namespace
+}  // namespace
 
 int main() {
     try {
         test_round_trip_for_each_type();
         test_unmatched_names();
         test_invalid_momentum_counts();
-    }
-    catch (const std::exception& error) {
+    } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';
         return 1;
     }

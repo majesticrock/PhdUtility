@@ -5,56 +5,46 @@
 using namespace mrock::symbolic_operators;
 
 int main() {
-    const std::vector<WickOperatorTemplate> templates({
-        WickOperatorTemplate{{ Num_Comparison }, Momentum(), OperatorType::Number},
-        WickOperatorTemplate{{ SC_Comparison }, Momentum(), OperatorType::SC}
-    });
+    const std::vector<WickOperatorTemplate> templates(
+        {WickOperatorTemplate{{Num_Comparison}, Momentum(), OperatorType::Number},
+         WickOperatorTemplate{{SC_Comparison}, Momentum(), OperatorType::SC}});
 
     const Momentum k('k');
     const Momentum p('p');
-    const Operator c_k{ k, Index::SpinUp, false };
-    const Operator c_p{ p, Index::SpinUp, false };
-    const Operator c_k_dagger{ k, Index::SpinUp, true };
-    const Operator c_p_dagger{ p, Index::SpinUp, true };
-    const Operator c_minus_k{ -k, Index::SpinDown, false };
-    const Operator c_minus_p{ -p, Index::SpinDown, false };
-    const Operator c_minus_p_dagger{ -p, Index::SpinDown, true };
-    const Operator c_minus_k_dagger{ -k, Index::SpinDown, true };
+    const Operator c_k{k, Index::SpinUp, false};
+    const Operator c_p{p, Index::SpinUp, false};
+    const Operator c_k_dagger{k, Index::SpinUp, true};
+    const Operator c_p_dagger{p, Index::SpinUp, true};
+    const Operator c_minus_k{-k, Index::SpinDown, false};
+    const Operator c_minus_p{-p, Index::SpinDown, false};
+    const Operator c_minus_p_dagger{-p, Index::SpinDown, true};
+    const Operator c_minus_k_dagger{-k, Index::SpinDown, true};
 
-    const TermCollector density_density({
-        Term(1, std::vector<Operator>{ c_k_dagger, c_p_dagger, c_p, c_k })
-    });
-    const TermCollector pair_channel({
-        Term(1, std::vector<Operator>{ c_k_dagger, c_minus_k_dagger, c_minus_p, c_p })
-    });
-    const TermCollector annihilation_then_creation({
-        Term(1, std::vector<Operator>{ c_minus_k, c_k, c_minus_p_dagger, c_p_dagger })
-    });
-    const TermCollector interleaved({
-        Term(1, std::vector<Operator>{ c_k_dagger, c_p, c_p_dagger, c_k })
-    });
+    const TermCollector density_density({Term(1, std::vector<Operator>{c_k_dagger, c_p_dagger, c_p, c_k})});
+    const TermCollector pair_channel({Term(1, std::vector<Operator>{c_k_dagger, c_minus_k_dagger, c_minus_p, c_p})});
+    const TermCollector annihilation_then_creation(
+        {Term(1, std::vector<Operator>{c_minus_k, c_k, c_minus_p_dagger, c_p_dagger})});
+    const TermCollector interleaved({Term(1, std::vector<Operator>{c_k_dagger, c_p, c_p_dagger, c_k})});
 
     const WickTermCollector density_wicks = wicks_theorem(density_density, templates, true);
     const WickTermCollector pair_wicks = wicks_theorem(pair_channel, templates, true);
-    const WickTermCollector annihilation_then_creation_wicks = wicks_theorem(annihilation_then_creation, templates, true);
+    const WickTermCollector annihilation_then_creation_wicks =
+        wicks_theorem(annihilation_then_creation, templates, true);
     const WickTermCollector interleaved_wicks = wicks_theorem(interleaved, templates, true);
 
-    std::cout << "% Wick's theorem for a density-density quartic term\n\\begin{align*}\n\t"
-        << "\\langle" << density_density << "\\rangle = " << density_wicks << "\\end{align*}"
-        << std::endl;
-    std::cout << "% Wick's theorem for a pair-channel quartic term\n\\begin{align*}\n\t"
-        << "\\langle" << pair_channel << "\\rangle = " << pair_wicks << "\\end{align*}"
-        << std::endl;
-    std::cout << "% Wick's theorem for $cc c^{\\dagger} c^{\\dagger}$\n\\begin{align*}\n\t"
-        << "\\langle" << annihilation_then_creation << "\\rangle = " << annihilation_then_creation_wicks
-        << "\\end{align*}" << std::endl;
-    std::cout << "% Wick's theorem for $c^{\\dagger} c c^{\\dagger} c$\n\\begin{align*}\n\t"
-        << "\\langle" << interleaved << "\\rangle = " << interleaved_wicks << "\\end{align*}"
-        << std::endl;
+    std::cout << "% Wick's theorem for a density-density quartic term\n\\begin{align*}\n\t" << "\\langle"
+              << density_density << "\\rangle = " << density_wicks << "\\end{align*}" << std::endl;
+    std::cout << "% Wick's theorem for a pair-channel quartic term\n\\begin{align*}\n\t" << "\\langle" << pair_channel
+              << "\\rangle = " << pair_wicks << "\\end{align*}" << std::endl;
+    std::cout << "% Wick's theorem for $cc c^{\\dagger} c^{\\dagger}$\n\\begin{align*}\n\t" << "\\langle"
+              << annihilation_then_creation << "\\rangle = " << annihilation_then_creation_wicks << "\\end{align*}"
+              << std::endl;
+    std::cout << "% Wick's theorem for $c^{\\dagger} c c^{\\dagger} c$\n\\begin{align*}\n\t" << "\\langle"
+              << interleaved << "\\rangle = " << interleaved_wicks << "\\end{align*}" << std::endl;
 
     WickTerm density_exchange;
     density_exchange.multiplicity = -1;
-    density_exchange.delta_momenta.push_back({ p, k });
+    density_exchange.delta_momenta.push_back({p, k});
     density_exchange.operators.emplace_back(OperatorType::Number, false, k, Index::SpinUp);
     density_exchange.operators.emplace_back(OperatorType::Number, false, k, Index::SpinUp);
 
@@ -70,13 +60,13 @@ int main() {
 
     WickTerm pair_density;
     pair_density.multiplicity = 1;
-    pair_density.delta_momenta.push_back({ p, k });
+    pair_density.delta_momenta.push_back({p, k});
     pair_density.operators.emplace_back(OperatorType::Number, false, -k, Index::SpinDown);
     pair_density.operators.emplace_back(OperatorType::Number, false, k, Index::SpinUp);
 
     WickTerm reversed_pair_holes;
     reversed_pair_holes.multiplicity = -1;
-    reversed_pair_holes.delta_momenta.push_back({ p, k });
+    reversed_pair_holes.delta_momenta.push_back({p, k});
     reversed_pair_holes.operators.emplace_back(OperatorType::HoleNumber, false, -k, Index::SpinDown);
     reversed_pair_holes.operators.emplace_back(OperatorType::HoleNumber, false, k, Index::SpinUp);
 
@@ -87,7 +77,7 @@ int main() {
 
     WickTerm interleaved_density;
     interleaved_density.multiplicity = 1;
-    interleaved_density.delta_momenta.push_back({ p, k });
+    interleaved_density.delta_momenta.push_back({p, k});
     interleaved_density.operators.emplace_back(OperatorType::Number, false, k, Index::SpinUp);
     interleaved_density.operators.emplace_back(OperatorType::Number, false, k, Index::SpinUp);
 
@@ -96,10 +86,10 @@ int main() {
     interleaved_hole.operators.emplace_back(OperatorType::Number, false, k, Index::SpinUp);
     interleaved_hole.operators.emplace_back(OperatorType::HoleNumber, false, p, Index::SpinUp);
 
-    WickTermCollector expected_density_wicks{ density_exchange, density_direct };
-    WickTermCollector expected_pair_wicks{ pair_density, pair_condensate };
-    const WickTermCollector expected_annihilation_then_creation_wicks{ reversed_pair_holes, reversed_pair_sc };
-    const WickTermCollector expected_interleaved_wicks{ interleaved_density, interleaved_hole };
+    WickTermCollector expected_density_wicks{density_exchange, density_direct};
+    WickTermCollector expected_pair_wicks{pair_density, pair_condensate};
+    const WickTermCollector expected_annihilation_then_creation_wicks{reversed_pair_holes, reversed_pair_sc};
+    const WickTermCollector expected_interleaved_wicks{interleaved_density, interleaved_hole};
     if (density_wicks.terms != expected_density_wicks.terms || density_wicks[0].multiplicity != -1 ||
         density_wicks[1].multiplicity != 1 || pair_wicks.terms != expected_pair_wicks.terms ||
         pair_wicks[0].multiplicity != 1 || pair_wicks[1].multiplicity != 1 ||

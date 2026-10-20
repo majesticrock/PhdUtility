@@ -133,9 +133,7 @@ struct Fractional {
      * @param other The fraction to compare with.
      * @return True if both fractions represent the same rational number.
      */
-    constexpr bool operator==(const Fractional<_int>& other) const noexcept {
-        return (*this <=> other) == 0;
-    }
+    constexpr bool operator==(const Fractional<_int>& other) const noexcept { return (*this <=> other) == 0; }
 
     /**
      * @brief Three-way comparison with an integer.
@@ -143,7 +141,9 @@ struct Fractional {
      * @param other The integer to compare with.
      * @return Comparison result using the fraction's denominator.
      */
-    constexpr std::strong_ordering operator<=>(_int other) const noexcept { return this->numerator <=> (other * this->denominator); }
+    constexpr std::strong_ordering operator<=>(_int other) const noexcept {
+        return this->numerator <=> (other * this->denominator);
+    }
 
     /**
      * @brief Checks equality with an integer.

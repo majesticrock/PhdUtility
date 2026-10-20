@@ -1,7 +1,6 @@
-#include <mrock/symbolic_operators/IntMomentum.hpp>
-
 #include <Eigen/Sparse>
 #include <mrock/symbolic_operators/Commutation>
+#include <mrock/symbolic_operators/IntMomentum.hpp>
 
 #include <array>
 #include <cmath>
@@ -194,11 +193,13 @@ SparseMatrix get_matrix_eta() {
                 const int k_q = IntMomentum<L>(k) + IntMomentum<L>(q);
                 const int p_q = IntMomentum<L>(p) - IntMomentum<L>(q);
 
-                eta += (cosines[k_q] * cosines[p_q] + cosines[k] * cosines[q]) 
-                    * (cosines[k] + cosines[p] - cosines[k_q] - cosines[p_q]) *
+                eta +=
+                    (cosines[k_q] * cosines[p_q] + cosines[k] * cosines[q]) *
+                    (cosines[k] + cosines[p] - cosines[k_q] - cosines[p_q]) *
                     (product_string({k, p, p_q, k_q}, {0, 1, 1, 0}) + product_string({k, p, p_q, k_q}, {1, 0, 0, 1}));
-                eta += cosines[q] * (cosines[k_q] * cosines[p_q] + cosines[k] * cosines[q])
-                * cosines[k_q] * cosines[p_q] * (cosines[k] + cosines[p] - cosines[k_q] - cosines[p_q]) *
+                eta +=
+                    cosines[q] * (cosines[k_q] * cosines[p_q] + cosines[k] * cosines[q]) * cosines[k_q] * cosines[p_q] *
+                    (cosines[k] + cosines[p] - cosines[k_q] - cosines[p_q]) *
                     (product_string({k, p, p_q, k_q}, {0, 0, 0, 0}) + product_string({k, p, p_q, k_q}, {1, 1, 1, 1}));
             }
         }
@@ -214,7 +215,7 @@ SparseMatrix symbolic_to_matrix(const TermCollector& terms) {
         std::array<int, 256> index_values{};
 
         const auto evaluate_momentum = [&momentum_values](const Momentum& momentum) {
-            IntMomentum<L> value(momentum.add_PI ? 0 : L/2);
+            IntMomentum<L> value(momentum.add_PI ? 0 : L / 2);
             for (const auto& symbol : momentum.momentum_list) {
                 value += symbol.factor * momentum_values[static_cast<unsigned char>(symbol.name)];
             }
@@ -227,27 +228,25 @@ SparseMatrix symbolic_to_matrix(const TermCollector& terms) {
         const auto evaluate_coefficient = [&evaluate_momentum, &evaluate_index](const Coefficient& coefficient) {
             if (coefficient.name == "\\tilde{\\varepsilon}") {
                 return cosines[evaluate_momentum(coefficient.momenta.front())];
-            } 
+            }
 
-            double value = cosines[evaluate_momentum(coefficient.momenta[0] + coefficient.momenta[2])] *
-                           cosines[evaluate_momentum(coefficient.momenta[1] - coefficient.momenta[2])]
-                        + cosines[evaluate_momentum(coefficient.momenta[0])] *
-                          cosines[evaluate_momentum(coefficient.momenta[1])];
+            double value =
+                cosines[evaluate_momentum(coefficient.momenta[0] + coefficient.momenta[2])] *
+                    cosines[evaluate_momentum(coefficient.momenta[1] - coefficient.momenta[2])] +
+                cosines[evaluate_momentum(coefficient.momenta[0])] * cosines[evaluate_momentum(coefficient.momenta[1])];
             if (evaluate_index(coefficient.indices[0]) != evaluate_index(coefficient.indices[1])) {
                 value *= cosines[evaluate_momentum(coefficient.momenta[2])];
             }
 
             if (coefficient.name == "U") {
                 return value;
-                
-            } 
-            else if (coefficient.name == "\\alpha") {
+
+            } else if (coefficient.name == "\\alpha") {
                 value *= (cosines[evaluate_momentum(coefficient.momenta[0])] +
                           cosines[evaluate_momentum(coefficient.momenta[1])] -
                           cosines[evaluate_momentum(coefficient.momenta[0] + coefficient.momenta[2])] -
                           cosines[evaluate_momentum(coefficient.momenta[1] - coefficient.momenta[2])]);
-            } 
-            else {
+            } else {
                 throw std::runtime_error("No matrix representation for coefficient " + coefficient.name);
             }
             return value;

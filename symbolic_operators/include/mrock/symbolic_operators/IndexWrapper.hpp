@@ -64,14 +64,15 @@ enum class Index : index_base {
     char_z = 122,
     Parallel = 150,
     AntiParallel = 151,
-    /* The Anti-Indizes are meant for spin-1/2 systems; AntiSigma shall then mean the anti-parallel spin state to Sigma */
+    /* The Anti-Indizes are meant for spin-1/2 systems; AntiSigma shall then mean the anti-parallel spin state to Sigma
+     */
     AntiSigma = 200,
     AntiSigmaPrime = 201,
     /* Used as temporaries when evaluating products of normal-ordered operators */
     WickA = 251,
     WickB = 252,
     /* Designed as an internal placeholder. Should not be directly used */
-    PlaceHolderIndex = 253, 
+    PlaceHolderIndex = 253,
     UndefinedIndex = 254,
     NoIndex = 255
 };

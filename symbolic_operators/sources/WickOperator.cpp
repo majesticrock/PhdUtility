@@ -43,8 +43,7 @@ WickOperator::WickOperator(const std::string& expression) {
 
 Coefficient WickOperator::to_coefficient(const std::string& base) const {
     const auto type_name = wick_to_string.at(this->type);
-    Coefficient result(base + "_{(" + type_name + ")}", this->momentum, this->indices, false, false,
-                      this->is_daggered);
+    Coefficient result(base + "_{(" + type_name + ")}", this->momentum, this->indices, false, false, this->is_daggered);
     result.custom_symmetry = std::nullopt;
     result.is_real = false;
     result.is_symmetrized_interaction = false;
@@ -57,7 +56,8 @@ WickOperator WickOperator::from_coefficient(const Coefficient& coeff, const std:
     }
 
     const auto match_suffix = [&](const std::string& suffix) {
-        if (coeff.name.size() < suffix.size() || coeff.name.compare(coeff.name.size() - suffix.size(), suffix.size(), suffix) != 0) {
+        if (coeff.name.size() < suffix.size() ||
+            coeff.name.compare(coeff.name.size() - suffix.size(), suffix.size(), suffix) != 0) {
             return false;
         }
         return coeff.name.substr(0U, coeff.name.size() - suffix.size()) == base;

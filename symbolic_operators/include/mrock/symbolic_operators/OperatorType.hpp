@@ -38,25 +38,21 @@ constexpr bool is_bcs_like(OperatorType type) {
  * @var string_to_wick
  * @brief A map that associates string representations with their corresponding Wick operators values.
  */
-inline const std::map<std::string, OperatorType> string_to_wick = {
-    {"n", OperatorType::Number},
-    {"g", OperatorType::CDW},
-    {"f", OperatorType::SC},
-    {"\\eta", OperatorType::Eta},
-    {"h", OperatorType::HoleNumber}
-};
+inline const std::map<std::string, OperatorType> string_to_wick = {{"n", OperatorType::Number},
+                                                                   {"g", OperatorType::CDW},
+                                                                   {"f", OperatorType::SC},
+                                                                   {"\\eta", OperatorType::Eta},
+                                                                   {"h", OperatorType::HoleNumber}};
 
 /**
  * @var wick_to_string
  * @brief The inverse of string_to_wick.
  */
-inline const std::map<OperatorType, std::string> wick_to_string = {
-    {OperatorType::Number, "n"},
-    {OperatorType::CDW, "g"},
-    {OperatorType::SC, "f"},
-    {OperatorType::Eta, "\\eta"},
-    {OperatorType::HoleNumber, "h"}
-};
+inline const std::map<OperatorType, std::string> wick_to_string = {{OperatorType::Number, "n"},
+                                                                   {OperatorType::CDW, "g"},
+                                                                   {OperatorType::SC, "f"},
+                                                                   {OperatorType::Eta, "\\eta"},
+                                                                   {OperatorType::HoleNumber, "h"}};
 
 /**
  * @brief Overloads the stream insertion operator for the Index enum.

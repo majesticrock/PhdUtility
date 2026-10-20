@@ -143,8 +143,8 @@ WickTermCollector identify_wick_operators(const WickTerm& source,
 }
 
 WickTermCollector wicks_theorem(const TermCollector& terms,
-                    const std::vector<WickOperatorTemplate>& operator_templates,
-                    const bool run_clean_up) {
+                                const std::vector<WickOperatorTemplate>& operator_templates,
+                                const bool run_clean_up) {
     WickTermCollector prepared_wick = prepare_wick(terms);
 
     WickTermCollector ret;

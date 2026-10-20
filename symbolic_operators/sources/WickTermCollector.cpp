@@ -28,9 +28,8 @@ void WickTermCollector::clear_etas() {
     }
 }
 
-void WickTermCollector::clean_up(
-    const std::vector<std::unique_ptr<WickSymmetry>>& symmetries,
-    const int trivial_spin_summation_factor) {
+void WickTermCollector::clean_up(const std::vector<std::unique_ptr<WickSymmetry>>& symmetries,
+                                 const int trivial_spin_summation_factor) {
     for (auto& term : terms) {
         for (std::vector<Coefficient>::iterator it = term.coefficients.begin(); it != term.coefficients.end();) {
             if (it->name == "") {
@@ -149,8 +148,7 @@ std::ostream& operator<<(std::ostream& os, const WickTermCollector& terms) {
     for (WickTermCollector::const_iterator it = terms.begin(); it != terms.end(); ++it) {
         if (terms.size() == 1U) {
             os << "\t";
-        }
-        else {
+        } else {
             os << "\t&";
         }
         os << *it;

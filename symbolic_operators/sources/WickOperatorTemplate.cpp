@@ -63,8 +63,7 @@ TemplateResult WickOperatorTemplate::_handle_sc_type(const Operator& left, const
                                       previous_size);
             result.operation_on_range([&other](TemplateResult::SingleResult& res) { res.op.momentum = other.momentum; },
                                       previous_size, previous_size);
-        } 
-        else {
+        } else {
             const std::size_t previous_size{result.create_branch()};
             result.add_index_delta_range(make_delta(base.indices[i], indexComparison[i].base), 0U, previous_size);
             result.add_index_delta_range(make_delta(other.indices[i], indexComparison[i].other), 0U, previous_size);
@@ -95,7 +94,8 @@ TemplateResult WickOperatorTemplate::_handle_num_type(const Operator& left, cons
     const Momentum momentum_diff = other.momentum - base.momentum;
 
     // Takes care of c_k c_k^+ = 1 - n_k
-    const OperatorType saved_type = (swap_required && this->type == OperatorType::Number) ? OperatorType::HoleNumber : this->type;
+    const OperatorType saved_type =
+        (swap_required && this->type == OperatorType::Number) ? OperatorType::HoleNumber : this->type;
     TemplateResult result(1U, saved_type, base.momentum);
     result.results.front().op.is_daggered = false;
     result.momentum_delta = make_delta(this->momentum_difference, momentum_diff);
@@ -103,23 +103,20 @@ TemplateResult WickOperatorTemplate::_handle_num_type(const Operator& left, cons
     for (std::size_t i = 0U; i < indexComparison.size(); ++i) {
         if (indexComparison[i].any_identical) {
             result.add_index_delta(make_delta(base.indices[i], other.indices[i]));
-            result.operation_on_each(
-                [&](TemplateResult::SingleResult& res) { 
-                    res.op.indices.push_back(base.indices[i]);
-                    if (swap_required && saved_type != OperatorType::HoleNumber)
-                        res.factor *= -1;
-                });
-        } 
-        else {
+            result.operation_on_each([&](TemplateResult::SingleResult& res) {
+                res.op.indices.push_back(base.indices[i]);
+                if (swap_required && saved_type != OperatorType::HoleNumber)
+                    res.factor *= -1;
+            });
+        } else {
             result.add_index_delta(make_delta(base.indices[i], indexComparison[i].base));
             result.add_index_delta(make_delta(other.indices[i], indexComparison[i].other));
 
-            result.operation_on_each(
-                [&](TemplateResult::SingleResult& res) { 
-                    res.op.indices.push_back(base.indices[i]);
-                    if (swap_required && saved_type != OperatorType::HoleNumber)
-                        res.factor *= -1;
-                });
+            result.operation_on_each([&](TemplateResult::SingleResult& res) {
+                res.op.indices.push_back(base.indices[i]);
+                if (swap_required && saved_type != OperatorType::HoleNumber)
+                    res.factor *= -1;
+            });
         }
     }
     for (auto& res : result.results) {
@@ -141,7 +138,7 @@ TemplateResult WickOperatorTemplate::create_from_operators(const Operator& left,
         return TemplateResult::null_result();
     // The input needs to be normal ordered.
     // This means that the left input must be daggered here
-    //assert(left.is_daggered);
+    // assert(left.is_daggered);
     return this->_handle_num_type(left, right);
 }
 }  // namespace mrock::symbolic_operators

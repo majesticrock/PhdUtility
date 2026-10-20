@@ -9,6 +9,7 @@
 #include "WickOperatorTemplate.hpp"
 #include "WickSymmetry.hpp"
 #include "WickTermCollector.hpp"
+
 #include <vector>
 
 namespace mrock::symbolic_operators {
@@ -31,7 +32,7 @@ WickTermCollector identify_wick_operators(const WickTerm& source,
  * @return WickTermCollector The resulting terms of bilinear expectation values
  */
 WickTermCollector wicks_theorem(const TermCollector& terms,
-                    const std::vector<WickOperatorTemplate>& operator_templates,
-                    const bool run_clean_up = false);
+                                const std::vector<WickOperatorTemplate>& operator_templates,
+                                const bool run_clean_up = false);
 }  // namespace mrock::symbolic_operators
 #endif  // MROCK_SYMBOLIC_OPERATORS_INCLUDE_MROCK_SYMBOLIC_OPERATORS_WICK_HPP

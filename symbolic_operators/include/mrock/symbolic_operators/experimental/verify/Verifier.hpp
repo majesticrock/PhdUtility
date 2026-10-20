@@ -1,10 +1,9 @@
 #pragma once
 
+#include <Eigen/Sparse>
+#include <mrock/symbolic_operators/Commutation>
 #include <mrock/symbolic_operators/IntMomentum.hpp>
 #include <mrock/symbolic_operators/experimental/WickOrderedCollector.hpp>
-
-#include <mrock/symbolic_operators/Commutation>
-#include <Eigen/Sparse>
 
 #include <array>
 #include <cassert>
@@ -14,8 +13,7 @@
 #include <stdexcept>
 #include <vector>
 
-namespace mrock::symbolic_operators::experimental::verify
-{
+namespace mrock::symbolic_operators::experimental::verify {
 constexpr int L = 4;
 constexpr int matrix_size = 1 << (2 * L);
 
@@ -50,7 +48,8 @@ public:
     SparseMatrix symbolic_to_matrix(const mrock::symbolic_operators::experimental::WickOrderedCollector& terms) const;
 
     bool is_particle_hole_invariant(const mrock::symbolic_operators::TermCollector& terms, const char* name) const;
-    bool is_particle_hole_invariant(const mrock::symbolic_operators::experimental::WickOrderedCollector& terms, const char* name) const;
+    bool is_particle_hole_invariant(const mrock::symbolic_operators::experimental::WickOrderedCollector& terms,
+                                    const char* name) const;
 
     // Computes (lhs - rhs).norm() and checks whether it is smaller than 1e-12
     bool matrices_equal(const SparseMatrix& lhs, const SparseMatrix& rhs) const;
@@ -64,10 +63,15 @@ public:
     // and after are identical. If so, this function returns true.
     // If not, it prints debug information and returns false.
     // Saves the resulting matrix representation to save_matrix
-    bool operator()(const mrock::symbolic_operators::TermCollector& expression, const char* name, bool hermitian, SparseMatrix& save_matrix) const;
+    bool operator()(const mrock::symbolic_operators::TermCollector& expression,
+                    const char* name,
+                    bool hermitian,
+                    SparseMatrix& save_matrix) const;
 
     // Compares the matrix representation against compare
-    bool operator()(const mrock::symbolic_operators::experimental::WickOrderedCollector& expression, const char* name, const SparseMatrix compare) const;
+    bool operator()(const mrock::symbolic_operators::experimental::WickOrderedCollector& expression,
+                    const char* name,
+                    const SparseMatrix compare) const;
 
 private:
     mutable std::array<IntMomentum<L>, 256> momenta{};
@@ -89,9 +93,9 @@ private:
 
 // Template defintion
 template <class CollectorType>
-Verifier::SparseMatrix Verifier::symbolic_to_matrix_impl(const CollectorType& terms) const
-{
-    constexpr bool is_wick = std::is_same_v<CollectorType, mrock::symbolic_operators::experimental::WickOrderedCollector>;
+Verifier::SparseMatrix Verifier::symbolic_to_matrix_impl(const CollectorType& terms) const {
+    constexpr bool is_wick =
+        std::is_same_v<CollectorType, mrock::symbolic_operators::experimental::WickOrderedCollector>;
     assert(occupations.size() == (std::size_t)L);
 
     SparseMatrix result(matrix_size, matrix_size);
@@ -102,7 +106,7 @@ Verifier::SparseMatrix Verifier::symbolic_to_matrix_impl(const CollectorType& te
         indices[static_cast<unsigned char>(Index::SpinDown)] = 1;
 
         std::function<void(std::size_t)> assign_spins;
-    
+
         const auto evaluate = [&]() {
             for (const auto& delta : term.delta_momenta) {
                 if (momentum_lookup(delta.first) != momentum_lookup(delta.second)) {
@@ -119,35 +123,30 @@ Verifier::SparseMatrix Verifier::symbolic_to_matrix_impl(const CollectorType& te
             for (const auto& coefficient : term.coefficients) {
                 prefactor *= coefficient_value(coefficient);
             }
-        
+
             if constexpr (is_wick) {
                 for (const auto& expec : term.operators) {
                     if (expec.type == mrock::symbolic_operators::OperatorType::Number) {
                         prefactor *= occupations[momentum_lookup(expec.momentum)];
-                    }
-                    else if (expec.type == mrock::symbolic_operators::OperatorType::HoleNumber) {
+                    } else if (expec.type == mrock::symbolic_operators::OperatorType::HoleNumber) {
                         prefactor *= (1. - occupations[momentum_lookup(expec.momentum)]);
-                    }
-                    else {
+                    } else {
                         throw std::runtime_error("Expected only Number- or HoleNumber-type expectation values!");
                     }
-                    
                 }
             }
-        
+
             std::vector<int> modes;
             std::vector<bool> creation;
-        
-            const std::vector<mrock::symbolic_operators::Operator>& symbolic_operator_string 
-                = ([&]() -> const std::vector<mrock::symbolic_operators::Operator>& 
-            { 
-                if constexpr (is_wick) {
-                    return term.wick_expression.operators;
-                }
-                else {
-                    return term.operators;
-                }
-            } )();
+
+            const std::vector<mrock::symbolic_operators::Operator>& symbolic_operator_string =
+                ([&]() -> const std::vector<mrock::symbolic_operators::Operator>& {
+                    if constexpr (is_wick) {
+                        return term.wick_expression.operators;
+                    } else {
+                        return term.operators;
+                    }
+                })();
             for (const auto& op : symbolic_operator_string) {
                 const int spin = indices[index_lookup(op.first_index())];
 
@@ -157,13 +156,12 @@ Verifier::SparseMatrix Verifier::symbolic_to_matrix_impl(const CollectorType& te
             if (prefactor != 0.) {
                 if constexpr (is_wick) {
                     result += prefactor * normal_ordered_operator_string(modes, creation);
-                }
-                else {
+                } else {
                     result += prefactor * operator_string(modes, creation);
                 }
             }
         };
-    
+
         assign_spins = [&](std::size_t n) {
             if (n == term.sums.spins.size()) {
                 evaluate();
@@ -174,7 +172,7 @@ Verifier::SparseMatrix Verifier::symbolic_to_matrix_impl(const CollectorType& te
             indices[static_cast<unsigned char>(term.sums.spins[n])] = 1;
             assign_spins(n + 1);
         };
-    
+
         std::function<void(std::size_t)> assign_momenta;
         assign_momenta = [&](std::size_t n) {
             if (n == term.sums.momenta.size()) {
@@ -187,10 +185,10 @@ Verifier::SparseMatrix Verifier::symbolic_to_matrix_impl(const CollectorType& te
                 assign_momenta(n + 1);
             }
         };
-    
+
         assign_momenta(0);
     }
     return result;
 }
 
-} // namespace mrock::symbolic_operators::experimental::verify
+}  // namespace mrock::symbolic_operators::experimental::verify

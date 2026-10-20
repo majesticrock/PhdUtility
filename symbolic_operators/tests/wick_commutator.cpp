@@ -1,8 +1,7 @@
-#include <mrock/symbolic_operators/experimental/WickOrderedCollector.hpp>
-#include <mrock/symbolic_operators/experimental/verify/Verifier.hpp>
-
 #include <mrock/symbolic_operators/Operator.hpp>
 #include <mrock/symbolic_operators/Term.hpp>
+#include <mrock/symbolic_operators/experimental/WickOrderedCollector.hpp>
+#include <mrock/symbolic_operators/experimental/verify/Verifier.hpp>
 
 #include <array>
 #include <iostream>
@@ -21,15 +20,14 @@ void print_commutator(const LhsType& lhs, const RhsType& rhs, const WickOrderedC
 WickOrderedTerm make_bilinear(const Momentum& creation_momentum, const Momentum& annihilation_momentum) {
     WickOrderedTerm result;
     result.multiplicity = 1;
-    result.wick_expression.operators = {
-        Operator(creation_momentum, Index::SpinUp, true),
-        Operator(annihilation_momentum, Index::SpinUp, false)};
+    result.wick_expression.operators = {Operator(creation_momentum, Index::SpinUp, true),
+                                        Operator(annihilation_momentum, Index::SpinUp, false)};
     return result;
 }
 
 WickOrderedTerm make_expectation_bilinear(const Momentum& expectation_momentum,
-                                         const Momentum& creation_momentum,
-                                         const Momentum& annihilation_momentum) {
+                                          const Momentum& creation_momentum,
+                                          const Momentum& annihilation_momentum) {
     WickOrderedTerm result = make_bilinear(creation_momentum, annihilation_momentum);
     result.operators.emplace_back(OperatorType::Number, false, expectation_momentum, Index::SpinUp);
     return result;
@@ -40,10 +38,8 @@ WickOrderedTerm make_summed_quartic(const Momentum& creation_momentum, const Mom
     result.multiplicity = 1;
     const Momentum summed_momentum('K');
     result.wick_expression.operators = {
-        Operator(creation_momentum, Index::SpinUp, true),
-        Operator(summed_momentum, Index::SpinDown, true),
-        Operator(summed_momentum, Index::SpinDown, false),
-        Operator(annihilation_momentum, Index::SpinUp, false)};
+        Operator(creation_momentum, Index::SpinUp, true), Operator(summed_momentum, Index::SpinDown, true),
+        Operator(summed_momentum, Index::SpinDown, false), Operator(annihilation_momentum, Index::SpinUp, false)};
     result.sums = SumContainer{MomentumSum{'K'}, IndexSum{}};
     return result;
 }
@@ -54,10 +50,9 @@ bool verify_commutator(const WickOrderedTerm& lhs,
                        const Verifier& verifier) {
     const WickOrderedCollector lhs_collector{lhs};
     const WickOrderedCollector rhs_collector{rhs};
-    const Verifier::SparseMatrix expected = verifier.symbolic_to_matrix(lhs_collector) *
-                                            verifier.symbolic_to_matrix(rhs_collector) -
-                                            verifier.symbolic_to_matrix(rhs_collector) *
-                                            verifier.symbolic_to_matrix(lhs_collector);
+    const Verifier::SparseMatrix expected =
+        verifier.symbolic_to_matrix(lhs_collector) * verifier.symbolic_to_matrix(rhs_collector) -
+        verifier.symbolic_to_matrix(rhs_collector) * verifier.symbolic_to_matrix(lhs_collector);
 
     WickOrderedCollector result = commutator(lhs, rhs, verifier.templates);
     clean_wick_ordered_terms(result, verifier.symmetries);
@@ -101,14 +96,16 @@ int main() {
     WickOrderedTerm hole_number_expectation;
     hole_number_expectation.multiplicity = 1;
     hole_number_expectation.operators.emplace_back(OperatorType::HoleNumber, false, k, Index::SpinUp);
-    const auto number_matrix = fractional_occupation_verifier.symbolic_to_matrix(WickOrderedCollector{number_expectation});
-    const auto hole_number_matrix = fractional_occupation_verifier.symbolic_to_matrix(WickOrderedCollector{hole_number_expectation});
-    if (!fractional_occupation_verifier.matrices_equal(
-            hole_number_matrix, fractional_occupation_verifier.identity - number_matrix)) {
+    const auto number_matrix =
+        fractional_occupation_verifier.symbolic_to_matrix(WickOrderedCollector{number_expectation});
+    const auto hole_number_matrix =
+        fractional_occupation_verifier.symbolic_to_matrix(WickOrderedCollector{hole_number_expectation});
+    if (!fractional_occupation_verifier.matrices_equal(hole_number_matrix,
+                                                       fractional_occupation_verifier.identity - number_matrix)) {
         std::cerr << "HoleNumber expectation did not evaluate to 1 - Number expectation: difference norm = "
                   << (hole_number_matrix - (fractional_occupation_verifier.identity - number_matrix)).norm()
-                  << ", number = " << number_matrix.coeff(0, 0)
-                  << ", hole number = " << hole_number_matrix.coeff(0, 0) << '\n';
+                  << ", number = " << number_matrix.coeff(0, 0) << ", hole number = " << hole_number_matrix.coeff(0, 0)
+                  << '\n';
         return 1;
     }
 
@@ -121,15 +118,15 @@ int main() {
     if (!verify_commutator(hop_kp, hop_pk, "[c_k^dagger c_p, c_p^dagger c_k]", verifier)) {
         return 1;
     }
-    if (!verify_commutator(occupation_hop_kp, hop_pk,
-                           "[<n_k> :c_k^dagger c_p:, c_p^dagger c_k]", verifier)) {
+    if (!verify_commutator(occupation_hop_kp, hop_pk, "[<n_k> :c_k^dagger c_p:, c_p^dagger c_k]", verifier)) {
         return 1;
     }
-    if (!verify_commutator(occupation_hop_kp, occupation_hop_pk,
-                           "[<n_k> :c_k^dagger c_p:, <n_p> :c_p^dagger c_k:]", verifier)) {
+    if (!verify_commutator(occupation_hop_kp, occupation_hop_pk, "[<n_k> :c_k^dagger c_p:, <n_p> :c_p^dagger c_k:]",
+                           verifier)) {
         return 1;
     }
-    if (!verify_commutator(number_k, summed_quartic_kp, "[n_k, sum_p c_k^dagger c_p^dagger_down c_p_down c_q]", verifier)) {
+    if (!verify_commutator(number_k, summed_quartic_kp, "[n_k, sum_p c_k^dagger c_p^dagger_down c_p_down c_q]",
+                           verifier)) {
         return 1;
     }
     if (!verify_commutator(summed_quartic_kp, summed_quartic_pk,

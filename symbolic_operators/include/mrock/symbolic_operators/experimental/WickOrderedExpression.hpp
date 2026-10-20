@@ -1,10 +1,10 @@
 #pragma once
 
-#include <mrock/symbolic_operators/detail/vector_macro.hpp>
 #include <mrock/symbolic_operators/Operator.hpp>
+#include <mrock/symbolic_operators/detail/vector_macro.hpp>
 
-#include <vector>
 #include <iosfwd>
+#include <vector>
 
 namespace mrock::symbolic_operators::experimental {
 
@@ -42,4 +42,4 @@ bool operator==(const WickOrderedExpression& lhs, const WickOrderedExpression& r
  */
 bool operator!=(const WickOrderedExpression& lhs, const WickOrderedExpression& rhs);
 
-} // namespace mrock::symbolic_operators::experimental
+}  // namespace mrock::symbolic_operators::experimental

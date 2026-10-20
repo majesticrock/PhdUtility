@@ -1,6 +1,6 @@
-#include <mrock/symbolic_operators/detail/OperatorOrder.hpp>
 #include <mrock/symbolic_operators/Operator.hpp>
 #include <mrock/symbolic_operators/Term.hpp>
+#include <mrock/symbolic_operators/detail/OperatorOrder.hpp>
 
 #include <algorithm>
 #include <cstddef>
@@ -22,8 +22,7 @@ bool _perform_operator_swap(std::vector<Operator>& operators, std::size_t i, std
     return parity;
 }
 
-bool sort_operators_by_indices(std::vector<Operator>& operators)
-{
+bool sort_operators_by_indices(std::vector<Operator>& operators) {
     auto general_swap_predicate = [&operators](const std::size_t& i, const std::size_t& index_pos) {
         if (operators[i - 1].is_daggered) {
             if (operators[i - 1].indices.front() == Index::SpinUp)
@@ -88,8 +87,7 @@ bool sort_operators_by_indices(std::vector<Operator>& operators)
     return parity;
 }
 
-void structure_momentum_dependencies(Term& term)
-{
+void structure_momentum_dependencies(Term& term) {
     detail::structure_momentum_dependencies_impl(term, term.operators);
 }
 

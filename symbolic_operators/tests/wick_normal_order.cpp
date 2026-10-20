@@ -28,7 +28,7 @@ double momentum_value(const Momentum& momentum, const NumericState& state) {
 }
 
 double number_value(const WickOperator& op, const NumericState& state) {
-    return state.number_values.at({ momentum_value(op.momentum, state), op.indices[0] });
+    return state.number_values.at({momentum_value(op.momentum, state), op.indices[0]});
 }
 
 double expectation_value(const WickOperator& op, const NumericState& state) {
@@ -76,27 +76,23 @@ WickTermCollector normal_order_then_wick(const TermCollector& terms,
 }  // namespace
 
 int main() {
-    const std::vector<WickOperatorTemplate> templates({
-        WickOperatorTemplate{{ Num_Comparison }, Momentum(), OperatorType::Number},
-        WickOperatorTemplate{{ SC_Comparison }, Momentum(), OperatorType::SC}
-    });
+    const std::vector<WickOperatorTemplate> templates(
+        {WickOperatorTemplate{{Num_Comparison}, Momentum(), OperatorType::Number},
+         WickOperatorTemplate{{SC_Comparison}, Momentum(), OperatorType::SC}});
 
     const Momentum k('k');
     const Momentum p('p');
-    const Operator c_k{ k, Index::SpinUp, false };
-    const Operator c_minus_k{ -k, Index::SpinDown, false };
-    const Operator c_p{ p, Index::SpinUp, false };
-    const Operator c_minus_p{ -p, Index::SpinDown, false };
-    const Operator c_k_dagger{ k, Index::SpinUp, true };
-    const Operator c_p_dagger{ p, Index::SpinUp, true };
-    const Operator c_minus_p_dagger{ -p, Index::SpinDown, true };
+    const Operator c_k{k, Index::SpinUp, false};
+    const Operator c_minus_k{-k, Index::SpinDown, false};
+    const Operator c_p{p, Index::SpinUp, false};
+    const Operator c_minus_p{-p, Index::SpinDown, false};
+    const Operator c_k_dagger{k, Index::SpinUp, true};
+    const Operator c_p_dagger{p, Index::SpinUp, true};
+    const Operator c_minus_p_dagger{-p, Index::SpinDown, true};
 
-    const TermCollector annihilation_then_creation({
-        Term(1, std::vector<Operator>{ c_minus_k, c_k, c_minus_p_dagger, c_p_dagger })
-    });
-    const TermCollector interleaved({
-        Term(1, std::vector<Operator>{ c_k_dagger, c_p, c_p_dagger, c_k })
-    });
+    const TermCollector annihilation_then_creation(
+        {Term(1, std::vector<Operator>{c_minus_k, c_k, c_minus_p_dagger, c_p_dagger})});
+    const TermCollector interleaved({Term(1, std::vector<Operator>{c_k_dagger, c_p, c_p_dagger, c_k})});
 
     const auto annihilation_direct = wicks_theorem(annihilation_then_creation, templates, true);
     const auto annihilation_normal_ordered = normal_order_then_wick(annihilation_then_creation, templates);
@@ -104,15 +100,10 @@ int main() {
     const auto interleaved_normal_ordered = normal_order_then_wick(interleaved, templates);
 
     NumericState equal_momenta{
-        { { 'k', 1.0 }, { 'p', 1.0 } },
-        { { { 1.0, Index::SpinUp }, 0.2 }, { { -1.0, Index::SpinDown }, 0.4 } },
-        { { 1.0, 0.3 } }
-    };
-    NumericState distinct_momenta{
-        { { 'k', 1.0 }, { 'p', 2.0 } },
-        { { { 1.0, Index::SpinUp }, 0.2 }, { { 2.0, Index::SpinUp }, 0.35 } },
-        { { 1.0, 0.3 }, { 2.0, 0.25 } }
-    };
+        {{'k', 1.0}, {'p', 1.0}}, {{{1.0, Index::SpinUp}, 0.2}, {{-1.0, Index::SpinDown}, 0.4}}, {{1.0, 0.3}}};
+    NumericState distinct_momenta{{{'k', 1.0}, {'p', 2.0}},
+                                  {{{1.0, Index::SpinUp}, 0.2}, {{2.0, Index::SpinUp}, 0.35}},
+                                  {{1.0, 0.3}, {2.0, 0.25}}};
 
     const double annihilation_direct_value = evaluate(annihilation_direct, equal_momenta);
     const double annihilation_normal_ordered_value = evaluate(annihilation_normal_ordered, equal_momenta);
@@ -120,12 +111,12 @@ int main() {
     const double interleaved_normal_ordered_value = evaluate(interleaved_normal_ordered, distinct_momenta);
 
     std::cout << "\\begin{align*}\n"
-              << "\\langle cc c^{\\dagger} c^{\\dagger} \\rangle_{\\mathrm{direct}} &= "
-              << annihilation_direct_value << " \\\\\n"
+              << "\\langle cc c^{\\dagger} c^{\\dagger} \\rangle_{\\mathrm{direct}} &= " << annihilation_direct_value
+              << " \\\\\n"
               << "\\langle cc c^{\\dagger} c^{\\dagger} \\rangle_{\\mathrm{normal\\ order\\ first}} &= "
               << annihilation_normal_ordered_value << " \\\\\n"
-              << "\\langle c^{\\dagger} c c^{\\dagger} c \\rangle_{\\mathrm{direct}} &= "
-              << interleaved_direct_value << " \\\\\n"
+              << "\\langle c^{\\dagger} c c^{\\dagger} c \\rangle_{\\mathrm{direct}} &= " << interleaved_direct_value
+              << " \\\\\n"
               << "\\langle c^{\\dagger} c c^{\\dagger} c \\rangle_{\\mathrm{normal\\ order\\ first}} &= "
               << interleaved_normal_ordered_value << "\n\\end{align*}" << std::endl;
 
