@@ -446,7 +446,7 @@ def lattice_cut_params(N, g, U, E_F, omega_D):
                 "omega_D" : _float_or_str (omega_D)
             }
 
-def nickel_cut_params(L, T, U_0, tprime, E_F, **kwargs):
+def nickel_cut_params(L, T, U_0, tprime, filling, **kwargs):
     """Create a parameter dictionary for a lattice-cut calculation.
 
     Parameters
@@ -459,8 +459,8 @@ def nickel_cut_params(L, T, U_0, tprime, E_F, **kwargs):
         Hubbard interaction strength.
     tprime : float-like or str
         Next-nearest-neighbor hopping constant.
-    E_F : float-like or str
-        Fermi energy.
+    filling : float-like or str
+        Target filling, including both spin species.
 
     Returns
     -------
@@ -472,7 +472,7 @@ def nickel_cut_params(L, T, U_0, tprime, E_F, **kwargs):
                 "T" : _float_or_str (T),
                 "U_0" : _float_or_str(U_0),
                 "tprime" : _float_or_str(tprime),
-                "E_F" : _float_or_str(E_F)
+                "filling" : _float_or_str(filling)
             }
 
 def dwave_params(N, g, V, E_F, omega_D):
